@@ -151,12 +151,11 @@
       position: absolute;
       top: 0;
       left: 0;
-      right: 0;
-      bottom: 0;
-      background-size: 100% 100%;
-      background-repeat: no-repeat;
+      width: 100%;
+      height: 100%;
       pointer-events: none;
       border-radius: 10px;
+      object-fit: cover;
     }
 
     .skill-header {
@@ -484,14 +483,17 @@
         content.className = "skill-content";
 
         // Create border overlay
-        const borderOverlay = document.createElement("div");
+        const borderOverlay = document.createElement("img");
         borderOverlay.className = "skill-border-overlay";
-        borderOverlay.style.backgroundImage = `url('images/${border}_skill_border.png')`;
+        borderOverlay.src = `images/${border}_skill_border.png`;
         
         // Hide broken image, no alt text needed since it's decorative
         borderOverlay.onerror = function() {
           this.style.display = 'none';
         };
+        
+        // No alt text since it's purely decorative
+        borderOverlay.alt = "";
 
         const headerSection = document.createElement("div");
         headerSection.className = "skill-header";
