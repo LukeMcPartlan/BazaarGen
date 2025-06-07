@@ -139,20 +139,15 @@
     }
 
     .skill-border-overlay {
-      border: 3px solid gold;
-      padding: 5px;
-      margin-right: 20px;
-      border-radius: 50%;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100px;
-      width: 100px;
-      flex-shrink: 0;
-      background: rgb(74, 60, 46);
-      position: relative;
-       pointer-events: none;
+      position: absolute !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      width: 75px !important;
+      height: 75px !important;
+      max-width: 75px !important;
+      max-height: 75px !important;
+      pointer-events: none;
       object-fit: cover;
       z-index: 999;
       border: 2px solid blue;
