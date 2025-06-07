@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bazzar Card Generator</title>
+  <title>Bazzar Skills Generator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -96,24 +96,6 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
-    .form-button.secondary {
-      background: linear-gradient(135deg, rgb(101, 84, 63) 0%, rgb(74, 60, 46) 100%);
-      color: rgb(251, 225, 183);
-      border: 2px solid rgb(251, 225, 183);
-    }
-
-    .form-button.secondary:hover {
-      background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(101, 84, 63) 100%);
-    }
-
-    .on-use-effects {
-      background: rgba(37, 26, 12, 0.5);
-      border: 1px solid rgb(74, 60, 46);
-      border-radius: 8px;
-      padding: 15px;
-      margin-top: 10px;
-    }
-
     .button-group {
       display: flex;
       gap: 15px;
@@ -121,7 +103,7 @@
       margin-top: 25px;
     }
 
-    .card {
+    .skill-card {
       display: flex;
       align-items: flex-start;
       background-color: rgb(101, 84, 63);
@@ -132,137 +114,74 @@
       position: relative;
     }
 
-    .image-container {
+    .skill-image-container {
       border: 3px solid gold;
       padding: 5px;
       margin-right: 20px;
-      border-radius: 10px;
+      border-radius: 50%;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      height: auto;
-      width: auto;
+      height: 75px;
+      width: 75px;
       flex-shrink: 0;
       background: rgb(74, 60, 46);
     }
 
-    .image-container img {
+    .skill-image-container img {
       height: 100%;
-      width: auto;
+      width: 100%;
       display: block;
       object-fit: cover;
       object-position: center;
     }
 
-    .card-content {
+    .skill-content {
       position: relative;
       display: flex;
       flex-direction: column;
-      border: 3px solid gold;
       border-radius: 10px;
-      max-width: 400px;
       min-width: 300px;
       width: fit-content;
       background: radial-gradient(ellipse at center, rgb(60, 45, 30) 0%, rgb(45, 35, 22) 40%, rgb(25, 18, 10) 100%);
     }
 
-    .text-section {
+    .skill-border-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-size: 100% 100%;
+      background-repeat: no-repeat;
+      pointer-events: none;
+      border-radius: 10px;
+    }
+
+    .skill-header {
       border-top: 2px solid gold;
       border-bottom: 2px solid gold;
-      padding: 10px;
+      padding: 15px;
       color: rgb(251, 225, 183);
       text-shadow: 1px 1px 2px black;
       font-family: Impact, 'Arial Black', 'Franklin Gothic Bold', Arial, sans-serif;
+      text-align: left;
     }
 
-    .hero-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
-    }
-
-    .item-title {
+    .skill-title {
       font-size: 2em;
+      margin: 0;
     }
 
-    .hero-header img {
-      max-width: 40px;
-      height: auto;
-      border-radius: 5px;
-      margin-left: 10px;
-    }
-
-    .on-use-line {
-      display: flex;
-      align-items: center;
-      margin-bottom: 4px;
-      margin-left: 40px;
-    }
-
-    .on-use-section {
-      padding-left: 20px;
-    }
-
-    .on-use-line img {
-      width: 16px;
-      height: 16px;
-      margin-right: 8px;
-    }
-
-    .cooldown-section {
-      left: -30px;
-      border-radius: 50%;
-      border: 3px solid rgb(52, 45, 68);
-      width: 50px;
-      height: 50px;
-      padding: 0;
-      font-size: 1.4em;
-      line-height: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      background-color: #222;
-      position: absolute;
-      z-index: 1;
-    }
-
-    .cooldown-section span {
-      display: block;
-    }
-
-    .cooldown-section .sec-text {
-      font-size: 0.6em;
-      color: rgb(217, 149, 81);
-    }
-
-    .ammo-section {
-      right: -30px;
-      border-radius: 10px;
-      border: 3px solid silver;
-      padding: 5px 10px;
-      font-size: 0.9em;
-      height: auto;
-      width: auto;
-      position: absolute;
-      z-index: 1;
-      background-color: rgb(37, 26, 12);
-      color: rgb(254, 142, 0);
-      font-weight: bold;
-      font-family: Impact, 'Arial Black', 'Franklin Gothic Bold', Arial, sans-serif;
+    .skill-effect {
+      border-top: 2px solid gold;
+      border-bottom: 2px solid gold;
+      padding: 15px;
+      color: rgb(251, 225, 183);
       text-shadow: 1px 1px 2px black;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-    }
-
-    .ammo-section img {
-      width: 20px;
-      height: 20px;
+      font-family: Impact, 'Arial Black', 'Franklin Gothic Bold', Arial, sans-serif;
+      line-height: 1.4;
     }
 
     .error {
@@ -367,6 +286,20 @@
         align-items: center;
         gap: 15px;
       }
+      
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .skill-card {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .skill-image-container {
+        margin-right: 0;
+        margin-bottom: 20px;
+      }
     }
 
   </style>
@@ -375,20 +308,57 @@
   <div class="main-content">
     <h1>Bazzar Skills Generator</h1>
 
-    <H1> <a href="index.html">Under Construction! Click here to return to Card Generator!</a></h1>
+    <div class="input-container">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label" for="skillNameInput">Skill Name</label>
+          <input type="text" id="skillNameInput" class="form-input" placeholder="Enter skill name">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="borderSelect">Border Color</label>
+          <select id="borderSelect" class="form-select">
+            <option value="bronze">Bronze</option>
+            <option value="silver">Silver</option>
+            <option value="gold" selected>Gold</option>
+            <option value="diamond">Diamond</option>
+            <option value="legendary">Legendary</option>
+          </select>
+        </div>
+
+        <div class="form-group full-width">
+          <label class="form-label" for="skillEffectInput">Skill Effect</label>
+          <textarea id="skillEffectInput" class="form-input" placeholder="Enter skill effect description" rows="4"></textarea>
+        </div>
+
+        <div class="form-group full-width">
+          <label class="form-label" for="imageInput">Upload Image</label>
+          <input type="file" id="imageInput" class="form-input" accept="image/*">
+        </div>
+      </div>
+
+      <div class="button-group">
+        <button class="form-button" onclick="createSkill()">Generate Skill</button>
+        <button class="form-button secondary" onclick="clearOutput()">Clear All</button>
+      </div>
+    </div>
+
+    <div id="errorContainer"></div>
+    <div id="outputContainer"></div>
+  </div>
 
   <!-- Footer -->
   <footer class="footer">
     <div class="footer-content">
-      <div class="footer-title">⚔️ Bazzar Card Generator ⚔️</div>
+      <div class="footer-title">⚔️ Bazzar Skills Generator ⚔️</div>
       <div class="footer-description">
-        Bring your ideas to life. Shoutout to Reynad for tearing this masterpeice from the void. 
+        Bring your ideas to life. Shoutout to Reynad for tearing this masterpiece from the void. 
       </div>
       
       <div class="footer-links">
         <a href="https://github.com/LukeMcPartlan" class="footer-link">📜 Documentation</a>
         <a href="updates.html" class="footer-link">🛡️ Updates</a>
-        <a href="skills.html" class="footer-link">⚡ Skills</a>
+        <a href="index.html" class="footer-link">🃏 Cards</a>
         <a href="https://www.reddit.com/r/PlayTheBazaar/" class="footer-link">🏰 Community</a>
       </div>
       
@@ -398,7 +368,7 @@
         © 2025 Luke Alvarez Bazzar Generator
       </div>
       <div class="footer-contact">
-        Report bugs to Lukemcp45@gmail.com . Zelle me a coffe at the same email!
+        Report bugs to Lukemcp45@gmail.com . Zelle me a coffee at the same email!
       </div>
       <div class="footer-version">
         Version 1.0 | Built for Bazzar fans by Bazzar fans
@@ -407,7 +377,7 @@
   </footer>
 
   <script>
-    // Define keyword colors and styling rules
+    // Define keyword colors and styling rules (same as card generator)
     const keywordRules = {
       'slow': { color: 'rgb(203, 159, 110)' },
       'haste': { color: 'rgb(0, 235, 195)' },
@@ -440,27 +410,12 @@
         const lowerMatch = match.toLowerCase();
         const rule = keywordRules[lowerMatch];
         if (rule) {
-          return `<span style="color: ${rule.color}; font-weight: bold;" class="key-text" data-keyword="${lowerMatch}">${match}</span>`;
+          return `<span style="color: ${rule.color}; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;" class="key-text" data-keyword="${lowerMatch}">${match}</span>`;
         }
         return match;
       });
       
       return processedText;
-    }
-
-    function addOnUseInput() {
-      const container = document.getElementById("onUseInputs");
-      
-      const inputGroup = document.createElement("div");
-      inputGroup.style.marginBottom = "10px";
-      
-      const input = document.createElement("input");
-      input.type = "text";
-      input.placeholder = "Enter on use effect description";
-      input.className = "form-input";
-      
-      inputGroup.appendChild(input);
-      container.appendChild(inputGroup);
     }
 
     function getBorderColor(value) {
@@ -474,255 +429,105 @@
       }
     }
 
-    function formatCooldown(cooldownValue) {
-      if (!cooldownValue.trim()) return '';
-      
-      const num = parseFloat(cooldownValue);
-      if (isNaN(num)) {
-        throw new Error('Cooldown must be a valid number');
-      }
-      
-      // If it's a whole number, add .0
-      if (num % 1 === 0) {
-        return num.toFixed(1);
-      }
-      
-      // If it has decimals, remove trailing zeros but keep at least one decimal place
-      let formatted = num.toString();
-      if (formatted.includes('.')) {
-        // Remove trailing zeros
-        formatted = formatted.replace(/0+$/, '');
-        // If we removed all decimal places, add back one zero
-        if (formatted.endsWith('.')) {
-          formatted += '0';
-        }
-      }
-      
-      return formatted;
-    }
-
-    function validateAmmo(ammoValue) {
-      if (!ammoValue.trim()) return '';
-      
-      const num = parseInt(ammoValue);
-      if (isNaN(num) || !Number.isInteger(parseFloat(ammoValue))) {
-        throw new Error('Ammo must be a valid integer');
-      }
-      
-      return num.toString();
-    }
-
-    function positionElementsRelativeToOnUse(content, onUseSection) {
-      // Get the position and dimensions of the on-use section
-      const onUseRect = onUseSection.getBoundingClientRect();
-      const contentRect = content.getBoundingClientRect();
-      
-      // Calculate the center position of the on-use section relative to the content
-      const onUseCenterY = onUseRect.top - contentRect.top + (onUseRect.height / 2);
-      
-      // Position cooldown and ammo elements
-      const cooldownSection = content.querySelector('.cooldown-section');
-      const ammoSection = content.querySelector('.ammo-section');
-      
-      if (cooldownSection) {
-        cooldownSection.style.top = `${onUseCenterY - 25}px`; // 25 is half the height of cooldown section
-      }
-      
-      if (ammoSection) {
-        ammoSection.style.top = `${onUseCenterY - (ammoSection.offsetHeight / 2)}px`;
-      }
-    }
-
-    function createCard() {
+    function createSkill() {
       const imageInput = document.getElementById("imageInput");
-      const itemName = document.getElementById("itemNameInput").value;
-      const cooldownInput = document.getElementById("cooldownInput").value;
-      const hero = document.getElementById("heroSelect").value;
-      const ammo = document.getElementById("ammoInput").value;
-      const size = document.getElementById("sizeSelect").value;
+      const skillName = document.getElementById("skillNameInput").value;
+      const skillEffect = document.getElementById("skillEffectInput").value;
       const border = document.getElementById("borderSelect").value;
-      const onUseInputs = document.querySelectorAll("#onUseInputs input");
-      const passiveInput = document.getElementById("passiveInput").value;
       const outputContainer = document.getElementById("outputContainer");
       const errorContainer = document.getElementById("errorContainer");
 
       // Clear previous errors
       errorContainer.innerHTML = '';
 
-      // Check for on use effects
-      const hasOnUseEffects = Array.from(onUseInputs).some(input => input.value.trim());
-      const hasCooldown = cooldownInput.trim();
-
-      // Validate cooldown and on use effects dependency
-      if (hasOnUseEffects && !hasCooldown) {
+      // Validate inputs
+      if (!skillName.trim()) {
         const errorDiv = document.createElement("div");
         errorDiv.className = "error";
-        errorDiv.textContent = "On Use effects require a cooldown value";
+        errorDiv.textContent = "Please enter a skill name.";
         errorContainer.appendChild(errorDiv);
         return;
       }
 
-      // Validate and format cooldown
-      let formattedCooldown = '';
-      if (cooldownInput.trim()) {
-        try {
-          formattedCooldown = formatCooldown(cooldownInput);
-        } catch (error) {
-          const errorDiv = document.createElement("div");
-          errorDiv.className = "error";
-          errorDiv.textContent = error.message;
-          errorContainer.appendChild(errorDiv);
-          return;
-        }
-      }
-
-      // Validate ammo
-      let validatedAmmo = '';
-      if (ammo.trim()) {
-        try {
-          validatedAmmo = validateAmmo(ammo);
-        } catch (error) {
-          const errorDiv = document.createElement("div");
-          errorDiv.className = "error";
-          errorDiv.textContent = error.message;
-          errorContainer.appendChild(errorDiv);
-          return;
-        }
-      }
-
-      if (imageInput.files && imageInput.files[0]) {
-        const reader = new FileReader();
-
-        reader.onload = function (e) {
-          const borderColor = getBorderColor(border);
-          const card = document.createElement("div");
-          card.className = "card";
-
-          const imageContainer = document.createElement("div");
-          imageContainer.className = "image-container";
-          imageContainer.style.border = `3px solid ${borderColor}`;
-
-          const img = document.createElement("img");
-          img.src = e.target.result;
-          imageContainer.appendChild(img);
-
-          const content = document.createElement("div");
-          content.className = "card-content";
-          content.style.border = `3px solid ${borderColor}`;
-
-          const topSection = document.createElement("div");
-          topSection.className = "text-section hero-header";
-          topSection.style.borderTop = `2px solid ${borderColor}`;
-          topSection.style.borderBottom = `2px solid ${borderColor}`;
-          const itemTitle = document.createElement("div");
-          itemTitle.className = "item-title";
-          itemTitle.textContent = itemName;
-          const heroImg = document.createElement("img");
-          heroImg.src = `images/${hero.toLowerCase()}.png`;
-          heroImg.alt = hero;
-          topSection.appendChild(itemTitle);
-          topSection.appendChild(heroImg);
-          content.appendChild(topSection);
-
-          let onUseSection = null;
-          const effectsContainer = document.createElement("div");
-          onUseInputs.forEach(input => {
-            if (input.value.trim()) {
-              const effectLine = document.createElement("div");
-              effectLine.className = "on-use-line";
-
-              const icon = document.createElement("img");
-              icon.src = "images/use-arrow.png";
-              icon.alt = "-";
-
-              const text = document.createElement("span");
-              text.innerHTML = processKeywordText(input.value);
-
-              effectLine.appendChild(icon);
-              effectLine.appendChild(text);
-              effectsContainer.appendChild(effectLine);
-            }
-          });
-
-          if (effectsContainer.children.length > 0) {
-            onUseSection = document.createElement("div");
-            onUseSection.className = "text-section on-use-section";
-            onUseSection.style.borderTop = `2px solid ${borderColor}`;
-            onUseSection.style.borderBottom = `2px solid ${borderColor}`;
-            onUseSection.appendChild(effectsContainer);
-            content.appendChild(onUseSection);
-          }
-
-          if (passiveInput.trim()) {
-            const passiveSection = document.createElement("div");
-            passiveSection.className = "text-section";
-            passiveSection.style.borderTop = `2px solid ${borderColor}`;
-            passiveSection.style.borderBottom = `2px solid ${borderColor}`;
-            passiveSection.innerHTML = processKeywordText(passiveInput);
-            content.appendChild(passiveSection);
-          }
-
-          // Only show cooldown if there are on use effects
-          if (formattedCooldown && hasOnUseEffects) {
-            const cooldownDiv = document.createElement("div");
-            cooldownDiv.className = "cooldown-section";
-            cooldownDiv.innerHTML = `<span>${formattedCooldown}</span><span class="sec-text">sec</span>`;
-            content.appendChild(cooldownDiv);
-          }
-
-          if (validatedAmmo) {
-            const ammoDiv = document.createElement("div");
-            ammoDiv.className = "ammo-section";
-            ammoDiv.style.border = `3px solid ${borderColor}`;
-            
-            // Add ammo image
-            const ammoImg = document.createElement("img");
-            ammoImg.src = "images/ammo.png";
-            ammoImg.alt = "Ammo";
-            ammoDiv.appendChild(ammoImg);
-            
-            // Add ammo number
-            const ammoText = document.createElement("span");
-            ammoText.textContent = validatedAmmo;
-            ammoDiv.appendChild(ammoText);
-            
-            content.appendChild(ammoDiv);
-          }
-
-          card.appendChild(imageContainer);
-          card.appendChild(content);
-          outputContainer.appendChild(card);
-
-          setTimeout(() => {
-            const contentHeight = content.offsetHeight;
-            imageContainer.style.height = contentHeight + "px";
-
-            let widthRatio = 1;
-            if (size === "small") widthRatio = 0.5;
-            else if (size === "large") widthRatio = 1.5;
-
-            const containerWidth = contentHeight * widthRatio;
-            imageContainer.style.width = containerWidth + "px";
-
-            img.style.height = "100%";
-            img.style.width = "auto";
-            img.style.objectFit = "cover";
-            img.style.objectPosition = "center";
-
-            // Position cooldown and ammo relative to the on-use section
-            if (onUseSection) {
-              positionElementsRelativeToOnUse(content, onUseSection);
-            }
-          }, 0);
-        };
-
-        reader.readAsDataURL(imageInput.files[0]);
-      } else {
+      if (!skillEffect.trim()) {
         const errorDiv = document.createElement("div");
         errorDiv.className = "error";
-        errorDiv.textContent = "Please upload an image first.";
+        errorDiv.textContent = "Please enter a skill effect.";
         errorContainer.appendChild(errorDiv);
+        return;
       }
+
+      if (!imageInput.files || !imageInput.files[0]) {
+        const errorDiv = document.createElement("div");
+        errorDiv.className = "error";
+        errorDiv.textContent = "Please upload an image.";
+        errorContainer.appendChild(errorDiv);
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        const borderColor = getBorderColor(border);
+        const skillCard = document.createElement("div");
+        skillCard.className = "skill-card";
+
+        const imageContainer = document.createElement("div");
+        imageContainer.className = "skill-image-container";
+        imageContainer.style.border = `3px solid ${borderColor}`;
+
+        const img = document.createElement("img");
+        img.src = e.target.result;
+        imageContainer.appendChild(img);
+
+        const content = document.createElement("div");
+        content.className = "skill-content";
+
+        // Create border overlay
+        const borderOverlay = document.createElement("div");
+        borderOverlay.className = "skill-border-overlay";
+        borderOverlay.style.backgroundImage = `url('images/${border}_skill_border.png')`;
+        
+        // Hide broken image, no alt text needed since it's decorative
+        borderOverlay.onerror = function() {
+          this.style.display = 'none';
+        };
+
+        const headerSection = document.createElement("div");
+        headerSection.className = "skill-header";
+        headerSection.style.borderTop = `2px solid ${borderColor}`;
+        headerSection.style.borderBottom = `2px solid ${borderColor}`;
+        
+        const skillTitle = document.createElement("div");
+        skillTitle.className = "skill-title";
+        skillTitle.textContent = skillName;
+        headerSection.appendChild(skillTitle);
+
+        const effectSection = document.createElement("div");
+        effectSection.className = "skill-effect";
+        effectSection.style.borderTop = `2px solid ${borderColor}`;
+        effectSection.style.borderBottom = `2px solid ${borderColor}`;
+        effectSection.innerHTML = processKeywordText(skillEffect);
+
+        content.appendChild(headerSection);
+        content.appendChild(effectSection);
+        content.appendChild(borderOverlay);
+
+        skillCard.appendChild(imageContainer);
+        skillCard.appendChild(content);
+        outputContainer.appendChild(skillCard);
+      };
+
+      reader.readAsDataURL(imageInput.files[0]);
+    }
+
+    function clearOutput() {
+      document.getElementById("outputContainer").innerHTML = '';
+      document.getElementById("errorContainer").innerHTML = '';
+      document.getElementById("skillNameInput").value = '';
+      document.getElementById("skillEffectInput").value = '';
+      document.getElementById("imageInput").value = '';
+      document.getElementById("borderSelect").value = 'gold';
     }
   </script>
 </body>
