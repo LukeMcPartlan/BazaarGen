@@ -3,7 +3,42 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bazzar Card Generator</title>
+  <title>Bazzar Card Generator - Create Custom Game Cards | BazzarGen Tool</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Create custom Bazzar game cards with our free online generator. Design items, add effects, customize heroes, and generate professional-looking cards for The Bazaar game." />
+  <meta name="keywords" content="Bazzar, Bazaar, BazzarGen, Bazzar Card Generator, card generator, game cards, custom cards, item cards, hero cards, Reynad, The Bazaar, card creator, game tool, free generator, online tool, card design, gaming, TCG, trading card game, card maker, Mak, Vanessa, Pyg, Dooly, game items, passive effects, on use effects, cooldown, ammo, tags, border quality, card customization" />
+  <meta name="author" content="Luke Alvarez" />
+  <meta name="robots" content="index, follow" />
+  <meta name="language" content="English" />
+  <meta name="revisit-after" content="7 days" />
+  
+  <!-- Favicon and Icons -->
+  <link rel="icon" type="image/x-icon" href="images/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
+  <link rel="manifest" href="site.webmanifest" />
+  
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="Bazzar Card Generator - Create Custom Game Cards" />
+  <meta property="og:description" content="Free online tool to create custom Bazzar game cards. Design items, add effects, and generate professional cards for The Bazaar game." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://bazzargen.com/" />
+  <meta property="og:image" content="https://bazzargen.com/images/site-preview.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="BazzarGen - Bazzar Card Generator" />
+  
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Bazzar Card Generator - Create Custom Game Cards" />
+  <meta name="twitter:description" content="Free online tool to create custom Bazzar game cards with heroes, effects, and professional styling." />
+  <meta name="twitter:image" content="https://bazzargen.com/images/site-preview.png" />
+  
+  <!-- Additional SEO -->
+  <meta name="theme-color" content="#8B7A65" />
+  <link rel="canonical" href="https://bazzargen.com/" />
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -106,12 +141,35 @@
       background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(101, 84, 63) 100%);
     }
 
-    .on-use-effects {
+    .form-button.remove {
+      background: linear-gradient(135deg, rgb(180, 60, 60) 0%, rgb(140, 40, 40) 100%);
+      color: white;
+      border: 2px solid rgb(200, 80, 80);
+      padding: 8px 15px;
+      font-size: 12px;
+      margin-left: 10px;
+    }
+
+    .form-button.remove:hover {
+      background: linear-gradient(135deg, rgb(200, 80, 80) 0%, rgb(180, 60, 60) 100%);
+    }
+
+    .on-use-effects, .tag-effects {
       background: rgba(37, 26, 12, 0.5);
       border: 1px solid rgb(74, 60, 46);
       border-radius: 8px;
       padding: 15px;
       margin-top: 10px;
+    }
+
+    .tag-input-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .tag-input-group input {
+      flex: 1;
     }
 
     .button-group {
@@ -165,6 +223,33 @@
       min-width: 300px;
       width: fit-content;
       background: radial-gradient(ellipse at center, rgb(60, 45, 30) 0%, rgb(45, 35, 22) 40%, rgb(25, 18, 10) 100%);
+    }
+
+    .card-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .tags-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 5px;
+      padding: 0;
+      background: transparent;
+    }
+
+    .item-tag {
+      background-color: rgba(0, 0, 139, 0.5);
+      color: rgb(152, 168, 254);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.8em;
+      font-weight: bold;
+      font-family: Arial, sans-serif;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+      border: 1px solid rgba(152, 168, 254, 0.3);
     }
 
     .text-section {
@@ -418,6 +503,15 @@
         </div>
         
         <div class="form-group">
+          <label class="form-label">Item Size</label>
+          <select id="itemSizeSelect" class="form-select">
+            <option value="Small">Small</option>
+            <option value="Medium" selected>Medium</option>
+            <option value="Large">Large</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
           <label class="form-label">Border Quality</label>
           <select id="borderSelect" class="form-select">
             <option value="bronze">Bronze</option>
@@ -432,6 +526,12 @@
           <label class="form-label">Passive Effects</label>
           <input type="text" id="passiveInput" placeholder="Enter passive effect description" class="form-input" />
         </div>
+      </div>
+
+      <div class="tag-effects">
+        <label class="form-label">Additional Tags</label>
+        <div id="tagInputs"></div>
+        <button type="button" onclick="addTagInput()" class="form-button secondary" style="margin-top: 10px;">Add Tag</button>
       </div>
 
       <div class="on-use-effects">
@@ -479,6 +579,18 @@
     </div>
   </footer>
 
+  <!-- Hidden SEO Content -->
+  <div style="display: none; visibility: hidden;">
+    <h2>Bazzar Card Generator Keywords</h2>
+    <p>BazzarGen, Bazzar Generator, Bazaar Card Maker, The Bazaar Game Tool, Custom Card Creator, Online Card Generator, Free Card Maker, Game Card Designer, TCG Card Generator, Trading Card Game Tool, Bazzar Item Cards, Hero Card Generator, Effect Card Creator, Cooldown Card Generator, Ammo Card Maker, Tag Card System, Border Quality Cards, Passive Effect Generator, On Use Effect Creator, Mak Cards, Vanessa Cards, Pyg Cards, Dooly Cards, Neutral Cards, Small Medium Large Items, Bronze Silver Gold Diamond Legendary Borders, Reynad Game Tools, The Bazaar Fan Tools, Card Design Software, Web Based Card Generator, Mobile Card Creator, Responsive Card Maker, Gaming Tools Online, Card Customization Tool, Professional Card Design, Game Development Tools, Indie Game Tools, Card Game Assets, Digital Card Creator, Virtual Card Maker, Interactive Card Generator, Real Time Card Preview, Drag Drop Card Creator, Upload Image Cards, Custom Text Cards, Keyword Highlighting, Color Coded Effects, Card Template Generator, Game Prototype Tools, Playtesting Cards, Community Card Sharing, Card Export Tool, Print Ready Cards, High Quality Card Generator, User Friendly Interface, Intuitive Card Design, Fast Card Creation, Unlimited Card Generation, No Download Required, Browser Based Tool, Cross Platform Generator, Modern Card Design, Stylish Card Templates, Game Ready Cards, Professional Gaming Tools</p>
+    
+    <h3>Related Game Terms</h3>
+    <p>Auto Battler, Strategy Game, Deck Building, Item Management, Hero Abilities, Game Mechanics, Turn Based, Real Time Strategy, Competitive Gaming, Esports Tools, Streaming Tools, Content Creation, Game Modding, Fan Art Tools, Community Tools, Game Assets, Digital Art, Card Art, Fantasy Gaming, RPG Elements, Character Cards, Equipment Cards, Spell Cards, Ability Cards, Status Effects, Game Balance, Meta Gaming, Tier Lists, Strategy Guides, Tutorials, How To Guides, Gaming Community, Reddit Gaming, Discord Tools, Twitch Tools, YouTube Gaming</p>
+    
+    <h4>Technical Keywords</h4>
+    <p>HTML5 Card Generator, CSS3 Styling, JavaScript Interactive Tool, Responsive Web Design, Mobile Friendly Generator, Canvas Based Tool, SVG Graphics, Image Processing, File Upload Tool, Client Side Processing, No Server Required, Offline Capable, Progressive Web App, Modern Web Standards, Cross Browser Compatible, Fast Loading Tool, Optimized Performance, Memory Efficient, Touch Friendly Interface, Keyboard Shortcuts, Accessibility Features, Screen Reader Compatible, High DPI Support, Retina Display Ready</p>
+  </div>
+
   <script>
     // Define keyword colors and styling rules
     const keywordRules = {
@@ -519,6 +631,30 @@
       });
       
       return processedText;
+    }
+
+    function addTagInput() {
+      const container = document.getElementById("tagInputs");
+      
+      const inputGroup = document.createElement("div");
+      inputGroup.className = "tag-input-group";
+      
+      const input = document.createElement("input");
+      input.type = "text";
+      input.placeholder = "Enter tag text";
+      input.className = "form-input";
+      
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.textContent = "Remove";
+      removeButton.className = "form-button remove";
+      removeButton.onclick = function() {
+        container.removeChild(inputGroup);
+      };
+      
+      inputGroup.appendChild(input);
+      inputGroup.appendChild(removeButton);
+      container.appendChild(inputGroup);
     }
 
     function addOnUseInput() {
@@ -613,8 +749,10 @@
       const hero = document.getElementById("heroSelect").value;
       const ammo = document.getElementById("ammoInput").value;
       const size = document.getElementById("sizeSelect").value;
+      const itemSize = document.getElementById("itemSizeSelect").value;
       const border = document.getElementById("borderSelect").value;
       const onUseInputs = document.querySelectorAll("#onUseInputs input");
+      const tagInputs = document.querySelectorAll("#tagInputs input");
       const passiveInput = document.getElementById("passiveInput").value;
       const outputContainer = document.getElementById("outputContainer");
       const errorContainer = document.getElementById("errorContainer");
@@ -678,6 +816,26 @@
           const img = document.createElement("img");
           img.src = e.target.result;
           imageContainer.appendChild(img);
+
+          // Create tags container (outside the main bordered content)
+          const tagsContainer = document.createElement("div");
+          tagsContainer.className = "tags-container";
+
+          // Always add item size as first tag
+          const itemSizeTag = document.createElement("span");
+          itemSizeTag.className = "item-tag";
+          itemSizeTag.textContent = itemSize;
+          tagsContainer.appendChild(itemSizeTag);
+
+          // Add additional tags
+          tagInputs.forEach(input => {
+            if (input.value.trim()) {
+              const tag = document.createElement("span");
+              tag.className = "item-tag";
+              tag.textContent = input.value.trim();
+              tagsContainer.appendChild(tag);
+            }
+          });
 
           const content = document.createElement("div");
           content.className = "card-content";
@@ -763,7 +921,14 @@
           }
 
           card.appendChild(imageContainer);
-          card.appendChild(content);
+          
+          // Create a wrapper for tags and content
+          const cardWrapper = document.createElement("div");
+          cardWrapper.className = "card-wrapper";
+          
+          cardWrapper.appendChild(tagsContainer);
+          cardWrapper.appendChild(content);
+          card.appendChild(cardWrapper);
           outputContainer.appendChild(card);
 
           setTimeout(() => {
