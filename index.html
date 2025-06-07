@@ -18,7 +18,7 @@
   <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png" />
   <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png" />
   <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
-  <link rel="manifest" href="site_webmanifest.json" />
+  <link rel="manifest" href="site.webmanifest" />
   
   <!-- Open Graph Meta Tags -->
   <meta property="og:title" content="Bazzar Card Generator - Create Custom Game Cards" />
@@ -168,7 +168,13 @@
       margin-bottom: 10px;
     }
 
-    .tag-input-group input {
+    .on-use-input-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .on-use-input-group input {
       flex: 1;
     }
 
@@ -188,6 +194,35 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       margin-top: 10px;
       position: relative;
+    }
+
+    .card-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 10;
+    }
+
+    .card-delete-btn {
+      background: linear-gradient(135deg, rgb(180, 60, 60) 0%, rgb(140, 40, 40) 100%);
+      color: white;
+      border: 2px solid rgb(200, 80, 80);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+
+    .card-delete-btn:hover {
+      background: linear-gradient(135deg, rgb(200, 80, 80) 0%, rgb(180, 60, 60) 100%);
+      transform: scale(1.1);
     }
 
     .image-container {
@@ -475,11 +510,11 @@
         <div class="form-group">
           <label class="form-label">Hero</label>
           <select id="heroSelect" class="form-select">
+            <option value="Neutral" selected>Neutral</option>
             <option value="Mak">Mak</option>
             <option value="Vanessa">Vanessa</option>
             <option value="Pyg">Pyg</option>
             <option value="Dooly">Dooly</option>
-            <option value="Neutral">Neutral</option>
           </select>
         </div>
         
@@ -494,15 +529,6 @@
         </div>
         
         <div class="form-group">
-          <label class="form-label">Image Size</label>
-          <select id="sizeSelect" class="form-select">
-            <option value="small">Small</option>
-            <option value="medium" selected>Medium</option>
-            <option value="large">Large</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
           <label class="form-label">Item Size</label>
           <select id="itemSizeSelect" class="form-select">
             <option value="Small">Small</option>
@@ -512,7 +538,7 @@
         </div>
         
         <div class="form-group">
-          <label class="form-label">Border Quality</label>
+          <label class="form-label">Item Rarity</label>
           <select id="borderSelect" class="form-select">
             <option value="bronze">Bronze</option>
             <option value="silver">Silver</option>
@@ -542,6 +568,7 @@
 
       <div class="button-group">
         <button onclick="createCard()" class="form-button">Generate Card</button>
+        <button onclick="clearAllCards()" class="form-button secondary">Clear All Cards</button>
       </div>
       
       <div id="errorContainer"></div>
@@ -661,14 +688,23 @@
       const container = document.getElementById("onUseInputs");
       
       const inputGroup = document.createElement("div");
-      inputGroup.style.marginBottom = "10px";
+      inputGroup.className = "on-use-input-group";
       
       const input = document.createElement("input");
       input.type = "text";
       input.placeholder = "Enter on use effect description";
       input.className = "form-input";
       
+      const removeButton = document.createElement("button");
+      removeButton.type = "button";
+      removeButton.textContent = "Remove";
+      removeButton.className = "form-button remove";
+      removeButton.onclick = function() {
+        container.removeChild(inputGroup);
+      };
+      
       inputGroup.appendChild(input);
+      inputGroup.appendChild(removeButton);
       container.appendChild(inputGroup);
     }
 
@@ -742,13 +778,21 @@
       }
     }
 
+    function clearAllCards() {
+      const outputContainer = document.getElementById("outputContainer");
+      outputContainer.innerHTML = '';
+    }
+
+    function clearCard(cardElement) {
+      cardElement.remove();
+    }
+
     function createCard() {
       const imageInput = document.getElementById("imageInput");
       const itemName = document.getElementById("itemNameInput").value;
       const cooldownInput = document.getElementById("cooldownInput").value;
       const hero = document.getElementById("heroSelect").value;
       const ammo = document.getElementById("ammoInput").value;
-      const size = document.getElementById("sizeSelect").value;
       const itemSize = document.getElementById("itemSizeSelect").value;
       const border = document.getElementById("borderSelect").value;
       const onUseInputs = document.querySelectorAll("#onUseInputs input");
@@ -808,6 +852,21 @@
           const borderColor = getBorderColor(border);
           const card = document.createElement("div");
           card.className = "card";
+
+          // Add delete button for individual card
+          const cardControls = document.createElement("div");
+          cardControls.className = "card-controls";
+          
+          const deleteBtn = document.createElement("button");
+          deleteBtn.className = "card-delete-btn";
+          deleteBtn.innerHTML = "×";
+          deleteBtn.title = "Delete this card";
+          deleteBtn.onclick = function() {
+            clearCard(card);
+          };
+          
+          cardControls.appendChild(deleteBtn);
+          card.appendChild(cardControls);
 
           const imageContainer = document.createElement("div");
           imageContainer.className = "image-container";
@@ -935,12 +994,27 @@
             const contentHeight = content.offsetHeight;
             imageContainer.style.height = contentHeight + "px";
 
-            let widthRatio = 1;
-            if (size === "small") widthRatio = 0.5;
-            else if (size === "large") widthRatio = 1.5;
+            // Debug: Check what size value we're getting
+            console.log("Item size value:", itemSize);
+
+            let widthRatio = 1.0; // Default to medium
+            if (itemSize === "Small") {
+              widthRatio = 0.5;
+              console.log("Setting small width ratio: 0.5");
+            } else if (itemSize === "Medium") {
+              widthRatio = 1.0;
+              console.log("Setting medium width ratio: 1.0");
+            } else if (itemSize === "Large") {
+              widthRatio = 1.5;
+              console.log("Setting large width ratio: 1.5");
+            }
+
+            console.log("Final width ratio:", widthRatio);
 
             const containerWidth = contentHeight * widthRatio;
             imageContainer.style.width = containerWidth + "px";
+
+            console.log("Container height:", contentHeight, "Container width:", containerWidth);
 
             img.style.height = "100%";
             img.style.width = "auto";
