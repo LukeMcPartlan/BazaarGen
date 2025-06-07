@@ -483,21 +483,7 @@
         const img = document.createElement("img");
         img.src = e.target.result;
         
-        // Create border overlay for the image
-        const imageBorderOverlay = document.createElement("img");
-        imageBorderOverlay.className = "skill-border-overlay";
-        imageBorderOverlay.src = `images/${border}_skill_border.png`;
-        
-        // Hide broken image if it doesn't load
-        imageBorderOverlay.onerror = function() {
-          this.style.display = 'none';
-        };
-        
-        // No alt text since it's purely decorative
-        imageBorderOverlay.alt = "";
-
         imageContainer.appendChild(img);
-        imageContainer.appendChild(imageBorderOverlay);
 
         const content = document.createElement("div");
         content.className = "skill-content";
@@ -522,8 +508,22 @@
         content.appendChild(headerSection);
         content.appendChild(effectSection);
 
+        // Create border overlay for the image - positioned relative to skill card, not image container
+        const imageBorderOverlay = document.createElement("img");
+        imageBorderOverlay.className = "skill-border-overlay";
+        imageBorderOverlay.src = `images/${border}_skill_border.png`;
+        
+        // Hide broken image if it doesn't load
+        imageBorderOverlay.onerror = function() {
+          this.style.display = 'none';
+        };
+        
+        // No alt text since it's purely decorative
+        imageBorderOverlay.alt = "";
+
         skillCard.appendChild(imageContainer);
         skillCard.appendChild(content);
+        skillCard.appendChild(imageBorderOverlay); // Border is now a child of skillCard, not imageContainer
         outputContainer.appendChild(skillCard);
       };
 
