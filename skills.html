@@ -111,7 +111,6 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       margin-top: 10px;
-      position: relative;
     }
 
     .skill-image-container {
@@ -136,22 +135,20 @@
       display: block;
       object-fit: cover;
       object-position: center;
+      border-radius: 50%;
     }
 
     .skill-border-overlay {
-      position: absolute !important;
-      top: 1em !important;
-      left: 1em !important;
-      left: -1px;
-      width: 91px !important;
-      height: 91px !important;
-      max-width: 91px !important;
-      max-height: 91px !important;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 182px; /* Double the original 91px */
+      height: 182px; /* Double the original 91px */
       border-radius: 50%;
       pointer-events: none;
       object-fit: cover;
       z-index: 999;
-      //border: 2px solid blue;
     }
 
     .skill-content {
@@ -305,6 +302,12 @@
       .skill-image-container {
         margin-right: 0;
         margin-bottom: 20px;
+      }
+
+      .skill-border-overlay {
+        /* Border maintains its centering even on mobile */
+        width: 182px;
+        height: 182px;
       }
     }
 
@@ -487,6 +490,22 @@
         
         imageContainer.appendChild(img);
 
+        // Create border overlay - positioned relative to image container, not skill card
+        const imageBorderOverlay = document.createElement("img");
+        imageBorderOverlay.className = "skill-border-overlay";
+        imageBorderOverlay.src = `images/${border}_skill_border.png`;
+        
+        // Hide broken image if it doesn't load
+        imageBorderOverlay.onerror = function() {
+          this.style.display = 'none';
+        };
+        
+        // No alt text since it's purely decorative
+        imageBorderOverlay.alt = "";
+
+        // Add border overlay to the image container so it moves with the image
+        imageContainer.appendChild(imageBorderOverlay);
+
         const content = document.createElement("div");
         content.className = "skill-content";
         content.style.border = `3px solid ${borderColor}`;
@@ -510,22 +529,8 @@
         content.appendChild(headerSection);
         content.appendChild(effectSection);
 
-        // Create border overlay for the image - positioned relative to skill card, not image container
-        const imageBorderOverlay = document.createElement("img");
-        imageBorderOverlay.className = "skill-border-overlay";
-        imageBorderOverlay.src = `images/${border}_skill_border.png`;
-        
-        // Hide broken image if it doesn't load
-        imageBorderOverlay.onerror = function() {
-          this.style.display = 'none';
-        };
-        
-        // No alt text since it's purely decorative
-        imageBorderOverlay.alt = "";
-
         skillCard.appendChild(imageContainer);
         skillCard.appendChild(content);
-        skillCard.appendChild(imageBorderOverlay); // Border is now a child of skillCard, not imageContainer
         outputContainer.appendChild(skillCard);
       };
 
