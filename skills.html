@@ -127,6 +127,7 @@
       width: 75px;
       flex-shrink: 0;
       background: rgb(74, 60, 46);
+      position: relative;
     }
 
     .skill-image-container img {
@@ -135,6 +136,21 @@
       display: block;
       object-fit: cover;
       object-position: center;
+    }
+
+    .skill-border-overlay {
+      position: absolute !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      width: 75px !important;
+      height: 75px !important;
+      max-width: 75px !important;
+      max-height: 75px !important;
+      pointer-events: none;
+      object-fit: cover;
+      z-index: 999;
+      border: 2px solid blue;
     }
 
     .skill-content {
@@ -148,19 +164,6 @@
       background: radial-gradient(ellipse at center, rgb(60, 45, 30) 0%, rgb(45, 35, 22) 40%, rgb(25, 18, 10) 100%);
     }
 
-    .skill-border-overlay {
-      position: absolute !important;
-      top: 0 !important;
-      left: 0 !important;
-      width: 75px !important;
-      height: 75px !important;
-      max-width: 75px !important;
-      max-height: 75px !important;
-      pointer-events: none;
-      object-fit: cover;
-      z-index: 999;
-      border: 2px solid blue; /* Debug border */
-    }
     .skill-header {
       border-top: 2px solid gold;
       border-bottom: 2px solid gold;
@@ -486,14 +489,9 @@
         imageBorderOverlay.className = "skill-border-overlay";
         imageBorderOverlay.src = `images/${border}_skill_border.png`;
         
-        // Hide broken image, no alt text needed since it's decorative
+        // Hide broken image if it doesn't load
         imageBorderOverlay.onerror = function() {
-          // Fallback to default border for testing
-          this.src = 'images/default_border.png';
-          this.onerror = function() {
-            // If default also fails, hide completely
-            this.style.display = 'none';
-          };
+          this.style.display = 'none';
         };
         
         // No alt text since it's purely decorative
@@ -505,19 +503,6 @@
         const content = document.createElement("div");
         content.className = "skill-content";
         content.style.border = `3px solid ${borderColor}`;
-
-        // Create border overlay
-        const borderOverlay = document.createElement("img");
-        borderOverlay.className = "skill-border-overlay";
-        borderOverlay.src = `images/${border}_skill_border.png`;
-        
-        // Hide broken image, no alt text needed since it's decorative
-        borderOverlay.onerror = function() {
-          this.style.display = 'none';
-        };
-        
-        // No alt text since it's purely decorative
-        borderOverlay.alt = "";
 
         const headerSection = document.createElement("div");
         headerSection.className = "skill-header";
