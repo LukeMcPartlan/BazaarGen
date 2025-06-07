@@ -474,25 +474,26 @@
 
         const imageContainer = document.createElement("div");
         imageContainer.className = "skill-image-container";
+        imageContainer.style.border = `3px solid ${borderColor}`;
 
         const img = document.createElement("img");
         img.src = e.target.result;
         
         // Create border overlay for the image
-        const borderOverlay = document.createElement("img");
-        borderOverlay.className = "skill-border-overlay";
-        borderOverlay.src = `images/${border}_skill_border.png`;
+        const imageBorderOverlay = document.createElement("img");
+        imageBorderOverlay.className = "skill-border-overlay";
+        imageBorderOverlay.src = `images/${border}_skill_border.png`;
         
         // Hide broken image, no alt text needed since it's decorative
-        borderOverlay.onerror = function() {
+        imageBorderOverlay.onerror = function() {
           this.style.display = 'none';
         };
         
         // No alt text since it's purely decorative
-        borderOverlay.alt = "";
+        imageBorderOverlay.alt = "";
 
         imageContainer.appendChild(img);
-        imageContainer.appendChild(borderOverlay);
+        imageContainer.appendChild(imageBorderOverlay);
 
         const content = document.createElement("div");
         content.className = "skill-content";
