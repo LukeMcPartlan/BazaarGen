@@ -3,261 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bazzar Card Generator - Create Custom Game Cards | BazzarGen Tool</title>
-  
-  <!-- SEO Meta Tags -->
-  <meta name="description" content="Free online tool to create custom Bazzar content Design items and skills for The Bazaar game." />
-  <meta name="keywords" content="Bazzar, Bazaar, BazzarGen, Bazzar Card Generator, card generator, game cards, custom cards, item cards, hero cards, Reynad, The Bazaar, card creator, game tool, free generator, online tool, card design, gaming, TCG, trading card game, card maker, Mak, Vanessa, Pyg, Dooly, game items, passive effects, on use effects, cooldown, ammo, tags, border quality, card customization" />
-  <meta name="author" content="Luke Alvarez" />
-  <meta name="robots" content="index, follow" />
-  <meta name="language" content="English" />
-  <meta name="revisit-after" content="7 days" />
-  
-  <!-- Favicon and Icons -->
-  <link rel="icon" type="image/x-icon" href="images/favicon.ico" />
-  <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
-  <link rel="manifest" href="site.webmanifest" />
-  
-  <!-- Open Graph Meta Tags -->
-  <meta property="og:title" content="Bazzar Card Generator - Create Custom Game Cards" />
-  <meta property="og:description" content="Free online tool to create custom Bazzar content Design items and skills for The Bazaar game." />
-  <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://bazzargen.com/" />
-  <meta property="og:image" content="https://bazzargen.com/images/site-preview.png" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta property="og:site_name" content="BazzarGen - Bazzar Card Generator" />
-  
-  <!-- Twitter Card Meta Tags -->
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Bazzar Card Generator - Create Custom Game Cards" />
-  <meta name="twitter:description" content="Free online tool to create custom Bazzar content Design items and skills for The Bazaar game." />
-  <meta name="twitter:image" content="https://bazzargen.com/images/site-preview.png" />
-  
-  <!-- Additional SEO -->
-  <meta name="theme-color" content="#8B7A65" />
-  <link rel="canonical" href="https://bazzargen.com/" />
+  <title>Bazzar Skills Generator</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     body {
       font-family: Arial, sans-serif;
+      margin: 2em;
       background-color: rgb(139, 122, 101);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
-    /* Top Navigation Bar Styles */
-    .top-nav {
-      background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(37, 26, 12) 100%);
-      border-bottom: 3px solid rgb(218, 165, 32);
-      padding: 0;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .nav-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 20px;
-      height: 70px;
-    }
-
-    .nav-logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-size: 1.8em;
-      font-weight: bold;
-      color: rgb(251, 225, 183);
-      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
-      text-decoration: none;
-      transition: all 0.3s ease;
-    }
-
-    .nav-logo:hover {
-      color: rgb(218, 165, 32);
-      transform: translateY(-1px);
-    }
-
-    .nav-logo::before {
-      content: "⚔️";
-      font-size: 1.2em;
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-    }
-
-    .nav-menu {
-      display: flex;
-      list-style: none;
-      gap: 0;
-      margin: 0;
-      padding: 0;
-    }
-
-    .nav-item {
-      position: relative;
-    }
-
-    .nav-link {
-      display: flex;
-      align-items: center;
-      padding: 25px 25px;
-      color: rgb(201, 175, 133);
-      text-decoration: none;
-      font-weight: bold;
-      font-size: 1.1em;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      transition: all 0.3s ease;
-      position: relative;
-      height: 70px;
-      border-left: 1px solid rgba(218, 165, 32, 0.2);
-    }
-
-    .nav-link:first-child {
-      border-left: none;
-    }
-
-    .nav-link:hover {
-      background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%);
-      color: rgb(37, 26, 12);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-    }
-
-    .nav-link.active {
-      background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(255, 215, 0) 100%);
-      color: rgb(37, 26, 12);
-      box-shadow: inset 0 -3px 0 rgb(184, 134, 11);
-    }
-
-    .nav-link::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      width: 0;
-      height: 3px;
-      background: rgb(255, 215, 0);
-      transition: all 0.3s ease;
-      transform: translateX(-50%);
-    }
-
-    .nav-link:hover::after {
-      width: 80%;
-    }
-
-    /* Mobile menu styles */
-    .nav-toggle {
-      display: none;
-      flex-direction: column;
-      cursor: pointer;
-      padding: 5px;
-    }
-
-    .nav-toggle span {
-      width: 25px;
-      height: 3px;
-      background: rgb(251, 225, 183);
-      margin: 3px 0;
-      transition: 0.3s;
-      border-radius: 2px;
-    }
-
-    @media (max-width: 768px) {
-      .nav-menu {
-        position: fixed;
-        top: 70px;
-        left: -100%;
-        width: 100%;
-        height: calc(100vh - 70px);
-        background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(37, 26, 12) 100%);
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        transition: left 0.3s ease;
-        padding-top: 50px;
-      }
-
-      .nav-menu.active {
-        left: 0;
-      }
-
-      .nav-link {
-        width: 90%;
-        text-align: center;
-        padding: 20px;
-        margin: 10px 0;
-        border: 2px solid rgb(218, 165, 32);
-        border-radius: 10px;
-        background: rgba(37, 26, 12, 0.5);
-        height: auto;
-        border-left: 2px solid rgb(218, 165, 32);
-      }
-
-      .nav-toggle {
-        display: flex;
-      }
-
-      .nav-container {
-        padding: 0 15px;
-      }
-
-      .nav-logo {
-        font-size: 1.5em;
-      }
-    }
-
-    /* Main content styles */
-    .main-content {
-      flex: 1;
-      padding: 2em;
-    }
-
-    .page-header {
-      text-align: center;
-      margin-bottom: 30px;
-      padding: 20px 0;
-    }
-
-    .page-title {
-      color: rgb(251, 225, 183);
-      font-size: 3em;
-      font-weight: bold;
-      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
-      margin-bottom: 10px;
-      background: linear-gradient(45deg, rgb(251, 225, 183), rgb(218, 165, 32));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .page-subtitle {
-      color: rgb(201, 175, 133);
-      font-size: 1.2em;
-      font-style: italic;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
-    }
-
     h1 {
       color: rgb(251, 225, 183);
+    }
+
+    .main-content {
+      flex: 1;
     }
 
     .input-container {
@@ -334,53 +96,6 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
-    .form-button.secondary {
-      background: linear-gradient(135deg, rgb(101, 84, 63) 0%, rgb(74, 60, 46) 100%);
-      color: rgb(251, 225, 183);
-      border: 2px solid rgb(251, 225, 183);
-    }
-
-    .form-button.secondary:hover {
-      background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(101, 84, 63) 100%);
-    }
-
-    .form-button.remove {
-      background: linear-gradient(135deg, rgb(180, 60, 60) 0%, rgb(140, 40, 40) 100%);
-      color: white;
-      border: 2px solid rgb(200, 80, 80);
-      padding: 8px 15px;
-      font-size: 12px;
-      margin-left: 10px;
-    }
-
-    .form-button.remove:hover {
-      background: linear-gradient(135deg, rgb(200, 80, 80) 0%, rgb(180, 60, 60) 100%);
-    }
-
-    .on-use-effects, .tag-effects {
-      background: rgba(37, 26, 12, 0.5);
-      border: 1px solid rgb(74, 60, 46);
-      border-radius: 8px;
-      padding: 15px;
-      margin-top: 10px;
-    }
-
-    .tag-input-group {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    .on-use-input-group {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    .on-use-input-group input {
-      flex: 1;
-    }
-
     .button-group {
       display: flex;
       gap: 15px;
@@ -388,7 +103,7 @@
       margin-top: 25px;
     }
 
-    .card {
+    .skill-card {
       display: flex;
       align-items: flex-start;
       background-color: rgb(101, 84, 63);
@@ -396,251 +111,88 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       margin-top: 10px;
-      position: relative;
     }
 
-    .card-controls {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      z-index: 10;
-    }
-
-    .card-delete-btn {
-      background: linear-gradient(135deg, rgb(180, 60, 60) 0%, rgb(140, 40, 40) 100%);
-      color: white;
-      border: 2px solid rgb(200, 80, 80);
-      border-radius: 50%;
-      width: 30px;
-      height: 30px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    }
-
-    .card-delete-btn:hover {
-      background: linear-gradient(135deg, rgb(200, 80, 80) 0%, rgb(180, 60, 60) 100%);
-      transform: scale(1.1);
-    }
-
-    .image-container {
+    .skill-image-container {
       border: 3px solid gold;
       padding: 5px;
       margin-right: 20px;
-      border-radius: 10px;
-      overflow: hidden;
+      border-radius: 50%;
+      overflow: visible;
       display: flex;
       align-items: center;
       justify-content: center;
-      height: auto;
-      width: auto;
+      height: 75px;
+      width: 75px;
       flex-shrink: 0;
       background: rgb(74, 60, 46);
+      position: relative;
     }
 
-    .image-container img {
+    .skill-image-container img {
       height: 100%;
-      width: auto;
+      width: 100%;
       display: block;
       object-fit: cover;
       object-position: center;
+      border-radius: 50%;
     }
 
-    .card-content {
+    .skill-image-container .skill-border-overlay {
+      position: absolute !important;
+      top: 50% !important;
+      left: 50% !important;
+      transform: translate(-50%, -50%) !important;
+      width: 140px !important;
+      height: 140px !important;
+      max-width: none !important;
+      max-height: none !important;
+      border-radius: 50% !important;
+      pointer-events: none !important;
+      z-index: 999 !important;
+      overflow: visible !important;
+    }
+
+    .skill-content {
       position: relative;
       display: flex;
       flex-direction: column;
       border: 3px solid gold;
       border-radius: 10px;
-      max-width: 400px;
       min-width: 300px;
       width: fit-content;
       background: radial-gradient(ellipse at center, rgb(60, 45, 30) 0%, rgb(45, 35, 22) 40%, rgb(25, 18, 10) 100%);
     }
 
-    .card-wrapper {
-      display: flex;
-      flex-direction: column;
-      align-items: flex-start;
-    }
-
-    .tags-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 5px;
-      margin-bottom: 5px;
-      padding: 0;
-      background: transparent;
-    }
-
-    .item-tag {
-      background-color: rgba(0, 0, 139, 0.5);
-      color: rgb(152, 168, 254);
-      padding: 4px 8px;
-      border-radius: 4px;
-      font-size: 0.8em;
-      font-weight: bold;
-      font-family: Arial, sans-serif;
-      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-      border: 1px solid rgba(152, 168, 254, 0.3);
-    }
-
-    .text-section {
+    .skill-header {
       border-top: 2px solid gold;
       border-bottom: 2px solid gold;
-      padding: 10px;
+      padding: 15px;
       color: rgb(251, 225, 183);
       text-shadow: 1px 1px 2px black;
       font-family: Impact, 'Arial Black', 'Franklin Gothic Bold', Arial, sans-serif;
+      text-align: left;
     }
 
-    .hero-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      position: relative;
-    }
-
-    .item-title {
+    .skill-title {
       font-size: 2em;
+      margin: 0;
     }
 
-    .hero-header img {
-      max-width: 40px;
-      height: auto;
-      border-radius: 5px;
-      margin-left: 10px;
-    }
-
-    .on-use-line {
-      display: flex;
-      align-items: center;
-      margin-bottom: 4px;
-      margin-left: 40px;
-    }
-
-    .on-use-section {
-      padding-left: 20px;
-    }
-
-    .on-use-line img {
-      width: 16px;
-      height: 18px;
-      margin-right: 8px;
-    }
-
-    .cooldown-section {
-      left: -30px;
-      border-radius: 50%;
-      border: 3px solid rgb(52, 45, 68);
-      width: 50px;
-      height: 50px;
-      padding: 0;
-      font-size: 1.4em;
-      line-height: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      color: white;
-      background-color: #222;
-      position: absolute;
-      z-index: 1;
-    }
-
-    .cooldown-section span {
-      display: block;
-    }
-
-    .cooldown-section .sec-text {
-      font-size: 0.6em;
-      color: rgb(217, 149, 81);
-    }
-
-    .ammo-section {
-      right: -30px;
-      border-radius: 10px;
-      border: 3px solid silver;
-      padding: 5px 10px;
-      font-size: 0.9em;
-      height: auto;
-      width: auto;
-      position: absolute;
-      z-index: 1;
-      background-color: rgb(37, 26, 12);
-      color: rgb(254, 142, 0);
-      font-weight: bold;
-      font-family: Impact, 'Arial Black', 'Franklin Gothic Bold', Arial, sans-serif;
+    .skill-effect {
+      border-top: 2px solid gold;
+      border-bottom: 2px solid gold;
+      padding: 15px;
+      color: rgb(251, 225, 183);
       text-shadow: 1px 1px 2px black;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 3px;
-    }
-
-    .ammo-section img {
-      width: 20px;
-      height: 20px;
+      font-family: Impact, 'Arial Black', 'Franklin Gothic Bold', Arial, sans-serif;
+      line-height: 1.4;
     }
 
     .error {
       color: red;
       font-weight: bold;
       margin-top: 10px;
-    }
-
-    .shortcuts-help {
-      background: rgba(37, 26, 12, 0.7);
-      border: 1px solid rgb(74, 60, 46);
-      border-radius: 8px;
-      padding: 15px;
-      margin-top: 10px;
-      color: rgb(201, 175, 133);
-      font-size: 12px;
-    }
-
-    .shortcuts-help h4 {
-      color: rgb(251, 225, 183);
-      margin: 0 0 10px 0;
-      font-size: 14px;
-    }
-
-    .shortcuts-help .shortcut-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 8px;
-    }
-
-    .shortcuts-help .shortcut-item {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 2px 0;
-    }
-
-    .shortcuts-help .shortcut-key {
-      color: rgb(218, 165, 32);
-      font-weight: bold;
-    }
-
-    .keyword-icon {
-      width: 16px;
-      height: 18px;
-      display: inline;
-      vertical-align: middle;
-      margin: 0 2px;
-    }
-
-    .keyword-preview {
-      width: 16px;
-      height: 18px;
-      display: inline;
-      vertical-align: middle;
     }
 
     /* Footer Styles */
@@ -739,101 +291,43 @@
         align-items: center;
         gap: 15px;
       }
-
-      .main-content {
-        padding: 1em;
-      }
-
-      .page-title {
-        font-size: 2em;
-      }
-
+      
       .form-grid {
         grid-template-columns: 1fr;
+      }
+      
+      .skill-card {
+        flex-direction: column;
+        align-items: center;
+      }
+      
+      .skill-image-container {
+        margin-right: 0;
+        margin-bottom: 20px;
+      }
+
+      .skill-border-overlay {
+        /* Border maintains its centering even on mobile */
+        width: 182px;
+        height: 182px;
       }
     }
 
   </style>
 </head>
 <body>
-  <!-- Top Navigation -->
-  <nav class="top-nav">
-    <div class="nav-container">
-      <a href="#" class="nav-logo">BazzarGen</a>
-      
-      <ul class="nav-menu" id="nav-menu">
-        <li class="nav-item">
-          <a href="#" class="nav-link active" data-page="items">Items</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-page="skills">Skills</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-page="contests">Contests</a>
-        </li>
-      </ul>
-
-      <div class="nav-toggle" id="nav-toggle">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
-    </div>
-  </nav>
-
   <div class="main-content">
-    <!-- Page Header -->
-    <div class="page-header">
-      <h1 class="page-title">Bazzar Card Generator</h1>
-    </div>
+    <h1>Bazzar Skills Generator</h1>
 
     <div class="input-container">
       <div class="form-grid">
-        <div class="form-group full-width">
-          <label class="form-label">Card Image</label>
-          <input type="file" id="imageInput" accept="image/*" class="form-input" />
-        </div>
-        
         <div class="form-group">
-          <label class="form-label">Item Name</label>
-          <input type="text" id="itemNameInput" placeholder="Enter item name" class="form-input" />
+          <label class="form-label" for="skillNameInput">Skill Name</label>
+          <input type="text" id="skillNameInput" class="form-input" placeholder="Enter skill name">
         </div>
-        
+
         <div class="form-group">
-          <label class="form-label">Hero</label>
-          <select id="heroSelect" class="form-select">
-            <option value="Neutral" selected>Neutral</option>
-            <option value="Mak">Mak</option>
-            <option value="Vanessa">Vanessa</option>
-            <option value="Pyg">Pyg</option>
-            <option value="Dooly">Dooly</option>
-            <option value="Stelle">Stelle</option>
-            <option value="Jules">Jules</option>
-            <option value = "Vampire"> Vampire</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Cooldown (seconds)</label>
-          <input type="text" id="cooldownInput" placeholder="e.g. 7.0" class="form-input" />
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Ammo Count</label>
-          <input type="text" id="ammoInput" placeholder="e.g. 3" class="form-input" />
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Item Size</label>
-          <select id="itemSizeSelect" class="form-select">
-            <option value="Small">Small</option>
-            <option value="Medium" selected>Medium</option>
-            <option value="Large">Large</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Item Rarity</label>
+          <label class="form-label" for="borderSelect">Border Color</label>
           <select id="borderSelect" class="form-select">
             <option value="bronze">Bronze</option>
             <option value="silver">Silver</option>
@@ -842,71 +336,40 @@
             <option value="legendary">Legendary</option>
           </select>
         </div>
-        
+
         <div class="form-group full-width">
-          <label class="form-label">Passive Effects</label>
-          <input type="text" id="passiveInput" placeholder="Enter passive effect description" class="form-input" />
+          <label class="form-label" for="skillEffectInput">Skill Effect</label>
+          <textarea id="skillEffectInput" class="form-input" placeholder="Enter skill effect description" rows="4"></textarea>
         </div>
-      </div>
 
-      <div class="tag-effects">
-        <label class="form-label">Additional Tags</label>
-        <div id="tagInputs"></div>
-        <button type="button" onclick="addTagInput()" class="form-button secondary" style="margin-top: 10px;">Add Tag</button>
-      </div>
-
-      <div class="on-use-effects">
-        <label class="form-label">On Use Effects</label>
-        <div id="onUseInputs"></div>
-        <button type="button" onclick="addOnUseInput()" class="form-button secondary" style="margin-top: 10px;">Add On Use Effect</button>
-      </div>
-
-      <div class="shortcuts-help">
-        <h4>🎮 Keyword Shortcuts - Type these in text boxes:</h4>
-        <div class="shortcut-grid">
-          <div class="shortcut-item"><span class="shortcut-key">/s</span> <img src="images/KeyText/slow.png" alt="slow" class="keyword-preview"> slow</div>
-          <div class="shortcut-item"><span class="shortcut-key">/h</span> <img src="images/KeyText/haste.png" alt="haste" class="keyword-preview"> haste</div>
-          <div class="shortcut-item"><span class="shortcut-key">/he</span> <img src="images/KeyText/heal.png" alt="heal" class="keyword-preview"> heal</div>
-          <div class="shortcut-item"><span class="shortcut-key">/r</span> <img src="images/KeyText/regen.png" alt="regen" class="keyword-preview"> regen</div>
-          <div class="shortcut-item"><span class="shortcut-key">/p</span> <img src="images/KeyText/poison.png" alt="poison" class="keyword-preview"> poison</div>
-          <div class="shortcut-item"><span class="shortcut-key">/b</span> <img src="images/KeyText/burn.png" alt="burn" class="keyword-preview"> burn</div>
-          <div class="shortcut-item"><span class="shortcut-key">/c</span> <img src="images/KeyText/charge.png" alt="charge" class="keyword-preview"> charge</div>
-          <div class="shortcut-item"><span class="shortcut-key">/cd</span> <img src="images/KeyText/cooldown.png" alt="cooldown" class="keyword-preview"> cooldown</div>
-          <div class="shortcut-item"><span class="shortcut-key">/cr</span> <img src="images/KeyText/crit.png" alt="crit" class="keyword-preview"> crit</div>
-          <div class="shortcut-item"><span class="shortcut-key">/d</span> <img src="images/KeyText/damage.png" alt="damage" class="keyword-preview"> damage</div>
-          <div class="shortcut-item"><span class="shortcut-key">/de</span> <img src="images/KeyText/destroy.png" alt="destroy" class="keyword-preview"> destroy</div>
-          <div class="shortcut-item"><span class="shortcut-key">/f</span> <img src="images/KeyText/freeze.png" alt="freeze" class="keyword-preview"> freeze</div>
-          <div class="shortcut-item"><span class="shortcut-key">/l</span> <img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-preview"> lifesteal</div>
-          <div class="shortcut-item"><span class="shortcut-key">/v</span> <img src="images/KeyText/value.png" alt="value" class="keyword-preview"> value</div>
-          <div class="shortcut-item"><span class="shortcut-key">/t</span> <img src="images/KeyText/transform.png" alt="transform" class="keyword-preview"> transform</div>
-          <div class="shortcut-item"><span class="shortcut-key">/sh</span> <img src="images/KeyText/sheild.png" alt="sheild" class="keyword-preview"> sheild</div>
-          <div class="shortcut-item"><span class="shortcut-key">/mh</span> <img src="images/KeyText/maxhealth.png" alt="maxhealth" class="keyword-preview"> maxhealth</div>
+        <div class="form-group full-width">
+          <label class="form-label" for="imageInput">Upload Skill Image</label>
+          <input type="file" id="imageInput" class="form-input" accept="image/*">
         </div>
       </div>
 
       <div class="button-group">
-        <button onclick="createCard()" class="form-button">Generate Card</button>
-        <button onclick="clearAllCards()" class="form-button secondary">Clear All Cards</button>
+        <button class="form-button" onclick="createSkill()">Generate Skill</button>
+        <button class="form-button secondary" onclick="clearOutput()">Clear All</button>
       </div>
-      
-      <div id="errorContainer"></div>
     </div>
 
+    <div id="errorContainer"></div>
     <div id="outputContainer"></div>
   </div>
 
   <!-- Footer -->
   <footer class="footer">
     <div class="footer-content">
-      <div class="footer-title">⚔️ Bazzar Card Generator ⚔️</div>
+      <div class="footer-title">⚔️ Bazzar Skills Generator ⚔️</div>
       <div class="footer-description">
-        Bring your ideas to life. Shoutout to Reynad for tearing this masterpeice from the void. 
+        Bring your ideas to life. Shoutout to Reynad for tearing this masterpiece from the void. 
       </div>
       
       <div class="footer-links">
         <a href="https://github.com/LukeMcPartlan/BazzarGen" class="footer-link">📜 Documentation</a>
         <a href="updates.html" class="footer-link">🛡️ Updates</a>
-        <a href="skills.html" class="footer-link">⚡ Skills</a>
+        <a href="index.html" class="footer-link">🃏 Cards</a>
         <a href="https://www.reddit.com/r/PlayTheBazaar/" class="footer-link">🏰 Community</a>
       </div>
       
@@ -916,7 +379,7 @@
         © 2025 Luke Alvarez Bazzar Generator
       </div>
       <div class="footer-contact">
-        Report bugs to Lukemcp45@gmail.com . Zelle me a coffe at the same email!
+        Report bugs to Lukemcp45@gmail.com . Zelle me a coffee at the same email!
       </div>
       <div class="footer-version">
         Version 1.0 | Built for Bazzar fans by Bazzar fans
@@ -924,84 +387,8 @@
     </div>
   </footer>
 
-  <!-- Hidden SEO Content -->
-  <div style="display: none; visibility: hidden;">
-    <h2>Bazzar Card Generator Keywords</h2>
-    <p>BazzarGen, Bazzar Generator, Bazaar Card Maker, The Bazaar Game Tool, Custom Card Creator, Online Card Generator, Free Card Maker, Game Card Designer, TCG Card Generator, Trading Card Game Tool, Bazzar Item Cards, Hero Card Generator, Effect Card Creator, Cooldown Card Generator, Ammo Card Maker, Tag Card System, Border Quality Cards, Passive Effect Generator, On Use Effect Creator, Mak Cards, Vanessa Cards, Pyg Cards, Dooly Cards, Neutral Cards, Small Medium Large Items, Bronze Silver Gold Diamond Legendary Borders, Reynad Game Tools, The Bazaar Fan Tools, Card Design Software, Web Based Card Generator, Mobile Card Creator, Responsive Card Maker, Gaming Tools Online, Card Customization Tool, Professional Card Design, Game Development Tools, Indie Game Tools, Card Game Assets, Digital Card Creator, Virtual Card Maker, Interactive Card Generator, Real Time Card Preview, Drag Drop Card Creator, Upload Image Cards, Custom Text Cards, Keyword Highlighting, Color Coded Effects, Card Template Generator, Game Prototype Tools, Playtesting Cards, Community Card Sharing, Card Export Tool, Print Ready Cards, High Quality Card Generator, User Friendly Interface, Intuitive Card Design, Fast Card Creation, Unlimited Card Generation, No Download Required, Browser Based Tool, Cross Platform Generator, Modern Card Design, Stylish Card Templates, Game Ready Cards, Professional Gaming Tools</p>
-    
-    <h3>Related Game Terms</h3>
-    <p>Auto Battler, Strategy Game, Deck Building, Item Management, Hero Abilities, Game Mechanics, Turn Based, Real Time Strategy, Competitive Gaming, Esports Tools, Streaming Tools, Content Creation, Game Modding, Fan Art Tools, Community Tools, Game Assets, Digital Art, Card Art, Fantasy Gaming, RPG Elements, Character Cards, Equipment Cards, Spell Cards, Ability Cards, Status Effects, Game Balance, Meta Gaming, Tier Lists, Strategy Guides, Tutorials, How To Guides, Gaming Community, Reddit Gaming, Discord Tools, Twitch Tools, YouTube Gaming</p>
-    
-    <h4>Technical Keywords</h4>
-    <p>HTML5 Card Generator, CSS3 Styling, JavaScript Interactive Tool, Responsive Web Design, Mobile Friendly Generator, Canvas Based Tool, SVG Graphics, Image Processing, File Upload Tool, Client Side Processing, No Server Required, Offline Capable, Progressive Web App, Modern Web Standards, Cross Browser Compatible, Fast Loading Tool, Optimized Performance, Memory Efficient, Touch Friendly Interface, Keyboard Shortcuts, Accessibility Features, Screen Reader Compatible, High DPI Support, Retina Display Ready</p>
-  </div>
-
   <script>
-    // Navigation functionality
-    document.addEventListener('DOMContentLoaded', function() {
-      const navToggle = document.getElementById('nav-toggle');
-      const navMenu = document.getElementById('nav-menu');
-      const navLinks = document.querySelectorAll('.nav-link');
-
-      // Toggle mobile menu
-      navToggle.addEventListener('click', function() {
-        navMenu.classList.toggle('active');
-      });
-
-      // Handle navigation clicks
-      navLinks.forEach(link => {
-        link.addEventListener('click', function(e) {
-          e.preventDefault();
-          
-          const page = this.getAttribute('data-page');
-          
-          // Handle external navigation
-          if (page === 'skills') {
-            window.location.href = 'skills.html';
-            return;
-          }
-          
-          // Remove active class from all links
-          navLinks.forEach(l => l.classList.remove('active'));
-          
-          // Add active class to clicked link
-          this.classList.add('active');
-          
-          // Close mobile menu
-          navMenu.classList.remove('active');
-          
-          // Handle page navigation
-          handlePageNavigation(page);
-        });
-      });
-
-      // Close mobile menu when clicking outside
-      document.addEventListener('click', function(e) {
-        if (!navToggle.contains(e.target) && !navMenu.contains(e.target)) {
-          navMenu.classList.remove('active');
-        }
-      });
-    });
-
-    function handlePageNavigation(page) {
-      // This is where you would handle different page content
-      // For now, we'll just update the page title
-      const pageTitle = document.querySelector('.page-title');
-      
-      switch(page) {
-        case 'items':
-          pageTitle.textContent = 'Bazzar Card Generator';
-          break;
-        case 'skills':
-          pageTitle.textContent = 'Skill Generator';
-          break;
-        case 'contests':
-          pageTitle.textContent = 'Community Contests';
-          break;
-      }
-    }
-
-    // Define keyword colors and styling rules
+    // Define keyword colors and styling rules (same as card generator)
     const keywordRules = {
       'slow': { color: 'rgb(203, 159, 110)' },
       'haste': { color: 'rgb(0, 235, 195)' },
@@ -1025,25 +412,6 @@
       
       let processedText = text;
       
-      // First, replace all shortcuts with placeholders
-      processedText = processedText.replace(/\/s/g, '[SLOW_ICON]');
-      processedText = processedText.replace(/\/h/g, '[HASTE_ICON]');
-      processedText = processedText.replace(/\/he/g, '[HEAL_ICON]');
-      processedText = processedText.replace(/\/r/g, '[REGEN_ICON]');
-      processedText = processedText.replace(/\/p/g, '[POISON_ICON]');
-      processedText = processedText.replace(/\/b/g, '[BURN_ICON]');
-      processedText = processedText.replace(/\/c/g, '[CHARGE_ICON]');
-      processedText = processedText.replace(/\/cd/g, '[COOLDOWN_ICON]');
-      processedText = processedText.replace(/\/cr/g, '[CRIT_ICON]');
-      processedText = processedText.replace(/\/d/g, '[DAMAGE_ICON]');
-      processedText = processedText.replace(/\/de/g, '[DESTROY_ICON]');
-      processedText = processedText.replace(/\/f/g, '[FREEZE_ICON]');
-      processedText = processedText.replace(/\/l/g, '[LIFESTEAL_ICON]');
-      processedText = processedText.replace(/\/v/g, '[VALUE_ICON]');
-      processedText = processedText.replace(/\/t/g, '[TRANSFORM_ICON]');
-      processedText = processedText.replace(/\/sh/g, '[SHEILD_ICON]');
-      processedText = processedText.replace(/\/mh/g, '[MAXHEALTH_ICON]');
-      
       // Create a regex pattern that matches all keywords (case insensitive)
       const keywords = Object.keys(keywordRules);
       const pattern = new RegExp(`\\b(${keywords.join('|')})\\b`, 'gi');
@@ -1053,78 +421,12 @@
         const lowerMatch = match.toLowerCase();
         const rule = keywordRules[lowerMatch];
         if (rule) {
-          return `<span style="color: ${rule.color}; font-weight: bold;" class="key-text" data-keyword="${lowerMatch}">${match}</span>`;
+          return `<span style="color: ${rule.color}; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;" class="key-text" data-keyword="${lowerMatch}">${match}</span>`;
         }
         return match;
       });
       
-      // Finally, replace all placeholders with actual images
-      processedText = processedText.replace(/\[SLOW_ICON\]/g, '<img src="images/KeyText/slow.png" alt="slow" class="keyword-icon">');
-      processedText = processedText.replace(/\[HASTE_ICON\]/g, '<img src="images/KeyText/haste.png" alt="haste" class="keyword-icon">');
-      processedText = processedText.replace(/\[HEAL_ICON\]/g, '<img src="images/KeyText/heal.png" alt="heal" class="keyword-icon">');
-      processedText = processedText.replace(/\[REGEN_ICON\]/g, '<img src="images/KeyText/regen.png" alt="regen" class="keyword-icon">');
-      processedText = processedText.replace(/\[POISON_ICON\]/g, '<img src="images/KeyText/poison.png" alt="poison" class="keyword-icon">');
-      processedText = processedText.replace(/\[BURN_ICON\]/g, '<img src="images/KeyText/burn.png" alt="burn" class="keyword-icon">');
-      processedText = processedText.replace(/\[CHARGE_ICON\]/g, '<img src="images/KeyText/charge.png" alt="charge" class="keyword-icon">');
-      processedText = processedText.replace(/\[COOLDOWN_ICON\]/g, '<img src="images/KeyText/cooldown.png" alt="cooldown" class="keyword-icon">');
-      processedText = processedText.replace(/\[CRIT_ICON\]/g, '<img src="images/KeyText/crit.png" alt="crit" class="keyword-icon">');
-      processedText = processedText.replace(/\[DAMAGE_ICON\]/g, '<img src="images/KeyText/damage.png" alt="damage" class="keyword-icon">');
-      processedText = processedText.replace(/\[DESTROY_ICON\]/g, '<img src="images/KeyText/destroy.png" alt="destroy" class="keyword-icon">');
-      processedText = processedText.replace(/\[FREEZE_ICON\]/g, '<img src="images/KeyText/freeze.png" alt="freeze" class="keyword-icon">');
-      processedText = processedText.replace(/\[LIFESTEAL_ICON\]/g, '<img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-icon">');
-      processedText = processedText.replace(/\[VALUE_ICON\]/g, '<img src="images/KeyText/value.png" alt="value" class="keyword-icon">');
-      processedText = processedText.replace(/\[TRANSFORM_ICON\]/g, '<img src="images/KeyText/transform.png" alt="transform" class="keyword-icon">');
-      processedText = processedText.replace(/\[SHEILD_ICON\]/g, '<img src="images/KeyText/sheild.png" alt="sheild" class="keyword-icon">');
-      processedText = processedText.replace(/\[MAXHEALTH_ICON\]/g, '<img src="images/KeyText/maxhealth.png" alt="maxhealth" class="keyword-icon">');
       return processedText;
-    }
-
-    function addTagInput() {
-      const container = document.getElementById("tagInputs");
-      
-      const inputGroup = document.createElement("div");
-      inputGroup.className = "tag-input-group";
-      
-      const input = document.createElement("input");
-      input.type = "text";
-      input.placeholder = "Enter tag text";
-      input.className = "form-input";
-      
-      const removeButton = document.createElement("button");
-      removeButton.type = "button";
-      removeButton.textContent = "Remove";
-      removeButton.className = "form-button remove";
-      removeButton.onclick = function() {
-        container.removeChild(inputGroup);
-      };
-      
-      inputGroup.appendChild(input);
-      inputGroup.appendChild(removeButton);
-      container.appendChild(inputGroup);
-    }
-
-    function addOnUseInput() {
-      const container = document.getElementById("onUseInputs");
-      
-      const inputGroup = document.createElement("div");
-      inputGroup.className = "on-use-input-group";
-      
-      const input = document.createElement("input");
-      input.type = "text";
-      input.placeholder = "Enter on use effect description";
-      input.className = "form-input";
-      
-      const removeButton = document.createElement("button");
-      removeButton.type = "button";
-      removeButton.textContent = "Remove";
-      removeButton.className = "form-button remove";
-      removeButton.onclick = function() {
-        container.removeChild(inputGroup);
-      };
-      
-      inputGroup.appendChild(input);
-      inputGroup.appendChild(removeButton);
-      container.appendChild(inputGroup);
     }
 
     function getBorderColor(value) {
@@ -1133,328 +435,119 @@
         case 'silver': return 'silver';
         case 'gold': return 'gold';
         case 'diamond': return 'rgb(185, 242, 255)';
-        case 'legendary': return 'rgb(124, 46, 44)';
+        case 'legendary': return 'red';
         default: return 'gold';
       }
     }
 
-    function formatCooldown(cooldownValue) {
-      if (!cooldownValue.trim()) return '';
-      
-      const num = parseFloat(cooldownValue);
-      if (isNaN(num)) {
-        throw new Error('Cooldown must be a valid number');
-      }
-      
-      // If it's a whole number, add .0
-      if (num % 1 === 0) {
-        return num.toFixed(1);
-      }
-      
-      // If it has decimals, remove trailing zeros but keep at least one decimal place
-      let formatted = num.toString();
-      if (formatted.includes('.')) {
-        // Remove trailing zeros
-        formatted = formatted.replace(/0+$/, '');
-        // If we removed all decimal places, add back one zero
-        if (formatted.endsWith('.')) {
-          formatted += '0';
-        }
-      }
-      
-      return formatted;
-    }
-
-    function validateAmmo(ammoValue) {
-      if (!ammoValue.trim()) return '';
-      
-      const num = parseInt(ammoValue);
-      if (isNaN(num) || !Number.isInteger(parseFloat(ammoValue))) {
-        throw new Error('Ammo must be a valid integer');
-      }
-      
-      return num.toString();
-    }
-
-    function positionElementsRelativeToOnUse(content, onUseSection) {
-      // Get the position and dimensions of the on-use section
-      const onUseRect = onUseSection.getBoundingClientRect();
-      const contentRect = content.getBoundingClientRect();
-      
-      // Calculate the center position of the on-use section relative to the content
-      const onUseCenterY = onUseRect.top - contentRect.top + (onUseRect.height / 2);
-      
-      // Position cooldown and ammo elements
-      const cooldownSection = content.querySelector('.cooldown-section');
-      const ammoSection = content.querySelector('.ammo-section');
-      
-      if (cooldownSection) {
-        cooldownSection.style.top = `${onUseCenterY - 25}px`; // 25 is half the height of cooldown section
-      }
-      
-      if (ammoSection) {
-        ammoSection.style.top = `${onUseCenterY - (ammoSection.offsetHeight / 2)}px`;
-      }
-    }
-
-    function clearAllCards() {
-      const outputContainer = document.getElementById("outputContainer");
-      outputContainer.innerHTML = '';
-    }
-
-    function clearCard(cardElement) {
-      cardElement.remove();
-    }
-
-    function createCard() {
+    function createSkill() {
       const imageInput = document.getElementById("imageInput");
-      const itemName = document.getElementById("itemNameInput").value;
-      const cooldownInput = document.getElementById("cooldownInput").value;
-      const hero = document.getElementById("heroSelect").value;
-      const ammo = document.getElementById("ammoInput").value;
-      const itemSize = document.getElementById("itemSizeSelect").value;
+      const skillName = document.getElementById("skillNameInput").value;
+      const skillEffect = document.getElementById("skillEffectInput").value;
       const border = document.getElementById("borderSelect").value;
-      const onUseInputs = document.querySelectorAll("#onUseInputs input");
-      const tagInputs = document.querySelectorAll("#tagInputs input");
-      const passiveInput = document.getElementById("passiveInput").value;
       const outputContainer = document.getElementById("outputContainer");
       const errorContainer = document.getElementById("errorContainer");
 
       // Clear previous errors
       errorContainer.innerHTML = '';
 
-      // Check for on use effects
-      const hasOnUseEffects = Array.from(onUseInputs).some(input => input.value.trim());
-      const hasCooldown = cooldownInput.trim();
-
-      // Validate cooldown and on use effects dependency
-      if (hasOnUseEffects && !hasCooldown) {
+      // Validate inputs
+      if (!skillName.trim()) {
         const errorDiv = document.createElement("div");
         errorDiv.className = "error";
-        errorDiv.textContent = "On Use effects require a cooldown value";
+        errorDiv.textContent = "Please enter a skill name.";
         errorContainer.appendChild(errorDiv);
         return;
       }
 
-      // Validate and format cooldown
-      let formattedCooldown = '';
-      if (cooldownInput.trim()) {
-        try {
-          formattedCooldown = formatCooldown(cooldownInput);
-        } catch (error) {
-          const errorDiv = document.createElement("div");
-          errorDiv.className = "error";
-          errorDiv.textContent = error.message;
-          errorContainer.appendChild(errorDiv);
-          return;
-        }
-      }
-
-      // Validate ammo
-      let validatedAmmo = '';
-      if (ammo.trim()) {
-        try {
-          validatedAmmo = validateAmmo(ammo);
-        } catch (error) {
-          const errorDiv = document.createElement("div");
-          errorDiv.className = "error";
-          errorDiv.textContent = error.message;
-          errorContainer.appendChild(errorDiv);
-          return;
-        }
-      }
-
-      if (imageInput.files && imageInput.files[0]) {
-        const reader = new FileReader();
-
-        reader.onload = function (e) {
-          const borderColor = getBorderColor(border);
-          const card = document.createElement("div");
-          card.className = "card";
-
-          // Add delete button for individual card
-          const cardControls = document.createElement("div");
-          cardControls.className = "card-controls";
-          
-          const deleteBtn = document.createElement("button");
-          deleteBtn.className = "card-delete-btn";
-          deleteBtn.innerHTML = "×";
-          deleteBtn.title = "Delete this card";
-          deleteBtn.onclick = function() {
-            clearCard(card);
-          };
-          
-          cardControls.appendChild(deleteBtn);
-          card.appendChild(cardControls);
-
-          const imageContainer = document.createElement("div");
-          imageContainer.className = "image-container";
-          imageContainer.style.border = `3px solid ${borderColor}`;
-
-          const img = document.createElement("img");
-          img.src = e.target.result;
-          imageContainer.appendChild(img);
-
-          // Create tags container (outside the main bordered content)
-          const tagsContainer = document.createElement("div");
-          tagsContainer.className = "tags-container";
-
-          // Always add item size as first tag
-          const itemSizeTag = document.createElement("span");
-          itemSizeTag.className = "item-tag";
-          itemSizeTag.textContent = itemSize;
-          tagsContainer.appendChild(itemSizeTag);
-
-          // Add additional tags
-          tagInputs.forEach(input => {
-            if (input.value.trim()) {
-              const tag = document.createElement("span");
-              tag.className = "item-tag";
-              tag.textContent = input.value.trim();
-              tagsContainer.appendChild(tag);
-            }
-          });
-
-          const content = document.createElement("div");
-          content.className = "card-content";
-          content.style.border = `3px solid ${borderColor}`;
-
-          const topSection = document.createElement("div");
-          topSection.className = "text-section hero-header";
-          topSection.style.borderTop = `2px solid ${borderColor}`;
-          topSection.style.borderBottom = `2px solid ${borderColor}`;
-          const itemTitle = document.createElement("div");
-          itemTitle.className = "item-title";
-          itemTitle.textContent = itemName;
-          const heroImg = document.createElement("img");
-          heroImg.src = `images/${hero.toLowerCase()}.png`;
-          heroImg.alt = hero;
-          topSection.appendChild(itemTitle);
-          topSection.appendChild(heroImg);
-          content.appendChild(topSection);
-
-          let onUseSection = null;
-          const effectsContainer = document.createElement("div");
-          onUseInputs.forEach(input => {
-            if (input.value.trim()) {
-              const effectLine = document.createElement("div");
-              effectLine.className = "on-use-line";
-
-              const icon = document.createElement("img");
-              icon.src = "images/use-arrow.png";
-              icon.alt = "-";
-
-              const text = document.createElement("span");
-              text.innerHTML = processKeywordText(input.value);
-
-              effectLine.appendChild(icon);
-              effectLine.appendChild(text);
-              effectsContainer.appendChild(effectLine);
-            }
-          });
-
-          if (effectsContainer.children.length > 0) {
-            onUseSection = document.createElement("div");
-            onUseSection.className = "text-section on-use-section";
-            onUseSection.style.borderTop = `2px solid ${borderColor}`;
-            onUseSection.style.borderBottom = `2px solid ${borderColor}`;
-            onUseSection.appendChild(effectsContainer);
-            content.appendChild(onUseSection);
-          }
-
-          if (passiveInput.trim()) {
-            const passiveSection = document.createElement("div");
-            passiveSection.className = "text-section";
-            passiveSection.style.borderTop = `2px solid ${borderColor}`;
-            passiveSection.style.borderBottom = `2px solid ${borderColor}`;
-            passiveSection.innerHTML = processKeywordText(passiveInput);
-            content.appendChild(passiveSection);
-          }
-
-          // Only show cooldown if there are on use effects
-          if (formattedCooldown && hasOnUseEffects) {
-            const cooldownDiv = document.createElement("div");
-            cooldownDiv.className = "cooldown-section";
-            cooldownDiv.innerHTML = `<span>${formattedCooldown}</span><span class="sec-text">sec</span>`;
-            content.appendChild(cooldownDiv);
-          }
-
-          if (validatedAmmo) {
-            const ammoDiv = document.createElement("div");
-            ammoDiv.className = "ammo-section";
-            ammoDiv.style.border = `3px solid ${borderColor}`;
-            
-            // Add ammo image
-            const ammoImg = document.createElement("img");
-            ammoImg.src = "images/ammo.png";
-            ammoImg.alt = "Ammo";
-            ammoDiv.appendChild(ammoImg);
-            
-            // Add ammo number
-            const ammoText = document.createElement("span");
-            ammoText.textContent = validatedAmmo;
-            ammoDiv.appendChild(ammoText);
-            
-            content.appendChild(ammoDiv);
-          }
-
-          card.appendChild(imageContainer);
-          
-          // Create a wrapper for tags and content
-          const cardWrapper = document.createElement("div");
-          cardWrapper.className = "card-wrapper";
-          
-          cardWrapper.appendChild(tagsContainer);
-          cardWrapper.appendChild(content);
-          card.appendChild(cardWrapper);
-          outputContainer.appendChild(card);
-
-          setTimeout(() => {
-            const contentHeight = content.offsetHeight;
-            imageContainer.style.height = contentHeight + "px";
-
-            // Debug: Check what size value we're getting
-            console.log("Item size value:", itemSize);
-
-            let widthRatio = 1.0; // Default to medium
-            if (itemSize === "Small") {
-              widthRatio = 0.5;
-              console.log("Setting small width ratio: 0.5");
-            } else if (itemSize === "Medium") {
-              widthRatio = 1.0;
-              console.log("Setting medium width ratio: 1.0");
-            } else if (itemSize === "Large") {
-              widthRatio = 1.5;
-              console.log("Setting large width ratio: 1.5");
-            }
-
-            console.log("Final width ratio:", widthRatio);
-
-            const containerWidth = contentHeight * widthRatio;
-            imageContainer.style.width = containerWidth + "px";
-
-            console.log("Container height:", contentHeight, "Container width:", containerWidth);
-
-            img.style.height = "100%";
-            img.style.width = "auto";
-            img.style.objectFit = "cover";
-            img.style.objectPosition = "center";
-
-            // Position cooldown and ammo relative to the on-use section
-            if (onUseSection) {
-              positionElementsRelativeToOnUse(content, onUseSection);
-            }
-          }, 0);
-        };
-
-        reader.readAsDataURL(imageInput.files[0]);
-      } else {
+      if (!skillEffect.trim()) {
         const errorDiv = document.createElement("div");
         errorDiv.className = "error";
-        errorDiv.textContent = "Please upload an image first.";
+        errorDiv.textContent = "Please enter a skill effect.";
         errorContainer.appendChild(errorDiv);
+        return;
       }
+
+      if (!imageInput.files || !imageInput.files[0]) {
+        const errorDiv = document.createElement("div");
+        errorDiv.className = "error";
+        errorDiv.textContent = "Please upload an image.";
+        errorContainer.appendChild(errorDiv);
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        const borderColor = getBorderColor(border);
+        const skillCard = document.createElement("div");
+        skillCard.className = "skill-card";
+
+        const imageContainer = document.createElement("div");
+        imageContainer.className = "skill-image-container";
+        imageContainer.style.border = `3px solid ${borderColor}`;
+
+        const img = document.createElement("img");
+        img.src = e.target.result;
+        
+        imageContainer.appendChild(img);
+
+        // Create border overlay - positioned relative to image container, not skill card
+        const imageBorderOverlay = document.createElement("img");
+        imageBorderOverlay.className = "skill-border-overlay";
+        imageBorderOverlay.src = `images/${border}_skill_border.png`;
+        
+        // Hide broken image if it doesn't load
+        imageBorderOverlay.onerror = function() {
+          this.style.display = 'none';
+        };
+        
+        // No alt text since it's purely decorative
+        imageBorderOverlay.alt = "";
+
+        // Add border overlay to the image container so it moves with the image
+        imageContainer.appendChild(imageBorderOverlay);
+
+        const content = document.createElement("div");
+        content.className = "skill-content";
+        content.style.border = `3px solid ${borderColor}`;
+
+        const headerSection = document.createElement("div");
+        headerSection.className = "skill-header";
+        headerSection.style.borderTop = `2px solid ${borderColor}`;
+        headerSection.style.borderBottom = `2px solid ${borderColor}`;
+        
+        const skillTitle = document.createElement("div");
+        skillTitle.className = "skill-title";
+        skillTitle.textContent = skillName;
+        headerSection.appendChild(skillTitle);
+
+        const effectSection = document.createElement("div");
+        effectSection.className = "skill-effect";
+        effectSection.style.borderTop = `2px solid ${borderColor}`;
+        effectSection.style.borderBottom = `2px solid ${borderColor}`;
+        effectSection.innerHTML = processKeywordText(skillEffect);
+
+        content.appendChild(headerSection);
+        content.appendChild(effectSection);
+
+        skillCard.appendChild(imageContainer);
+        skillCard.appendChild(content);
+        outputContainer.appendChild(skillCard);
+      };
+
+      reader.readAsDataURL(imageInput.files[0]);
+    }
+
+    function clearOutput() {
+      document.getElementById("outputContainer").innerHTML = '';
+      document.getElementById("errorContainer").innerHTML = '';
+      document.getElementById("skillNameInput").value = '';
+      document.getElementById("skillEffectInput").value = '';
+      document.getElementById("imageInput").value = '';
+      document.getElementById("borderSelect").value = 'gold';
     }
   </script>
 </body>
+</html>
 </html>
