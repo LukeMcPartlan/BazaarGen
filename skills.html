@@ -3,23 +3,255 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Bazzar Skills Generator</title>
+  <title>Skill Generator - Create Custom Skills | BazzarGen Tool</title>
+  
+  <!-- SEO Meta Tags -->
+  <meta name="description" content="Free online tool to create custom skills and abilities for The Bazaar game." />
+  <meta name="keywords" content="Bazzar, Bazaar, BazzarGen, Skill Generator, skill creator, game skills, custom skills, ability cards, hero skills, Reynad, The Bazaar, skill creator, game tool, free generator, online tool, skill design, gaming, TCG, trading card game, skill maker, Mak, Vanessa, Pyg, Dooly, game abilities, passive skills, active skills, cooldown, energy cost, skill customization" />
+  <meta name="author" content="Luke Alvarez" />
+  <meta name="robots" content="index, follow" />
+  <meta name="language" content="English" />
+  <meta name="revisit-after" content="7 days" />
+  
+  <!-- Favicon and Icons -->
+  <link rel="icon" type="image/x-icon" href="images/favicon.ico" />
+  <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png" />
+  <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
+  <link rel="manifest" href="site.webmanifest" />
+  
+  <!-- Open Graph Meta Tags -->
+  <meta property="og:title" content="Skill Generator - Create Custom Skills" />
+  <meta property="og:description" content="Free online tool to create custom skills and abilities for The Bazaar game." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://bazzargen.com/skills.html" />
+  <meta property="og:image" content="https://bazzargen.com/images/site-preview.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:site_name" content="BazzarGen - Bazzar Card Generator" />
+  
+  <!-- Twitter Card Meta Tags -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Skill Generator - Create Custom Skills" />
+  <meta name="twitter:description" content="Free online tool to create custom skills and abilities for The Bazaar game." />
+  <meta name="twitter:image" content="https://bazzargen.com/images/site-preview.png" />
+  
+  <!-- Additional SEO -->
+  <meta name="theme-color" content="#8B7A65" />
+  <link rel="canonical" href="https://bazzargen.com/skills.html" />
+  
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
       font-family: Arial, sans-serif;
-      margin: 2em;
       background-color: rgb(139, 122, 101);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
     }
 
-    h1 {
-      color: rgb(251, 225, 183);
+    /* Top Navigation Bar Styles */
+    .top-nav {
+      background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(37, 26, 12) 100%);
+      border-bottom: 3px solid rgb(218, 165, 32);
+      padding: 0;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      position: sticky;
+      top: 0;
+      z-index: 100;
     }
 
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      height: 70px;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.8em;
+      font-weight: bold;
+      color: rgb(251, 225, 183);
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+
+    .nav-logo:hover {
+      color: rgb(218, 165, 32);
+      transform: translateY(-1px);
+    }
+
+    .nav-logo::before {
+      content: "⚔️";
+      font-size: 1.2em;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    .nav-menu {
+      display: flex;
+      list-style: none;
+      gap: 0;
+      margin: 0;
+      padding: 0;
+    }
+
+    .nav-item {
+      position: relative;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 25px 25px;
+      color: rgb(201, 175, 133);
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1.1em;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.3s ease;
+      position: relative;
+      height: 70px;
+      border-left: 1px solid rgba(218, 165, 32, 0.2);
+    }
+
+    .nav-link:first-child {
+      border-left: none;
+    }
+
+    .nav-link:hover {
+      background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%);
+      color: rgb(37, 26, 12);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    .nav-link.active {
+      background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(255, 215, 0) 100%);
+      color: rgb(37, 26, 12);
+      box-shadow: inset 0 -3px 0 rgb(184, 134, 11);
+    }
+
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 0;
+      height: 3px;
+      background: rgb(255, 215, 0);
+      transition: all 0.3s ease;
+      transform: translateX(-50%);
+    }
+
+    .nav-link:hover::after {
+      width: 80%;
+    }
+
+    /* Mobile menu styles */
+    .nav-toggle {
+      display: none;
+      flex-direction: column;
+      cursor: pointer;
+      padding: 5px;
+    }
+
+    .nav-toggle span {
+      width: 25px;
+      height: 3px;
+      background: rgb(251, 225, 183);
+      margin: 3px 0;
+      transition: 0.3s;
+      border-radius: 2px;
+    }
+
+    @media (max-width: 768px) {
+      .nav-menu {
+        position: fixed;
+        top: 70px;
+        left: -100%;
+        width: 100%;
+        height: calc(100vh - 70px);
+        background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(37, 26, 12) 100%);
+        flex-direction: column;
+        justify-content: flex-start;
+        align-items: center;
+        transition: left 0.3s ease;
+        padding-top: 50px;
+      }
+
+      .nav-menu.active {
+        left: 0;
+      }
+
+      .nav-link {
+        width: 90%;
+        text-align: center;
+        padding: 20px;
+        margin: 10px 0;
+        border: 2px solid rgb(218, 165, 32);
+        border-radius: 10px;
+        background: rgba(37, 26, 12, 0.5);
+        height: auto;
+        border-left: 2px solid rgb(218, 165, 32);
+      }
+
+      .nav-toggle {
+        display: flex;
+      }
+
+      .nav-container {
+        padding: 0 15px;
+      }
+
+      .nav-logo {
+        font-size: 1.5em;
+      }
+    }
+
+    /* Main content styles */
     .main-content {
       flex: 1;
+      padding: 2em;
+    }
+
+    .page-header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px 0;
+    }
+
+    .page-title {
+      color: rgb(251, 225, 183);
+      font-size: 3em;
+      font-weight: bold;
+      text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+      margin-bottom: 10px;
+      background: linear-gradient(45deg, rgb(251, 225, 183), rgb(218, 165, 32));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    h1 {
+      color: rgb(251, 225, 183);
     }
 
     .input-container {
@@ -96,11 +328,70 @@
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     }
 
+    .form-button.secondary {
+      background: linear-gradient(135deg, rgb(101, 84, 63) 0%, rgb(74, 60, 46) 100%);
+      color: rgb(251, 225, 183);
+      border: 2px solid rgb(251, 225, 183);
+    }
+
+    .form-button.secondary:hover {
+      background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(101, 84, 63) 100%);
+    }
+
     .button-group {
       display: flex;
       gap: 15px;
       justify-content: center;
       margin-top: 25px;
+    }
+
+    .shortcuts-help {
+      background: rgba(37, 26, 12, 0.7);
+      border: 1px solid rgb(74, 60, 46);
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 10px;
+      color: rgb(201, 175, 133);
+      font-size: 12px;
+    }
+
+    .shortcuts-help h4 {
+      color: rgb(251, 225, 183);
+      margin: 0 0 10px 0;
+      font-size: 14px;
+    }
+
+    .shortcuts-help .shortcut-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+    }
+
+    .shortcuts-help .shortcut-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 0;
+    }
+
+    .shortcuts-help .shortcut-key {
+      color: rgb(218, 165, 32);
+      font-weight: bold;
+    }
+
+    .keyword-icon {
+      width: 16px;
+      height: 18px;
+      display: inline;
+      vertical-align: middle;
+      margin: 0 2px;
+    }
+
+    .keyword-preview {
+      width: 16px;
+      height: 18px;
+      display: inline;
+      vertical-align: middle;
     }
 
     .skill-card {
@@ -292,6 +583,14 @@
         gap: 15px;
       }
       
+      .main-content {
+        padding: 1em;
+      }
+
+      .page-title {
+        font-size: 2em;
+      }
+      
       .form-grid {
         grid-template-columns: 1fr;
       }
@@ -316,8 +615,36 @@
   </style>
 </head>
 <body>
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">BazzarGen</a>
+      
+      <ul class="nav-menu" id="nav-menu">
+        <li class="nav-item">
+          <a href="index.html" class="nav-link" data-page="items">Items</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link active" data-page="skills">Skills</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-page="contests">Contests</a>
+        </li>
+      </ul>
+
+      <div class="nav-toggle" id="nav-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </nav>
+
   <div class="main-content">
-    <h1>Bazzar Skills Generator</h1>
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1 class="page-title">Skill Generator</h1>
+    </div>
 
     <div class="input-container">
       <div class="form-grid">
@@ -345,6 +672,29 @@
         <div class="form-group full-width">
           <label class="form-label" for="imageInput">Upload Skill Image</label>
           <input type="file" id="imageInput" class="form-input" accept="image/*">
+        </div>
+      </div>
+
+      <div class="shortcuts-help">
+        <h4>🎮 Keyword Shortcuts - Type these in text boxes:</h4>
+        <div class="shortcut-grid">
+          <div class="shortcut-item"><span class="shortcut-key">/s</span> <img src="images/KeyText/slow.png" alt="slow" class="keyword-preview"> slow</div>
+          <div class="shortcut-item"><span class="shortcut-key">/h</span> <img src="images/KeyText/haste.png" alt="haste" class="keyword-preview"> haste</div>
+          <div class="shortcut-item"><span class="shortcut-key">/he</span> <img src="images/KeyText/heal.png" alt="heal" class="keyword-preview"> heal</div>
+          <div class="shortcut-item"><span class="shortcut-key">/r</span> <img src="images/KeyText/regen.png" alt="regen" class="keyword-preview"> regen</div>
+          <div class="shortcut-item"><span class="shortcut-key">/p</span> <img src="images/KeyText/poison.png" alt="poison" class="keyword-preview"> poison</div>
+          <div class="shortcut-item"><span class="shortcut-key">/b</span> <img src="images/KeyText/burn.png" alt="burn" class="keyword-preview"> burn</div>
+          <div class="shortcut-item"><span class="shortcut-key">/c</span> <img src="images/KeyText/charge.png" alt="charge" class="keyword-preview"> charge</div>
+          <div class="shortcut-item"><span class="shortcut-key">/cd</span> <img src="images/KeyText/cooldown.png" alt="cooldown" class="keyword-preview"> cooldown</div>
+          <div class="shortcut-item"><span class="shortcut-key">/cr</span> <img src="images/KeyText/crit.png" alt="crit" class="keyword-preview"> crit</div>
+          <div class="shortcut-item"><span class="shortcut-key">/d</span> <img src="images/KeyText/damage.png" alt="damage" class="keyword-preview"> damage</div>
+          <div class="shortcut-item"><span class="shortcut-key">/de</span> <img src="images/KeyText/destroy.png" alt="destroy" class="keyword-preview"> destroy</div>
+          <div class="shortcut-item"><span class="shortcut-key">/f</span> <img src="images/KeyText/freeze.png" alt="freeze" class="keyword-preview"> freeze</div>
+          <div class="shortcut-item"><span class="shortcut-key">/l</span> <img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-preview"> lifesteal</div>
+          <div class="shortcut-item"><span class="shortcut-key">/v</span> <img src="images/KeyText/value.png" alt="value" class="keyword-preview"> value</div>
+          <div class="shortcut-item"><span class="shortcut-key">/t</span> <img src="images/KeyText/transform.png" alt="transform" class="keyword-preview"> transform</div>
+          <div class="shortcut-item"><span class="shortcut-key">/sh</span> <img src="images/KeyText/sheild.png" alt="sheild" class="keyword-preview"> sheild</div>
+          <div class="shortcut-item"><span class="shortcut-key">/mh</span> <img src="images/KeyText/maxhealth.png" alt="maxhealth" class="keyword-preview"> maxhealth</div>
         </div>
       </div>
 
@@ -388,6 +738,24 @@
   </footer>
 
   <script>
+    // Navigation functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      const navToggle = document.getElementById('nav-toggle');
+      const navMenu = document.getElementById('nav-menu');
+
+      // Toggle mobile menu
+      navToggle.addEventListener('click', function() {
+        navMenu.classList.toggle('active');
+      });
+
+      // Close mobile menu when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!navToggle.contains(e.target) && !navMenu.contains(e.target)) {
+          navMenu.classList.remove('active');
+        }
+      });
+    });
+
     // Define keyword colors and styling rules (same as card generator)
     const keywordRules = {
       'slow': { color: 'rgb(203, 159, 110)' },
@@ -412,6 +780,25 @@
       
       let processedText = text;
       
+      // First, replace all shortcuts with placeholders
+      processedText = processedText.replace(/\/s/g, '[SLOW_ICON]');
+      processedText = processedText.replace(/\/h/g, '[HASTE_ICON]');
+      processedText = processedText.replace(/\/he/g, '[HEAL_ICON]');
+      processedText = processedText.replace(/\/r/g, '[REGEN_ICON]');
+      processedText = processedText.replace(/\/p/g, '[POISON_ICON]');
+      processedText = processedText.replace(/\/b/g, '[BURN_ICON]');
+      processedText = processedText.replace(/\/c/g, '[CHARGE_ICON]');
+      processedText = processedText.replace(/\/cd/g, '[COOLDOWN_ICON]');
+      processedText = processedText.replace(/\/cr/g, '[CRIT_ICON]');
+      processedText = processedText.replace(/\/d/g, '[DAMAGE_ICON]');
+      processedText = processedText.replace(/\/de/g, '[DESTROY_ICON]');
+      processedText = processedText.replace(/\/f/g, '[FREEZE_ICON]');
+      processedText = processedText.replace(/\/l/g, '[LIFESTEAL_ICON]');
+      processedText = processedText.replace(/\/v/g, '[VALUE_ICON]');
+      processedText = processedText.replace(/\/t/g, '[TRANSFORM_ICON]');
+      processedText = processedText.replace(/\/sh/g, '[SHEILD_ICON]');
+      processedText = processedText.replace(/\/mh/g, '[MAXHEALTH_ICON]');
+      
       // Create a regex pattern that matches all keywords (case insensitive)
       const keywords = Object.keys(keywordRules);
       const pattern = new RegExp(`\\b(${keywords.join('|')})\\b`, 'gi');
@@ -421,11 +808,29 @@
         const lowerMatch = match.toLowerCase();
         const rule = keywordRules[lowerMatch];
         if (rule) {
-          return `<span style="color: ${rule.color}; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;" class="key-text" data-keyword="${lowerMatch}">${match}</span>`;
+          return `<span style="color: ${rule.color}; font-weight: bold;" class="key-text" data-keyword="${lowerMatch}">${match}</span>`;
         }
         return match;
       });
       
+      // Finally, replace all placeholders with actual images
+      processedText = processedText.replace(/\[SLOW_ICON\]/g, '<img src="images/KeyText/slow.png" alt="slow" class="keyword-icon">');
+      processedText = processedText.replace(/\[HASTE_ICON\]/g, '<img src="images/KeyText/haste.png" alt="haste" class="keyword-icon">');
+      processedText = processedText.replace(/\[HEAL_ICON\]/g, '<img src="images/KeyText/heal.png" alt="heal" class="keyword-icon">');
+      processedText = processedText.replace(/\[REGEN_ICON\]/g, '<img src="images/KeyText/regen.png" alt="regen" class="keyword-icon">');
+      processedText = processedText.replace(/\[POISON_ICON\]/g, '<img src="images/KeyText/poison.png" alt="poison" class="keyword-icon">');
+      processedText = processedText.replace(/\[BURN_ICON\]/g, '<img src="images/KeyText/burn.png" alt="burn" class="keyword-icon">');
+      processedText = processedText.replace(/\[CHARGE_ICON\]/g, '<img src="images/KeyText/charge.png" alt="charge" class="keyword-icon">');
+      processedText = processedText.replace(/\[COOLDOWN_ICON\]/g, '<img src="images/KeyText/cooldown.png" alt="cooldown" class="keyword-icon">');
+      processedText = processedText.replace(/\[CRIT_ICON\]/g, '<img src="images/KeyText/crit.png" alt="crit" class="keyword-icon">');
+      processedText = processedText.replace(/\[DAMAGE_ICON\]/g, '<img src="images/KeyText/damage.png" alt="damage" class="keyword-icon">');
+      processedText = processedText.replace(/\[DESTROY_ICON\]/g, '<img src="images/KeyText/destroy.png" alt="destroy" class="keyword-icon">');
+      processedText = processedText.replace(/\[FREEZE_ICON\]/g, '<img src="images/KeyText/freeze.png" alt="freeze" class="keyword-icon">');
+      processedText = processedText.replace(/\[LIFESTEAL_ICON\]/g, '<img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-icon">');
+      processedText = processedText.replace(/\[VALUE_ICON\]/g, '<img src="images/KeyText/value.png" alt="value" class="keyword-icon">');
+      processedText = processedText.replace(/\[TRANSFORM_ICON\]/g, '<img src="images/KeyText/transform.png" alt="transform" class="keyword-icon">');
+      processedText = processedText.replace(/\[SHEILD_ICON\]/g, '<img src="images/KeyText/sheild.png" alt="sheild" class="keyword-icon">');
+      processedText = processedText.replace(/\[MAXHEALTH_ICON\]/g, '<img src="images/KeyText/maxhealth.png" alt="maxhealth" class="keyword-icon">');
       return processedText;
     }
 
@@ -549,5 +954,4 @@
     }
   </script>
 </body>
-</html>
 </html>
