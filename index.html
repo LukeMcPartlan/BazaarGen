@@ -543,7 +543,7 @@
 <body>
   <div class="main-content">
     <h1>Bazzar Card Generator</h1>
-
+<h1> Testing in progress- patch 1.1 implementation taking place! </h1>
     <div class="input-container">
       <div class="form-grid">
         <div class="form-group full-width">
@@ -713,8 +713,8 @@
       
       let processedText = text;
       
-      // First, replace /s shortcut with slow image
-      processedText = processedText.replace(/\/s/g, '<img src="images/KeyText/slow.png" alt="slow" class="keyword-icon">');
+      // First, replace /s shortcut with a placeholder
+      processedText = processedText.replace(/\/s/g, '[SLOW_ICON]');
       
       // Create a regex pattern that matches all keywords (case insensitive)
       const keywords = Object.keys(keywordRules);
@@ -729,6 +729,9 @@
         }
         return match;
       });
+      
+      // Finally, replace the placeholder with the actual image
+      processedText = processedText.replace(/\[SLOW_ICON\]/g, '<img src="images/KeyText/slow.png" alt="slow" class="keyword-icon">');
       
       return processedText;
     }
