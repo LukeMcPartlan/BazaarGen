@@ -953,6 +953,14 @@
         link.addEventListener('click', function(e) {
           e.preventDefault();
           
+          const page = this.getAttribute('data-page');
+          
+          // Handle external navigation
+          if (page === 'skills') {
+            window.location.href = 'skills.html';
+            return;
+          }
+          
           // Remove active class from all links
           navLinks.forEach(l => l.classList.remove('active'));
           
@@ -962,8 +970,7 @@
           // Close mobile menu
           navMenu.classList.remove('active');
           
-          // Handle page navigation (you can expand this)
-          const page = this.getAttribute('data-page');
+          // Handle page navigation
           handlePageNavigation(page);
         });
       });
