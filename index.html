@@ -1392,29 +1392,166 @@
     }
 
     function exportCardAsPNG(cardElement, filename) {
-      // Use html2canvas library alternative - create a simple canvas export
       const cardWrapper = cardElement.querySelector('.card-wrapper');
       if (!cardWrapper) return;
 
-      // For now, we'll create a simple implementation
-      // In a real implementation, you'd want to use html2canvas library
+      // Create a canvas to draw the card
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
       
-      // Set canvas size
-      canvas.width = 800;
-      canvas.height = 600;
+      // Get the actual dimensions of the card wrapper
+      const rect = cardWrapper.getBoundingClientRect();
+      const scale = 2; // Higher resolution
+      canvas.width = rect.width * scale;
+      canvas.height = rect.height * scale;
       
-      // Fill background
-      ctx.fillStyle = 'rgb(139, 122, 101)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Scale the context for high DPI
+      ctx.scale(scale, scale);
       
-      // Add text indicating this is a simplified export
-      ctx.fillStyle = 'white';
-      ctx.font = '20px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('Card Export (Simplified)', canvas.width / 2, canvas.height / 2);
-      ctx.fillText('For full quality, use external tools', canvas.width / 2, canvas.height / 2 + 30);
+      // Set background color
+      ctx.fillStyle = 'rgb(101, 84, 63)'; // Card background color
+      ctx.fillRect(0, 0, rect.width, rect.height);
+      
+      // Use foreign object method to render HTML to canvas
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', rect.width);
+      svg.setAttribute('height', rect.height);
+      
+      const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+      foreignObject.setAttribute('width', '100%');
+      foreignObject.setAttribute('height', '100%');
+      
+      // Clone the card wrapper to avoid modifying the original
+      const clonedWrapper = cardWrapper.cloneNode(true);
+      
+      // Remove any absolute positioned elements that might cause issues
+      const controlsToRemove = clonedWrapper.querySelectorAll('.card-controls');
+      controlsToRemove.forEach(control => control.remove());
+      
+      // Apply inline styles to ensure they're captured
+      const elementsToStyle = clonedWrapper.querySelectorAll('*');
+      elementsToStyle.forEach(element => {
+        const computedStyle = window.getComputedStyle(element);
+        const inlineStyle = [];
+        
+        // Copy important styles
+        const importantStyles = [
+          'background', 'background-color', 'background-image', 'background-gradient',
+          'color', 'font-family', 'font-size', 'font-weight', 'font-style',
+          'border', 'border-color', 'border-width', 'border-style', 'border-radius',
+          'padding', 'margin', 'width', 'height', 'display', 'position',
+          'text-align', 'text-shadow', 'box-shadow', 'text-transform',
+          'letter-spacing', 'line-height', 'flex', 'flex-direction',
+          'align-items', 'justify-content', 'gap', 'overflow'
+        ];
+        
+        importantStyles.forEach(prop => {
+          const value = computedStyle.getPropertyValue(prop);
+          if (value) {
+            inlineStyle.push(`${prop}: ${value}`);
+          }
+        });
+        
+        if (inlineStyle.length > 0) {
+          element.style.cssText += '; ' + inlineStyle.join('; ');
+        }
+      });
+      
+      foreignObject.appendChild(clonedWrapper);
+      svg.appendChild(foreignObject);
+      
+      // Convert SVG to data URL
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml' });
+      const svgUrl = URL.createObjectURL(svgBlob);
+      
+      // Create an image from the SVG
+      const img = new Image();
+      img.onload = function() {
+        // Clear canvas and draw the image
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        ctx.fillStyle = 'rgb(101, 84, 63)';
+        ctx.fillRect(0, 0, rect.width, rect.height);
+        ctx.drawImage(img, 0, 0, rect.width, rect.height);
+        
+        // Convert to blob and download
+        canvas.toBlob((blob) => {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `${filename}.png`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(url);
+          URL.revokeObjectURL(svgUrl);
+        }, 'image/png', 1.0);
+      };
+      
+      img.onerror = function() {
+        // Fallback: Simple canvas rendering
+        console.warn('SVG rendering failed, using fallback method');
+        exportCardAsPNGFallback(cardElement, filename, canvas, ctx, rect);
+        URL.revokeObjectURL(svgUrl);
+      };
+      
+      img.src = svgUrl;
+    }
+
+    function exportCardAsPNGFallback(cardElement, filename, canvas, ctx, rect) {
+      // Fallback method: manually draw card elements
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      
+      // Background
+      ctx.fillStyle = 'rgb(101, 84, 63)';
+      ctx.fillRect(0, 0, rect.width, rect.height);
+      
+      // Get card data from the cardsData array
+      const cardIndex = Array.from(cardElement.parentNode.children).indexOf(cardElement);
+      const cardData = cardsData[cardIndex];
+      
+      if (cardData) {
+        // Draw basic card information
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 24px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(cardData.itemName || 'Card Name', rect.width / 2, 40);
+        
+        ctx.font = '16px Arial';
+        ctx.fillText(`Hero: ${cardData.hero}`, rect.width / 2, 70);
+        ctx.fillText(`Size: ${cardData.itemSize}`, rect.width / 2, 90);
+        ctx.fillText(`Rarity: ${cardData.border}`, rect.width / 2, 110);
+        
+        if (cardData.cooldown) {
+          ctx.fillText(`Cooldown: ${cardData.cooldown}s`, rect.width / 2, 130);
+        }
+        
+        if (cardData.ammo) {
+          ctx.fillText(`Ammo: ${cardData.ammo}`, rect.width / 2, 150);
+        }
+        
+        // Draw passive effect
+        if (cardData.passiveEffect) {
+          ctx.font = '14px Arial';
+          ctx.fillStyle = 'rgb(251, 225, 183)';
+          wrapText(ctx, `Passive: ${cardData.passiveEffect}`, rect.width / 2, 180, rect.width - 40, 18);
+        }
+        
+        // Draw on-use effects
+        if (cardData.onUseEffects && cardData.onUseEffects.length > 0) {
+          ctx.fillStyle = 'rgb(251, 225, 183)';
+          let yPos = 220;
+          cardData.onUseEffects.forEach(effect => {
+            yPos = wrapText(ctx, `• ${effect}`, rect.width / 2, yPos, rect.width - 40, 18);
+            yPos += 5;
+          });
+        }
+        
+        // Note about image
+        ctx.fillStyle = 'rgb(150, 150, 150)';
+        ctx.font = '12px Arial';
+        ctx.fillText('(Card image not included in fallback export)', rect.width / 2, rect.height - 20);
+      }
       
       // Convert to blob and download
       canvas.toBlob((blob) => {
@@ -1426,7 +1563,29 @@
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
-      });
+      }, 'image/png', 1.0);
+    }
+
+    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+      const words = text.split(' ');
+      let line = '';
+      let currentY = y;
+      
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = ctx.measureText(testLine);
+        const testWidth = metrics.width;
+        
+        if (testWidth > maxWidth && n > 0) {
+          ctx.fillText(line, x, currentY);
+          line = words[n] + ' ';
+          currentY += lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line, x, currentY);
+      return currentY + lineHeight;
     }
 
     function triggerImport() {
