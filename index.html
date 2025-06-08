@@ -425,6 +425,14 @@
       font-weight: bold;
     }
 
+    .keyword-icon {
+      width: 16px;
+      height: 16px;
+      display: inline;
+      vertical-align: middle;
+      margin: 0 2px;
+    }
+
     .keyword-preview {
       width: 16px;
       height: 16px;
@@ -535,7 +543,7 @@
 <body>
   <div class="main-content">
     <h1>Bazzar Card Generator</h1>
-    <h1> Site Maintnence and production testing in progress</h1>
+
     <div class="input-container">
       <div class="form-grid">
         <div class="form-group full-width">
@@ -704,6 +712,9 @@
       if (!text || typeof text !== 'string') return text;
       
       let processedText = text;
+      
+      // First, replace /s shortcut with slow image
+      processedText = processedText.replace(/\/s/g, '<img src="images/KeyText/slow.png" alt="slow" class="keyword-icon">');
       
       // Create a regex pattern that matches all keywords (case insensitive)
       const keywords = Object.keys(keywordRules);
