@@ -391,6 +391,47 @@
       margin-top: 10px;
     }
 
+    .shortcuts-help {
+      background: rgba(37, 26, 12, 0.7);
+      border: 1px solid rgb(74, 60, 46);
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 10px;
+      color: rgb(201, 175, 133);
+      font-size: 12px;
+    }
+
+    .shortcuts-help h4 {
+      color: rgb(251, 225, 183);
+      margin: 0 0 10px 0;
+      font-size: 14px;
+    }
+
+    .shortcuts-help .shortcut-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 8px;
+    }
+
+    .shortcuts-help .shortcut-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 2px 0;
+    }
+
+    .shortcuts-help .shortcut-key {
+      color: rgb(218, 165, 32);
+      font-weight: bold;
+    }
+
+    .keyword-preview {
+      width: 16px;
+      height: 16px;
+      display: inline;
+      vertical-align: middle;
+    }
+
     /* Footer Styles */
     .footer {
       background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(89, 72, 51) 100%);
@@ -494,7 +535,7 @@
 <body>
   <div class="main-content">
     <h1>Bazzar Card Generator</h1>
-
+    <h1> Site Maintnence and production testing in progress</h1>
     <div class="input-container">
       <div class="form-grid">
         <div class="form-group full-width">
@@ -564,6 +605,27 @@
         <label class="form-label">On Use Effects</label>
         <div id="onUseInputs"></div>
         <button type="button" onclick="addOnUseInput()" class="form-button secondary" style="margin-top: 10px;">Add On Use Effect</button>
+      </div>
+
+      <div class="shortcuts-help">
+        <h4>🎮 Keyword Shortcuts - Type these in text boxes:</h4>
+        <div class="shortcut-grid">
+          <div class="shortcut-item"><span class="shortcut-key">/s</span> <img src="images/KeyText/slow.png" alt="slow" class="keyword-preview"> slow</div>
+          <div class="shortcut-item"><span class="shortcut-key">/h</span> <img src="images/KeyText/haste.png" alt="haste" class="keyword-preview"> haste</div>
+          <div class="shortcut-item"><span class="shortcut-key">/he</span> <img src="images/KeyText/heal.png" alt="heal" class="keyword-preview"> heal</div>
+          <div class="shortcut-item"><span class="shortcut-key">/r</span> <img src="images/KeyText/regen.png" alt="regen" class="keyword-preview"> regen</div>
+          <div class="shortcut-item"><span class="shortcut-key">/p</span> <img src="images/KeyText/poison.png" alt="poison" class="keyword-preview"> poison</div>
+          <div class="shortcut-item"><span class="shortcut-key">/b</span> <img src="images/KeyText/burn.png" alt="burn" class="keyword-preview"> burn</div>
+          <div class="shortcut-item"><span class="shortcut-key">/c</span> <img src="images/KeyText/charge.png" alt="charge" class="keyword-preview"> charge</div>
+          <div class="shortcut-item"><span class="shortcut-key">/cd</span> <img src="images/KeyText/cooldown.png" alt="cooldown" class="keyword-preview"> cooldown</div>
+          <div class="shortcut-item"><span class="shortcut-key">/cr</span> <img src="images/KeyText/crit.png" alt="crit" class="keyword-preview"> crit</div>
+          <div class="shortcut-item"><span class="shortcut-key">/d</span> <img src="images/KeyText/damage.png" alt="damage" class="keyword-preview"> damage</div>
+          <div class="shortcut-item"><span class="shortcut-key">/de</span> <img src="images/KeyText/destroy.png" alt="destroy" class="keyword-preview"> destroy</div>
+          <div class="shortcut-item"><span class="shortcut-key">/f</span> <img src="images/KeyText/freeze.png" alt="freeze" class="keyword-preview"> freeze</div>
+          <div class="shortcut-item"><span class="shortcut-key">/l</span> <img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-preview"> lifesteal</div>
+          <div class="shortcut-item"><span class="shortcut-key">/v</span> <img src="images/KeyText/value.png" alt="value" class="keyword-preview"> value</div>
+          <div class="shortcut-item"><span class="shortcut-key">/t</span> <img src="images/KeyText/transform.png" alt="transform" class="keyword-preview"> transform</div>
+        </div>
       </div>
 
       <div class="button-group">
