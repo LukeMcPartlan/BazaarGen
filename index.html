@@ -1462,62 +1462,163 @@
       });
     }
 
-    function domToCanvas(element, ctx, offsetX, offsetY) {
-      return new Promise((resolve) => {
-        // Use the browser's ability to render DOM to canvas
-        // This is a simplified version - for production, you'd want html2canvas library
+    function exportCardAsPNG(cardElement, filename) {
+      // Clone the card element to avoid affecting the original
+      const cardClone = cardElement.cloneNode(true);
+      
+      // Remove the control buttons from the clone
+      const controls = cardClone.querySelector('.card-controls');
+      if (controls) {
+        controls.remove();
+      }
+      
+      // Create a temporary container for rendering
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '-9999px';
+      tempContainer.style.background = 'rgb(139, 122, 101)'; // Match page background
+      tempContainer.style.padding = '20px';
+      tempContainer.style.width = 'auto';
+      tempContainer.style.height = 'auto';
+      tempContainer.appendChild(cardClone);
+      document.body.appendChild(tempContainer);
+      
+      // Wait a moment for layout to settle
+      setTimeout(() => {
+        // Get the dimensions of the cloned card
+        const rect = cardClone.getBoundingClientRect();
         
-        // Get computed styles
-        const styles = window.getComputedStyle(element);
-        const rect = element.getBoundingClientRect();
+        // Create canvas with appropriate dimensions
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
         
-        // Save context state
-        ctx.save();
+        // Set canvas size with some padding
+        const padding = 40;
+        canvas.width = rect.width + padding;
+        canvas.height = rect.height + padding;
         
-        // Set up clipping region
-        ctx.translate(offsetX, offsetY);
+        // Fill canvas with background color
+        ctx.fillStyle = 'rgb(139, 122, 101)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Draw background if it has one
-        if (styles.backgroundColor && styles.backgroundColor !== 'rgba(0, 0, 0, 0)') {
-          ctx.fillStyle = styles.backgroundColor;
+        // Use html2canvas-like functionality but simpler
+        drawElementToCanvas(cardClone, ctx, padding / 2, padding / 2).then(() => {
+          // Clean up temporary container
+          document.body.removeChild(tempContainer);
+          
+          // Export canvas as PNG
+          canvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${filename}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }, 'image/png', 1.0);
+        }).catch(error => {
+          console.error('Error converting card to canvas:', error);
+          document.body.removeChild(tempContainer);
+          showMessage('Error exporting card as PNG: ' + error.message, 'error');
+        });
+      }, 100);
+    }
+
+    async function drawElementToCanvas(element, ctx, offsetX, offsetY) {
+      const rect = element.getBoundingClientRect();
+      const styles = window.getComputedStyle(element);
+      
+      ctx.save();
+      ctx.translate(offsetX, offsetY);
+      
+      // Draw the element's background
+      if (styles.backgroundColor && styles.backgroundColor !== 'rgba(0, 0, 0, 0)' && styles.backgroundColor !== 'transparent') {
+        ctx.fillStyle = styles.backgroundColor;
+        if (styles.borderRadius && styles.borderRadius !== '0px') {
+          const radius = parseInt(styles.borderRadius);
+          drawRoundedRect(ctx, 0, 0, rect.width, rect.height, radius);
+          ctx.fill();
+        } else {
           ctx.fillRect(0, 0, rect.width, rect.height);
         }
+      }
+      
+      // Draw borders
+      if (styles.border && styles.border !== 'none') {
+        const borderWidth = parseInt(styles.borderWidth) || 1;
+        ctx.strokeStyle = styles.borderColor || '#000';
+        ctx.lineWidth = borderWidth;
+        if (styles.borderRadius && styles.borderRadius !== '0px') {
+          const radius = parseInt(styles.borderRadius);
+          drawRoundedRect(ctx, borderWidth/2, borderWidth/2, rect.width - borderWidth, rect.height - borderWidth, radius);
+          ctx.stroke();
+        } else {
+          ctx.strokeRect(borderWidth/2, borderWidth/2, rect.width - borderWidth, rect.height - borderWidth);
+        }
+      }
+      
+      // Process child elements
+      for (const child of element.children) {
+        const childRect = child.getBoundingClientRect();
+        const elementRect = element.getBoundingClientRect();
         
-        // For now, we'll use a simpler approach: draw element as image
-        // In a production environment, you'd want to use html2canvas library
-        // This creates an SVG representation of the DOM element
-        const data = `
-          <svg xmlns="http://www.w3.org/2000/svg" width="${rect.width}" height="${rect.height}">
-            <foreignObject width="100%" height="100%">
-              <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: Arial, sans-serif;">
-                ${element.outerHTML}
-              </div>
-            </foreignObject>
-          </svg>
-        `;
+        const childX = childRect.left - elementRect.left;
+        const childY = childRect.top - elementRect.top;
         
-        const img = new Image();
-        img.onload = () => {
-          ctx.drawImage(img, 0, 0);
-          ctx.restore();
-          resolve();
-        };
-        img.onerror = () => {
-          // Fallback: draw a placeholder
-          ctx.fillStyle = '#666';
-          ctx.fillRect(0, 0, rect.width, rect.height);
-          ctx.fillStyle = '#fff';
-          ctx.font = '16px Arial';
-          ctx.textAlign = 'center';
-          ctx.fillText('Card Export', rect.width / 2, rect.height / 2);
-          ctx.restore();
-          resolve();
-        };
-        
-        const svgBlob = new Blob([data], { type: 'image/svg+xml;charset=utf-8' });
-        const url = URL.createObjectURL(svgBlob);
-        img.src = url;
-      });
+        if (child.tagName === 'IMG') {
+          await drawImageElement(child, ctx, childX, childY);
+        } else {
+          // Handle text content
+          if (child.textContent && child.textContent.trim()) {
+            drawTextElement(child, ctx, childX, childY);
+          }
+          
+          // Recursively draw child elements
+          await drawElementToCanvas(child, ctx, childX, childY);
+        }
+      }
+      
+      ctx.restore();
+    }
+    
+    function drawRoundedRect(ctx, x, y, width, height, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.lineTo(x + width - radius, y);
+      ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
+      ctx.lineTo(x + width, y + height - radius);
+      ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
+      ctx.lineTo(x + radius, y + height);
+      ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
+      ctx.lineTo(x, y + radius);
+      ctx.quadraticCurveTo(x, y, x + radius, y);
+      ctx.closePath();
+    }
+    
+    async function drawImageElement(img, ctx, x, y) {
+      if (img.complete && img.naturalWidth > 0) {
+        const imgRect = img.getBoundingClientRect();
+        ctx.drawImage(img, x, y, imgRect.width, imgRect.height);
+      }
+    }
+    
+    function drawTextElement(element, ctx, x, y) {
+      const styles = window.getComputedStyle(element);
+      const rect = element.getBoundingClientRect();
+      
+      // Set font properties
+      ctx.font = `${styles.fontWeight} ${styles.fontSize} ${styles.fontFamily}`;
+      ctx.fillStyle = styles.color;
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      
+      // Simple text rendering - this is a basic implementation
+      const text = element.textContent.trim();
+      if (text) {
+        ctx.fillText(text, x, y + parseInt(styles.paddingTop || '0'));
+      }
     }
 
     function triggerImport() {
