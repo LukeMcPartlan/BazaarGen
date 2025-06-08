@@ -878,6 +878,9 @@
       
       <ul class="nav-menu" id="nav-menu">
         <li class="nav-item">
+          <a href="#" class="nav-link active" data-page="items">Items</a>
+        </li>
+        <li class="nav-item">
           <a href="#" class="nav-link" data-page="skills">Skills</a>
         </li>
         <li class="nav-item">
@@ -1392,341 +1395,129 @@
     }
 
     function exportCardAsPNG(cardElement, filename) {
-      // Get card data from the cardsData array
-      const cardIndex = Array.from(cardElement.parentNode.children).indexOf(cardElement);
-      const cardData = cardsData[cardIndex];
+      // Clone the card element to avoid affecting the original
+      const cardClone = cardElement.cloneNode(true);
       
-      if (!cardData) {
-        showMessage('Error: Card data not found for export', 'error');
-        return;
-      }
-
-      // Create canvas
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      // Set canvas dimensions (card-like proportions)
-      const cardWidth = 400;
-      const cardHeight = 550;
-      canvas.width = cardWidth;
-      canvas.height = cardHeight;
-      
-      // Get border color
-      const borderColor = getBorderColor(cardData.border);
-      
-      // Draw card background
-      drawCardBackground(ctx, cardWidth, cardHeight, borderColor);
-      
-      // Draw card content
-      drawCardContent(ctx, cardData, cardWidth, cardHeight, borderColor);
-      
-      // Export canvas
-      canvas.toBlob((blob) => {
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `${filename}.png`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-      }, 'image/png', 1.0);
-    }
-
-    function drawCardBackground(ctx, width, height, borderColor) {
-      // Outer border
-      ctx.fillStyle = borderColor;
-      ctx.fillRect(0, 0, width, height);
-      
-      // Inner background with gradient
-      const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width/2);
-      gradient.addColorStop(0, 'rgb(60, 45, 30)');
-      gradient.addColorStop(0.4, 'rgb(45, 35, 22)');
-      gradient.addColorStop(1, 'rgb(25, 18, 10)');
-      
-      ctx.fillStyle = gradient;
-      ctx.fillRect(6, 6, width - 12, height - 12);
-    }
-
-    function drawCardContent(ctx, cardData, width, height, borderColor) {
-      let currentY = 20;
-      
-      // Draw title section
-      currentY = drawTitleSection(ctx, cardData, width, currentY, borderColor);
-      
-      // Draw tags
-      if (cardData.tags && cardData.tags.length > 0) {
-        currentY = drawTags(ctx, cardData, width, currentY);
+      // Remove the control buttons from the clone
+      const controls = cardClone.querySelector('.card-controls');
+      if (controls) {
+        controls.remove();
       }
       
-      // Draw image placeholder
-      currentY = drawImagePlaceholder(ctx, cardData, width, currentY, borderColor);
+      // Create a temporary container for rendering
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '-9999px';
+      tempContainer.style.background = 'rgb(139, 122, 101)'; // Match page background
+      tempContainer.style.padding = '20px';
+      tempContainer.appendChild(cardClone);
+      document.body.appendChild(tempContainer);
       
-      // Draw passive effects
-      if (cardData.passiveEffect && cardData.passiveEffect.trim()) {
-        currentY = drawTextSection(ctx, 'Passive Effect', cardData.passiveEffect, width, currentY, borderColor);
-      }
-      
-      // Draw on-use effects
-      if (cardData.onUseEffects && cardData.onUseEffects.length > 0) {
-        currentY = drawOnUseEffects(ctx, cardData, width, currentY, borderColor);
-      }
-      
-      // Draw cooldown and ammo
-      drawCooldownAndAmmo(ctx, cardData, width, height, borderColor);
-    }
-
-    function drawTitleSection(ctx, cardData, width, currentY, borderColor) {
-      // Title background
-      ctx.fillStyle = borderColor;
-      ctx.fillRect(10, currentY, width - 20, 50);
-      
-      ctx.fillStyle = 'rgb(25, 18, 10)';
-      ctx.fillRect(12, currentY + 2, width - 24, 46);
-      
-      // Item name
-      ctx.fillStyle = 'rgb(251, 225, 183)';
-      ctx.font = 'bold 24px Impact, Arial';
-      ctx.textAlign = 'left';
-      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
-      ctx.shadowBlur = 2;
-      ctx.shadowOffsetX = 1;
-      ctx.shadowOffsetY = 1;
-      
-      const itemName = cardData.itemName || 'Unnamed Item';
-      ctx.fillText(itemName, 20, currentY + 32);
-      
-      // Hero name
-      ctx.font = 'bold 14px Arial';
-      ctx.fillStyle = 'rgb(218, 165, 32)';
-      const heroText = `Hero: ${cardData.hero}`;
-      const heroWidth = ctx.measureText(heroText).width;
-      ctx.fillText(heroText, width - heroWidth - 20, currentY + 32);
-      
-      // Reset shadow
-      ctx.shadowColor = 'transparent';
-      ctx.shadowBlur = 0;
-      ctx.shadowOffsetX = 0;
-      ctx.shadowOffsetY = 0;
-      
-      return currentY + 60;
-    }
-
-    function drawTags(ctx, cardData, width, currentY) {
-      ctx.font = 'bold 12px Arial';
-      let tagX = 15;
-      const tagY = currentY;
-      const tagHeight = 25;
-      
-      // Always include item size as first tag
-      const allTags = [cardData.itemSize, ...cardData.tags];
-      
-      allTags.forEach(tag => {
-        if (!tag) return;
+      // Wait for any images to load, then convert to canvas
+      Promise.all(Array.from(cardClone.querySelectorAll('img')).map(img => {
+        if (img.complete) return Promise.resolve();
+        return new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve; // Continue even if image fails to load
+        });
+      })).then(() => {
+        // Get the dimensions of the cloned card
+        const rect = cardClone.getBoundingClientRect();
         
-        const tagWidth = ctx.measureText(tag).width + 16;
+        // Create canvas with appropriate dimensions
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
         
-        // Tag background
-        ctx.fillStyle = 'rgba(0, 0, 139, 0.7)';
-        ctx.fillRect(tagX, tagY, tagWidth, tagHeight);
+        // Set canvas size with some padding
+        const padding = 40;
+        canvas.width = rect.width + padding;
+        canvas.height = rect.height + padding;
         
-        // Tag border
-        ctx.strokeStyle = 'rgba(152, 168, 254, 0.5)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(tagX, tagY, tagWidth, tagHeight);
+        // Fill canvas with background color
+        ctx.fillStyle = 'rgb(139, 122, 101)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Tag text
-        ctx.fillStyle = 'rgb(152, 168, 254)';
-        ctx.textAlign = 'left';
-        ctx.fillText(tag, tagX + 8, tagY + 17);
-        
-        tagX += tagWidth + 5;
+        // Convert DOM element to canvas using html2canvas-like approach
+        domToCanvas(cardClone, ctx, padding / 2, padding / 2).then(() => {
+          // Clean up temporary container
+          document.body.removeChild(tempContainer);
+          
+          // Export canvas as PNG
+          canvas.toBlob((blob) => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${filename}.png`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }, 'image/png', 1.0);
+        }).catch(error => {
+          console.error('Error converting card to canvas:', error);
+          document.body.removeChild(tempContainer);
+          showMessage('Error exporting card as PNG', 'error');
+        });
       });
-      
-      return currentY + 35;
     }
 
-    function drawImagePlaceholder(ctx, cardData, width, currentY, borderColor) {
-      const imgHeight = 120;
-      const imgWidth = width - 40;
-      
-      // Image border
-      ctx.strokeStyle = borderColor;
-      ctx.lineWidth = 3;
-      ctx.strokeRect(20, currentY, imgWidth, imgHeight);
-      
-      // Image background
-      ctx.fillStyle = 'rgb(74, 60, 46)';
-      ctx.fillRect(23, currentY + 3, imgWidth - 6, imgHeight - 6);
-      
-      // Image placeholder text
-      ctx.fillStyle = 'rgb(150, 120, 90)';
-      ctx.font = '16px Arial';
-      ctx.textAlign = 'center';
-      ctx.fillText('Card Image', width / 2, currentY + imgHeight / 2 - 10);
-      ctx.font = '12px Arial';
-      ctx.fillText('(Original image not included in PNG export)', width / 2, currentY + imgHeight / 2 + 10);
-      
-      return currentY + imgHeight + 15;
-    }
-
-    function drawTextSection(ctx, title, content, width, currentY, borderColor) {
-      const sectionHeight = calculateTextHeight(ctx, content, width - 40, 16) + 40;
-      
-      // Section border
-      ctx.fillStyle = borderColor;
-      ctx.fillRect(10, currentY, width - 20, sectionHeight);
-      
-      ctx.fillStyle = 'rgb(25, 18, 10)';
-      ctx.fillRect(12, currentY + 2, width - 24, sectionHeight - 4);
-      
-      // Section title
-      ctx.fillStyle = 'rgb(218, 165, 32)';
-      ctx.font = 'bold 14px Arial';
-      ctx.textAlign = 'left';
-      ctx.fillText(title, 20, currentY + 20);
-      
-      // Section content
-      ctx.fillStyle = 'rgb(251, 225, 183)';
-      ctx.font = '14px Arial';
-      const cleanContent = stripHTML(content);
-      drawWrappedText(ctx, cleanContent, 20, currentY + 40, width - 40, 16);
-      
-      return currentY + sectionHeight + 10;
-    }
-
-    function drawOnUseEffects(ctx, cardData, width, currentY, borderColor) {
-      const effectsText = cardData.onUseEffects.map(effect => `• ${stripHTML(effect)}`).join('\n');
-      const sectionHeight = calculateTextHeight(ctx, effectsText, width - 40, 16) + 40;
-      
-      // Section border
-      ctx.fillStyle = borderColor;
-      ctx.fillRect(10, currentY, width - 20, sectionHeight);
-      
-      ctx.fillStyle = 'rgb(25, 18, 10)';
-      ctx.fillRect(12, currentY + 2, width - 24, sectionHeight - 4);
-      
-      // Section title
-      ctx.fillStyle = 'rgb(218, 165, 32)';
-      ctx.font = 'bold 14px Arial';
-      ctx.textAlign = 'left';
-      ctx.fillText('On Use Effects', 20, currentY + 20);
-      
-      // Effects content
-      ctx.fillStyle = 'rgb(251, 225, 183)';
-      ctx.font = '14px Arial';
-      let effectY = currentY + 40;
-      
-      cardData.onUseEffects.forEach(effect => {
-        const cleanEffect = stripHTML(effect);
-        effectY = drawWrappedText(ctx, `• ${cleanEffect}`, 20, effectY, width - 40, 16) + 5;
+    function domToCanvas(element, ctx, offsetX, offsetY) {
+      return new Promise((resolve) => {
+        // Use the browser's ability to render DOM to canvas
+        // This is a simplified version - for production, you'd want html2canvas library
+        
+        // Get computed styles
+        const styles = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        
+        // Save context state
+        ctx.save();
+        
+        // Set up clipping region
+        ctx.translate(offsetX, offsetY);
+        
+        // Draw background if it has one
+        if (styles.backgroundColor && styles.backgroundColor !== 'rgba(0, 0, 0, 0)') {
+          ctx.fillStyle = styles.backgroundColor;
+          ctx.fillRect(0, 0, rect.width, rect.height);
+        }
+        
+        // For now, we'll use a simpler approach: draw element as image
+        // In a production environment, you'd want to use html2canvas library
+        // This creates an SVG representation of the DOM element
+        const data = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="${rect.width}" height="${rect.height}">
+            <foreignObject width="100%" height="100%">
+              <div xmlns="http://www.w3.org/1999/xhtml" style="font-family: Arial, sans-serif;">
+                ${element.outerHTML}
+              </div>
+            </foreignObject>
+          </svg>
+        `;
+        
+        const img = new Image();
+        img.onload = () => {
+          ctx.drawImage(img, 0, 0);
+          ctx.restore();
+          resolve();
+        };
+        img.onerror = () => {
+          // Fallback: draw a placeholder
+          ctx.fillStyle = '#666';
+          ctx.fillRect(0, 0, rect.width, rect.height);
+          ctx.fillStyle = '#fff';
+          ctx.font = '16px Arial';
+          ctx.textAlign = 'center';
+          ctx.fillText('Card Export', rect.width / 2, rect.height / 2);
+          ctx.restore();
+          resolve();
+        };
+        
+        const svgBlob = new Blob([data], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+        img.src = url;
       });
-      
-      return currentY + sectionHeight + 10;
-    }
-
-    function drawCooldownAndAmmo(ctx, cardData, width, height, borderColor) {
-      // Cooldown (bottom left)
-      if (cardData.cooldown && cardData.onUseEffects && cardData.onUseEffects.length > 0) {
-        const cooldownSize = 50;
-        const cooldownX = 15;
-        const cooldownY = height - cooldownSize - 15;
-        
-        // Cooldown circle
-        ctx.fillStyle = 'rgb(52, 45, 68)';
-        ctx.beginPath();
-        ctx.arc(cooldownX + cooldownSize/2, cooldownY + cooldownSize/2, cooldownSize/2, 0, 2 * Math.PI);
-        ctx.fill();
-        
-        ctx.strokeStyle = borderColor;
-        ctx.lineWidth = 3;
-        ctx.stroke();
-        
-        // Cooldown text
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(cardData.cooldown, cooldownX + cooldownSize/2, cooldownY + cooldownSize/2 - 5);
-        
-        ctx.font = 'bold 10px Arial';
-        ctx.fillStyle = 'rgb(217, 149, 81)';
-        ctx.fillText('sec', cooldownX + cooldownSize/2, cooldownY + cooldownSize/2 + 10);
-      }
-      
-      // Ammo (bottom right)
-      if (cardData.ammo) {
-        const ammoWidth = 60;
-        const ammoHeight = 35;
-        const ammoX = width - ammoWidth - 15;
-        const ammoY = height - ammoHeight - 15;
-        
-        // Ammo background
-        ctx.fillStyle = 'rgb(37, 26, 12)';
-        ctx.fillRect(ammoX, ammoY, ammoWidth, ammoHeight);
-        
-        ctx.strokeStyle = borderColor;
-        ctx.lineWidth = 3;
-        ctx.strokeRect(ammoX, ammoY, ammoWidth, ammoHeight);
-        
-        // Ammo text
-        ctx.fillStyle = 'rgb(254, 142, 0)';
-        ctx.font = 'bold 14px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('AMMO', ammoX + ammoWidth/2, ammoY + 15);
-        ctx.font = 'bold 16px Arial';
-        ctx.fillText(cardData.ammo, ammoX + ammoWidth/2, ammoY + 30);
-      }
-    }
-
-    function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
-      const words = text.split(' ');
-      let line = '';
-      let currentY = y;
-      
-      for (let n = 0; n < words.length; n++) {
-        const testLine = line + words[n] + ' ';
-        const metrics = ctx.measureText(testLine);
-        const testWidth = metrics.width;
-        
-        if (testWidth > maxWidth && n > 0) {
-          ctx.fillText(line, x, currentY);
-          line = words[n] + ' ';
-          currentY += lineHeight;
-        } else {
-          line = testLine;
-        }
-      }
-      ctx.fillText(line, x, currentY);
-      return currentY;
-    }
-
-    function calculateTextHeight(ctx, text, maxWidth, lineHeight) {
-      const words = text.split(' ');
-      let line = '';
-      let height = lineHeight;
-      
-      ctx.font = '14px Arial'; // Set font for measurement
-      
-      for (let n = 0; n < words.length; n++) {
-        const testLine = line + words[n] + ' ';
-        const metrics = ctx.measureText(testLine);
-        const testWidth = metrics.width;
-        
-        if (testWidth > maxWidth && n > 0) {
-          height += lineHeight;
-          line = words[n] + ' ';
-        } else {
-          line = testLine;
-        }
-      }
-      
-      return height;
-    }
-
-    function stripHTML(html) {
-      const temp = document.createElement('div');
-      temp.innerHTML = html;
-      return temp.textContent || temp.innerText || '';
     }
 
     function triggerImport() {
@@ -2302,7 +2093,4 @@
     }
   </script>
 </body>
-</html> class="nav-link active" data-page="items">Items</a>
-        </li>
-        <li class="nav-item">
-          <a href="#"
+</html>
