@@ -1392,168 +1392,35 @@
     }
 
     function exportCardAsPNG(cardElement, filename) {
-      const cardWrapper = cardElement.querySelector('.card-wrapper');
-      if (!cardWrapper) return;
-
-      // Create a canvas to draw the card
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      
-      // Get the actual dimensions of the card wrapper
-      const rect = cardWrapper.getBoundingClientRect();
-      const scale = 2; // Higher resolution
-      canvas.width = rect.width * scale;
-      canvas.height = rect.height * scale;
-      
-      // Scale the context for high DPI
-      ctx.scale(scale, scale);
-      
-      // Set background color
-      ctx.fillStyle = 'rgb(101, 84, 63)'; // Card background color
-      ctx.fillRect(0, 0, rect.width, rect.height);
-      
-      // Use foreign object method to render HTML to canvas
-      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.setAttribute('width', rect.width);
-      svg.setAttribute('height', rect.height);
-      
-      const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-      foreignObject.setAttribute('width', '100%');
-      foreignObject.setAttribute('height', '100%');
-      
-      // Clone the card wrapper to avoid modifying the original
-      const clonedWrapper = cardWrapper.cloneNode(true);
-      
-      // Remove any absolute positioned elements that might cause issues
-      const controlsToRemove = clonedWrapper.querySelectorAll('.card-controls');
-      controlsToRemove.forEach(control => control.remove());
-      
-      // Apply inline styles to ensure they're captured
-      const elementsToStyle = clonedWrapper.querySelectorAll('*');
-      elementsToStyle.forEach(element => {
-        const computedStyle = window.getComputedStyle(element);
-        const inlineStyle = [];
-        
-        // Copy important styles
-        const importantStyles = [
-          'background', 'background-color', 'background-image', 'background-gradient',
-          'color', 'font-family', 'font-size', 'font-weight', 'font-style',
-          'border', 'border-color', 'border-width', 'border-style', 'border-radius',
-          'padding', 'margin', 'width', 'height', 'display', 'position',
-          'text-align', 'text-shadow', 'box-shadow', 'text-transform',
-          'letter-spacing', 'line-height', 'flex', 'flex-direction',
-          'align-items', 'justify-content', 'gap', 'overflow'
-        ];
-        
-        importantStyles.forEach(prop => {
-          const value = computedStyle.getPropertyValue(prop);
-          if (value) {
-            inlineStyle.push(`${prop}: ${value}`);
-          }
-        });
-        
-        if (inlineStyle.length > 0) {
-          element.style.cssText += '; ' + inlineStyle.join('; ');
-        }
-      });
-      
-      foreignObject.appendChild(clonedWrapper);
-      svg.appendChild(foreignObject);
-      
-      // Convert SVG to data URL
-      const svgData = new XMLSerializer().serializeToString(svg);
-      const svgBlob = new Blob([svgData], { type: 'image/svg+xml' });
-      const svgUrl = URL.createObjectURL(svgBlob);
-      
-      // Create an image from the SVG
-      const img = new Image();
-      img.onload = function() {
-        // Clear canvas and draw the image
-        ctx.clearRect(0, 0, rect.width, rect.height);
-        ctx.fillStyle = 'rgb(101, 84, 63)';
-        ctx.fillRect(0, 0, rect.width, rect.height);
-        ctx.drawImage(img, 0, 0, rect.width, rect.height);
-        
-        // Convert to blob and download
-        canvas.toBlob((blob) => {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `${filename}.png`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(url);
-          URL.revokeObjectURL(svgUrl);
-        }, 'image/png', 1.0);
-      };
-      
-      img.onerror = function() {
-        // Fallback: Simple canvas rendering
-        console.warn('SVG rendering failed, using fallback method');
-        exportCardAsPNGFallback(cardElement, filename, canvas, ctx, rect);
-        URL.revokeObjectURL(svgUrl);
-      };
-      
-      img.src = svgUrl;
-    }
-
-    function exportCardAsPNGFallback(cardElement, filename, canvas, ctx, rect) {
-      // Fallback method: manually draw card elements
-      ctx.clearRect(0, 0, rect.width, rect.height);
-      
-      // Background
-      ctx.fillStyle = 'rgb(101, 84, 63)';
-      ctx.fillRect(0, 0, rect.width, rect.height);
-      
       // Get card data from the cardsData array
       const cardIndex = Array.from(cardElement.parentNode.children).indexOf(cardElement);
       const cardData = cardsData[cardIndex];
       
-      if (cardData) {
-        // Draw basic card information
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 24px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText(cardData.itemName || 'Card Name', rect.width / 2, 40);
-        
-        ctx.font = '16px Arial';
-        ctx.fillText(`Hero: ${cardData.hero}`, rect.width / 2, 70);
-        ctx.fillText(`Size: ${cardData.itemSize}`, rect.width / 2, 90);
-        ctx.fillText(`Rarity: ${cardData.border}`, rect.width / 2, 110);
-        
-        if (cardData.cooldown) {
-          ctx.fillText(`Cooldown: ${cardData.cooldown}s`, rect.width / 2, 130);
-        }
-        
-        if (cardData.ammo) {
-          ctx.fillText(`Ammo: ${cardData.ammo}`, rect.width / 2, 150);
-        }
-        
-        // Draw passive effect
-        if (cardData.passiveEffect) {
-          ctx.font = '14px Arial';
-          ctx.fillStyle = 'rgb(251, 225, 183)';
-          wrapText(ctx, `Passive: ${cardData.passiveEffect}`, rect.width / 2, 180, rect.width - 40, 18);
-        }
-        
-        // Draw on-use effects
-        if (cardData.onUseEffects && cardData.onUseEffects.length > 0) {
-          ctx.fillStyle = 'rgb(251, 225, 183)';
-          let yPos = 220;
-          cardData.onUseEffects.forEach(effect => {
-            yPos = wrapText(ctx, `• ${effect}`, rect.width / 2, yPos, rect.width - 40, 18);
-            yPos += 5;
-          });
-        }
-        
-        // Note about image
-        ctx.fillStyle = 'rgb(150, 150, 150)';
-        ctx.font = '12px Arial';
-        ctx.fillText('(Card image not included in fallback export)', rect.width / 2, rect.height - 20);
+      if (!cardData) {
+        showMessage('Error: Card data not found for export', 'error');
+        return;
       }
+
+      // Create canvas
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
       
-      // Convert to blob and download
+      // Set canvas dimensions (card-like proportions)
+      const cardWidth = 400;
+      const cardHeight = 550;
+      canvas.width = cardWidth;
+      canvas.height = cardHeight;
+      
+      // Get border color
+      const borderColor = getBorderColor(cardData.border);
+      
+      // Draw card background
+      drawCardBackground(ctx, cardWidth, cardHeight, borderColor);
+      
+      // Draw card content
+      drawCardContent(ctx, cardData, cardWidth, cardHeight, borderColor);
+      
+      // Export canvas
       canvas.toBlob((blob) => {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
@@ -1566,7 +1433,252 @@
       }, 'image/png', 1.0);
     }
 
-    function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+    function drawCardBackground(ctx, width, height, borderColor) {
+      // Outer border
+      ctx.fillStyle = borderColor;
+      ctx.fillRect(0, 0, width, height);
+      
+      // Inner background with gradient
+      const gradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width/2);
+      gradient.addColorStop(0, 'rgb(60, 45, 30)');
+      gradient.addColorStop(0.4, 'rgb(45, 35, 22)');
+      gradient.addColorStop(1, 'rgb(25, 18, 10)');
+      
+      ctx.fillStyle = gradient;
+      ctx.fillRect(6, 6, width - 12, height - 12);
+    }
+
+    function drawCardContent(ctx, cardData, width, height, borderColor) {
+      let currentY = 20;
+      
+      // Draw title section
+      currentY = drawTitleSection(ctx, cardData, width, currentY, borderColor);
+      
+      // Draw tags
+      if (cardData.tags && cardData.tags.length > 0) {
+        currentY = drawTags(ctx, cardData, width, currentY);
+      }
+      
+      // Draw image placeholder
+      currentY = drawImagePlaceholder(ctx, cardData, width, currentY, borderColor);
+      
+      // Draw passive effects
+      if (cardData.passiveEffect && cardData.passiveEffect.trim()) {
+        currentY = drawTextSection(ctx, 'Passive Effect', cardData.passiveEffect, width, currentY, borderColor);
+      }
+      
+      // Draw on-use effects
+      if (cardData.onUseEffects && cardData.onUseEffects.length > 0) {
+        currentY = drawOnUseEffects(ctx, cardData, width, currentY, borderColor);
+      }
+      
+      // Draw cooldown and ammo
+      drawCooldownAndAmmo(ctx, cardData, width, height, borderColor);
+    }
+
+    function drawTitleSection(ctx, cardData, width, currentY, borderColor) {
+      // Title background
+      ctx.fillStyle = borderColor;
+      ctx.fillRect(10, currentY, width - 20, 50);
+      
+      ctx.fillStyle = 'rgb(25, 18, 10)';
+      ctx.fillRect(12, currentY + 2, width - 24, 46);
+      
+      // Item name
+      ctx.fillStyle = 'rgb(251, 225, 183)';
+      ctx.font = 'bold 24px Impact, Arial';
+      ctx.textAlign = 'left';
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
+      ctx.shadowBlur = 2;
+      ctx.shadowOffsetX = 1;
+      ctx.shadowOffsetY = 1;
+      
+      const itemName = cardData.itemName || 'Unnamed Item';
+      ctx.fillText(itemName, 20, currentY + 32);
+      
+      // Hero name
+      ctx.font = 'bold 14px Arial';
+      ctx.fillStyle = 'rgb(218, 165, 32)';
+      const heroText = `Hero: ${cardData.hero}`;
+      const heroWidth = ctx.measureText(heroText).width;
+      ctx.fillText(heroText, width - heroWidth - 20, currentY + 32);
+      
+      // Reset shadow
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
+      
+      return currentY + 60;
+    }
+
+    function drawTags(ctx, cardData, width, currentY) {
+      ctx.font = 'bold 12px Arial';
+      let tagX = 15;
+      const tagY = currentY;
+      const tagHeight = 25;
+      
+      // Always include item size as first tag
+      const allTags = [cardData.itemSize, ...cardData.tags];
+      
+      allTags.forEach(tag => {
+        if (!tag) return;
+        
+        const tagWidth = ctx.measureText(tag).width + 16;
+        
+        // Tag background
+        ctx.fillStyle = 'rgba(0, 0, 139, 0.7)';
+        ctx.fillRect(tagX, tagY, tagWidth, tagHeight);
+        
+        // Tag border
+        ctx.strokeStyle = 'rgba(152, 168, 254, 0.5)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(tagX, tagY, tagWidth, tagHeight);
+        
+        // Tag text
+        ctx.fillStyle = 'rgb(152, 168, 254)';
+        ctx.textAlign = 'left';
+        ctx.fillText(tag, tagX + 8, tagY + 17);
+        
+        tagX += tagWidth + 5;
+      });
+      
+      return currentY + 35;
+    }
+
+    function drawImagePlaceholder(ctx, cardData, width, currentY, borderColor) {
+      const imgHeight = 120;
+      const imgWidth = width - 40;
+      
+      // Image border
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(20, currentY, imgWidth, imgHeight);
+      
+      // Image background
+      ctx.fillStyle = 'rgb(74, 60, 46)';
+      ctx.fillRect(23, currentY + 3, imgWidth - 6, imgHeight - 6);
+      
+      // Image placeholder text
+      ctx.fillStyle = 'rgb(150, 120, 90)';
+      ctx.font = '16px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Card Image', width / 2, currentY + imgHeight / 2 - 10);
+      ctx.font = '12px Arial';
+      ctx.fillText('(Original image not included in PNG export)', width / 2, currentY + imgHeight / 2 + 10);
+      
+      return currentY + imgHeight + 15;
+    }
+
+    function drawTextSection(ctx, title, content, width, currentY, borderColor) {
+      const sectionHeight = calculateTextHeight(ctx, content, width - 40, 16) + 40;
+      
+      // Section border
+      ctx.fillStyle = borderColor;
+      ctx.fillRect(10, currentY, width - 20, sectionHeight);
+      
+      ctx.fillStyle = 'rgb(25, 18, 10)';
+      ctx.fillRect(12, currentY + 2, width - 24, sectionHeight - 4);
+      
+      // Section title
+      ctx.fillStyle = 'rgb(218, 165, 32)';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText(title, 20, currentY + 20);
+      
+      // Section content
+      ctx.fillStyle = 'rgb(251, 225, 183)';
+      ctx.font = '14px Arial';
+      const cleanContent = stripHTML(content);
+      drawWrappedText(ctx, cleanContent, 20, currentY + 40, width - 40, 16);
+      
+      return currentY + sectionHeight + 10;
+    }
+
+    function drawOnUseEffects(ctx, cardData, width, currentY, borderColor) {
+      const effectsText = cardData.onUseEffects.map(effect => `• ${stripHTML(effect)}`).join('\n');
+      const sectionHeight = calculateTextHeight(ctx, effectsText, width - 40, 16) + 40;
+      
+      // Section border
+      ctx.fillStyle = borderColor;
+      ctx.fillRect(10, currentY, width - 20, sectionHeight);
+      
+      ctx.fillStyle = 'rgb(25, 18, 10)';
+      ctx.fillRect(12, currentY + 2, width - 24, sectionHeight - 4);
+      
+      // Section title
+      ctx.fillStyle = 'rgb(218, 165, 32)';
+      ctx.font = 'bold 14px Arial';
+      ctx.textAlign = 'left';
+      ctx.fillText('On Use Effects', 20, currentY + 20);
+      
+      // Effects content
+      ctx.fillStyle = 'rgb(251, 225, 183)';
+      ctx.font = '14px Arial';
+      let effectY = currentY + 40;
+      
+      cardData.onUseEffects.forEach(effect => {
+        const cleanEffect = stripHTML(effect);
+        effectY = drawWrappedText(ctx, `• ${cleanEffect}`, 20, effectY, width - 40, 16) + 5;
+      });
+      
+      return currentY + sectionHeight + 10;
+    }
+
+    function drawCooldownAndAmmo(ctx, cardData, width, height, borderColor) {
+      // Cooldown (bottom left)
+      if (cardData.cooldown && cardData.onUseEffects && cardData.onUseEffects.length > 0) {
+        const cooldownSize = 50;
+        const cooldownX = 15;
+        const cooldownY = height - cooldownSize - 15;
+        
+        // Cooldown circle
+        ctx.fillStyle = 'rgb(52, 45, 68)';
+        ctx.beginPath();
+        ctx.arc(cooldownX + cooldownSize/2, cooldownY + cooldownSize/2, cooldownSize/2, 0, 2 * Math.PI);
+        ctx.fill();
+        
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        
+        // Cooldown text
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText(cardData.cooldown, cooldownX + cooldownSize/2, cooldownY + cooldownSize/2 - 5);
+        
+        ctx.font = 'bold 10px Arial';
+        ctx.fillStyle = 'rgb(217, 149, 81)';
+        ctx.fillText('sec', cooldownX + cooldownSize/2, cooldownY + cooldownSize/2 + 10);
+      }
+      
+      // Ammo (bottom right)
+      if (cardData.ammo) {
+        const ammoWidth = 60;
+        const ammoHeight = 35;
+        const ammoX = width - ammoWidth - 15;
+        const ammoY = height - ammoHeight - 15;
+        
+        // Ammo background
+        ctx.fillStyle = 'rgb(37, 26, 12)';
+        ctx.fillRect(ammoX, ammoY, ammoWidth, ammoHeight);
+        
+        ctx.strokeStyle = borderColor;
+        ctx.lineWidth = 3;
+        ctx.strokeRect(ammoX, ammoY, ammoWidth, ammoHeight);
+        
+        // Ammo text
+        ctx.fillStyle = 'rgb(254, 142, 0)';
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('AMMO', ammoX + ammoWidth/2, ammoY + 15);
+        ctx.font = 'bold 16px Arial';
+        ctx.fillText(cardData.ammo, ammoX + ammoWidth/2, ammoY + 30);
+      }
+    }
+
+    function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
       const words = text.split(' ');
       let line = '';
       let currentY = y;
@@ -1585,7 +1697,36 @@
         }
       }
       ctx.fillText(line, x, currentY);
-      return currentY + lineHeight;
+      return currentY;
+    }
+
+    function calculateTextHeight(ctx, text, maxWidth, lineHeight) {
+      const words = text.split(' ');
+      let line = '';
+      let height = lineHeight;
+      
+      ctx.font = '14px Arial'; // Set font for measurement
+      
+      for (let n = 0; n < words.length; n++) {
+        const testLine = line + words[n] + ' ';
+        const metrics = ctx.measureText(testLine);
+        const testWidth = metrics.width;
+        
+        if (testWidth > maxWidth && n > 0) {
+          height += lineHeight;
+          line = words[n] + ' ';
+        } else {
+          line = testLine;
+        }
+      }
+      
+      return height;
+    }
+
+    function stripHTML(html) {
+      const temp = document.createElement('div');
+      temp.innerHTML = html;
+      return temp.textContent || temp.innerText || '';
     }
 
     function triggerImport() {
