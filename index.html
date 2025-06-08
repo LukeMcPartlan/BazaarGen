@@ -543,7 +543,7 @@
 <body>
   <div class="main-content">
     <h1>Bazzar Card Generator</h1>
-<h1> Testing in progress- patch 1.1 implementation taking place! </h1>
+
     <div class="input-container">
       <div class="form-grid">
         <div class="form-group full-width">
@@ -713,8 +713,22 @@
       
       let processedText = text;
       
-      // First, replace /s shortcut with a placeholder
+      // First, replace all shortcuts with placeholders
       processedText = processedText.replace(/\/s/g, '[SLOW_ICON]');
+      processedText = processedText.replace(/\/h/g, '[HASTE_ICON]');
+      processedText = processedText.replace(/\/he/g, '[HEAL_ICON]');
+      processedText = processedText.replace(/\/r/g, '[REGEN_ICON]');
+      processedText = processedText.replace(/\/p/g, '[POISON_ICON]');
+      processedText = processedText.replace(/\/b/g, '[BURN_ICON]');
+      processedText = processedText.replace(/\/c/g, '[CHARGE_ICON]');
+      processedText = processedText.replace(/\/cd/g, '[COOLDOWN_ICON]');
+      processedText = processedText.replace(/\/cr/g, '[CRIT_ICON]');
+      processedText = processedText.replace(/\/d/g, '[DAMAGE_ICON]');
+      processedText = processedText.replace(/\/de/g, '[DESTROY_ICON]');
+      processedText = processedText.replace(/\/f/g, '[FREEZE_ICON]');
+      processedText = processedText.replace(/\/l/g, '[LIFESTEAL_ICON]');
+      processedText = processedText.replace(/\/v/g, '[VALUE_ICON]');
+      processedText = processedText.replace(/\/t/g, '[TRANSFORM_ICON]');
       
       // Create a regex pattern that matches all keywords (case insensitive)
       const keywords = Object.keys(keywordRules);
@@ -730,8 +744,22 @@
         return match;
       });
       
-      // Finally, replace the placeholder with the actual image
+      // Finally, replace all placeholders with actual images
       processedText = processedText.replace(/\[SLOW_ICON\]/g, '<img src="images/KeyText/slow.png" alt="slow" class="keyword-icon">');
+      processedText = processedText.replace(/\[HASTE_ICON\]/g, '<img src="images/KeyText/haste.png" alt="haste" class="keyword-icon">');
+      processedText = processedText.replace(/\[HEAL_ICON\]/g, '<img src="images/KeyText/heal.png" alt="heal" class="keyword-icon">');
+      processedText = processedText.replace(/\[REGEN_ICON\]/g, '<img src="images/KeyText/regen.png" alt="regen" class="keyword-icon">');
+      processedText = processedText.replace(/\[POISON_ICON\]/g, '<img src="images/KeyText/poison.png" alt="poison" class="keyword-icon">');
+      processedText = processedText.replace(/\[BURN_ICON\]/g, '<img src="images/KeyText/burn.png" alt="burn" class="keyword-icon">');
+      processedText = processedText.replace(/\[CHARGE_ICON\]/g, '<img src="images/KeyText/charge.png" alt="charge" class="keyword-icon">');
+      processedText = processedText.replace(/\[COOLDOWN_ICON\]/g, '<img src="images/KeyText/cooldown.png" alt="cooldown" class="keyword-icon">');
+      processedText = processedText.replace(/\[CRIT_ICON\]/g, '<img src="images/KeyText/crit.png" alt="crit" class="keyword-icon">');
+      processedText = processedText.replace(/\[DAMAGE_ICON\]/g, '<img src="images/KeyText/damage.png" alt="damage" class="keyword-icon">');
+      processedText = processedText.replace(/\[DESTROY_ICON\]/g, '<img src="images/KeyText/destroy.png" alt="destroy" class="keyword-icon">');
+      processedText = processedText.replace(/\[FREEZE_ICON\]/g, '<img src="images/KeyText/freeze.png" alt="freeze" class="keyword-icon">');
+      processedText = processedText.replace(/\[LIFESTEAL_ICON\]/g, '<img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-icon">');
+      processedText = processedText.replace(/\[VALUE_ICON\]/g, '<img src="images/KeyText/value.png" alt="value" class="keyword-icon">');
+      processedText = processedText.replace(/\[TRANSFORM_ICON\]/g, '<img src="images/KeyText/transform.png" alt="transform" class="keyword-icon">');
       
       return processedText;
     }
