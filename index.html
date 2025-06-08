@@ -636,6 +636,8 @@
           <div class="shortcut-item"><span class="shortcut-key">/l</span> <img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-preview"> lifesteal</div>
           <div class="shortcut-item"><span class="shortcut-key">/v</span> <img src="images/KeyText/value.png" alt="value" class="keyword-preview"> value</div>
           <div class="shortcut-item"><span class="shortcut-key">/t</span> <img src="images/KeyText/transform.png" alt="transform" class="keyword-preview"> transform</div>
+          <div class="shortcut-item"><span class="shortcut-key">/sh</span> <img src="images/KeyText/sheild.png" alt="sheild" class="keyword-preview"> sheild</div>
+          <div class="shortcut-item"><span class="shortcut-key">/mh</span> <img src="images/KeyText/maxhealth" alt="maxhealth" class="keyword-preview"> maxhealth</div>
         </div>
       </div>
 
@@ -732,6 +734,8 @@
       processedText = processedText.replace(/\/l/g, '[LIFESTEAL_ICON]');
       processedText = processedText.replace(/\/v/g, '[VALUE_ICON]');
       processedText = processedText.replace(/\/t/g, '[TRANSFORM_ICON]');
+      processedText = processedText.replace(/\/sh/g, '[SHEILD_ICON]');
+      processedText = processedText.replace(/\/mh/g, '[MAXHEALTH_ICON]');
       
       // Create a regex pattern that matches all keywords (case insensitive)
       const keywords = Object.keys(keywordRules);
@@ -763,7 +767,8 @@
       processedText = processedText.replace(/\[LIFESTEAL_ICON\]/g, '<img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-icon">');
       processedText = processedText.replace(/\[VALUE_ICON\]/g, '<img src="images/KeyText/value.png" alt="value" class="keyword-icon">');
       processedText = processedText.replace(/\[TRANSFORM_ICON\]/g, '<img src="images/KeyText/transform.png" alt="transform" class="keyword-icon">');
-      
+      processedText = processedText.replace(/\[SHEILD_ICON\]/g, '<img src="images/KeyText/sheild.png" alt="sheild" class="keyword-icon">');
+      processedText = processedText.replace(/\[MAXHEALTH_ICON\]/g, '<img src="images/KeyText/maxhealth.png" alt="maxhealth" class="keyword-icon">');
       return processedText;
     }
 
