@@ -357,6 +357,19 @@
       background: linear-gradient(135deg, rgb(200, 80, 80) 0%, rgb(180, 60, 60) 100%);
     }
 
+    .form-button.export {
+      background: linear-gradient(135deg, rgb(46, 125, 50) 0%, rgb(27, 94, 32) 100%);
+      color: white;
+      border: 2px solid rgb(76, 175, 80);
+      padding: 8px 15px;
+      font-size: 12px;
+      margin-left: 5px;
+    }
+
+    .form-button.export:hover {
+      background: linear-gradient(135deg, rgb(76, 175, 80) 0%, rgb(46, 125, 50) 100%);
+    }
+
     .on-use-effects, .tag-effects {
       background: rgba(37, 26, 12, 0.5);
       border: 1px solid rgb(74, 60, 46);
@@ -386,6 +399,34 @@
       gap: 15px;
       justify-content: center;
       margin-top: 25px;
+      flex-wrap: wrap;
+    }
+
+    .export-import-section {
+      background: rgba(37, 26, 12, 0.5);
+      border: 1px solid rgb(74, 60, 46);
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+    }
+
+    .export-import-section h4 {
+      color: rgb(251, 225, 183);
+      margin: 0 0 15px 0;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .export-import-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .hidden-input {
+      display: none;
     }
 
     .card {
@@ -404,12 +445,11 @@
       top: 10px;
       right: 10px;
       z-index: 10;
+      display: flex;
+      gap: 5px;
     }
 
-    .card-delete-btn {
-      background: linear-gradient(135deg, rgb(180, 60, 60) 0%, rgb(140, 40, 40) 100%);
-      color: white;
-      border: 2px solid rgb(200, 80, 80);
+    .card-delete-btn, .card-export-btn {
       border-radius: 50%;
       width: 30px;
       height: 30px;
@@ -421,11 +461,71 @@
       justify-content: center;
       transition: all 0.3s ease;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      border: 2px solid;
+    }
+
+    .card-delete-btn {
+      background: linear-gradient(135deg, rgb(180, 60, 60) 0%, rgb(140, 40, 40) 100%);
+      color: white;
+      border-color: rgb(200, 80, 80);
     }
 
     .card-delete-btn:hover {
       background: linear-gradient(135deg, rgb(200, 80, 80) 0%, rgb(180, 60, 60) 100%);
       transform: scale(1.1);
+    }
+
+    .card-export-btn {
+      background: linear-gradient(135deg, rgb(46, 125, 50) 0%, rgb(27, 94, 32) 100%);
+      color: white;
+      border-color: rgb(76, 175, 80);
+      position: relative;
+    }
+
+    .card-export-btn:hover {
+      background: linear-gradient(135deg, rgb(76, 175, 80) 0%, rgb(46, 125, 50) 100%);
+      transform: scale(1.1);
+    }
+
+    .export-menu {
+      position: absolute;
+      top: 35px;
+      right: 0;
+      background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(37, 26, 12) 100%);
+      border: 2px solid rgb(218, 165, 32);
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      min-width: 120px;
+      z-index: 20;
+      display: none;
+    }
+
+    .export-menu.show {
+      display: block;
+    }
+
+    .export-option {
+      padding: 10px 15px;
+      color: rgb(251, 225, 183);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .export-option:hover {
+      background: rgba(218, 165, 32, 0.2);
+      color: rgb(218, 165, 32);
+    }
+
+    .export-option:first-child {
+      border-radius: 6px 6px 0 0;
+    }
+
+    .export-option:last-child {
+      border-radius: 0 0 6px 6px;
     }
 
     .image-container {
@@ -594,6 +694,12 @@
       margin-top: 10px;
     }
 
+    .success {
+      color: rgb(143, 234, 49);
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
     .shortcuts-help {
       background: rgba(37, 26, 12, 0.7);
       border: 1px solid rgb(74, 60, 46);
@@ -751,6 +857,15 @@
       .form-grid {
         grid-template-columns: 1fr;
       }
+
+      .export-import-buttons {
+        flex-direction: column;
+      }
+
+      .card-controls {
+        flex-direction: column;
+        gap: 3px;
+      }
     }
 
   </style>
@@ -762,9 +877,6 @@
       <a href="#" class="nav-logo">BazzarGen</a>
       
       <ul class="nav-menu" id="nav-menu">
-        <li class="nav-item">
-          <a href="#" class="nav-link active" data-page="items">Items</a>
-        </li>
         <li class="nav-item">
           <a href="#" class="nav-link" data-page="skills">Skills</a>
         </li>
@@ -888,6 +1000,16 @@
         <button onclick="createCard()" class="form-button">Generate Card</button>
         <button onclick="clearAllCards()" class="form-button secondary">Clear All Cards</button>
       </div>
+
+      <div class="export-import-section">
+        <h4>💾 Export & Import</h4>
+        <div class="export-import-buttons">
+          <button onclick="exportAllCardsAsData()" class="form-button export">Export All as Data</button>
+          <button onclick="exportAllCardsAsPNG()" class="form-button export">Export All as PNG</button>
+          <button onclick="triggerImport()" class="form-button secondary">Import Card Data</button>
+        </div>
+        <input type="file" id="importInput" accept=".json" class="hidden-input" onchange="importCardData(event)" />
+      </div>
       
       <div id="errorContainer"></div>
     </div>
@@ -937,6 +1059,9 @@
   </div>
 
   <script>
+    // Store all cards data for export/import
+    let cardsData = [];
+
     // Navigation functionality
     document.addEventListener('DOMContentLoaded', function() {
       const navToggle = document.getElementById('nav-toggle');
@@ -979,6 +1104,15 @@
       document.addEventListener('click', function(e) {
         if (!navToggle.contains(e.target) && !navMenu.contains(e.target)) {
           navMenu.classList.remove('active');
+        }
+      });
+
+      // Close export menus when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.card-export-btn') && !e.target.closest('.export-menu')) {
+          document.querySelectorAll('.export-menu').forEach(menu => {
+            menu.classList.remove('show');
+          });
         }
       });
     });
@@ -1200,10 +1334,402 @@
     function clearAllCards() {
       const outputContainer = document.getElementById("outputContainer");
       outputContainer.innerHTML = '';
+      cardsData = [];
     }
 
     function clearCard(cardElement) {
+      const cardIndex = Array.from(cardElement.parentNode.children).indexOf(cardElement);
+      cardsData.splice(cardIndex, 1);
       cardElement.remove();
+    }
+
+    // Export/Import Functions
+    function exportAllCardsAsData() {
+      if (cardsData.length === 0) {
+        showMessage('No cards to export!', 'error');
+        return;
+      }
+
+      const dataToExport = {
+        version: "1.0",
+        timestamp: new Date().toISOString(),
+        cards: cardsData
+      };
+
+      const dataStr = JSON.stringify(dataToExport, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `bazzar-cards-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showMessage(`Exported ${cardsData.length} cards successfully!`, 'success');
+    }
+
+    function exportAllCardsAsPNG() {
+      if (cardsData.length === 0) {
+        showMessage('No cards to export!', 'error');
+        return;
+      }
+
+      const cards = document.querySelectorAll('.card');
+      let exportedCount = 0;
+
+      cards.forEach((card, index) => {
+        setTimeout(() => {
+          exportCardAsPNG(card, `card-${index + 1}`);
+          exportedCount++;
+          if (exportedCount === cards.length) {
+            showMessage(`Exported ${exportedCount} PNG files successfully!`, 'success');
+          }
+        }, index * 100); // Small delay between exports
+      });
+    }
+
+    function exportCardAsPNG(cardElement, filename) {
+      // Use html2canvas library alternative - create a simple canvas export
+      const cardWrapper = cardElement.querySelector('.card-wrapper');
+      if (!cardWrapper) return;
+
+      // For now, we'll create a simple implementation
+      // In a real implementation, you'd want to use html2canvas library
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      
+      // Set canvas size
+      canvas.width = 800;
+      canvas.height = 600;
+      
+      // Fill background
+      ctx.fillStyle = 'rgb(139, 122, 101)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      
+      // Add text indicating this is a simplified export
+      ctx.fillStyle = 'white';
+      ctx.font = '20px Arial';
+      ctx.textAlign = 'center';
+      ctx.fillText('Card Export (Simplified)', canvas.width / 2, canvas.height / 2);
+      ctx.fillText('For full quality, use external tools', canvas.width / 2, canvas.height / 2 + 30);
+      
+      // Convert to blob and download
+      canvas.toBlob((blob) => {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `${filename}.png`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      });
+    }
+
+    function triggerImport() {
+      document.getElementById('importInput').click();
+    }
+
+    function importCardData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          
+          if (!importedData.cards || !Array.isArray(importedData.cards)) {
+            throw new Error('Invalid file format');
+          }
+
+          let importedCount = 0;
+          importedData.cards.forEach(cardData => {
+            try {
+              importSingleCard(cardData);
+              importedCount++;
+            } catch (error) {
+              console.error('Error importing card:', error);
+            }
+          });
+
+          if (importedCount > 0) {
+            showMessage(`Successfully imported ${importedCount} cards!`, 'success');
+          } else {
+            showMessage('No cards could be imported from this file.', 'error');
+          }
+
+        } catch (error) {
+          showMessage('Error reading file: ' + error.message, 'error');
+        }
+      };
+      reader.readAsText(file);
+      
+      // Clear the input
+      event.target.value = '';
+    }
+
+    function importSingleCard(cardData) {
+      // Create a new card element based on the imported data
+      const outputContainer = document.getElementById("outputContainer");
+      const borderColor = getBorderColor(cardData.border);
+      
+      const card = document.createElement("div");
+      card.className = "card";
+
+      // Add delete and export buttons for individual card
+      const cardControls = document.createElement("div");
+      cardControls.className = "card-controls";
+      
+      const exportBtn = document.createElement("button");
+      exportBtn.className = "card-export-btn";
+      exportBtn.innerHTML = "💾";
+      exportBtn.title = "Export this card";
+      exportBtn.onclick = function() {
+        toggleExportMenu(exportBtn, cardData);
+      };
+      
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "card-delete-btn";
+      deleteBtn.innerHTML = "×";
+      deleteBtn.title = "Delete this card";
+      deleteBtn.onclick = function() {
+        clearCard(card);
+      };
+      
+      cardControls.appendChild(exportBtn);
+      cardControls.appendChild(deleteBtn);
+      card.appendChild(cardControls);
+
+      const imageContainer = document.createElement("div");
+      imageContainer.className = "image-container";
+      imageContainer.style.border = `3px solid ${borderColor}`;
+
+      const img = document.createElement("img");
+      img.src = cardData.imageData; // Base64 image data
+      imageContainer.appendChild(img);
+
+      // Create tags container
+      const tagsContainer = document.createElement("div");
+      tagsContainer.className = "tags-container";
+
+      // Add item size tag
+      const itemSizeTag = document.createElement("span");
+      itemSizeTag.className = "item-tag";
+      itemSizeTag.textContent = cardData.itemSize;
+      tagsContainer.appendChild(itemSizeTag);
+
+      // Add additional tags
+      cardData.tags.forEach(tagText => {
+        const tag = document.createElement("span");
+        tag.className = "item-tag";
+        tag.textContent = tagText;
+        tagsContainer.appendChild(tag);
+      });
+
+      const content = document.createElement("div");
+      content.className = "card-content";
+      content.style.border = `3px solid ${borderColor}`;
+
+      // Top section with title and hero
+      const topSection = document.createElement("div");
+      topSection.className = "text-section hero-header";
+      topSection.style.borderTop = `2px solid ${borderColor}`;
+      topSection.style.borderBottom = `2px solid ${borderColor}`;
+      const itemTitle = document.createElement("div");
+      itemTitle.className = "item-title";
+      itemTitle.textContent = cardData.itemName;
+      const heroImg = document.createElement("img");
+      heroImg.src = `images/${cardData.hero.toLowerCase()}.png`;
+      heroImg.alt = cardData.hero;
+      topSection.appendChild(itemTitle);
+      topSection.appendChild(heroImg);
+      content.appendChild(topSection);
+
+      // On use effects
+      let onUseSection = null;
+      if (cardData.onUseEffects && cardData.onUseEffects.length > 0) {
+        const effectsContainer = document.createElement("div");
+        cardData.onUseEffects.forEach(effect => {
+          const effectLine = document.createElement("div");
+          effectLine.className = "on-use-line";
+
+          const icon = document.createElement("img");
+          icon.src = "images/use-arrow.png";
+          icon.alt = "-";
+
+          const text = document.createElement("span");
+          text.innerHTML = processKeywordText(effect);
+
+          effectLine.appendChild(icon);
+          effectLine.appendChild(text);
+          effectsContainer.appendChild(effectLine);
+        });
+
+        onUseSection = document.createElement("div");
+        onUseSection.className = "text-section on-use-section";
+        onUseSection.style.borderTop = `2px solid ${borderColor}`;
+        onUseSection.style.borderBottom = `2px solid ${borderColor}`;
+        onUseSection.appendChild(effectsContainer);
+        content.appendChild(onUseSection);
+      }
+
+      // Passive effects
+      if (cardData.passiveEffect && cardData.passiveEffect.trim()) {
+        const passiveSection = document.createElement("div");
+        passiveSection.className = "text-section";
+        passiveSection.style.borderTop = `2px solid ${borderColor}`;
+        passiveSection.style.borderBottom = `2px solid ${borderColor}`;
+        passiveSection.innerHTML = processKeywordText(cardData.passiveEffect);
+        content.appendChild(passiveSection);
+      }
+
+      // Cooldown
+      if (cardData.cooldown && cardData.onUseEffects && cardData.onUseEffects.length > 0) {
+        const cooldownDiv = document.createElement("div");
+        cooldownDiv.className = "cooldown-section";
+        cooldownDiv.innerHTML = `<span>${cardData.cooldown}</span><span class="sec-text">sec</span>`;
+        content.appendChild(cooldownDiv);
+      }
+
+      // Ammo
+      if (cardData.ammo) {
+        const ammoDiv = document.createElement("div");
+        ammoDiv.className = "ammo-section";
+        ammoDiv.style.border = `3px solid ${borderColor}`;
+        
+        const ammoImg = document.createElement("img");
+        ammoImg.src = "images/ammo.png";
+        ammoImg.alt = "Ammo";
+        ammoDiv.appendChild(ammoImg);
+        
+        const ammoText = document.createElement("span");
+        ammoText.textContent = cardData.ammo;
+        ammoDiv.appendChild(ammoText);
+        
+        content.appendChild(ammoDiv);
+      }
+
+      card.appendChild(imageContainer);
+      
+      const cardWrapper = document.createElement("div");
+      cardWrapper.className = "card-wrapper";
+      
+      cardWrapper.appendChild(tagsContainer);
+      cardWrapper.appendChild(content);
+      card.appendChild(cardWrapper);
+      outputContainer.appendChild(card);
+
+      // Add to cards data
+      cardsData.push(cardData);
+
+      // Set dimensions and positioning
+      setTimeout(() => {
+        const contentHeight = content.offsetHeight;
+        imageContainer.style.height = contentHeight + "px";
+
+        let widthRatio = 1.0;
+        if (cardData.itemSize === "Small") {
+          widthRatio = 0.5;
+        } else if (cardData.itemSize === "Large") {
+          widthRatio = 1.5;
+        }
+
+        const containerWidth = contentHeight * widthRatio;
+        imageContainer.style.width = containerWidth + "px";
+
+        img.style.height = "100%";
+        img.style.width = "auto";
+        img.style.objectFit = "cover";
+        img.style.objectPosition = "center";
+
+        if (onUseSection) {
+          positionElementsRelativeToOnUse(content, onUseSection);
+        }
+      }, 0);
+    }
+
+    function toggleExportMenu(button, cardData) {
+      // Close all other export menus
+      document.querySelectorAll('.export-menu').forEach(menu => {
+        if (menu.parentElement !== button.parentElement) {
+          menu.classList.remove('show');
+        }
+      });
+
+      let menu = button.parentElement.querySelector('.export-menu');
+      if (!menu) {
+        menu = document.createElement('div');
+        menu.className = 'export-menu';
+        
+        const dataOption = document.createElement('div');
+        dataOption.className = 'export-option';
+        dataOption.textContent = 'Export as Data';
+        dataOption.onclick = () => {
+          exportSingleCardAsData(cardData);
+          menu.classList.remove('show');
+        };
+        
+        const pngOption = document.createElement('div');
+        pngOption.className = 'export-option';
+        pngOption.textContent = 'Export as PNG';
+        pngOption.onclick = () => {
+          const cardElement = button.closest('.card');
+          exportCardAsPNG(cardElement, `card-${cardData.itemName.replace(/\s+/g, '-')}`);
+          menu.classList.remove('show');
+        };
+        
+        menu.appendChild(dataOption);
+        menu.appendChild(pngOption);
+        button.parentElement.appendChild(menu);
+      }
+
+      menu.classList.toggle('show');
+    }
+
+    function exportSingleCardAsData(cardData) {
+      const dataToExport = {
+        version: "1.0",
+        timestamp: new Date().toISOString(),
+        cards: [cardData]
+      };
+
+      const dataStr = JSON.stringify(dataToExport, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${cardData.itemName.replace(/\s+/g, '-')}-card.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showMessage('Card exported successfully!', 'success');
+    }
+
+    function showMessage(message, type) {
+      const errorContainer = document.getElementById("errorContainer");
+      const messageDiv = document.createElement("div");
+      messageDiv.className = type;
+      messageDiv.textContent = message;
+      
+      // Clear previous messages
+      errorContainer.innerHTML = '';
+      errorContainer.appendChild(messageDiv);
+      
+      // Auto-remove success messages after 3 seconds
+      if (type === 'success') {
+        setTimeout(() => {
+          if (messageDiv.parentElement) {
+            messageDiv.remove();
+          }
+        }, 3000);
+      }
     }
 
     function createCard() {
@@ -1268,13 +1794,41 @@
         const reader = new FileReader();
 
         reader.onload = function (e) {
+          const imageData = e.target.result;
+          
+          // Create card data object for export/import
+          const cardData = {
+            itemName: itemName,
+            hero: hero,
+            cooldown: formattedCooldown,
+            ammo: validatedAmmo,
+            itemSize: itemSize,
+            border: border,
+            passiveEffect: passiveInput,
+            onUseEffects: Array.from(onUseInputs).map(input => input.value.trim()).filter(val => val),
+            tags: Array.from(tagInputs).map(input => input.value.trim()).filter(val => val),
+            imageData: imageData,
+            timestamp: new Date().toISOString()
+          };
+
+          // Store card data
+          cardsData.push(cardData);
+
           const borderColor = getBorderColor(border);
           const card = document.createElement("div");
           card.className = "card";
 
-          // Add delete button for individual card
+          // Add delete and export buttons for individual card
           const cardControls = document.createElement("div");
           cardControls.className = "card-controls";
+          
+          const exportBtn = document.createElement("button");
+          exportBtn.className = "card-export-btn";
+          exportBtn.innerHTML = "💾";
+          exportBtn.title = "Export this card";
+          exportBtn.onclick = function() {
+            toggleExportMenu(exportBtn, cardData);
+          };
           
           const deleteBtn = document.createElement("button");
           deleteBtn.className = "card-delete-btn";
@@ -1284,6 +1838,7 @@
             clearCard(card);
           };
           
+          cardControls.appendChild(exportBtn);
           cardControls.appendChild(deleteBtn);
           card.appendChild(cardControls);
 
@@ -1292,7 +1847,7 @@
           imageContainer.style.border = `3px solid ${borderColor}`;
 
           const img = document.createElement("img");
-          img.src = e.target.result;
+          img.src = imageData;
           imageContainer.appendChild(img);
 
           // Create tags container (outside the main bordered content)
@@ -1413,27 +1968,17 @@
             const contentHeight = content.offsetHeight;
             imageContainer.style.height = contentHeight + "px";
 
-            // Debug: Check what size value we're getting
-            console.log("Item size value:", itemSize);
-
             let widthRatio = 1.0; // Default to medium
             if (itemSize === "Small") {
               widthRatio = 0.5;
-              console.log("Setting small width ratio: 0.5");
             } else if (itemSize === "Medium") {
               widthRatio = 1.0;
-              console.log("Setting medium width ratio: 1.0");
             } else if (itemSize === "Large") {
               widthRatio = 1.5;
-              console.log("Setting large width ratio: 1.5");
             }
-
-            console.log("Final width ratio:", widthRatio);
 
             const containerWidth = contentHeight * widthRatio;
             imageContainer.style.width = containerWidth + "px";
-
-            console.log("Container height:", contentHeight, "Container width:", containerWidth);
 
             img.style.height = "100%";
             img.style.width = "auto";
@@ -1457,4 +2002,7 @@
     }
   </script>
 </body>
-</html>
+</html> class="nav-link active" data-page="items">Items</a>
+        </li>
+        <li class="nav-item">
+          <a href="#"
