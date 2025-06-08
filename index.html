@@ -1008,7 +1008,6 @@
         <h4>💾 Export & Import</h4>
         <div class="export-import-buttons">
           <button onclick="exportAllCardsAsData()" class="form-button export">Export All as Data</button>
-          <button onclick="exportAllCardsAsPNG()" class="form-button export">Export All as PNG</button>
           <button onclick="triggerImport()" class="form-button secondary">Import Card Data</button>
         </div>
         <input type="file" id="importInput" accept=".json" class="hidden-input" onchange="importCardData(event)" />
@@ -1865,17 +1864,7 @@
           menu.classList.remove('show');
         };
         
-        const pngOption = document.createElement('div');
-        pngOption.className = 'export-option';
-        pngOption.textContent = 'Export as PNG';
-        pngOption.onclick = () => {
-          const cardElement = button.closest('.card');
-          exportCardAsPNG(cardElement, `card-${cardData.itemName.replace(/\s+/g, '-')}`);
-          menu.classList.remove('show');
-        };
-        
         menu.appendChild(dataOption);
-        menu.appendChild(pngOption);
         button.parentElement.appendChild(menu);
       }
 
