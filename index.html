@@ -532,12 +532,13 @@
       border: 3px solid gold;
       padding: 5px;
       margin-right: 20px;
+      margin-top: 35px; /* Added 35px top margin */
       border-radius: 10px;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
-      height: auto;
+      height: 150px; /* Fixed height at 150px */
       width: auto;
       flex-shrink: 0;
       background: rgb(74, 60, 46);
@@ -576,6 +577,7 @@
       margin-bottom: 5px;
       padding: 0;
       background: transparent;
+      width: 300px; /* Fixed width at 300px */
     }
 
     .item-tag {
@@ -1817,11 +1819,9 @@
       // Add to cards data
       cardsData.push(cardData);
 
-      // Set dimensions and positioning
+      // Set dimensions and positioning - Modified for fixed image height
       setTimeout(() => {
-        const contentHeight = content.offsetHeight;
-        imageContainer.style.height = contentHeight + "px";
-
+        // Image container now has fixed height of 150px and 35px top margin
         let widthRatio = 1.0;
         if (cardData.itemSize === "Small") {
           widthRatio = 0.5;
@@ -1829,7 +1829,7 @@
           widthRatio = 1.5;
         }
 
-        const containerWidth = contentHeight * widthRatio;
+        const containerWidth = 150 * widthRatio; // Use fixed height instead of content height
         imageContainer.style.width = containerWidth + "px";
 
         img.style.height = "100%";
@@ -2145,10 +2145,9 @@
           card.appendChild(cardWrapper);
           outputContainer.appendChild(card);
 
+          // Modified setTimeout for fixed image height and positioning
           setTimeout(() => {
-            const contentHeight = content.offsetHeight;
-            imageContainer.style.height = contentHeight + "px";
-
+            // Image container now has fixed height of 150px and 35px top margin (set in CSS)
             let widthRatio = 1.0; // Default to medium
             if (itemSize === "Small") {
               widthRatio = 0.5;
@@ -2158,7 +2157,7 @@
               widthRatio = 1.5;
             }
 
-            const containerWidth = contentHeight * widthRatio;
+            const containerWidth = 150 * widthRatio; // Use fixed height of 150px instead of content height
             imageContainer.style.width = containerWidth + "px";
 
             img.style.height = "100%";
