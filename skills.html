@@ -338,11 +338,52 @@
       background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(101, 84, 63) 100%);
     }
 
+    .form-button.export {
+      background: linear-gradient(135deg, rgb(46, 125, 50) 0%, rgb(27, 94, 32) 100%);
+      color: white;
+      border: 2px solid rgb(76, 175, 80);
+      padding: 8px 15px;
+      font-size: 12px;
+      margin-left: 5px;
+    }
+
+    .form-button.export:hover {
+      background: linear-gradient(135deg, rgb(76, 175, 80) 0%, rgb(46, 125, 50) 100%);
+    }
+
     .button-group {
       display: flex;
       gap: 15px;
       justify-content: center;
       margin-top: 25px;
+      flex-wrap: wrap;
+    }
+
+    .export-import-section {
+      background: rgba(37, 26, 12, 0.5);
+      border: 1px solid rgb(74, 60, 46);
+      border-radius: 8px;
+      padding: 15px;
+      margin-top: 20px;
+    }
+
+    .export-import-section h4 {
+      color: rgb(251, 225, 183);
+      margin: 0 0 15px 0;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .export-import-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .hidden-input {
+      display: none;
     }
 
     .shortcuts-help {
@@ -402,6 +443,95 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
       margin-top: 10px;
+      position: relative;
+    }
+
+    .skill-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 10;
+      display: flex;
+      gap: 5px;
+    }
+
+    .skill-delete-btn, .skill-export-btn {
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      border: 2px solid;
+    }
+
+    .skill-delete-btn {
+      background: linear-gradient(135deg, rgb(180, 60, 60) 0%, rgb(140, 40, 40) 100%);
+      color: white;
+      border-color: rgb(200, 80, 80);
+    }
+
+    .skill-delete-btn:hover {
+      background: linear-gradient(135deg, rgb(200, 80, 80) 0%, rgb(180, 60, 60) 100%);
+      transform: scale(1.1);
+    }
+
+    .skill-export-btn {
+      background: linear-gradient(135deg, rgb(46, 125, 50) 0%, rgb(27, 94, 32) 100%);
+      color: white;
+      border-color: rgb(76, 175, 80);
+      position: relative;
+    }
+
+    .skill-export-btn:hover {
+      background: linear-gradient(135deg, rgb(76, 175, 80) 0%, rgb(46, 125, 50) 100%);
+      transform: scale(1.1);
+    }
+
+    .export-menu {
+      position: absolute;
+      top: 35px;
+      right: 0;
+      background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(37, 26, 12) 100%);
+      border: 2px solid rgb(218, 165, 32);
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      min-width: 120px;
+      z-index: 20;
+      display: none;
+    }
+
+    .export-menu.show {
+      display: block;
+    }
+
+    .export-option {
+      padding: 10px 15px;
+      color: rgb(251, 225, 183);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 12px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .export-option:hover {
+      background: rgba(218, 165, 32, 0.2);
+      color: rgb(218, 165, 32);
+    }
+
+    .export-option:first-child {
+      border-radius: 6px 6px 0 0;
+    }
+
+    .export-option:last-child {
+      border-radius: 0 0 6px 6px;
     }
 
     .skill-image-container {
@@ -482,6 +612,12 @@
 
     .error {
       color: red;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+
+    .success {
+      color: rgb(143, 234, 49);
       font-weight: bold;
       margin-top: 10px;
     }
@@ -610,6 +746,15 @@
         width: 182px;
         height: 182px;
       }
+
+      .skill-controls {
+        flex-direction: column;
+        gap: 3px;
+      }
+
+      .export-import-buttons {
+        flex-direction: column;
+      }
     }
 
   </style>
@@ -702,6 +847,15 @@
         <button class="form-button" onclick="createSkill()">Generate Skill</button>
         <button class="form-button secondary" onclick="clearOutput()">Clear All</button>
       </div>
+
+      <div class="export-import-section">
+        <h4>💾 Export & Import</h4>
+        <div class="export-import-buttons">
+          <button onclick="exportAllSkillsAsData()" class="form-button export">Export All as Data</button>
+          <button onclick="triggerImport()" class="form-button secondary">Import Skill Data</button>
+        </div>
+        <input type="file" id="importInput" accept=".json" class="hidden-input" onchange="importSkillData(event)" />
+      </div>
     </div>
 
     <div id="errorContainer"></div>
@@ -738,6 +892,9 @@
   </footer>
 
   <script>
+    // Store all skills data for export/import
+    let skillsData = [];
+
     // Navigation functionality
     document.addEventListener('DOMContentLoaded', function() {
       const navToggle = document.getElementById('nav-toggle');
@@ -752,6 +909,15 @@
       document.addEventListener('click', function(e) {
         if (!navToggle.contains(e.target) && !navMenu.contains(e.target)) {
           navMenu.classList.remove('active');
+        }
+      });
+
+      // Close export menus when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.skill-export-btn') && !e.target.closest('.export-menu')) {
+          document.querySelectorAll('.export-menu').forEach(menu => {
+            menu.classList.remove('show');
+          });
         }
       });
     });
@@ -845,6 +1011,232 @@
       }
     }
 
+    function clearSkill(skillElement) {
+      const skillIndex = Array.from(skillElement.parentNode.children).indexOf(skillElement);
+      skillsData.splice(skillIndex, 1);
+      skillElement.remove();
+    }
+
+    function toggleExportMenu(button, skillData) {
+      // Close all other export menus
+      document.querySelectorAll('.export-menu').forEach(menu => {
+        if (menu.parentElement !== button.parentElement) {
+          menu.classList.remove('show');
+        }
+      });
+
+      let menu = button.parentElement.querySelector('.export-menu');
+      if (!menu) {
+        menu = document.createElement('div');
+        menu.className = 'export-menu';
+        
+        const dataOption = document.createElement('div');
+        dataOption.className = 'export-option';
+        dataOption.textContent = 'Export as Data';
+        dataOption.onclick = () => {
+          exportSingleSkillAsData(skillData);
+          menu.classList.remove('show');
+        };
+        
+        menu.appendChild(dataOption);
+        button.parentElement.appendChild(menu);
+      }
+
+      menu.classList.toggle('show');
+    }
+
+    function exportSingleSkillAsData(skillData) {
+      const dataToExport = {
+        version: "1.0",
+        timestamp: new Date().toISOString(),
+        skills: [skillData]
+      };
+
+      const dataStr = JSON.stringify(dataToExport, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${skillData.skillName.replace(/\s+/g, '-')}-skill.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showMessage('Skill exported successfully!', 'success');
+    }
+
+    function exportAllSkillsAsData() {
+      if (skillsData.length === 0) {
+        showMessage('No skills to export!', 'error');
+        return;
+      }
+
+      const dataToExport = {
+        version: "1.0",
+        timestamp: new Date().toISOString(),
+        skills: skillsData
+      };
+
+      const dataStr = JSON.stringify(dataToExport, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `bazzar-skills-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      showMessage(`Exported ${skillsData.length} skills successfully!`, 'success');
+    }
+
+    function triggerImport() {
+      document.getElementById('importInput').click();
+    }
+
+    function importSkillData(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          
+          if (!importedData.skills || !Array.isArray(importedData.skills)) {
+            throw new Error('Invalid file format');
+          }
+
+          let importedCount = 0;
+          importedData.skills.forEach(skillData => {
+            try {
+              importSingleSkill(skillData);
+              importedCount++;
+            } catch (error) {
+              console.error('Error importing skill:', error);
+            }
+          });
+
+          if (importedCount > 0) {
+            showMessage(`Successfully imported ${importedCount} skills!`, 'success');
+          } else {
+            showMessage('No skills could be imported from this file.', 'error');
+          }
+
+        } catch (error) {
+          showMessage('Error reading file: ' + error.message, 'error');
+        }
+      };
+      reader.readAsText(file);
+      
+      // Clear the input
+      event.target.value = '';
+    }
+
+    function importSingleSkill(skillData) {
+      const outputContainer = document.getElementById("outputContainer");
+      const borderColor = getBorderColor(skillData.border);
+      
+      const skillCard = document.createElement("div");
+      skillCard.className = "skill-card";
+
+      // Add delete and export buttons for individual skill
+      const skillControls = document.createElement("div");
+      skillControls.className = "skill-controls";
+      
+      const exportBtn = document.createElement("button");
+      exportBtn.className = "skill-export-btn";
+      exportBtn.innerHTML = "💾";
+      exportBtn.title = "Export this skill";
+      exportBtn.onclick = function() {
+        toggleExportMenu(exportBtn, skillData);
+      };
+      
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "skill-delete-btn";
+      deleteBtn.innerHTML = "×";
+      deleteBtn.title = "Delete this skill";
+      deleteBtn.onclick = function() {
+        clearSkill(skillCard);
+      };
+      
+      skillControls.appendChild(exportBtn);
+      skillControls.appendChild(deleteBtn);
+      skillCard.appendChild(skillControls);
+
+      const imageContainer = document.createElement("div");
+      imageContainer.className = "skill-image-container";
+      imageContainer.style.border = `3px solid ${borderColor}`;
+
+      const img = document.createElement("img");
+      img.src = skillData.imageData;
+      imageContainer.appendChild(img);
+
+      // Create border overlay
+      const imageBorderOverlay = document.createElement("img");
+      imageBorderOverlay.className = "skill-border-overlay";
+      imageBorderOverlay.src = `images/${skillData.border}_skill_border.png`;
+      imageBorderOverlay.onerror = function() {
+        this.style.display = 'none';
+      };
+      imageBorderOverlay.alt = "";
+      imageContainer.appendChild(imageBorderOverlay);
+
+      const content = document.createElement("div");
+      content.className = "skill-content";
+      content.style.border = `3px solid ${borderColor}`;
+
+      const headerSection = document.createElement("div");
+      headerSection.className = "skill-header";
+      headerSection.style.borderTop = `2px solid ${borderColor}`;
+      headerSection.style.borderBottom = `2px solid ${borderColor}`;
+      
+      const skillTitle = document.createElement("div");
+      skillTitle.className = "skill-title";
+      skillTitle.textContent = skillData.skillName;
+      headerSection.appendChild(skillTitle);
+
+      const effectSection = document.createElement("div");
+      effectSection.className = "skill-effect";
+      effectSection.style.borderTop = `2px solid ${borderColor}`;
+      effectSection.style.borderBottom = `2px solid ${borderColor}`;
+      effectSection.innerHTML = processKeywordText(skillData.skillEffect);
+
+      content.appendChild(headerSection);
+      content.appendChild(effectSection);
+
+      skillCard.appendChild(imageContainer);
+      skillCard.appendChild(content);
+      outputContainer.appendChild(skillCard);
+
+      // Add to skills data
+      skillsData.push(skillData);
+    }
+
+    function showMessage(message, type) {
+      const errorContainer = document.getElementById("errorContainer");
+      const messageDiv = document.createElement("div");
+      messageDiv.className = type;
+      messageDiv.textContent = message;
+      
+      // Clear previous messages
+      errorContainer.innerHTML = '';
+      errorContainer.appendChild(messageDiv);
+      
+      // Auto-remove success messages after 3 seconds
+      if (type === 'success') {
+        setTimeout(() => {
+          if (messageDiv.parentElement) {
+            messageDiv.remove();
+          }
+        }, 3000);
+      }
+    }
+
     function createSkill() {
       const imageInput = document.getElementById("imageInput");
       const skillName = document.getElementById("skillNameInput").value;
@@ -884,16 +1276,54 @@
       const reader = new FileReader();
 
       reader.onload = function (e) {
+        const imageData = e.target.result;
+        
+        // Create skill data object for export/import
+        const skillData = {
+          skillName: skillName,
+          skillEffect: skillEffect,
+          border: border,
+          imageData: imageData,
+          timestamp: new Date().toISOString()
+        };
+
+        // Store skill data
+        skillsData.push(skillData);
+
         const borderColor = getBorderColor(border);
         const skillCard = document.createElement("div");
         skillCard.className = "skill-card";
+
+        // Add delete and export buttons for individual skill
+        const skillControls = document.createElement("div");
+        skillControls.className = "skill-controls";
+        
+        const exportBtn = document.createElement("button");
+        exportBtn.className = "skill-export-btn";
+        exportBtn.innerHTML = "💾";
+        exportBtn.title = "Export this skill";
+        exportBtn.onclick = function() {
+          toggleExportMenu(exportBtn, skillData);
+        };
+        
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "skill-delete-btn";
+        deleteBtn.innerHTML = "×";
+        deleteBtn.title = "Delete this skill";
+        deleteBtn.onclick = function() {
+          clearSkill(skillCard);
+        };
+        
+        skillControls.appendChild(exportBtn);
+        skillControls.appendChild(deleteBtn);
+        skillCard.appendChild(skillControls);
 
         const imageContainer = document.createElement("div");
         imageContainer.className = "skill-image-container";
         imageContainer.style.border = `3px solid ${borderColor}`;
 
         const img = document.createElement("img");
-        img.src = e.target.result;
+        img.src = imageData;
         
         imageContainer.appendChild(img);
 
@@ -951,6 +1381,7 @@
       document.getElementById("skillEffectInput").value = '';
       document.getElementById("imageInput").value = '';
       document.getElementById("borderSelect").value = 'gold';
+      skillsData = [];
     }
   </script>
 </body>
