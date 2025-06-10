@@ -561,7 +561,13 @@
       display: block;
       object-fit: cover;
       object-position: center;
-      /* This will be clipped by a wrapper */
+      /* Center the image horizontally within its container */
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      min-width: 100%;
+      min-height: 100%;
     }
 
     .image-clip-wrapper {
@@ -572,6 +578,9 @@
       bottom: 5px;
       overflow: hidden; /* Clips only the uploaded image */
       border-radius: 7px; /* Match container radius minus padding */
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .card-frame {
@@ -696,6 +705,18 @@
       background-color: #222;
       position: absolute;
       z-index: 1;
+      /* Ensure relative positioning for the border overlay */
+      position: absolute;
+    }
+
+    .cooldown-border {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 2;
     }
 
     .cooldown-section span {
@@ -1349,6 +1370,51 @@
       return frameDiv;
     }
 
+    function getCooldownBorderFilename(quality) {
+      // Convert quality to proper case for filename
+      const qualityMap = {
+        'bronze': 'Bronze',
+        'silver': 'silver',
+        'gold': 'gold',
+        'diamond': 'diamond',
+        'legendary': 'Legendary'
+      };
+      
+      const mappedQuality = qualityMap[quality.toLowerCase()] || 'gold';
+      return `images/cooldown/${mappedQuality}_cooldown.png`;
+    }
+
+    function createCooldownBorderElement(quality) {
+      const borderDiv = document.createElement("div");
+      borderDiv.className = "cooldown-border";
+      borderDiv.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 2;
+      `;
+      
+      const borderImg = document.createElement("img");
+      borderImg.src = getCooldownBorderFilename(quality);
+      borderImg.alt = `${quality} cooldown border`;
+      borderImg.style.cssText = `
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+      `;
+      borderImg.onerror = function() {
+        console.warn(`Cooldown border not found: ${this.src}`);
+        borderDiv.style.display = 'none';
+      };
+      
+      borderDiv.appendChild(borderImg);
+      return borderDiv;
+    }
+
     function formatCooldown(cooldownValue) {
       if (!cooldownValue.trim()) return '';
       
@@ -1388,23 +1454,32 @@
     }
 
     function positionElementsRelativeToOnUse(content, onUseSection) {
-      // Get the position and dimensions of the on-use section
-      const onUseRect = onUseSection.getBoundingClientRect();
-      const contentRect = content.getBoundingClientRect();
+      // Force a reflow to ensure all elements are properly measured
+      content.offsetHeight;
+      onUseSection.offsetHeight;
       
-      // Calculate the center position of the on-use section relative to the content
-      const onUseCenterY = onUseRect.top - contentRect.top + (onUseRect.height / 2);
+      // Get the position and dimensions relative to the content container
+      const contentRect = content.getBoundingClientRect();
+      const onUseRect = onUseSection.getBoundingClientRect();
+      
+      // Calculate the on-use section position relative to the content container
+      const onUseRelativeTop = onUseSection.offsetTop;
+      const onUseHeight = onUseSection.offsetHeight;
+      const onUseCenterY = onUseRelativeTop + (onUseHeight / 2);
       
       // Position cooldown and ammo elements
       const cooldownSection = content.querySelector('.cooldown-section');
       const ammoSection = content.querySelector('.ammo-section');
       
       if (cooldownSection) {
-        cooldownSection.style.top = `${onUseCenterY - 25}px`; // 25 is half the height of cooldown section
+        // Cooldown is 50px tall, so subtract 25px to center it
+        cooldownSection.style.top = `${onUseCenterY - 25}px`;
       }
       
       if (ammoSection) {
-        ammoSection.style.top = `${onUseCenterY - (ammoSection.offsetHeight / 2)}px`;
+        // Get the actual height of the ammo section and center it
+        const ammoHeight = ammoSection.offsetHeight;
+        ammoSection.style.top = `${onUseCenterY - (ammoHeight / 2)}px`;
       }
     }
 
@@ -1621,6 +1696,11 @@
         const cooldownDiv = document.createElement("div");
         cooldownDiv.className = "cooldown-section";
         cooldownDiv.innerHTML = `<span>${cardData.cooldown}</span><span class="sec-text">sec</span>`;
+        
+        // Add cooldown border overlay
+        const cooldownBorder = createCooldownBorderElement(cardData.border);
+        cooldownDiv.appendChild(cooldownBorder);
+        
         content.appendChild(cooldownDiv);
       }
 
@@ -1958,6 +2038,11 @@
             const cooldownDiv = document.createElement("div");
             cooldownDiv.className = "cooldown-section";
             cooldownDiv.innerHTML = `<span>${formattedCooldown}</span><span class="sec-text">sec</span>`;
+            
+            // Add cooldown border overlay
+            const cooldownBorder = createCooldownBorderElement(border);
+            cooldownDiv.appendChild(cooldownBorder);
+            
             content.appendChild(cooldownDiv);
           }
 
@@ -2029,4 +2114,3 @@
   </script>
 </body>
 </html>
-        
