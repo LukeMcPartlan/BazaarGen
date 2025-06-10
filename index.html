@@ -1402,23 +1402,23 @@
         transform: translate(-50%, -50%);
         pointer-events: none;
         z-index: 0;
+        background-image: url('${getCooldownBorderFilename(quality)}');
+        background-size: 100% 100%;
+        background-repeat: no-repeat;
+        background-position: center;
       `;
       
-      const borderImg = document.createElement("img");
-      borderImg.src = getCooldownBorderFilename(quality);
-      borderImg.alt = `${quality} cooldown border`;
-      borderImg.style.cssText = `
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        display: block;
-      `;
-      borderImg.onerror = function() {
-        console.warn(`Cooldown border not found: ${this.src}`);
+      // Add error handling by trying to load the image first
+      const testImg = new Image();
+      testImg.onload = function() {
+        // Image loaded successfully, background will display
+      };
+      testImg.onerror = function() {
+        console.warn(`Cooldown border not found: ${getCooldownBorderFilename(quality)}`);
         borderDiv.style.display = 'none';
       };
+      testImg.src = getCooldownBorderFilename(quality);
       
-      borderDiv.appendChild(borderImg);
       return borderDiv;
     }
 
