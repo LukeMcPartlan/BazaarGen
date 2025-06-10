@@ -531,7 +531,7 @@
     .image-container {
       border: 3px solid gold;
       padding: 5px;
-      margin-right: 20px;
+      margin-right: 50px; /* Increased from 20px to 50px (added 30px) */
       margin-top: 35px; /* Added 35px top margin */
       border-radius: 10px;
       overflow: visible; /* Allow frame to extend outside container */
@@ -709,6 +709,12 @@
       position: absolute;
     }
 
+    .cooldown-section span {
+      display: block;
+      position: relative;
+      z-index: 1;
+    }
+
     .cooldown-border {
       position: absolute;
       top: 0;
@@ -716,7 +722,7 @@
       width: 100%;
       height: 100%;
       pointer-events: none;
-      z-index: 2;
+      z-index: 0;
     }
 
     .cooldown-section span {
@@ -1394,7 +1400,7 @@
         width: 100%;
         height: 100%;
         pointer-events: none;
-        z-index: 2;
+        z-index: 0;
       `;
       
       const borderImg = document.createElement("img");
