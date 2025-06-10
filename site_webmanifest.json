@@ -1,7 +1,7 @@
 {
-  "name": "BazzarGen - Bazzar Card Generator",
-  "short_name": "BazzarGen",
-  "description": "Create custom Bazzar game cards with our free online generator",
+  "name": "BazaarGen - Bazaar Card Generator",
+  "short_name": "BazaarGen",
+  "description": "Create custom Bazaar game cards with our free online generator",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#8B7A65",
