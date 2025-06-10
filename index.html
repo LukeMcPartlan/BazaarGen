@@ -534,7 +534,7 @@
       margin-right: 20px;
       margin-top: 35px; /* Added 35px top margin */
       border-radius: 10px;
-      overflow: hidden;
+      overflow: hidden; /* Clips the uploaded image */
       display: flex;
       align-items: center;
       justify-content: center;
@@ -555,14 +555,16 @@
 
     .card-frame {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 105%;
-      height: 105%;
+      top: 50%;
+      left: 50%;
+      width: 110%; /* 10% bigger than container */
+      height: 110%; /* 10% bigger than container */
+      transform: translate(-50%, -50%); /* Center the frame */
       pointer-events: none;
       z-index: 2;
       border: 2px solid blue; /* Debug border */
       box-sizing: border-box;
+      overflow: visible; /* Allow frame to overflow container */
     }
 
     .card-frame img {
