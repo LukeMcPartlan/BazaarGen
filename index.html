@@ -443,6 +443,13 @@
       position: relative;
     }
 
+    .card-visual-content {
+      display: flex;
+      align-items: flex-start;
+      width: fit-content;
+      position: relative;
+    }
+
     .card-controls {
       position: absolute;
       top: 10px;
@@ -1881,7 +1888,14 @@
       
       cardWrapper.appendChild(tagsContainer);
       cardWrapper.appendChild(content);
-      card.appendChild(cardWrapper);
+      
+      // Create the tight visual content container for import function too
+      const visualContent = document.createElement("div");
+      visualContent.className = "card-visual-content";
+      visualContent.appendChild(imageContainer);
+      visualContent.appendChild(cardWrapper);
+      
+      card.appendChild(visualContent);
       outputContainer.appendChild(card);
 
       // Add to cards data
@@ -1971,31 +1985,30 @@
     }
 
     function exportCardAsPNG(cardElement) {
-      // Find the card content area (excluding controls)
-      const cardContent = cardElement.querySelector('.image-container').parentElement;
+      // Find the tight card visual content area (image + text, no extra padding)
+      const visualContent = cardElement.querySelector('.card-visual-content');
       
-      // Temporarily hide the card controls during capture
-      const controls = cardElement.querySelector('.card-controls');
-      const originalDisplay = controls.style.display;
-      controls.style.display = 'none';
+      if (!visualContent) {
+        showMessage('Error: Card content not found', 'error');
+        return;
+      }
       
-      // Configure html2canvas options
+      // Configure html2canvas options for tight cropping
       const options = {
         backgroundColor: null, // Transparent background
         scale: 2, // Higher resolution
         useCORS: true, // Allow cross-origin images
         allowTaint: true,
         logging: false,
-        width: cardContent.offsetWidth,
-        height: cardContent.offsetHeight,
+        width: visualContent.offsetWidth,
+        height: visualContent.offsetHeight,
         scrollX: 0,
-        scrollY: 0
+        scrollY: 0,
+        x: visualContent.offsetLeft,
+        y: visualContent.offsetTop
       };
       
-      html2canvas(cardContent, options).then(canvas => {
-        // Restore controls visibility
-        controls.style.display = originalDisplay;
-        
+      html2canvas(visualContent, options).then(canvas => {
         // Get the item name for the filename
         const itemName = cardElement.querySelector('.item-title')?.textContent || 'card';
         const fileName = `${itemName.replace(/\s+/g, '-')}-card.png`;
@@ -2012,8 +2025,6 @@
         
         showMessage('Card saved as PNG successfully!', 'success');
       }).catch(error => {
-        // Restore controls visibility on error
-        controls.style.display = originalDisplay;
         console.error('Error generating PNG:', error);
         showMessage('Error saving PNG. Please try again.', 'error');
       });
