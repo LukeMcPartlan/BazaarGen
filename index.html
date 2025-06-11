@@ -2006,44 +2006,58 @@
         return;
       }
       
-      // Configure html2canvas options for tight cropping
-      const options = {
-        backgroundColor: 'rgb(101, 84, 63)', // Ensure brown background
-        scale: 2, // Higher resolution
-        useCORS: true, // Allow cross-origin images
-        allowTaint: true,
-        logging: false,
-        width: visualContent.offsetWidth,
-        height: visualContent.offsetHeight,
-        scrollX: 0,
-        scrollY: 0,
-        x: visualContent.offsetLeft,
-        y: visualContent.offsetTop,
-        foreignObjectRendering: true, // Better rendering of complex elements
-        imageTimeout: 0, // Don't timeout on images
-        removeContainer: false // Keep container styling
-      };
-      
-      html2canvas(visualContent, options).then(canvas => {
-        // Get the item name for the filename
-        const itemName = cardElement.querySelector('.item-title')?.textContent || 'card';
-        const fileName = `${itemName.replace(/\s+/g, '-')}-card.png`;
+      // Ensure all content is visible and rendered
+      setTimeout(() => {
+        // Configure html2canvas options for complete capture
+        const options = {
+          backgroundColor: 'rgb(101, 84, 63)', // Brown background
+          scale: 2, // Higher resolution
+          useCORS: true, // Allow cross-origin images
+          allowTaint: true,
+          logging: true, // Enable logging for debugging
+          width: visualContent.offsetWidth,
+          height: visualContent.offsetHeight,
+          scrollX: 0,
+          scrollY: 0,
+          foreignObjectRendering: true,
+          ignoreElements: function(element) {
+            // Don't ignore any elements within our target
+            return false;
+          }
+        };
         
-        // Create download link
-        const link = document.createElement('a');
-        link.download = fileName;
-        link.href = canvas.toDataURL('image/png');
+        console.log('Capturing element:', visualContent);
+        console.log('Element dimensions:', visualContent.offsetWidth, 'x', visualContent.offsetHeight);
         
-        // Trigger download
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        showMessage('Card saved as PNG successfully!', 'success');
-      }).catch(error => {
-        console.error('Error generating PNG:', error);
-        showMessage('Error saving PNG. Please try again.', 'error');
-      });
+        html2canvas(visualContent, options).then(canvas => {
+          console.log('Canvas created:', canvas.width, 'x', canvas.height);
+          
+          // Check if canvas is blank
+          if (canvas.width === 0 || canvas.height === 0) {
+            showMessage('Error: Generated image is empty. Please try again.', 'error');
+            return;
+          }
+          
+          // Get the item name for the filename
+          const itemName = cardElement.querySelector('.item-title')?.textContent || 'card';
+          const fileName = `${itemName.replace(/\s+/g, '-')}-card.png`;
+          
+          // Create download link
+          const link = document.createElement('a');
+          link.download = fileName;
+          link.href = canvas.toDataURL('image/png');
+          
+          // Trigger download
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          showMessage('Card saved as PNG successfully!', 'success');
+        }).catch(error => {
+          console.error('Error generating PNG:', error);
+          showMessage('Error saving PNG: ' + error.message, 'error');
+        });
+      }, 100); // Small delay to ensure rendering is complete
     }
 
     function showMessage(message, type) {
