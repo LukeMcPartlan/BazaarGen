@@ -1881,15 +1881,13 @@
         content.appendChild(ammoDiv);
       }
 
-      card.appendChild(imageContainer);
-      
+      // Create wrapper and visual content container
       const cardWrapper = document.createElement("div");
       cardWrapper.className = "card-wrapper";
-      
       cardWrapper.appendChild(tagsContainer);
       cardWrapper.appendChild(content);
-      
-      // Create the tight visual content container for import function too
+
+      // Create the tight visual content container
       const visualContent = document.createElement("div");
       visualContent.className = "card-visual-content";
       visualContent.appendChild(imageContainer);
@@ -1989,6 +1987,7 @@
       const visualContent = cardElement.querySelector('.card-visual-content');
       
       if (!visualContent) {
+        console.error('Card structure:', cardElement.innerHTML);
         showMessage('Error: Card content not found', 'error');
         return;
       }
@@ -2303,15 +2302,19 @@
             content.appendChild(ammoDiv);
           }
 
-          card.appendChild(imageContainer);
-          
-          // Create a wrapper for tags and content
+          // Create wrapper and visual content container
           const cardWrapper = document.createElement("div");
           cardWrapper.className = "card-wrapper";
-          
           cardWrapper.appendChild(tagsContainer);
           cardWrapper.appendChild(content);
-          card.appendChild(cardWrapper);
+
+          // Create the tight visual content container
+          const visualContent = document.createElement("div");
+          visualContent.className = "card-visual-content";
+          visualContent.appendChild(imageContainer);
+          visualContent.appendChild(cardWrapper);
+          
+          card.appendChild(visualContent);
           outputContainer.appendChild(card);
 
           // Modified setTimeout for fixed image height and positioning
