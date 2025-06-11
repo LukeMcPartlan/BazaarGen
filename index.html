@@ -720,7 +720,7 @@
       left: 50%;
       width: 130%;
       height: 130%;
-      transform: translate(-50%, -50%);
+      transform: translate(calc(-50% + 10px), -50%);
       pointer-events: none;
       z-index: 0;
     }
@@ -758,6 +758,61 @@
     .ammo-section img {
       width: 20px;
       height: 20px;
+    }
+
+    .scaling-values-container {
+      position: absolute;
+      top: -15px; /* Position at top border of image container */
+      left: 50%; /* Center the container */
+      transform: translateX(-50%); /* Center horizontally */
+      width: 150%; /* 50% wider than the image container */
+      display: flex;
+      gap: 2px; /* Reduced gap between elements */
+      z-index: 10;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 0 5px; /* Small padding from container edges */
+    }
+
+    .scaling-value {
+      background-color: #333;
+      color: white;
+      padding: 6px 8px; /* Reduced horizontal padding */
+      border-radius: 3px; /* Much smaller radius for more squared appearance */
+      font-size: 11px;
+      font-weight: bold;
+      font-family: Arial, sans-serif;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      min-width: 28px; /* Reduced minimum width */
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      flex: 1; /* Allow elements to grow and fill available space */
+      max-width: 45px; /* Reduced max width to ensure 3+ fit across */
+    }
+
+    .scaling-value.heal {
+      background-color: rgb(143, 234, 49);
+    }
+
+    .scaling-value.regen {
+      background-color: rgb(143, 234, 49);
+    }
+
+    .scaling-value.shield {
+      background-color: rgb(63, 200, 247);
+    }
+
+    .scaling-value.damage {
+      background-color: rgb(244, 82, 60);
+    }
+
+    .scaling-value.poison {
+      background-color: rgb(13, 190, 79);
+    }
+
+    .scaling-value.burn {
+      background-color: rgb(253, 146, 63);
     }
 
     .error {
@@ -1033,6 +1088,36 @@
         <div class="form-group full-width">
           <label class="form-label">Passive Effects</label>
           <input type="text" id="passiveInput" placeholder="Enter passive effect description" class="form-input" />
+        </div>
+      </div>
+
+      <div class="tag-effects">
+        <label class="form-label">Card Scaling Values</label>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Heal</label>
+            <input type="text" id="healScalingInput" placeholder="e.g. +2" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Regen</label>
+            <input type="text" id="regenScalingInput" placeholder="e.g. +1" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Shield</label>
+            <input type="text" id="shieldScalingInput" placeholder="e.g. +3" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Damage</label>
+            <input type="text" id="damageScalingInput" placeholder="e.g. +5" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Poison</label>
+            <input type="text" id="poisonScalingInput" placeholder="e.g. +1" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Burn</label>
+            <input type="text" id="burnScalingInput" placeholder="e.g. +2" class="form-input" />
+          </div>
         </div>
       </div>
 
@@ -1399,7 +1484,7 @@
         left: 50%;
         width: 130%;
         height: 130%;
-        transform: translate(-50%, -50%);
+        transform: translate(calc(-50% + 10px), -50%);
         pointer-events: none;
         z-index: 0;
         background-image: url('${getCooldownBorderFilename(quality)}');
@@ -1420,6 +1505,25 @@
       testImg.src = getCooldownBorderFilename(quality);
       
       return borderDiv;
+    }
+
+    function createScalingValuesContainer(scalingData) {
+      const container = document.createElement("div");
+      container.className = "scaling-values-container";
+      
+      const scalingTypes = ['heal', 'regen', 'shield', 'damage', 'poison', 'burn'];
+      
+      scalingTypes.forEach(type => {
+        const value = scalingData[type];
+        if (value && value.trim()) {
+          const scalingElement = document.createElement("div");
+          scalingElement.className = `scaling-value ${type}`;
+          scalingElement.textContent = value.trim();
+          container.appendChild(scalingElement);
+        }
+      });
+      
+      return container;
     }
 
     function formatCooldown(cooldownValue) {
@@ -1622,6 +1726,14 @@
       // Add frame overlay (this will overflow)
       const frame = createFrameElement(cardData.border, cardData.itemSize);
       imageContainer.appendChild(frame);
+
+      // Add scaling values if any exist
+      if (cardData.scalingValues) {
+        const scalingContainer = createScalingValuesContainer(cardData.scalingValues);
+        if (scalingContainer.children.length > 0) {
+          imageContainer.appendChild(scalingContainer);
+        }
+      }
 
       // Create tags container
       const tagsContainer = document.createElement("div");
@@ -1850,6 +1962,16 @@
       const outputContainer = document.getElementById("outputContainer");
       const errorContainer = document.getElementById("errorContainer");
 
+      // Get scaling values
+      const scalingValues = {
+        heal: document.getElementById("healScalingInput").value,
+        regen: document.getElementById("regenScalingInput").value,
+        shield: document.getElementById("shieldScalingInput").value,
+        damage: document.getElementById("damageScalingInput").value,
+        poison: document.getElementById("poisonScalingInput").value,
+        burn: document.getElementById("burnScalingInput").value
+      };
+
       // Clear previous errors
       errorContainer.innerHTML = '';
 
@@ -1911,6 +2033,7 @@
             passiveEffect: passiveInput,
             onUseEffects: Array.from(onUseInputs).map(input => input.value.trim()).filter(val => val),
             tags: Array.from(tagInputs).map(input => input.value.trim()).filter(val => val),
+            scalingValues: scalingValues,
             imageData: imageData,
             timestamp: new Date().toISOString()
           };
@@ -1963,6 +2086,12 @@
           // Add frame overlay (this will overflow)
           const frame = createFrameElement(border, itemSize);
           imageContainer.appendChild(frame);
+
+          // Add scaling values if any exist
+          const scalingContainer = createScalingValuesContainer(scalingValues);
+          if (scalingContainer.children.length > 0) {
+            imageContainer.appendChild(scalingContainer);
+          }
 
           // Create tags container (outside the main bordered content)
           const tagsContainer = document.createElement("div");
