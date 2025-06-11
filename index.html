@@ -2004,13 +2004,28 @@
         return;
       }
       
+      // Find the card content element and temporarily change its background
+      const cardContent = visualContent.querySelector('.card-content');
+      let originalBackground = '';
+      
+      if (cardContent) {
+        // Store original background and replace gradient with solid color
+        originalBackground = cardContent.style.background;
+        cardContent.style.background = 'rgb(45, 35, 22)'; // Solid brown background
+      }
+      
       // Simple, clean capture approach
       html2canvas(visualContent, {
         scale: 2,
-        //backgroundColor: null, // Transparent background
+        backgroundColor: null, // Transparent background
         useCORS: true,
         allowTaint: true
       }).then(function(canvas) {
+        // Restore original background after capture
+        if (cardContent) {
+          cardContent.style.background = originalBackground;
+        }
+        
         // Create download link
         const itemName = cardElement.querySelector('.item-title')?.textContent || 'card';
         const fileName = `${itemName.replace(/\s+/g, '-')}-card.png`;
@@ -2022,6 +2037,11 @@
         
         showMessage('Card saved as PNG successfully!', 'success');
       }).catch(function(error) {
+        // Restore original background on error too
+        if (cardContent) {
+          cardContent.style.background = originalBackground;
+        }
+        
         console.error('PNG Export Error:', error);
         showMessage('Error saving PNG: ' + error.message, 'error');
       });
