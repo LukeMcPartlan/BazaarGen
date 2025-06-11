@@ -39,6 +39,9 @@
   <!-- Additional SEO -->
   <meta name="theme-color" content="#8B7A65" />
   <link rel="canonical" href="https://Bazaargen.com/" />
+  
+  <!-- External Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     * {
       margin: 0;
@@ -495,7 +498,7 @@
       border: 2px solid rgb(218, 165, 32);
       border-radius: 8px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-      min-width: 120px;
+      min-width: 140px;
       z-index: 20;
       display: none;
     }
@@ -695,7 +698,7 @@
       width: 50px;
       height: 50px;
       padding: 0;
-      font-size: 1.2em;
+      font-size: 1.2em; /* Reduced from 1.4em */
       line-height: 1;
       display: flex;
       flex-direction: column;
@@ -717,10 +720,10 @@
     .cooldown-border {
       position: absolute;
       top: 50%;
-      left: 0%;
+      left: 50%;
       width: 130%;
       height: 130%;
-      transform: translate(calc(-50% +2px), -50%);
+      transform: translate(calc(-50% + 20px), -50%);
       pointer-events: none;
       z-index: 0;
     }
@@ -1092,31 +1095,31 @@
       </div>
 
       <div class="tag-effects">
-        <label class="form-label">Above Card Values</label>
+        <label class="form-label">Card Scaling Values</label>
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label">Heal</label>
-            <input type="text" id="healScalingInput" placeholder="0" class="form-input" />
+            <input type="text" id="healScalingInput" placeholder="e.g. +2" class="form-input" />
           </div>
           <div class="form-group">
             <label class="form-label">Regen</label>
-            <input type="text" id="regenScalingInput" placeholder="0" class="form-input" />
+            <input type="text" id="regenScalingInput" placeholder="e.g. +1" class="form-input" />
           </div>
           <div class="form-group">
             <label class="form-label">Shield</label>
-            <input type="text" id="shieldScalingInput" placeholder="0" class="form-input" />
+            <input type="text" id="shieldScalingInput" placeholder="e.g. +3" class="form-input" />
           </div>
           <div class="form-group">
             <label class="form-label">Damage</label>
-            <input type="text" id="damageScalingInput" placeholder="0" class="form-input" />
+            <input type="text" id="damageScalingInput" placeholder="e.g. +5" class="form-input" />
           </div>
           <div class="form-group">
             <label class="form-label">Poison</label>
-            <input type="text" id="poisonScalingInput" placeholder="0" class="form-input" />
+            <input type="text" id="poisonScalingInput" placeholder="e.g. +1" class="form-input" />
           </div>
           <div class="form-group">
             <label class="form-label">Burn</label>
-            <input type="text" id="burnScalingInput" placeholder="0" class="form-input" />
+            <input type="text" id="burnScalingInput" placeholder="e.g. +2" class="form-input" />
           </div>
         </div>
       </div>
@@ -1165,6 +1168,7 @@
         <h4>💾 Export & Import</h4>
         <div class="export-import-buttons">
           <button onclick="exportAllCardsAsData()" class="form-button export">Export All as Data</button>
+          <button onclick="exportAllCardsAsPNG()" class="form-button export">Export All as PNG</button>
           <button onclick="triggerImport()" class="form-button secondary">Import Card Data</button>
         </div>
         <input type="file" id="importInput" accept=".json" class="hidden-input" onchange="importCardData(event)" />
@@ -1484,7 +1488,7 @@
         left: 50%;
         width: 130%;
         height: 130%;
-        transform: translate(calc(-50% + 2px), -50%);
+        transform: translate(calc(-50% + 20px), -50%);
         pointer-events: none;
         z-index: 0;
         background-image: url('${getCooldownBorderFilename(quality)}');
@@ -1632,6 +1636,35 @@
       URL.revokeObjectURL(url);
 
       showMessage(`Exported ${cardsData.length} cards successfully!`, 'success');
+    }
+
+    function exportAllCardsAsPNG() {
+      const cards = document.querySelectorAll('.card');
+      if (cards.length === 0) {
+        showMessage('No cards to export!', 'error');
+        return;
+      }
+
+      showMessage('Generating PNG files...', 'success');
+      
+      // Export each card sequentially to avoid overwhelming the browser
+      let currentIndex = 0;
+      
+      function exportNextCard() {
+        if (currentIndex >= cards.length) {
+          showMessage(`All ${cards.length} cards exported as PNG!`, 'success');
+          return;
+        }
+        
+        const card = cards[currentIndex];
+        exportCardAsPNG(card);
+        currentIndex++;
+        
+        // Small delay between exports
+        setTimeout(exportNextCard, 500);
+      }
+      
+      exportNextCard();
     }
 
     function triggerImport() {
@@ -1899,7 +1932,16 @@
           menu.classList.remove('show');
         };
         
+        const pngOption = document.createElement('div');
+        pngOption.className = 'export-option';
+        pngOption.textContent = 'Save as PNG';
+        pngOption.onclick = () => {
+          exportCardAsPNG(button.closest('.card'));
+          menu.classList.remove('show');
+        };
+        
         menu.appendChild(dataOption);
+        menu.appendChild(pngOption);
         button.parentElement.appendChild(menu);
       }
 
@@ -1926,6 +1968,55 @@
       URL.revokeObjectURL(url);
 
       showMessage('Card exported successfully!', 'success');
+    }
+
+    function exportCardAsPNG(cardElement) {
+      // Find the card content area (excluding controls)
+      const cardContent = cardElement.querySelector('.image-container').parentElement;
+      
+      // Temporarily hide the card controls during capture
+      const controls = cardElement.querySelector('.card-controls');
+      const originalDisplay = controls.style.display;
+      controls.style.display = 'none';
+      
+      // Configure html2canvas options
+      const options = {
+        backgroundColor: null, // Transparent background
+        scale: 2, // Higher resolution
+        useCORS: true, // Allow cross-origin images
+        allowTaint: true,
+        logging: false,
+        width: cardContent.offsetWidth,
+        height: cardContent.offsetHeight,
+        scrollX: 0,
+        scrollY: 0
+      };
+      
+      html2canvas(cardContent, options).then(canvas => {
+        // Restore controls visibility
+        controls.style.display = originalDisplay;
+        
+        // Get the item name for the filename
+        const itemName = cardElement.querySelector('.item-title')?.textContent || 'card';
+        const fileName = `${itemName.replace(/\s+/g, '-')}-card.png`;
+        
+        // Create download link
+        const link = document.createElement('a');
+        link.download = fileName;
+        link.href = canvas.toDataURL('image/png');
+        
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        showMessage('Card saved as PNG successfully!', 'success');
+      }).catch(error => {
+        // Restore controls visibility on error
+        controls.style.display = originalDisplay;
+        console.error('Error generating PNG:', error);
+        showMessage('Error saving PNG. Please try again.', 'error');
+      });
     }
 
     function showMessage(message, type) {
