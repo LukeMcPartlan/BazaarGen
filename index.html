@@ -2026,13 +2026,31 @@
           cardContent.style.background = originalBackground;
         }
         
+        // Create a new canvas with watermark
+        const finalCanvas = document.createElement('canvas');
+        const ctx = finalCanvas.getContext('2d');
+        
+        // Set final canvas size (original + space for watermark)
+        const watermarkHeight = 30;
+        finalCanvas.width = canvas.width;
+        finalCanvas.height = canvas.height + watermarkHeight;
+        
+        // Draw original card
+        ctx.drawImage(canvas, 0, 0);
+        
+        // Add watermark text
+        ctx.fillStyle = '#666666';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.fillText('Created on BazaarGen.com', finalCanvas.width / 2, canvas.height + 20);
+        
         // Create download link
         const itemName = cardElement.querySelector('.item-title')?.textContent || 'card';
         const fileName = `${itemName.replace(/\s+/g, '-')}-card.png`;
         
         const link = document.createElement('a');
         link.download = fileName;
-        link.href = canvas.toDataURL('image/png');
+        link.href = finalCanvas.toDataURL('image/png');
         link.click();
         
         showMessage('Card saved as PNG successfully!', 'success');
