@@ -733,7 +733,7 @@
       left: 50%;
       width: 130%;
       height: 130%;
-      transform: translate(calc(-50% + 20px), -50%);
+      transform: translate(calc(-50% + 2px), -50%);
       pointer-events: none;
       z-index: 0;
     }
@@ -1105,31 +1105,31 @@
       </div>
 
       <div class="tag-effects">
-        <label class="form-label">Card Scaling Values</label>
+        <label class="form-label">Above Card Values</label>
         <div class="form-grid">
           <div class="form-group">
             <label class="form-label">Heal</label>
-            <input type="text" id="healScalingInput" placeholder="e.g. +2" class="form-input" />
+            <input type="text" id="healScalingInput" placeholder="N/A" class="form-input" />
           </div>
           <div class="form-group">
             <label class="form-label">Regen</label>
-            <input type="text" id="regenScalingInput" placeholder="e.g. +1" class="form-input" />
+            <input type="text" id="regenScalingInput" placeholder="N/A" class="form-input" />
           </div>
           <div class="form-group">
             <label class="form-label">Shield</label>
-            <input type="text" id="shieldScalingInput" placeholder="e.g. +3" class="form-input" />
+            <input type="text" id="shieldScalingInput" placeholder="N/A" class="form-input" />
           </div>
           <div class="form-group">
             <label class="form-label">Damage</label>
-            <input type="text" id="damageScalingInput" placeholder="e.g. +5" class="form-input" />
+            <input type="text" id="damageScalingInput" placeholder="N/A" class="form-input" />
           </div>
           <div class="form-group">
             <label class="form-label">Poison</label>
-            <input type="text" id="poisonScalingInput" placeholder="e.g. +1" class="form-input" />
+            <input type="text" id="poisonScalingInput" placeholder="N/A" class="form-input" />
           </div>
           <div class="form-group">
             <label class="form-label">Burn</label>
-            <input type="text" id="burnScalingInput" placeholder="e.g. +2" class="form-input" />
+            <input type="text" id="burnScalingInput" placeholder="N/A" class="form-input" />
           </div>
         </div>
       </div>
@@ -1498,7 +1498,7 @@
         left: 50%;
         width: 130%;
         height: 130%;
-        transform: translate(calc(-50% + 20px), -50%);
+        transform: translate(calc(-50% + 2px), -50%);
         pointer-events: none;
         z-index: 0;
         background-image: url('${getCooldownBorderFilename(quality)}');
@@ -1573,6 +1573,17 @@
       const num = parseInt(ammoValue);
       if (isNaN(num) || !Number.isInteger(parseFloat(ammoValue))) {
         throw new Error('Ammo must be a valid integer');
+      }
+      
+      return num.toString();
+    }
+
+    function validateScalingValue(value, statName) {
+      if (!value.trim()) return '';
+      
+      const num = parseInt(value);
+      if (isNaN(num) || !Number.isInteger(parseFloat(value))) {
+        throw new Error(`${statName} scaling value must be a valid integer`);
       }
       
       return num.toString();
@@ -1997,7 +2008,7 @@
       
       // Configure html2canvas options for tight cropping
       const options = {
-        backgroundColor: null, // Transparent background
+        backgroundColor: 'rgb(101, 84, 63)', // Ensure brown background
         scale: 2, // Higher resolution
         useCORS: true, // Allow cross-origin images
         allowTaint: true,
@@ -2007,7 +2018,10 @@
         scrollX: 0,
         scrollY: 0,
         x: visualContent.offsetLeft,
-        y: visualContent.offsetTop
+        y: visualContent.offsetTop,
+        foreignObjectRendering: true, // Better rendering of complex elements
+        imageTimeout: 0, // Don't timeout on images
+        removeContainer: false // Keep container styling
       };
       
       html2canvas(visualContent, options).then(canvas => {
@@ -2079,6 +2093,23 @@
       // Clear previous errors
       errorContainer.innerHTML = '';
 
+      // Validate scaling values
+      const validatedScalingValues = {};
+      try {
+        validatedScalingValues.heal = validateScalingValue(scalingValues.heal, 'Heal');
+        validatedScalingValues.regen = validateScalingValue(scalingValues.regen, 'Regen');
+        validatedScalingValues.shield = validateScalingValue(scalingValues.shield, 'Shield');
+        validatedScalingValues.damage = validateScalingValue(scalingValues.damage, 'Damage');
+        validatedScalingValues.poison = validateScalingValue(scalingValues.poison, 'Poison');
+        validatedScalingValues.burn = validateScalingValue(scalingValues.burn, 'Burn');
+      } catch (error) {
+        const errorDiv = document.createElement("div");
+        errorDiv.className = "error";
+        errorDiv.textContent = error.message;
+        errorContainer.appendChild(errorDiv);
+        return;
+      }
+
       // Check for on use effects
       const hasOnUseEffects = Array.from(onUseInputs).some(input => input.value.trim());
       const hasCooldown = cooldownInput.trim();
@@ -2137,7 +2168,7 @@
             passiveEffect: passiveInput,
             onUseEffects: Array.from(onUseInputs).map(input => input.value.trim()).filter(val => val),
             tags: Array.from(tagInputs).map(input => input.value.trim()).filter(val => val),
-            scalingValues: scalingValues,
+            scalingValues: validatedScalingValues,
             imageData: imageData,
             timestamp: new Date().toISOString()
           };
@@ -2192,7 +2223,7 @@
           imageContainer.appendChild(frame);
 
           // Add scaling values if any exist
-          const scalingContainer = createScalingValuesContainer(scalingValues);
+          const scalingContainer = createScalingValuesContainer(validatedScalingValues);
           if (scalingContainer.children.length > 0) {
             imageContainer.appendChild(scalingContainer);
           }
