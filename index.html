@@ -2011,7 +2011,7 @@
       if (cardContent) {
         // Store original background and replace gradient with solid color
         originalBackground = cardContent.style.background;
-        cardContent.style.background = 'rgb(45, 35, 22)'; // Solid brown background
+        cardContent.style.setProperty('background', 'rgb(45, 35, 22)', 'important');
       }
       
       // Simple, clean capture approach
