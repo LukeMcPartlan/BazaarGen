@@ -1327,29 +1327,31 @@
       'sheild': { color: 'rgb(245, 208, 33)' },
     };
 
-    function processKeywordText(text) {
+   function processKeywordText(text) {
       if (!text || typeof text !== 'string') return text;
-      
+        
       let processedText = text;
-      
-      // First, replace all shortcuts with placeholders
-      processedText = processedText.replace(/\/s/g, '[SLOW_ICON]');
-      processedText = processedText.replace(/\/h/g, '[HASTE_ICON]');
-      processedText = processedText.replace(/\/he/g, '[HEAL_ICON]');
-      processedText = processedText.replace(/\/r/g, '[REGEN_ICON]');
-      processedText = processedText.replace(/\/p/g, '[POISON_ICON]');
-      processedText = processedText.replace(/\/b/g, '[BURN_ICON]');
-      processedText = processedText.replace(/\/c/g, '[CHARGE_ICON]');
-      processedText = processedText.replace(/\/cd/g, '[COOLDOWN_ICON]');
-      processedText = processedText.replace(/\/cr/g, '[CRIT_ICON]');
-      processedText = processedText.replace(/\/d/g, '[DAMAGE_ICON]');
-      processedText = processedText.replace(/\/de/g, '[DESTROY_ICON]');
-      processedText = processedText.replace(/\/f/g, '[FREEZE_ICON]');
-      processedText = processedText.replace(/\/l/g, '[LIFESTEAL_ICON]');
-      processedText = processedText.replace(/\/v/g, '[VALUE_ICON]');
-      processedText = processedText.replace(/\/t/g, '[TRANSFORM_ICON]');
-      processedText = processedText.replace(/\/sh/g, '[SHEILD_ICON]');
-      processedText = processedText.replace(/\/mh/g, '[MAXHEALTH_ICON]');
+        
+        // Process LONGER patterns FIRST to avoid conflicts
+        processedText = processedText.replace(/\/cd/g, '[COOLDOWN_ICON]');  // Process /cd before /c
+        processedText = processedText.replace(/\/cr/g, '[CRIT_ICON]');      // Process /cr before /c
+        processedText = processedText.replace(/\/he/g, '[HEAL_ICON]');      // Process /he before /h
+        processedText = processedText.replace(/\/sh/g, '[SHEILD_ICON]');    // Process /sh before /s
+        processedText = processedText.replace(/\/mh/g, '[MAXHEALTH_ICON]'); // Process /mh before /h
+        processedText = processedText.replace(/\/de/g, '[DESTROY_ICON]');   // Process /de before /d
+        
+        // Then process single-letter patterns
+        processedText = processedText.replace(/\/s/g, '[SLOW_ICON]');
+        processedText = processedText.replace(/\/h/g, '[HASTE_ICON]');
+        processedText = processedText.replace(/\/r/g, '[REGEN_ICON]');
+        processedText = processedText.replace(/\/p/g, '[POISON_ICON]');
+        processedText = processedText.replace(/\/b/g, '[BURN_ICON]');
+        processedText = processedText.replace(/\/c/g, '[CHARGE_ICON]');
+        processedText = processedText.replace(/\/d/g, '[DAMAGE_ICON]');
+        processedText = processedText.replace(/\/f/g, '[FREEZE_ICON]');
+        processedText = processedText.replace(/\/l/g, '[LIFESTEAL_ICON]');
+        processedText = processedText.replace(/\/v/g, '[VALUE_ICON]');
+        processedText = processedText.replace(/\/t/g, '[TRANSFORM_ICON]');
       
       // Create a regex pattern that matches all keywords (case insensitive)
       const keywords = Object.keys(keywordRules);
