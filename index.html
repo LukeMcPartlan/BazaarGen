@@ -39,6 +39,32 @@
   <!-- Additional SEO -->
   <meta name="theme-color" content="#8B7A65" />
   <link rel="canonical" href="https://Bazaargen.com/" />
+
+  //Redirect script
+  <script>
+// Domain redirect - run immediately when page loads
+(function() {
+    const currentDomain = window.location.hostname;
+    const correctDomain = 'bazaargen.com';
+    
+    // Check if we're on the wrong domain
+    if (currentDomain === 'bazzargen.com' || currentDomain === 'www.bazzargen.com') {
+        // Preserve the current path and query parameters
+        const newUrl = 'https://' + correctDomain + window.location.pathname + window.location.search + window.location.hash;
+        
+        // Redirect immediately
+        window.location.replace(newUrl);
+    }
+    
+    // Optional: Also redirect www.bazaargen.com to bazaargen.com (if you prefer no www)
+    if (currentDomain === 'www.bazaargen.com') {
+        const newUrl = 'https://bazaargen.com' + window.location.pathname + window.location.search + window.location.hash;
+        window.location.replace(newUrl);
+    }
+})();
+</script>
+
+
   
   <!-- External Libraries -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
