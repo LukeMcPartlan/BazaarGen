@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bazaar Card Generator - Create Custom Game Cards | BazaarGen Tool</title>
-  
+  <title color ="red">Bazaar Card Generator is undergoing site maintnence - Expect loss of service 6/13 5PM EST - 11PM EST</title>
   <!-- SEO Meta Tags -->
   <meta name="description" content="Free online tool to create custom Bazaar content Design items and skills for The Bazaar game." />
   <meta name="keywords" content="Bazaar, Bazaar, BazaarGen, Bazaar Card Generator, card generator, game cards, custom cards, item cards, hero cards, Reynad, The Bazaar, card creator, game tool, free generator, online tool, card design, gaming, TCG, trading card game, card maker, Mak, Vanessa, Pyg, Dooly, game items, passive effects, on use effects, cooldown, ammo, tags, border quality, card customization" />
@@ -42,6 +42,9 @@
   
   <!-- External Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  
   <style>
     * {
       margin: 0;
@@ -80,8 +83,7 @@
 
     .nav-logo {
       display: flex;
-      align-items: center;
-      gap: 12px;
+      align-items: center;      gap: 12px;
       font-size: 1.8em;
       font-weight: bold;
       color: rgb(251, 225, 183);
@@ -106,12 +108,18 @@
       50% { transform: scale(1.1); }
     }
 
-    .nav-menu {
+    .nav-center {
       display: flex;
       list-style: none;
       gap: 0;
       margin: 0;
       padding: 0;
+    }
+
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
     }
 
     .nav-item {
@@ -167,6 +175,64 @@
       width: 80%;
     }
 
+    /* Google Sign-In Styles */
+    .signin-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: rgb(251, 225, 183);
+      font-size: 0.9em;
+    }
+
+    .user-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 2px solid rgb(218, 165, 32);
+    }
+
+    .signin-btn {
+      background: linear-gradient(135deg, rgb(66, 133, 244) 0%, rgb(52, 108, 217) 100%);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 5px;
+      font-size: 0.9em;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .signin-btn:hover {
+      background: linear-gradient(135deg, rgb(52, 108, 217) 0%, rgb(66, 133, 244) 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .signout-btn {
+      background: linear-gradient(135deg, rgb(180, 60, 60) 0%, rgb(140, 40, 40) 100%);
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 0.8em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .signout-btn:hover {
+      background: linear-gradient(135deg, rgb(200, 80, 80) 0%, rgb(180, 60, 60) 100%);
+    }
+
     /* Mobile menu styles */
     .nav-toggle {
       display: none;
@@ -185,7 +251,7 @@
     }
 
     @media (max-width: 768px) {
-      .nav-menu {
+      .nav-center {
         position: fixed;
         top: 70px;
         left: -100%;
@@ -199,7 +265,7 @@
         padding-top: 50px;
       }
 
-      .nav-menu.active {
+      .nav-center.active {
         left: 0;
       }
 
@@ -225,6 +291,16 @@
 
       .nav-logo {
         font-size: 1.5em;
+      }
+
+      .nav-right {
+        position: absolute;
+        top: 80px;
+        right: 20px;
+        background: rgba(37, 26, 12, 0.9);
+        padding: 15px;
+        border-radius: 10px;
+        border: 2px solid rgb(218, 165, 32);
       }
     }
 
@@ -1015,7 +1091,7 @@
     <div class="nav-container">
       <a href="#" class="nav-logo">BazaarGen</a>
       
-      <ul class="nav-menu" id="nav-menu">
+      <ul class="nav-center" id="nav-menu">
         <li class="nav-item">
           <a href="#" class="nav-link active" data-page="items">Items</a>
         </li>
@@ -1026,6 +1102,25 @@
           <a href="#" class="nav-link" data-page="contests">Contests</a>
         </li>
       </ul>
+
+      <div class="nav-right">
+        <div class="signin-container">
+          <!-- Sign-in button (shown when not signed in) -->
+          <div id="signin-section">
+            <button id="simple-signin-btn" class="signin-btn">
+              Sign In
+            </button>
+            <div id="signin-button-container" style="display: none;"></div>
+          </div>
+          
+          <!-- User info (shown when signed in) -->
+          <div id="user-info" class="user-info" style="display: none;">
+            <img id="user-avatar" class="user-avatar" src="" alt="Profile">
+            <span id="user-name"></span>
+            <button id="signout-btn" class="signout-btn">Sign Out</button>
+          </div>
+        </div>
+      </div>
 
       <div class="nav-toggle" id="nav-toggle">
         <span></span>
@@ -1039,7 +1134,6 @@
     <!-- Page Header -->
     <div class="page-header">
       <h1 class="page-title">Bazaar Card Generator</h1>
-      <h1 color ="red">Bazaar Card Generator is undergoing site maintnence - Expect loss of service 6/13 5PM EST - 11PM EST</h1>
     </div>
 
     <div class="input-container">
@@ -1234,6 +1328,111 @@
   <script>
     // Store all cards data for export/import
     let cardsData = [];
+    let currentUser = null;
+
+    // Google Sign-In Implementation
+    window.onload = function() {
+      // Initialize Google Sign-In
+      google.accounts.id.initialize({
+        client_id: '208926605452-h7mj4nrcubf43pfi78vgql9o12lqnr0n.apps.googleusercontent.com',
+        callback: handleCredentialResponse,
+        auto_select: false,
+        cancel_on_tap_outside: false
+      });
+
+      // Render the sign-in button (hidden, used programmatically)
+      google.accounts.id.renderButton(
+        document.getElementById('signin-button-container'),
+        {
+          theme: 'filled_blue',
+          size: 'medium',
+          text: 'signin_with',
+          shape: 'rectangular',
+          width: 200
+        }
+      );
+
+      // Check for existing session
+      checkExistingSession();
+
+      // Add sign-in event listener to our custom button
+      document.getElementById('simple-signin-btn').addEventListener('click', function() {
+        // Trigger Google Sign-In popup
+        google.accounts.id.prompt();
+      });
+
+      // Add sign-out event listener
+      document.getElementById('signout-btn').addEventListener('click', signOut);
+    };
+
+    // Handle Google Sign-In response
+    function handleCredentialResponse(response) {
+      try {
+        const userInfo = parseJwt(response.credential);
+        
+        currentUser = {
+          id: userInfo.sub,
+          name: userInfo.name,
+          email: userInfo.email,
+          picture: userInfo.picture,
+          token: response.credential
+        };
+
+        // Save to localStorage for persistence across pages
+        localStorage.setItem('googleUser', JSON.stringify(currentUser));
+        
+        displayUserInfo(currentUser);
+        
+        // You can send user data to your backend here if needed
+        console.log('User signed in:', currentUser);
+        
+      } catch (error) {
+        console.error('Error processing sign-in:', error);
+      }
+    }
+
+    // Parse JWT token to extract user information
+    function parseJwt(token) {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload);
+    }
+
+    // Display user information
+    function displayUserInfo(user) {
+      document.getElementById('user-avatar').src = user.picture;
+      document.getElementById('user-name').textContent = user.name;
+      
+      document.getElementById('signin-section').style.display = 'none';
+      document.getElementById('user-info').style.display = 'flex';
+    }
+
+    // Sign out function
+    function signOut() {
+      google.accounts.id.disableAutoSelect();
+      localStorage.removeItem('googleUser');
+      currentUser = null;
+      
+      document.getElementById('signin-section').style.display = 'block';
+      document.getElementById('user-info').style.display = 'none';
+    }
+
+    // Check for existing session
+    function checkExistingSession() {
+      const savedUser = localStorage.getItem('googleUser');
+      if (savedUser) {
+        currentUser = JSON.parse(savedUser);
+        displayUserInfo(currentUser);
+      }
+    }
+
+    // Get current user (for use in other pages)
+    function getCurrentUser() {
+      return currentUser;
+    }
 
     // Navigation functionality
     document.addEventListener('DOMContentLoaded', function() {
@@ -1307,1108 +1506,3 @@
           break;
       }
     }
-
-    // Define keyword colors and styling rules
-    const keywordRules = {
-      'slow': { color: 'rgb(203, 159, 110)' },
-      'haste': { color: 'rgb(0, 235, 195)' },
-      'charge': { color: 'rgb(0, 235, 195)' },
-      'cooldown': { color: 'rgb(0, 235, 195)' },
-      'heal': { color: 'rgb(143, 234, 49)' },
-      'regen': { color: 'rgb(143, 234, 49)' },
-      'poison': { color: 'rgb(13, 190, 79)' },
-      'burn': { color: 'rgb(253, 146, 63)' },
-      'crit': { color: 'rgb(244, 82, 60)' },
-      'damage': { color: 'rgb(244, 82, 60)' },
-      'freeze': { color: 'rgb(63, 200, 247)' },
-      'lifesteal': { color: 'rgb(181, 56, 115)' },
-      'value': { color: 'rgb(244, 208, 33)' },
-      'destroy': { color: 'rgb(198, 44, 66)' },
-      'transform': { color: 'rgb(90, 230, 233)' },
-      'sheild': { color: 'rgb(245, 208, 33)' },
-    };
-
-   function processKeywordText(text) {
-      if (!text || typeof text !== 'string') return text;
-        
-      let processedText = text;
-        
-        // Process LONGER patterns FIRST to avoid conflicts
-        processedText = processedText.replace(/\/cd/g, '[COOLDOWN_ICON]');  // Process /cd before /c
-        processedText = processedText.replace(/\/cr/g, '[CRIT_ICON]');      // Process /cr before /c
-        processedText = processedText.replace(/\/he/g, '[HEAL_ICON]');      // Process /he before /h
-        processedText = processedText.replace(/\/sh/g, '[SHEILD_ICON]');    // Process /sh before /s
-        processedText = processedText.replace(/\/mh/g, '[MAXHEALTH_ICON]'); // Process /mh before /h
-        processedText = processedText.replace(/\/de/g, '[DESTROY_ICON]');   // Process /de before /d
-        
-        // Then process single-letter patterns
-        processedText = processedText.replace(/\/s/g, '[SLOW_ICON]');
-        processedText = processedText.replace(/\/h/g, '[HASTE_ICON]');
-        processedText = processedText.replace(/\/r/g, '[REGEN_ICON]');
-        processedText = processedText.replace(/\/p/g, '[POISON_ICON]');
-        processedText = processedText.replace(/\/b/g, '[BURN_ICON]');
-        processedText = processedText.replace(/\/c/g, '[CHARGE_ICON]');
-        processedText = processedText.replace(/\/d/g, '[DAMAGE_ICON]');
-        processedText = processedText.replace(/\/f/g, '[FREEZE_ICON]');
-        processedText = processedText.replace(/\/l/g, '[LIFESTEAL_ICON]');
-        processedText = processedText.replace(/\/v/g, '[VALUE_ICON]');
-        processedText = processedText.replace(/\/t/g, '[TRANSFORM_ICON]');
-      
-      // Create a regex pattern that matches all keywords (case insensitive)
-      const keywords = Object.keys(keywordRules);
-      const pattern = new RegExp(`\\b(${keywords.join('|')})\\b`, 'gi');
-      
-      // Replace each keyword with styled span
-      processedText = processedText.replace(pattern, (match) => {
-        const lowerMatch = match.toLowerCase();
-        const rule = keywordRules[lowerMatch];
-        if (rule) {
-          return `<span style="color: ${rule.color}; font-weight: bold;" class="key-text" data-keyword="${lowerMatch}">${match}</span>`;
-        }
-        return match;
-      });
-      
-      // Finally, replace all placeholders with actual images
-      processedText = processedText.replace(/\[SLOW_ICON\]/g, '<img src="images/KeyText/slow.png" alt="slow" class="keyword-icon">');
-      processedText = processedText.replace(/\[HASTE_ICON\]/g, '<img src="images/KeyText/haste.png" alt="haste" class="keyword-icon">');
-      processedText = processedText.replace(/\[HEAL_ICON\]/g, '<img src="images/KeyText/heal.png" alt="heal" class="keyword-icon">');
-      processedText = processedText.replace(/\[REGEN_ICON\]/g, '<img src="images/KeyText/regen.png" alt="regen" class="keyword-icon">');
-      processedText = processedText.replace(/\[POISON_ICON\]/g, '<img src="images/KeyText/poison.png" alt="poison" class="keyword-icon">');
-      processedText = processedText.replace(/\[BURN_ICON\]/g, '<img src="images/KeyText/burn.png" alt="burn" class="keyword-icon">');
-      processedText = processedText.replace(/\[CHARGE_ICON\]/g, '<img src="images/KeyText/charge.png" alt="charge" class="keyword-icon">');
-      processedText = processedText.replace(/\[COOLDOWN_ICON\]/g, '<img src="images/KeyText/cooldown.png" alt="cooldown" class="keyword-icon">');
-      processedText = processedText.replace(/\[CRIT_ICON\]/g, '<img src="images/KeyText/crit.png" alt="crit" class="keyword-icon">');
-      processedText = processedText.replace(/\[DAMAGE_ICON\]/g, '<img src="images/KeyText/damage.png" alt="damage" class="keyword-icon">');
-      processedText = processedText.replace(/\[DESTROY_ICON\]/g, '<img src="images/KeyText/destroy.png" alt="destroy" class="keyword-icon">');
-      processedText = processedText.replace(/\[FREEZE_ICON\]/g, '<img src="images/KeyText/freeze.png" alt="freeze" class="keyword-icon">');
-      processedText = processedText.replace(/\[LIFESTEAL_ICON\]/g, '<img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-icon">');
-      processedText = processedText.replace(/\[VALUE_ICON\]/g, '<img src="images/KeyText/value.png" alt="value" class="keyword-icon">');
-      processedText = processedText.replace(/\[TRANSFORM_ICON\]/g, '<img src="images/KeyText/transform.png" alt="transform" class="keyword-icon">');
-      processedText = processedText.replace(/\[SHEILD_ICON\]/g, '<img src="images/KeyText/sheild.png" alt="sheild" class="keyword-icon">');
-      processedText = processedText.replace(/\[MAXHEALTH_ICON\]/g, '<img src="images/KeyText/maxhealth.png" alt="maxhealth" class="keyword-icon">');
-      return processedText;
-    }
-
-    function addTagInput() {
-      const container = document.getElementById("tagInputs");
-      
-      const inputGroup = document.createElement("div");
-      inputGroup.className = "tag-input-group";
-      
-      const input = document.createElement("input");
-      input.type = "text";
-      input.placeholder = "Enter tag text";
-      input.className = "form-input";
-      
-      const removeButton = document.createElement("button");
-      removeButton.type = "button";
-      removeButton.textContent = "Remove";
-      removeButton.className = "form-button remove";
-      removeButton.onclick = function() {
-        container.removeChild(inputGroup);
-      };
-      
-      inputGroup.appendChild(input);
-      inputGroup.appendChild(removeButton);
-      container.appendChild(inputGroup);
-    }
-
-    function addOnUseInput() {
-      const container = document.getElementById("onUseInputs");
-      
-      const inputGroup = document.createElement("div");
-      inputGroup.className = "on-use-input-group";
-      
-      const input = document.createElement("input");
-      input.type = "text";
-      input.placeholder = "Enter on use effect description";
-      input.className = "form-input";
-      
-      const removeButton = document.createElement("button");
-      removeButton.type = "button";
-      removeButton.textContent = "Remove";
-      removeButton.className = "form-button remove";
-      removeButton.onclick = function() {
-        container.removeChild(inputGroup);
-      };
-      
-      inputGroup.appendChild(input);
-      inputGroup.appendChild(removeButton);
-      container.appendChild(inputGroup);
-    }
-
-    function getBorderColor(value) {
-      switch(value) {
-        case 'bronze': return 'rgb(205, 127, 50)';
-        case 'silver': return 'silver';
-        case 'gold': return 'gold';
-        case 'diamond': return 'rgb(185, 242, 255)';
-        case 'legendary': return 'rgb(124, 46, 44)';
-        default: return 'gold';
-      }
-    }
-
-    function getFrameFilename(quality, size) {
-      // Convert size to frame naming convention
-      const sizeMap = {
-        'Small': 's',
-        'Medium': 'm', 
-        'Large': 'l'
-      };
-      
-      const frameSize = sizeMap[size] || 'm';
-      const frameQuality = quality.toLowerCase();
-      
-      return `images/frames/${frameQuality}_${frameSize}_frame.png`;
-    }
-
-    function createFrameElement(quality, size) {
-      const frameDiv = document.createElement("div");
-      frameDiv.className = "card-frame";
-      
-      const frameImg = document.createElement("img");
-      frameImg.src = getFrameFilename(quality, size);
-      frameImg.alt = `${quality} ${size} frame`;
-      frameImg.onerror = function() {
-        console.warn(`Frame not found: ${this.src}`);
-        frameDiv.style.display = 'none'; // Hide if frame image fails to load
-      };
-      
-      frameDiv.appendChild(frameImg);
-      return frameDiv;
-    }
-
-    function getCooldownBorderFilename(quality) {
-      // Convert quality to proper case for filename
-      const qualityMap = {
-        'bronze': 'Bronze',
-        'silver': 'silver',
-        'gold': 'gold',
-        'diamond': 'diamond',
-        'legendary': 'Legendary'
-      };
-      
-      const mappedQuality = qualityMap[quality.toLowerCase()] || 'gold';
-      return `images/cooldown/${mappedQuality}_cooldown.png`;
-    }
-
-    function createCooldownBorderElement(quality) {
-      const borderDiv = document.createElement("div");
-      borderDiv.className = "cooldown-border";
-      borderDiv.style.cssText = `
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        width: 130%;
-        height: 130%;
-        transform: translate(calc(-50% + 2px), -50%);
-        pointer-events: none;
-        z-index: 0;
-        background-image: url('${getCooldownBorderFilename(quality)}');
-        background-size: 100% 100%;
-        background-repeat: no-repeat;
-        background-position: center;
-      `;
-      
-      // Add error handling by trying to load the image first
-      const testImg = new Image();
-      testImg.onload = function() {
-        // Image loaded successfully, background will display
-      };
-      testImg.onerror = function() {
-        console.warn(`Cooldown border not found: ${getCooldownBorderFilename(quality)}`);
-        borderDiv.style.display = 'none';
-      };
-      testImg.src = getCooldownBorderFilename(quality);
-      
-      return borderDiv;
-    }
-
-    function createScalingValuesContainer(scalingData) {
-      const container = document.createElement("div");
-      container.className = "scaling-values-container";
-      
-      const scalingTypes = ['heal', 'regen', 'shield', 'damage', 'poison', 'burn'];
-      
-      scalingTypes.forEach(type => {
-        const value = scalingData[type];
-        if (value && value.trim()) {
-          const scalingElement = document.createElement("div");
-          scalingElement.className = `scaling-value ${type}`;
-          scalingElement.textContent = value.trim();
-          container.appendChild(scalingElement);
-        }
-      });
-      
-      return container;
-    }
-
-    function formatCooldown(cooldownValue) {
-      if (!cooldownValue.trim()) return '';
-      
-      const num = parseFloat(cooldownValue);
-      if (isNaN(num)) {
-        throw new Error('Cooldown must be a valid number');
-      }
-      
-      // If it's a whole number, add .0
-      if (num % 1 === 0) {
-        return num.toFixed(1);
-      }
-      
-      // If it has decimals, remove trailing zeros but keep at least one decimal place
-      let formatted = num.toString();
-      if (formatted.includes('.')) {
-        // Remove trailing zeros
-        formatted = formatted.replace(/0+$/, '');
-        // If we removed all decimal places, add back one zero
-        if (formatted.endsWith('.')) {
-          formatted += '0';
-        }
-      }
-      
-      return formatted;
-    }
-
-    function validateAmmo(ammoValue) {
-      if (!ammoValue.trim()) return '';
-      
-      const num = parseInt(ammoValue);
-      if (isNaN(num) || !Number.isInteger(parseFloat(ammoValue))) {
-        throw new Error('Ammo must be a valid integer');
-      }
-      
-      return num.toString();
-    }
-
-    function validateScalingValue(value, statName) {
-      if (!value.trim()) return '';
-      
-      const num = parseInt(value);
-      if (isNaN(num) || !Number.isInteger(parseFloat(value))) {
-        throw new Error(`${statName} scaling value must be a valid integer`);
-      }
-      
-      return num.toString();
-    }
-
-    function positionElementsRelativeToOnUse(content, onUseSection) {
-      // Force a reflow to ensure all elements are properly measured
-      content.offsetHeight;
-      onUseSection.offsetHeight;
-      
-      // Get the position and dimensions relative to the content container
-      const contentRect = content.getBoundingClientRect();
-      const onUseRect = onUseSection.getBoundingClientRect();
-      
-      // Calculate the on-use section position relative to the content container
-      const onUseRelativeTop = onUseSection.offsetTop;
-      const onUseHeight = onUseSection.offsetHeight;
-      const onUseCenterY = onUseRelativeTop + (onUseHeight / 2);
-      
-      // Position cooldown and ammo elements
-      const cooldownSection = content.querySelector('.cooldown-section');
-      const ammoSection = content.querySelector('.ammo-section');
-      
-      if (cooldownSection) {
-        // Cooldown is 50px tall, so subtract 25px to center it
-        cooldownSection.style.top = `${onUseCenterY - 25}px`;
-      }
-      
-      if (ammoSection) {
-        // Get the actual height of the ammo section and center it
-        const ammoHeight = ammoSection.offsetHeight;
-        ammoSection.style.top = `${onUseCenterY - (ammoHeight / 2)}px`;
-      }
-    }
-
-    function clearAllCards() {
-      const outputContainer = document.getElementById("outputContainer");
-      outputContainer.innerHTML = '';
-      cardsData = [];
-    }
-
-    function clearCard(cardElement) {
-      const cardIndex = Array.from(cardElement.parentNode.children).indexOf(cardElement);
-      cardsData.splice(cardIndex, 1);
-      cardElement.remove();
-    }
-
-    // Export/Import Functions
-    function exportAllCardsAsData() {
-      if (cardsData.length === 0) {
-        showMessage('No cards to export!', 'error');
-        return;
-      }
-
-      const dataToExport = {
-        version: "1.0",
-        timestamp: new Date().toISOString(),
-        cards: cardsData
-      };
-
-      const dataStr = JSON.stringify(dataToExport, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(dataBlob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Bazaar-cards-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      showMessage(`Exported ${cardsData.length} cards successfully!`, 'success');
-    }
-
-    function exportAllCardsAsPNG() {
-      const cards = document.querySelectorAll('.card');
-      if (cards.length === 0) {
-        showMessage('No cards to export!', 'error');
-        return;
-      }
-
-      showMessage('Generating PNG files...', 'success');
-      
-      // Export each card sequentially to avoid overwhelming the browser
-      let currentIndex = 0;
-      
-      function exportNextCard() {
-        if (currentIndex >= cards.length) {
-          showMessage(`All ${cards.length} cards exported as PNG!`, 'success');
-          return;
-        }
-        
-        const card = cards[currentIndex];
-        exportCardAsPNG(card);
-        currentIndex++;
-        
-        // Small delay between exports
-        setTimeout(exportNextCard, 500);
-      }
-      
-      exportNextCard();
-    }
-
-    function triggerImport() {
-      document.getElementById('importInput').click();
-    }
-
-    function importCardData(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const importedData = JSON.parse(e.target.result);
-          
-          if (!importedData.cards || !Array.isArray(importedData.cards)) {
-            throw new Error('Invalid file format');
-          }
-
-          let importedCount = 0;
-          importedData.cards.forEach(cardData => {
-            try {
-              importSingleCard(cardData);
-              importedCount++;
-            } catch (error) {
-              console.error('Error importing card:', error);
-            }
-          });
-
-          if (importedCount > 0) {
-            showMessage(`Successfully imported ${importedCount} cards!`, 'success');
-          } else {
-            showMessage('No cards could be imported from this file.', 'error');
-          }
-
-        } catch (error) {
-          showMessage('Error reading file: ' + error.message, 'error');
-        }
-      };
-      reader.readAsText(file);
-      
-      // Clear the input
-      event.target.value = '';
-    }
-
-    function importSingleCard(cardData) {
-      // Create a new card element based on the imported data
-      const outputContainer = document.getElementById("outputContainer");
-      const borderColor = getBorderColor(cardData.border);
-      
-      const card = document.createElement("div");
-      card.className = "card";
-
-      // Add delete and export buttons for individual card
-      const cardControls = document.createElement("div");
-      cardControls.className = "card-controls";
-      
-      const exportBtn = document.createElement("button");
-      exportBtn.className = "card-export-btn";
-      exportBtn.innerHTML = "💾";
-      exportBtn.title = "Export this card";
-      exportBtn.onclick = function() {
-        toggleExportMenu(exportBtn, cardData);
-      };
-      
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "card-delete-btn";
-      deleteBtn.innerHTML = "×";
-      deleteBtn.title = "Delete this card";
-      deleteBtn.onclick = function() {
-        clearCard(card);
-      };
-      
-      cardControls.appendChild(exportBtn);
-      cardControls.appendChild(deleteBtn);
-      card.appendChild(cardControls);
-
-      const imageContainer = document.createElement("div");
-      imageContainer.className = "image-container";
-      imageContainer.style.border = `3px solid ${borderColor}`;
-
-      // Create a clipping wrapper for the uploaded image
-      const imageClipWrapper = document.createElement("div");
-      imageClipWrapper.className = "image-clip-wrapper";
-
-      const img = document.createElement("img");
-      img.className = "uploaded-image";
-      img.src = cardData.imageData; // Base64 image data
-      imageClipWrapper.appendChild(img);
-      imageContainer.appendChild(imageClipWrapper);
-
-      // Add frame overlay (this will overflow)
-      const frame = createFrameElement(cardData.border, cardData.itemSize);
-      imageContainer.appendChild(frame);
-
-      // Add scaling values if any exist
-      if (cardData.scalingValues) {
-        const scalingContainer = createScalingValuesContainer(cardData.scalingValues);
-        if (scalingContainer.children.length > 0) {
-          imageContainer.appendChild(scalingContainer);
-        }
-      }
-
-      // Create tags container
-      const tagsContainer = document.createElement("div");
-      tagsContainer.className = "tags-container";
-
-      // Add item size tag
-      const itemSizeTag = document.createElement("span");
-      itemSizeTag.className = "item-tag";
-      itemSizeTag.textContent = cardData.itemSize;
-      tagsContainer.appendChild(itemSizeTag);
-
-      // Add additional tags
-      cardData.tags.forEach(tagText => {
-        const tag = document.createElement("span");
-        tag.className = "item-tag";
-        tag.textContent = tagText;
-        tagsContainer.appendChild(tag);
-      });
-
-      const content = document.createElement("div");
-      content.className = "card-content";
-      content.style.border = `3px solid ${borderColor}`;
-
-      // Top section with title and hero
-      const topSection = document.createElement("div");
-      topSection.className = "text-section hero-header";
-      topSection.style.borderTop = `2px solid ${borderColor}`;
-      topSection.style.borderBottom = `2px solid ${borderColor}`;
-      const itemTitle = document.createElement("div");
-      itemTitle.className = "item-title";
-      itemTitle.textContent = cardData.itemName;
-      const heroImg = document.createElement("img");
-      heroImg.src = `images/${cardData.hero.toLowerCase()}.png`;
-      heroImg.alt = cardData.hero;
-      topSection.appendChild(itemTitle);
-      topSection.appendChild(heroImg);
-      content.appendChild(topSection);
-
-      // On use effects
-      let onUseSection = null;
-      if (cardData.onUseEffects && cardData.onUseEffects.length > 0) {
-        const effectsContainer = document.createElement("div");
-        cardData.onUseEffects.forEach(effect => {
-          const effectLine = document.createElement("div");
-          effectLine.className = "on-use-line";
-
-          const icon = document.createElement("img");
-          icon.src = "images/use-arrow.png";
-          icon.alt = "-";
-
-          const text = document.createElement("span");
-          text.innerHTML = processKeywordText(effect);
-
-          effectLine.appendChild(icon);
-          effectLine.appendChild(text);
-          effectsContainer.appendChild(effectLine);
-        });
-
-        onUseSection = document.createElement("div");
-        onUseSection.className = "text-section on-use-section";
-        onUseSection.style.borderTop = `2px solid ${borderColor}`;
-        onUseSection.style.borderBottom = `2px solid ${borderColor}`;
-        onUseSection.appendChild(effectsContainer);
-        content.appendChild(onUseSection);
-      }
-
-      // Passive effects
-      if (cardData.passiveEffect && cardData.passiveEffect.trim()) {
-        const passiveSection = document.createElement("div");
-        passiveSection.className = "text-section";
-        passiveSection.style.borderTop = `2px solid ${borderColor}`;
-        passiveSection.style.borderBottom = `2px solid ${borderColor}`;
-        passiveSection.innerHTML = processKeywordText(cardData.passiveEffect);
-        content.appendChild(passiveSection);
-      }
-
-      // Cooldown
-      if (cardData.cooldown && cardData.onUseEffects && cardData.onUseEffects.length > 0) {
-        const cooldownDiv = document.createElement("div");
-        cooldownDiv.className = "cooldown-section";
-        cooldownDiv.innerHTML = `<span>${cardData.cooldown}</span><span class="sec-text">sec</span>`;
-        
-        // Add cooldown border overlay
-        const cooldownBorder = createCooldownBorderElement(cardData.border);
-        cooldownDiv.appendChild(cooldownBorder);
-        
-        content.appendChild(cooldownDiv);
-      }
-
-      // Ammo
-      if (cardData.ammo) {
-        const ammoDiv = document.createElement("div");
-        ammoDiv.className = "ammo-section";
-        ammoDiv.style.border = `3px solid ${borderColor}`;
-        
-        const ammoImg = document.createElement("img");
-        ammoImg.src = "images/ammo.png";
-        ammoImg.alt = "Ammo";
-        ammoDiv.appendChild(ammoImg);
-        
-        const ammoText = document.createElement("span");
-        ammoText.textContent = cardData.ammo;
-        ammoDiv.appendChild(ammoText);
-        
-        content.appendChild(ammoDiv);
-      }
-
-      // Create wrapper and visual content container
-      const cardWrapper = document.createElement("div");
-      cardWrapper.className = "card-wrapper";
-      cardWrapper.appendChild(tagsContainer);
-      cardWrapper.appendChild(content);
-
-      // Create the tight visual content container
-      const visualContent = document.createElement("div");
-      visualContent.className = "card-visual-content";
-      visualContent.appendChild(imageContainer);
-      visualContent.appendChild(cardWrapper);
-      
-      card.appendChild(visualContent);
-      outputContainer.appendChild(card);
-
-      // Add to cards data
-      cardsData.push(cardData);
-
-      // Set dimensions and positioning - Modified for fixed image height
-      setTimeout(() => {
-        // Image container now has fixed height of 150px and 35px top margin
-        let widthRatio = 1.0;
-        if (cardData.itemSize === "Small") {
-          widthRatio = 0.5;
-        } else if (cardData.itemSize === "Large") {
-          widthRatio = 1.5;
-        }
-
-        const containerWidth = 150 * widthRatio; // Use fixed height instead of content height
-        imageContainer.style.width = containerWidth + "px";
-
-        img.style.height = "100%";
-        img.style.width = "auto";
-        img.style.objectFit = "cover";
-        img.style.objectPosition = "center";
-
-        if (onUseSection) {
-          positionElementsRelativeToOnUse(content, onUseSection);
-        }
-      }, 0);
-    }
-
-    function toggleExportMenu(button, cardData) {
-      // Close all other export menus
-      document.querySelectorAll('.export-menu').forEach(menu => {
-        if (menu.parentElement !== button.parentElement) {
-          menu.classList.remove('show');
-        }
-      });
-
-      let menu = button.parentElement.querySelector('.export-menu');
-      if (!menu) {
-        menu = document.createElement('div');
-        menu.className = 'export-menu';
-        
-        const dataOption = document.createElement('div');
-        dataOption.className = 'export-option';
-        dataOption.textContent = 'Export as Data';
-        dataOption.onclick = () => {
-          exportSingleCardAsData(cardData);
-          menu.classList.remove('show');
-        };
-        
-        const pngOption = document.createElement('div');
-        pngOption.className = 'export-option';
-        pngOption.textContent = 'Save as PNG';
-        pngOption.onclick = () => {
-          exportCardAsPNG(button.closest('.card'));
-          menu.classList.remove('show');
-        };
-        
-        menu.appendChild(dataOption);
-        menu.appendChild(pngOption);
-        button.parentElement.appendChild(menu);
-      }
-
-      menu.classList.toggle('show');
-    }
-
-    function exportSingleCardAsData(cardData) {
-      const dataToExport = {
-        version: "1.0",
-        timestamp: new Date().toISOString(),
-        cards: [cardData]
-      };
-
-      const dataStr = JSON.stringify(dataToExport, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(dataBlob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${cardData.itemName.replace(/\s+/g, '-')}-card.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      showMessage('Card exported successfully!', 'success');
-    }
-
-    function exportCardAsPNG(cardElement) {
-      // Find the visual content container
-      const visualContent = cardElement.querySelector('.card-visual-content');
-      
-      if (!visualContent) {
-        showMessage('Error: Card visual content not found', 'error');
-        return;
-      }
-      
-      // Find the card content element and temporarily change its background
-      const cardContent = visualContent.querySelector('.card-content');
-      let originalBackground = '';
-      
-      if (cardContent) {
-        // Store original background and replace gradient with solid color
-        originalBackground = cardContent.style.background;
-        cardContent.style.setProperty('background', 'rgb(45, 35, 22)', 'important');
-      }
-      
-      // Simple, clean capture approach
-      html2canvas(visualContent, {
-        scale: 2,
-        backgroundColor: null, // Transparent background
-        useCORS: true,
-        allowTaint: true
-      }).then(function(canvas) {
-        // Restore original background after capture
-        if (cardContent) {
-          cardContent.style.background = originalBackground;
-        }
-        
-        // Create a new canvas with watermark
-        const finalCanvas = document.createElement('canvas');
-        const ctx = finalCanvas.getContext('2d');
-        
-        // Set final canvas size (original + space for watermark)
-        const watermarkHeight = 30;
-        finalCanvas.width = canvas.width;
-        finalCanvas.height = canvas.height + watermarkHeight;
-        
-        // Draw original card
-        ctx.drawImage(canvas, 0, 0);
-        
-        // Add watermark text
-        ctx.fillStyle = '#666666';
-        ctx.font = '16px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('Created on BazaarGen.com', finalCanvas.width / 2, canvas.height + 20);
-        
-        // Create download link
-        const itemName = cardElement.querySelector('.item-title')?.textContent || 'card';
-        const fileName = `${itemName.replace(/\s+/g, '-')}-card.png`;
-        
-        const link = document.createElement('a');
-        link.download = fileName;
-        link.href = finalCanvas.toDataURL('image/png');
-        link.click();
-        
-        showMessage('Card saved as PNG successfully!', 'success');
-      }).catch(function(error) {
-        // Restore original background on error too
-        if (cardContent) {
-          cardContent.style.background = originalBackground;
-        }
-        
-        console.error('PNG Export Error:', error);
-        showMessage('Error saving PNG: ' + error.message, 'error');
-      });
-    }
-
-    function showMessage(message, type) {
-      const errorContainer = document.getElementById("errorContainer");
-      const messageDiv = document.createElement("div");
-      messageDiv.className = type;
-      messageDiv.textContent = message;
-      
-      // Clear previous messages
-      errorContainer.innerHTML = '';
-      errorContainer.appendChild(messageDiv);
-      
-      // Auto-remove success messages after 3 seconds
-      if (type === 'success') {
-        setTimeout(() => {
-          if (messageDiv.parentElement) {
-            messageDiv.remove();
-          }
-        }, 3000);
-      }
-    }
-
-    function createCard() {
-      const imageInput = document.getElementById("imageInput");
-      const itemName = document.getElementById("itemNameInput").value;
-      const cooldownInput = document.getElementById("cooldownInput").value;
-      const hero = document.getElementById("heroSelect").value;
-      const ammo = document.getElementById("ammoInput").value;
-      const itemSize = document.getElementById("itemSizeSelect").value;
-      const border = document.getElementById("borderSelect").value;
-      const onUseInputs = document.querySelectorAll("#onUseInputs input");
-      const tagInputs = document.querySelectorAll("#tagInputs input");
-      const passiveInput = document.getElementById("passiveInput").value;
-      const outputContainer = document.getElementById("outputContainer");
-      const errorContainer = document.getElementById("errorContainer");
-
-      // Get scaling values
-      const scalingValues = {
-        heal: document.getElementById("healScalingInput").value,
-        regen: document.getElementById("regenScalingInput").value,
-        shield: document.getElementById("shieldScalingInput").value,
-        damage: document.getElementById("damageScalingInput").value,
-        poison: document.getElementById("poisonScalingInput").value,
-        burn: document.getElementById("burnScalingInput").value
-      };
-
-      // Clear previous errors
-      errorContainer.innerHTML = '';
-
-      // Validate scaling values
-      const validatedScalingValues = {};
-      try {
-        validatedScalingValues.heal = validateScalingValue(scalingValues.heal, 'Heal');
-        validatedScalingValues.regen = validateScalingValue(scalingValues.regen, 'Regen');
-        validatedScalingValues.shield = validateScalingValue(scalingValues.shield, 'Shield');
-        validatedScalingValues.damage = validateScalingValue(scalingValues.damage, 'Damage');
-        validatedScalingValues.poison = validateScalingValue(scalingValues.poison, 'Poison');
-        validatedScalingValues.burn = validateScalingValue(scalingValues.burn, 'Burn');
-      } catch (error) {
-        const errorDiv = document.createElement("div");
-        errorDiv.className = "error";
-        errorDiv.textContent = error.message;
-        errorContainer.appendChild(errorDiv);
-        return;
-      }
-
-      // Check for on use effects
-      const hasOnUseEffects = Array.from(onUseInputs).some(input => input.value.trim());
-      const hasCooldown = cooldownInput.trim();
-
-      // Validate cooldown and on use effects dependency
-      if (hasOnUseEffects && !hasCooldown) {
-        const errorDiv = document.createElement("div");
-        errorDiv.className = "error";
-        errorDiv.textContent = "On Use effects require a cooldown value";
-        errorContainer.appendChild(errorDiv);
-        return;
-      }
-
-      // Validate and format cooldown
-      let formattedCooldown = '';
-      if (cooldownInput.trim()) {
-        try {
-          formattedCooldown = formatCooldown(cooldownInput);
-        } catch (error) {
-          const errorDiv = document.createElement("div");
-          errorDiv.className = "error";
-          errorDiv.textContent = error.message;
-          errorContainer.appendChild(errorDiv);
-          return;
-        }
-      }
-
-      // Validate ammo
-      let validatedAmmo = '';
-      if (ammo.trim()) {
-        try {
-          validatedAmmo = validateAmmo(ammo);
-        } catch (error) {
-          const errorDiv = document.createElement("div");
-          errorDiv.className = "error";
-          errorDiv.textContent = error.message;
-          errorContainer.appendChild(errorDiv);
-          return;
-        }
-      }
-
-      if (imageInput.files && imageInput.files[0]) {
-        const reader = new FileReader();
-
-        reader.onload = function (e) {
-          const imageData = e.target.result;
-          
-          // Create card data object for export/import
-          const cardData = {
-            itemName: itemName,
-            hero: hero,
-            cooldown: formattedCooldown,
-            ammo: validatedAmmo,
-            itemSize: itemSize,
-            border: border,
-            passiveEffect: passiveInput,
-            onUseEffects: Array.from(onUseInputs).map(input => input.value.trim()).filter(val => val),
-            tags: Array.from(tagInputs).map(input => input.value.trim()).filter(val => val),
-            scalingValues: validatedScalingValues,
-            imageData: imageData,
-            timestamp: new Date().toISOString()
-          };
-
-          // Store card data
-          cardsData.push(cardData);
-
-          const borderColor = getBorderColor(border);
-          const card = document.createElement("div");
-          card.className = "card";
-
-          // Add delete and export buttons for individual card
-          const cardControls = document.createElement("div");
-          cardControls.className = "card-controls";
-          
-          const exportBtn = document.createElement("button");
-          exportBtn.className = "card-export-btn";
-          exportBtn.innerHTML = "💾";
-          exportBtn.title = "Export this card";
-          exportBtn.onclick = function() {
-            toggleExportMenu(exportBtn, cardData);
-          };
-          
-          const deleteBtn = document.createElement("button");
-          deleteBtn.className = "card-delete-btn";
-          deleteBtn.innerHTML = "×";
-          deleteBtn.title = "Delete this card";
-          deleteBtn.onclick = function() {
-            clearCard(card);
-          };
-          
-          cardControls.appendChild(exportBtn);
-          cardControls.appendChild(deleteBtn);
-          card.appendChild(cardControls);
-
-          const imageContainer = document.createElement("div");
-          imageContainer.className = "image-container";
-          imageContainer.style.border = `3px solid ${borderColor}`;
-
-          // Create a clipping wrapper for the uploaded image
-          const imageClipWrapper = document.createElement("div");
-          imageClipWrapper.className = "image-clip-wrapper";
-
-          const img = document.createElement("img");
-          img.className = "uploaded-image";
-          img.src = imageData;
-          imageClipWrapper.appendChild(img);
-          imageContainer.appendChild(imageClipWrapper);
-
-          // Add frame overlay (this will overflow)
-          const frame = createFrameElement(border, itemSize);
-          imageContainer.appendChild(frame);
-
-          // Add scaling values if any exist
-          const scalingContainer = createScalingValuesContainer(validatedScalingValues);
-          if (scalingContainer.children.length > 0) {
-            imageContainer.appendChild(scalingContainer);
-          }
-
-          // Create tags container (outside the main bordered content)
-          const tagsContainer = document.createElement("div");
-          tagsContainer.className = "tags-container";
-
-          // Always add item size as first tag
-          const itemSizeTag = document.createElement("span");
-          itemSizeTag.className = "item-tag";
-          itemSizeTag.textContent = itemSize;
-          tagsContainer.appendChild(itemSizeTag);
-
-          // Add additional tags
-          tagInputs.forEach(input => {
-            if (input.value.trim()) {
-              const tag = document.createElement("span");
-              tag.className = "item-tag";
-              tag.textContent = input.value.trim();
-              tagsContainer.appendChild(tag);
-            }
-          });
-
-          const content = document.createElement("div");
-          content.className = "card-content";
-          content.style.border = `3px solid ${borderColor}`;
-
-          const topSection = document.createElement("div");
-          topSection.className = "text-section hero-header";
-          topSection.style.borderTop = `2px solid ${borderColor}`;
-          topSection.style.borderBottom = `2px solid ${borderColor}`;
-          const itemTitle = document.createElement("div");
-          itemTitle.className = "item-title";
-          itemTitle.textContent = itemName;
-          const heroImg = document.createElement("img");
-          heroImg.src = `images/${hero.toLowerCase()}.png`;
-          heroImg.alt = hero;
-          topSection.appendChild(itemTitle);
-          topSection.appendChild(heroImg);
-          content.appendChild(topSection);
-
-          let onUseSection = null;
-          const effectsContainer = document.createElement("div");
-          onUseInputs.forEach(input => {
-            if (input.value.trim()) {
-              const effectLine = document.createElement("div");
-              effectLine.className = "on-use-line";
-
-              const icon = document.createElement("img");
-              icon.src = "images/use-arrow.png";
-              icon.alt = "-";
-
-              const text = document.createElement("span");
-              text.innerHTML = processKeywordText(input.value);
-
-              effectLine.appendChild(icon);
-              effectLine.appendChild(text);
-              effectsContainer.appendChild(effectLine);
-            }
-          });
-
-          if (effectsContainer.children.length > 0) {
-            onUseSection = document.createElement("div");
-            onUseSection.className = "text-section on-use-section";
-            onUseSection.style.borderTop = `2px solid ${borderColor}`;
-            onUseSection.style.borderBottom = `2px solid ${borderColor}`;
-            onUseSection.appendChild(effectsContainer);
-            content.appendChild(onUseSection);
-          }
-
-          if (passiveInput.trim()) {
-            const passiveSection = document.createElement("div");
-            passiveSection.className = "text-section";
-            passiveSection.style.borderTop = `2px solid ${borderColor}`;
-            passiveSection.style.borderBottom = `2px solid ${borderColor}`;
-            passiveSection.innerHTML = processKeywordText(passiveInput);
-            content.appendChild(passiveSection);
-          }
-
-          // Only show cooldown if there are on use effects
-          if (formattedCooldown && hasOnUseEffects) {
-            const cooldownDiv = document.createElement("div");
-            cooldownDiv.className = "cooldown-section";
-            cooldownDiv.innerHTML = `<span>${formattedCooldown}</span><span class="sec-text">sec</span>`;
-            
-            // Add cooldown border overlay
-            const cooldownBorder = createCooldownBorderElement(border);
-            cooldownDiv.appendChild(cooldownBorder);
-            
-            content.appendChild(cooldownDiv);
-          }
-
-          if (validatedAmmo) {
-            const ammoDiv = document.createElement("div");
-            ammoDiv.className = "ammo-section";
-            ammoDiv.style.border = `3px solid ${borderColor}`;
-            
-            // Add ammo image
-            const ammoImg = document.createElement("img");
-            ammoImg.src = "images/ammo.png";
-            ammoImg.alt = "Ammo";
-            ammoDiv.appendChild(ammoImg);
-            
-            // Add ammo number
-            const ammoText = document.createElement("span");
-            ammoText.textContent = validatedAmmo;
-            ammoDiv.appendChild(ammoText);
-            
-            content.appendChild(ammoDiv);
-          }
-
-          // Create wrapper and visual content container
-          const cardWrapper = document.createElement("div");
-          cardWrapper.className = "card-wrapper";
-          cardWrapper.appendChild(tagsContainer);
-          cardWrapper.appendChild(content);
-
-          // Create the tight visual content container
-          const visualContent = document.createElement("div");
-          visualContent.className = "card-visual-content";
-          visualContent.appendChild(imageContainer);
-          visualContent.appendChild(cardWrapper);
-          
-          card.appendChild(visualContent);
-          outputContainer.appendChild(card);
-
-          // Modified setTimeout for fixed image height and positioning
-          setTimeout(() => {
-            // Image container now has fixed height of 150px and 35px top margin (set in CSS)
-            let widthRatio = 1.0; // Default to medium
-            if (itemSize === "Small") {
-              widthRatio = 0.5;
-            } else if (itemSize === "Medium") {
-              widthRatio = 1.0;
-            } else if (itemSize === "Large") {
-              widthRatio = 1.5;
-            }
-
-            const containerWidth = 150 * widthRatio; // Use fixed height of 150px instead of content height
-            imageContainer.style.width = containerWidth + "px";
-
-            img.style.height = "100%";
-            img.style.width = "auto";
-            img.style.objectFit = "cover";
-            img.style.objectPosition = "center";
-
-            // Position cooldown and ammo relative to the on-use section
-            if (onUseSection) {
-              positionElementsRelativeToOnUse(content, onUseSection);
-            }
-          }, 0);
-        };
-
-        reader.readAsDataURL(imageInput.files[0]);
-      } else {
-        const errorDiv = document.createElement("div");
-        errorDiv.className = "error";
-        errorDiv.textContent = "Please upload an image first.";
-        errorContainer.appendChild(errorDiv);
-      }
-    }
-  </script>
-</body>
-</html>
