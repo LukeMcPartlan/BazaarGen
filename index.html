@@ -1,6 +1,36 @@
 <!DOCTYPE html> 
 <html lang="en">
 <head>
+  <script>
+      // Domain redirect
+      if (window.location.hostname === 'bazzargen.com' || 
+          window.location.hostname === 'www.bazzargen.com') {
+          
+          // Build the correct URL
+          var correctUrl = 'https://bazaargen.com' + window.location.pathname + window.location.search + window.location.hash;
+          
+          // Log for debugging
+          console.log('Redirecting from:', window.location.href);
+          console.log('Redirecting to:', correctUrl);
+          
+          // Try multiple redirect methods
+          try {
+              window.location.replace(correctUrl);
+          } catch(e) {
+              window.location.href = correctUrl;
+          }
+      }
+      
+      // Optional: Redirect www.bazaargen.com to bazaargen.com
+      if (window.location.hostname === 'www.bazaargen.com') {
+          var correctUrl = 'https://bazaargen.com' + window.location.pathname + window.location.search + window.location.hash;
+          try {
+              window.location.replace(correctUrl);
+          } catch(e) {
+              window.location.href = correctUrl;
+          }
+      }
+</script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bazaar Card Generator - Create Custom Game Cards | BazaarGen Tool</title>
@@ -40,30 +70,7 @@
   <meta name="theme-color" content="#8B7A65" />
   <link rel="canonical" href="https://Bazaargen.com/" />
 
-  //Redirect script
-  <script>
-// Domain redirect - run immediately when page loads
-(function() {
-    const currentDomain = window.location.hostname;
-    const correctDomain = 'bazaargen.com';
-    
-    // Check if we're on the wrong domain
-    if (currentDomain === 'bazzargen.com' || currentDomain === 'www.bazzargen.com') {
-        // Preserve the current path and query parameters
-        const newUrl = 'https://' + correctDomain + window.location.pathname + window.location.search + window.location.hash;
-        
-        // Redirect immediately
-        window.location.replace(newUrl);
-    }
-    
-    // Optional: Also redirect www.bazaargen.com to bazaargen.com (if you prefer no www)
-    if (currentDomain === 'www.bazaargen.com') {
-        const newUrl = 'https://bazaargen.com' + window.location.pathname + window.location.search + window.location.hash;
-        window.location.replace(newUrl);
-    }
-})();
-</script>
-
+  
 
   
   <!-- External Libraries -->
