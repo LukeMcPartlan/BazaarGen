@@ -2445,7 +2445,10 @@
       }
     }
 //google single sign in functions 
-    window.onload = function () {
+   let currentUser = null;
+
+// Initialize Google Sign-In when the page loads
+window.onload = function () {
     google.accounts.id.initialize({
         client_id: "208926605452-h7mj4nrcubf43pfi78vgql9o12lqnr0n.apps.googleusercontent.com",
         callback: handleCredentialResponse
@@ -2470,15 +2473,19 @@ function handleCredentialResponse(response) {
     // Decode the JWT token to get user info
     const responsePayload = decodeJwtResponse(response.credential);
     
-    console.log("ID: " + responsePayload.sub);
-    console.log('Full Name: ' + responsePayload.name);
-    console.log('Email: ' + responsePayload.email);
+    console.log("User signed in:", responsePayload.email);
+    currentUser = responsePayload;
 
-    // Update UI to show user is signed in
-    showUserInfo(responsePayload);
+    // Check if user already has an alias stored locally
+    const existingAlias = getUserAlias(responsePayload.sub);
     
-    // Send token to your backend (add your endpoint here)
-    // sendTokenToBackend(response.credential);
+    if (existingAlias) {
+        // User already has alias, show them as signed in
+        showUserInfo(existingAlias);
+    } else {
+        // New user, show alias creation modal
+        showAliasModal();
+    }
 }
 
 function decodeJwtResponse(token) {
@@ -2490,23 +2497,85 @@ function decodeJwtResponse(token) {
     return JSON.parse(jsonPayload);
 }
 
-function showUserInfo(user) {
+function showAliasModal() {
+    const modal = document.getElementById('alias-modal');
+    const input = document.getElementById('alias-input');
+    const error = document.getElementById('alias-error');
+    
+    // Clear previous input and errors
+    input.value = '';
+    error.textContent = '';
+    
+    // Show modal
+    modal.style.display = 'flex';
+    
+    // Focus on input
+    setTimeout(() => input.focus(), 100);
+    
+    // Handle Enter key
+    input.onkeypress = function(e) {
+        if (e.key === 'Enter') {
+            saveAlias();
+        }
+    }
+}
+
+function saveAlias() {
+    const input = document.getElementById('alias-input');
+    const error = document.getElementById('alias-error');
+    const alias = input.value.trim();
+    
+    // Clear previous errors
+    error.textContent = '';
+    
+    // Simple validation
+    if (!alias) {
+        error.textContent = 'Please enter an alias';
+        return;
+    }
+    
+    if (alias.length < 2) {
+        error.textContent = 'Alias must be at least 2 characters';
+        return;
+    }
+    
+    if (alias.length > 20) {
+        error.textContent = 'Alias must be less than 20 characters';
+        return;
+    }
+    
+    // Save alias locally
+    saveUserAlias(currentUser.sub, alias);
+    
+    // Hide modal and show user info
+    document.getElementById('alias-modal').style.display = 'none';
+    showUserInfo(alias);
+    
+    console.log('Alias saved:', alias);
+}
+
+function cancelAliasCreation() {
+    // Hide modal and sign out user
+    document.getElementById('alias-modal').style.display = 'none';
+    signOut();
+}
+
+function showUserInfo(alias) {
     // Hide sign-in button
     document.getElementById('google-signin-button').style.display = 'none';
     
-    // Show user info
+    // Show user info with alias
     const userInfo = document.getElementById('user-info');
-    const userAvatar = document.getElementById('user-avatar');
-    const userName = document.getElementById('user-name');
+    const userAlias = document.getElementById('user-alias');
     
-    userAvatar.src = user.picture;
-    userName.textContent = user.name;
+    userAlias.textContent = alias;
     userInfo.style.display = 'flex';
 }
 
 function signOut() {
     // Clear user session
     google.accounts.id.disableAutoSelect();
+    currentUser = null;
     
     // Hide user info and show sign-in button
     document.getElementById('user-info').style.display = 'none';
@@ -2515,18 +2584,17 @@ function signOut() {
     console.log('User signed out');
 }
 
-// Optional: Send token to your backend for verification
-function sendTokenToBackend(token) {
-    fetch('/auth/google', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: token })
-    })
-    .then(response => response.json())
-    .then(data => console.log('Backend response:', data))
-    .catch(error => console.error('Error:', error));
+// Simple local storage functions for aliases
+function saveUserAlias(userId, alias) {
+    const aliases = JSON.parse(localStorage.getItem('bazaargen_aliases') || '{}');
+    aliases[userId] = alias;
+    localStorage.setItem('bazaargen_aliases', JSON.stringify(aliases));
 }
 
+function getUserAlias(userId) {
+    const aliases = JSON.parse(localStorage.getItem('bazaargen_aliases') || '{}');
+    return aliases[userId] || null;
+}
     
   </script>
 </body>
