@@ -2855,6 +2855,7 @@ supabase.auth.onAuthStateChange((event, session) => {
 
         // Prepare the item data for database
         const itemToSave = {
+          user_id: session.user.id,    
             user_google_id: currentUser.sub,
             contest_number: 0, // Default to 0 (no contest)
             item_data: {
