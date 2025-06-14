@@ -2569,21 +2569,28 @@ window.onload = function () {
 // Google Sign-In Handler
 async function handleCredentialResponse(response) {
     try {
-        // Decode the JWT token to get user info
         const responsePayload = decodeJwtResponse(response.credential);
-        
         console.log("User signed in:", responsePayload.email);
         currentUser = responsePayload;
 
-        // Check if user already exists in our database
+        // IMPORTANT: Sign in to Supabase with the Google credential
+        const { data: supabaseUser, error: authError } = await supabase.auth.signInWithIdToken({
+            provider: 'google',
+            token: response.credential,
+        });
+
+        if (authError) {
+            console.error('Supabase auth error:', authError);
+            // Fallback: try with email/password or handle differently
+        }
+
+        // Rest of your existing code...
         const existingUser = await getUserFromDatabase(responsePayload.sub);
         
         if (existingUser) {
-            // User exists, show them as signed in
             currentUserData = existingUser;
             showUserInfo(existingUser.alias);
         } else {
-            // New user, show alias creation modal
             showAliasModal();
         }
     } catch (error) {
