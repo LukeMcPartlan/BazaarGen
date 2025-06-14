@@ -2824,8 +2824,16 @@ supabase.auth.onAuthStateChange((event, session) => {
     }
 });
 
+    async function debugAuth() {
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log('Session:', session);
+    console.log('User ID:', session?.user?.id);
+    console.log('Google User:', currentUser);
+}
+
     //save card to database
     async function saveCardToDatabase(cardData) {
+      await debugAuth();
     try {
         // Check if user is signed in
         if (!currentUser) {
