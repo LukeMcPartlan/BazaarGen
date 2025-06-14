@@ -1826,6 +1826,16 @@
       exportBtn.onclick = function() {
         toggleExportMenu(exportBtn, cardData);
       };
+
+      // NEW: Save to Database button
+      const saveBtn = document.createElement("button");
+      saveBtn.className = "card-save-btn";
+      saveBtn.innerHTML = "🗃️";
+      saveBtn.title = "Save to database";
+      saveBtn.onclick = function() {
+        saveCardToDatabase(cardData);
+      };
+
       
       const deleteBtn = document.createElement("button");
       deleteBtn.className = "card-delete-btn";
@@ -1836,6 +1846,7 @@
       };
       
       cardControls.appendChild(exportBtn);
+      cardControls.appendChild(saveBtn); 
       cardControls.appendChild(deleteBtn);
       card.appendChild(cardControls);
 
@@ -2287,6 +2298,35 @@
           exportBtn.onclick = function() {
             toggleExportMenu(exportBtn, cardData);
           };
+          
+          .card-save-btn {
+            background: linear-gradient(135deg, rgb(76, 175, 80) 0%, rgb(46, 125, 50) 100%);
+            color: white;
+            border-color: rgb(76, 175, 80);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            border: 2px solid;
+          }
+          
+          .card-save-btn:hover {
+            background: linear-gradient(135deg, rgb(129, 199, 132) 0%, rgb(76, 175, 80) 100%);
+            transform: scale(1.1);
+          }
+          
+          .card-save-btn:disabled {
+            background: linear-gradient(135deg, rgb(150, 150, 150) 0%, rgb(120, 120, 120) 100%);
+            cursor: not-allowed;
+            transform: none;
+          }
           
           const deleteBtn = document.createElement("button");
           deleteBtn.className = "card-delete-btn";
@@ -2767,6 +2807,126 @@ supabase.auth.onAuthStateChange((event, session) => {
         document.getElementById('google-signin-button').style.display = 'block';
     }
 });
+
+    //save card to database
+    async function saveCardToDatabase(cardData) {
+    try {
+        // Check if user is signed in
+        if (!currentUser) {
+            showMessage('Please sign in to save items to the database', 'error');
+            return;
+        }
+
+        // Find the save button to show loading state
+        const saveButtons = document.querySelectorAll('.card-save-btn');
+        const saveButton = Array.from(saveButtons).find(btn => 
+            btn.onclick.toString().includes(cardData.timestamp)
+        );
+
+        if (saveButton) {
+            saveButton.disabled = true;
+            saveButton.innerHTML = '⏳';
+            saveButton.title = 'Saving...';
+        }
+
+        // Prepare the item data for database
+        const itemToSave = {
+            user_google_id: currentUser.sub,
+            contest_number: 0, // Default to 0 (no contest)
+            item_data: {
+                // Basic item info
+                name: cardData.itemName,
+                hero: cardData.hero,
+                item_size: cardData.itemSize,
+                rarity: cardData.border,
+                
+                // Card mechanics
+                cooldown: cardData.cooldown || null,
+                ammo: cardData.ammo || null,
+                
+                // Effects and description
+                passive_effect: cardData.passiveEffect || null,
+                on_use_effects: cardData.onUseEffects || [],
+                
+                // Additional properties
+                tags: cardData.tags || [],
+                scaling_values: cardData.scalingValues || {},
+                
+                // Metadata
+                image_data: cardData.imageData,
+                created_with: "BazaarGen",
+                version: "1.0"
+            }
+        };
+
+        // Save to Supabase
+        const { data, error } = await supabase
+            .from('items')
+            .insert([itemToSave])
+            .select()
+            .single();
+
+        if (error) {
+            throw error;
+        }
+
+        // Success!
+        showMessage(`"${cardData.itemName}" saved to database successfully!`, 'success');
+        console.log('Item saved to database:', data);
+
+        // Update button to show success
+        if (saveButton) {
+            saveButton.innerHTML = '✅';
+            saveButton.title = 'Saved to database';
+            saveButton.style.background = 'linear-gradient(135deg, rgb(46, 125, 50) 0%, rgb(27, 94, 32) 100%)';
+            
+            // Reset button after 2 seconds
+            setTimeout(() => {
+                saveButton.disabled = false;
+                saveButton.innerHTML = '🗃️';
+                saveButton.title = 'Save to database';
+                saveButton.style.background = '';
+            }, 2000);
+        }
+
+    } catch (error) {
+        console.error('Error saving item to database:', error);
+        
+        let errorMessage = 'Failed to save item to database. ';
+        if (error.message.includes('duplicate') || error.code === '23505') {
+            errorMessage += 'This item may already exist.';
+        } else {
+            errorMessage += 'Please try again.';
+        }
+        
+        showMessage(errorMessage, 'error');
+
+        // Reset button on error
+        const saveButtons = document.querySelectorAll('.card-save-btn');
+        const saveButton = Array.from(saveButtons).find(btn => btn.disabled);
+        if (saveButton) {
+            saveButton.disabled = false;
+            saveButton.innerHTML = '🗃️';
+            saveButton.title = 'Save to database';
+        }
+    }
+}
+
+// Also add this helper function to get a better button reference
+function createSaveButton(cardData) {
+    const saveBtn = document.createElement("button");
+    saveBtn.className = "card-save-btn";
+    saveBtn.innerHTML = "🗃️";
+    saveBtn.title = "Save to database";
+    saveBtn.setAttribute('data-timestamp', cardData.timestamp); // Add unique identifier
+    saveBtn.onclick = function() {
+        saveCardToDatabase(cardData);
+    };
+    return saveBtn;
+
+
+
+    
   </script>
 </body>
 </html>
