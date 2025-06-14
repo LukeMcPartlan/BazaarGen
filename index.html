@@ -78,7 +78,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  //CSS
+  
   <style>
     * {
       margin: 0;
@@ -576,6 +576,35 @@
     .export-option:last-child {
       border-radius: 0 0 6px 6px;
     }
+
+    .card-save-btn {
+  background: linear-gradient(135deg, rgb(76, 175, 80) 0%, rgb(46, 125, 50) 100%);
+  color: white;
+  border-color: rgb(76, 175, 80);
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  border: 2px solid;
+}
+
+.card-save-btn:hover {
+  background: linear-gradient(135deg, rgb(129, 199, 132) 0%, rgb(76, 175, 80) 100%);
+  transform: scale(1.1);
+}
+
+.card-save-btn:disabled {
+  background: linear-gradient(135deg, rgb(150, 150, 150) 0%, rgb(120, 120, 120) 100%);
+  cursor: not-allowed;
+  transform: none;
+}
 
     .image-container {
       border: 3px solid gold;
@@ -2299,34 +2328,13 @@
             toggleExportMenu(exportBtn, cardData);
           };
           
-          .card-save-btn {
-            background: linear-gradient(135deg, rgb(76, 175, 80) 0%, rgb(46, 125, 50) 100%);
-            color: white;
-            border-color: rgb(76, 175, 80);
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-            border: 2px solid;
-          }
-          
-          .card-save-btn:hover {
-            background: linear-gradient(135deg, rgb(129, 199, 132) 0%, rgb(76, 175, 80) 100%);
-            transform: scale(1.1);
-          }
-          
-          .card-save-btn:disabled {
-            background: linear-gradient(135deg, rgb(150, 150, 150) 0%, rgb(120, 120, 120) 100%);
-            cursor: not-allowed;
-            transform: none;
-          }
+          const saveBtn = document.createElement("button");
+          saveBtn.className = "card-save-btn";
+          saveBtn.innerHTML = "🗃️";
+          saveBtn.title = "Save to database";
+          saveBtn.onclick = function() {
+            saveCardToDatabase(cardData);
+          };
           
           const deleteBtn = document.createElement("button");
           deleteBtn.className = "card-delete-btn";
@@ -2337,6 +2345,7 @@
           };
           
           cardControls.appendChild(exportBtn);
+          cardControls.appendChild(saveBtn);
           cardControls.appendChild(deleteBtn);
           card.appendChild(cardControls);
 
