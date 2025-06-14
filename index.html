@@ -2832,14 +2832,35 @@ supabase.auth.onAuthStateChange((event, session) => {
 }
 
     //save card to database
-    async function saveCardToDatabase(cardData) {
-      await debugAuth();
+   async function saveCardToDatabase(cardData) {
+     await debugAuth();
     try {
-        // Check if user is signed in
+        // Check if user is signed in to Google
         if (!currentUser) {
             showMessage('Please sign in to save items to the database', 'error');
             return;
         }
+
+        // Get current Supabase session
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+            console.error('Session check error:', sessionError);
+            showMessage('Authentication error. Please try signing in again.', 'error');
+            return;
+        }
+        
+        if (!session || !session.user) {
+            console.warn('No active Supabase session');
+            showMessage('Please sign in to save items.', 'error');
+            return;
+        }
+
+        console.log('Supabase session active:', {
+            user_id: session.user.id,
+            email: session.user.email,
+            google_id: currentUser.sub
+        });
 
         // Find the save button to show loading state
         const saveButtons = document.querySelectorAll('.card-save-btn');
@@ -2855,34 +2876,31 @@ supabase.auth.onAuthStateChange((event, session) => {
 
         // Prepare the item data for database
         const itemToSave = {
-          user_id: session.user.id,    
-            user_google_id: currentUser.sub,
-            contest_number: 0, // Default to 0 (no contest)
+            user_id: session.user.id,           // Supabase auth user ID
+            user_google_id: currentUser.sub,    // Google ID for backward compatibility
+            contest_number: 0,
             item_data: {
-                // Basic item info
                 name: cardData.itemName,
                 hero: cardData.hero,
                 item_size: cardData.itemSize,
                 rarity: cardData.border,
-                
-                // Card mechanics
                 cooldown: cardData.cooldown || null,
                 ammo: cardData.ammo || null,
-                
-                // Effects and description
                 passive_effect: cardData.passiveEffect || null,
                 on_use_effects: cardData.onUseEffects || [],
-                
-                // Additional properties
                 tags: cardData.tags || [],
                 scaling_values: cardData.scalingValues || {},
-                
-                // Metadata
                 image_data: cardData.imageData,
                 created_with: "BazaarGen",
                 version: "1.0"
             }
         };
+
+        console.log('Attempting to save item:', {
+            supabase_user_id: session.user.id,
+            google_id: currentUser.sub,
+            item_name: cardData.itemName
+        });
 
         // Save to Supabase
         const { data, error } = await supabase
@@ -2892,6 +2910,12 @@ supabase.auth.onAuthStateChange((event, session) => {
             .single();
 
         if (error) {
+            console.error('Database insert error details:', {
+                code: error.code,
+                message: error.message,
+                details: error.details,
+                hint: error.hint
+            });
             throw error;
         }
 
@@ -2905,7 +2929,6 @@ supabase.auth.onAuthStateChange((event, session) => {
             saveButton.title = 'Saved to database';
             saveButton.style.background = 'linear-gradient(135deg, rgb(46, 125, 50) 0%, rgb(27, 94, 32) 100%)';
             
-            // Reset button after 2 seconds
             setTimeout(() => {
                 saveButton.disabled = false;
                 saveButton.innerHTML = '🗃️';
@@ -2918,10 +2941,14 @@ supabase.auth.onAuthStateChange((event, session) => {
         console.error('Error saving item to database:', error);
         
         let errorMessage = 'Failed to save item to database. ';
-        if (error.message.includes('duplicate') || error.code === '23505') {
+        if (error.code === '42501') {
+            errorMessage += 'Permission denied. Check your database policies.';
+        } else if (error.code === '23505') {
             errorMessage += 'This item may already exist.';
+        } else if (error.message?.includes('column') && error.message?.includes('does not exist')) {
+            errorMessage += 'Database schema mismatch. Please contact support.';
         } else {
-            errorMessage += 'Please try again.';
+            errorMessage += `Error: ${error.message || 'Unknown error'}`;
         }
         
         showMessage(errorMessage, 'error');
@@ -2933,10 +2960,10 @@ supabase.auth.onAuthStateChange((event, session) => {
             saveButton.disabled = false;
             saveButton.innerHTML = '🗃️';
             saveButton.title = 'Save to database';
+            saveButton.style.background = '';
         }
     }
 }
-
 // Also add this helper function to get a better button reference
 function createSaveButton(cardData) {
     const saveBtn = document.createElement("button");
