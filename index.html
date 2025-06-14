@@ -2486,6 +2486,7 @@
    const SUPABASE_URL = 'https://zslsedcfihgwbfljqhod.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzbHNlZGNmaWhnd2JmbGpxaG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4NTEwNzksImV4cCI6MjA2NTQyNzA3OX0.wA23SQZ8PZRambG4RVVWlcxUxdVUz4dNKLQgqY_xR08'
 
+// Initialize Supabase client
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 let currentUser = null;
@@ -2635,28 +2636,31 @@ async function saveAlias() {
         let data, dbError;
 
         if (isEditingAlias) {
-            // Update existing user
+            // Update existing user - use ID instead of google_id to avoid duplicates
             const result = await supabase
                 .from('users')
                 .update({ alias: alias })
-                .eq('google_id', currentUser.sub)
+                .eq('id', currentUserData.id)
                 .select()
                 .single();
             
             data = result.data;
             dbError = result.error;
         } else {
-            // Create new user
+            // Create new user - add ON CONFLICT handling
             const result = await supabase
                 .from('users')
-                .insert([
+                .upsert([
                     {
                         google_id: currentUser.sub,
                         alias: alias,
                         email: currentUser.email,
                         avatar_url: currentUser.picture
                     }
-                ])
+                ], {
+                    onConflict: 'google_id',
+                    ignoreDuplicates: false
+                })
                 .select()
                 .single();
             
