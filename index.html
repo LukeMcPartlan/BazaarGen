@@ -1064,40 +1064,41 @@
         </li>
       </ul>
        <!-- Google sign in stuff-->
-                  <div class="nav-actions">
-                <!-- Google Sign-In Button (shown when not signed in) -->
-                <div id="google-signin-button"></div>
-            
-                <!-- User Info (shown when signed in) -->
-                <div class="user-info" id="user-info" style="display: none; align-items: center; gap: 10px;">
-                    <span class="user-alias" id="user-alias" style="font-weight: 500; color:rgb(251, 225, 183);"></span>
-                    <button class="sign-out-btn" onclick="signOut()" style="background: none; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: #666; font-size: 14px;">Sign Out</button>
-                </div>
-            </div>
-            
-            <!-- 3. Alias Creation Modal -->
-            <div id="alias-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
-                <div style="background: white; padding: 30px; border-radius: 8px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
-                    <h2 style="margin: 0 0 10px 0; color: #333;">Welcome to BazaarGen!</h2>
-                    <p style="color: #666; margin: 0 0 20px 0;">Choose an alias to display on the site</p>
-                    
-                    <input type="text" id="alias-input" placeholder="Enter your alias" 
-                           style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 16px; margin-bottom: 10px; box-sizing: border-box;">
-                    
-                    <div id="alias-error" style="color: #d32f2f; font-size: 14px; margin-bottom: 15px; min-height: 20px;"></div>
-                    
-                    <div style="display: flex; gap: 10px; justify-content: center;">
-                        <button onclick="cancelAliasCreation()" 
-                                style="padding: 10px 20px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; color: #666;">
-                            Cancel
-                        </button>
-                        <button onclick="saveAlias()" 
-                                style="padding: 10px 20px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer;">
-                            Save Alias
-                        </button>
-                    </div>
-                </div>
-            </div>
+                         <div class="nav-actions">
+              <!-- Google Sign-In Button (shown when not signed in) -->
+              <div id="google-signin-button"></div>
+          
+              <!-- User Info (shown when signed in) -->
+              <div class="user-info" id="user-info" style="display: none; align-items: center; gap: 10px;">
+                  <span class="user-alias" id="user-alias" style="font-weight: 500; color: #333; cursor: pointer;" onclick="editAlias()" title="Click to edit alias"></span>
+                  <button class="sign-out-btn" onclick="signOut()" style="background: none; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: #666; font-size: 14px;">Sign Out</button>
+              </div>
+          </div>
+          
+          <!-- 3. Alias Creation Modal -->
+          <div id="alias-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+              <div style="background: white; padding: 30px; border-radius: 8px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+                  <h2 id="alias-modal-title" style="margin: 0 0 10px 0; color: #333;">Welcome to BazaarGen!</h2>
+                  <p id="alias-modal-description" style="color: #666; margin: 0 0 20px 0;">Choose an alias to display on the site</p>
+                  
+                  <input type="text" id="alias-input" placeholder="Enter your alias" 
+                         style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 16px; margin-bottom: 10px; box-sizing: border-box;">
+                  
+                  <div id="alias-error" style="color: #d32f2f; font-size: 14px; margin-bottom: 15px; min-height: 20px;"></div>
+                  
+                  <div style="display: flex; gap: 10px; justify-content: center;">
+                      <button id="alias-cancel-btn" onclick="cancelAliasCreation()" 
+                              style="padding: 10px 20px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; color: #666;">
+                          Cancel
+                      </button>
+                      <button id="alias-save-btn" onclick="saveAlias()" 
+                              style="padding: 10px 20px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer;">
+                          Save Alias
+                      </button>
+                  </div>
+              </div>
+          </div>
+      <!--end of google stuff-->
     </div>
 
       <div class="nav-toggle" id="nav-toggle">
@@ -2485,10 +2486,11 @@
    const SUPABASE_URL = 'https://zslsedcfihgwbfljqhod.supabase.co'
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzbHNlZGNmaWhnd2JmbGpxaG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4NTEwNzksImV4cCI6MjA2NTQyNzA3OX0.wA23SQZ8PZRambG4RVVWlcxUxdVUz4dNKLQgqY_xR08'
 
-// Initialize Supabase client
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
 let currentUser = null;
+let isEditingAlias = false;
+let currentUserData = null;
 
 // Initialize Google Sign-In when the page loads
 window.onload = function () {
@@ -2510,8 +2512,8 @@ window.onload = function () {
         }
     );
 
-    // Check if user is already signed in
-    checkExistingUser();
+    // Check if user is already signed in to Supabase
+    checkExistingSession();
 };
 
 // Google Sign-In Handler
@@ -2528,6 +2530,7 @@ async function handleCredentialResponse(response) {
         
         if (existingUser) {
             // User exists, show them as signed in
+            currentUserData = existingUser;
             showUserInfo(existingUser.alias);
         } else {
             // New user, show alias creation modal
@@ -2548,13 +2551,32 @@ function decodeJwtResponse(token) {
     return JSON.parse(jsonPayload);
 }
 
-function showAliasModal() {
+function showAliasModal(isEditing = false) {
     const modal = document.getElementById('alias-modal');
     const input = document.getElementById('alias-input');
     const error = document.getElementById('alias-error');
+    const title = document.getElementById('alias-modal-title');
+    const description = document.getElementById('alias-modal-description');
+    const saveBtn = document.getElementById('alias-save-btn');
+    const cancelBtn = document.getElementById('alias-cancel-btn');
     
-    // Clear previous input and errors
-    input.value = '';
+    isEditingAlias = isEditing;
+    
+    if (isEditing) {
+        title.textContent = 'Edit Your Alias';
+        description.textContent = 'Change your display name';
+        input.value = currentUserData?.alias || '';
+        saveBtn.textContent = 'Update Alias';
+        cancelBtn.textContent = 'Cancel';
+    } else {
+        title.textContent = 'Welcome to BazaarGen!';
+        description.textContent = 'Choose an alias to display on the site';
+        input.value = '';
+        saveBtn.textContent = 'Save Alias';
+        cancelBtn.textContent = 'Cancel';
+    }
+    
+    // Clear previous errors
     error.textContent = '';
     
     // Show modal
@@ -2596,31 +2618,51 @@ async function saveAlias() {
     }
 
     try {
-        // Check if alias is already taken
-        const { data: existingAlias } = await supabase
-            .from('users')
-            .select('id')
-            .eq('alias', alias)
-            .single();
+        // Check if alias is already taken (skip check if editing and using same alias)
+        if (!isEditingAlias || alias !== currentUserData?.alias) {
+            const { data: existingAlias } = await supabase
+                .from('users')
+                .select('id')
+                .eq('alias', alias)
+                .maybeSingle();
 
-        if (existingAlias) {
-            error.textContent = 'Alias is already taken';
-            return;
+            if (existingAlias) {
+                error.textContent = 'Alias is already taken';
+                return;
+            }
         }
 
-        // Save user to database
-        const { data, error: dbError } = await supabase
-            .from('users')
-            .insert([
-                {
-                    google_id: currentUser.sub,
-                    alias: alias,
-                    email: currentUser.email,
-                    avatar_url: currentUser.picture
-                }
-            ])
-            .select()
-            .single();
+        let data, dbError;
+
+        if (isEditingAlias) {
+            // Update existing user
+            const result = await supabase
+                .from('users')
+                .update({ alias: alias })
+                .eq('google_id', currentUser.sub)
+                .select()
+                .single();
+            
+            data = result.data;
+            dbError = result.error;
+        } else {
+            // Create new user
+            const result = await supabase
+                .from('users')
+                .insert([
+                    {
+                        google_id: currentUser.sub,
+                        alias: alias,
+                        email: currentUser.email,
+                        avatar_url: currentUser.picture
+                    }
+                ])
+                .select()
+                .single();
+            
+            data = result.data;
+            dbError = result.error;
+        }
 
         if (dbError) {
             throw dbError;
@@ -2628,6 +2670,7 @@ async function saveAlias() {
 
         // Success - hide modal and show user info
         document.getElementById('alias-modal').style.display = 'none';
+        currentUserData = data;
         showUserInfo(alias);
         
         console.log('User saved to database:', data);
@@ -2639,9 +2682,20 @@ async function saveAlias() {
 }
 
 function cancelAliasCreation() {
-    // Hide modal and sign out user
-    document.getElementById('alias-modal').style.display = 'none';
-    signOut();
+    if (isEditingAlias) {
+        // Just hide the modal when editing
+        document.getElementById('alias-modal').style.display = 'none';
+    } else {
+        // Hide modal and sign out user for new user registration
+        document.getElementById('alias-modal').style.display = 'none';
+        signOut();
+    }
+}
+
+function editAlias() {
+    if (currentUserData) {
+        showAliasModal(true);
+    }
 }
 
 function showUserInfo(alias) {
@@ -2656,8 +2710,8 @@ function showUserInfo(alias) {
     userInfo.style.display = 'flex';
 }
 
-function signOut() {
-    // Clear user session
+async function signOut() {
+    // Clear Google session
     google.accounts.id.disableAutoSelect();
     currentUser = null;
     
@@ -2668,16 +2722,16 @@ function signOut() {
     console.log('User signed out');
 }
 
-// Database functions using Supabase
+// Database functions using Supabase (now with RLS)
 async function getUserFromDatabase(googleId) {
     try {
         const { data, error } = await supabase
             .from('users')
             .select('*')
             .eq('google_id', googleId)
-            .single();
+            .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        if (error) {
             throw error;
         }
 
@@ -2688,11 +2742,21 @@ async function getUserFromDatabase(googleId) {
     }
 }
 
-async function checkExistingUser() {
-    // This would check for existing session
-    // For now, we'll rely on Google's session management
-    // In a full implementation, you might store session info
+async function checkExistingSession() {
+    // For now, just rely on Google's session management
+    // We can add Supabase session handling later
 }
+
+// Listen for auth state changes
+supabase.auth.onAuthStateChange((event, session) => {
+    console.log('Auth state changed:', event, session);
+    
+    if (event === 'SIGNED_OUT') {
+        // Handle sign out
+        document.getElementById('user-info').style.display = 'none';
+        document.getElementById('google-signin-button').style.display = 'block';
+    }
+});
   </script>
 </body>
 </html>
