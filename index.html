@@ -1073,6 +1073,13 @@
       }
     }
 
+      .preview-container {
+          border: 1px solid #ccc;
+          padding: 10px;
+          margin-bottom: 20px;
+          background: #f8f8ff;
+      }
+
   </style>
 </head>
 <body>
@@ -1139,157 +1146,160 @@
   </nav>
 
   <div class="main-content">
-    <!-- Page Header -->
-    <div class="page-header">
-      <h1 class="page-title">Bazaar Card Generator</h1>
-    </div>
-
-    <div class="input-container">
-      <div class="form-grid">
-        <div class="form-group full-width">
-          <label class="form-label">Card Image</label>
-          <input type="file" id="imageInput" accept="image/*" class="form-input" />
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Item Name</label>
-          <input type="text" id="itemNameInput" placeholder="Enter item name" class="form-input" />
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Hero</label>
-          <select id="heroSelect" class="form-select">
-            <option value="Neutral" selected>Neutral</option>
-            <option value="Mak">Mak</option>
-            <option value="Vanessa">Vanessa</option>
-            <option value="Pyg">Pyg</option>
-            <option value="Dooly">Dooly</option>
-            <option value="Stelle">Stelle</option>
-            <option value="Jules">Jules</option>
-            <option value = "Vampire"> Vampire</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Cooldown (seconds)</label>
-          <input type="text" id="cooldownInput" placeholder="e.g. 7.0" class="form-input" />
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Ammo Count</label>
-          <input type="text" id="ammoInput" placeholder="e.g. 3" class="form-input" />
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Item Size</label>
-          <select id="itemSizeSelect" class="form-select">
-            <option value="Small">Small</option>
-            <option value="Medium" selected>Medium</option>
-            <option value="Large">Large</option>
-          </select>
-        </div>
-        
-        <div class="form-group">
-          <label class="form-label">Item Rarity</label>
-          <select id="borderSelect" class="form-select">
-            <option value="bronze">Bronze</option>
-            <option value="silver">Silver</option>
-            <option value="gold" selected>Gold</option>
-            <option value="diamond">Diamond</option>
-            <option value="legendary">Legendary</option>
-          </select>
-        </div>
-        
-        <div class="form-group full-width">
-          <label class="form-label">Passive Effects</label>
-          <input type="text" id="passiveInput" placeholder="Enter passive effect description" class="form-input" />
-        </div>
+      <!-- Page Header -->
+      <div class="page-header">
+          <h1 class="page-title">Bazaar Card Generator</h1>
       </div>
 
-      <div class="tag-effects">
-        <label class="form-label">Above Card Values</label>
-        <div class="form-grid">
-          <div class="form-group">
-            <label class="form-label">Heal</label>
-            <input type="text" id="healScalingInput" placeholder="N/A" class="form-input" />
+      <div id="previewContainer"></div>
+      <br />
+
+      <div class="input-container">
+          <div class="form-grid">
+              <div class="form-group full-width">
+                  <label class="form-label">Card Image</label>
+                  <input type="file" id="imageInput" accept="image/*" class="form-input" />
+              </div>
+
+              <div class="form-group">
+                  <label class="form-label">Item Name</label>
+                  <input type="text" id="itemNameInput" placeholder="Enter item name" class="form-input" />
+              </div>
+
+              <div class="form-group">
+                  <label class="form-label">Hero</label>
+                  <select id="heroSelect" class="form-select">
+                      <option value="Neutral" selected>Neutral</option>
+                      <option value="Mak">Mak</option>
+                      <option value="Vanessa">Vanessa</option>
+                      <option value="Pyg">Pyg</option>
+                      <option value="Dooly">Dooly</option>
+                      <option value="Stelle">Stelle</option>
+                      <option value="Jules">Jules</option>
+                      <option value="Vampire"> Vampire</option>
+                  </select>
+              </div>
+
+              <div class="form-group">
+                  <label class="form-label">Cooldown (seconds)</label>
+                  <input type="text" id="cooldownInput" placeholder="e.g. 7.0" class="form-input" />
+              </div>
+
+              <div class="form-group">
+                  <label class="form-label">Ammo Count</label>
+                  <input type="text" id="ammoInput" placeholder="e.g. 3" class="form-input" />
+              </div>
+
+              <div class="form-group">
+                  <label class="form-label">Item Size</label>
+                  <select id="itemSizeSelect" class="form-select">
+                      <option value="Small">Small</option>
+                      <option value="Medium" selected>Medium</option>
+                      <option value="Large">Large</option>
+                  </select>
+              </div>
+
+              <div class="form-group">
+                  <label class="form-label">Item Rarity</label>
+                  <select id="borderSelect" class="form-select">
+                      <option value="bronze">Bronze</option>
+                      <option value="silver">Silver</option>
+                      <option value="gold" selected>Gold</option>
+                      <option value="diamond">Diamond</option>
+                      <option value="legendary">Legendary</option>
+                  </select>
+              </div>
+
+              <div class="form-group full-width">
+                  <label class="form-label">Passive Effects</label>
+                  <input type="text" id="passiveInput" placeholder="Enter passive effect description" class="form-input" />
+              </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Regen</label>
-            <input type="text" id="regenScalingInput" placeholder="N/A" class="form-input" />
+
+          <div class="tag-effects">
+              <label class="form-label">Above Card Values</label>
+              <div class="form-grid">
+                  <div class="form-group">
+                      <label class="form-label">Heal</label>
+                      <input type="text" id="healScalingInput" placeholder="N/A" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                      <label class="form-label">Regen</label>
+                      <input type="text" id="regenScalingInput" placeholder="N/A" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                      <label class="form-label">Shield</label>
+                      <input type="text" id="shieldScalingInput" placeholder="N/A" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                      <label class="form-label">Damage</label>
+                      <input type="text" id="damageScalingInput" placeholder="N/A" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                      <label class="form-label">Poison</label>
+                      <input type="text" id="poisonScalingInput" placeholder="N/A" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                      <label class="form-label">Burn</label>
+                      <input type="text" id="burnScalingInput" placeholder="N/A" class="form-input" />
+                  </div>
+              </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Shield</label>
-            <input type="text" id="shieldScalingInput" placeholder="N/A" class="form-input" />
+
+          <div class="tag-effects">
+              <label class="form-label">Additional Tags</label>
+              <div id="tagInputs"></div>
+              <button type="button" onclick="addTagInput()" class="form-button secondary" style="margin-top: 10px;">Add Tag</button>
           </div>
-          <div class="form-group">
-            <label class="form-label">Damage</label>
-            <input type="text" id="damageScalingInput" placeholder="N/A" class="form-input" />
+
+          <div class="on-use-effects">
+              <label class="form-label">On Use Effects</label>
+              <div id="onUseInputs"></div>
+              <button type="button" onclick="addOnUseInput()" class="form-button secondary" style="margin-top: 10px;">Add On Use Effect</button>
           </div>
-          <div class="form-group">
-            <label class="form-label">Poison</label>
-            <input type="text" id="poisonScalingInput" placeholder="N/A" class="form-input" />
+
+          <div class="shortcuts-help">
+              <h4>🎮 Keyword Shortcuts - Type these in text boxes:</h4>
+              <div class="shortcut-grid">
+                  <div class="shortcut-item"><span class="shortcut-key">/s</span> <img src="images/KeyText/slow.png" alt="slow" class="keyword-preview"> <span style="color: rgb(203, 159, 110); font-weight: bold;" class="key-text">slow</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/h</span> <img src="images/KeyText/haste.png" alt="haste" class="keyword-preview"> <span style="color: rgb(0, 235, 195); font-weight: bold;" class="key-text">haste</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/he</span> <img src="images/KeyText/heal.png" alt="heal" class="keyword-preview"> <span style="color: rgb(143, 234, 49); font-weight: bold;" class="key-text">heal</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/r</span> <img src="images/KeyText/regen.png" alt="regen" class="keyword-preview"> <span style="color: rgb(143, 234, 49); font-weight: bold;" class="key-text">regen</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/p</span> <img src="images/KeyText/poison.png" alt="poison" class="keyword-preview"> <span style="color: rgb(13, 190, 79); font-weight: bold;" class="key-text">poison</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/b</span> <img src="images/KeyText/burn.png" alt="burn" class="keyword-preview"> <span style="color: rgb(253, 146, 63); font-weight: bold;" class="key-text">burn</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/c</span> <img src="images/KeyText/charge.png" alt="charge" class="keyword-preview"> <span style="color: rgb(0, 235, 195); font-weight: bold;" class="key-text">charge</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/cd</span> <img src="images/KeyText/cooldown.png" alt="cooldown" class="keyword-preview"> <span style="color: rgb(0, 235, 195); font-weight: bold;" class="key-text">cooldown</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/cr</span> <img src="images/KeyText/crit.png" alt="crit" class="keyword-preview"> <span style="color: rgb(244, 82, 60); font-weight: bold;" class="key-text">crit</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/d</span> <img src="images/KeyText/damage.png" alt="damage" class="keyword-preview"> <span style="color: rgb(244, 82, 60); font-weight: bold;" class="key-text">damage</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/de</span> <img src="images/KeyText/destroy.png" alt="destroy" class="keyword-preview"> <span style="color: rgb(198, 44, 66); font-weight: bold;" class="key-text">destroy</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/f</span> <img src="images/KeyText/freeze.png" alt="freeze" class="keyword-preview"> <span style="color: rgb(63, 200, 247); font-weight: bold;" class="key-text">freeze</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/l</span> <img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-preview"> <span style="color: rgb(181, 56, 115); font-weight: bold;" class="key-text">lifesteal</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/v</span> <img src="images/KeyText/value.png" alt="value" class="keyword-preview"> <span style="color: rgb(244, 208, 33); font-weight: bold;" class="key-text">value</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/t</span> <img src="images/KeyText/transform.png" alt="transform" class="keyword-preview"> <span style="color: rgb(90, 230, 233); font-weight: bold;" class="key-text">transform</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/sh</span> <img src="images/KeyText/sheild.png" alt="sheild" class="keyword-preview"> <span style="color: rgb(245, 208, 33); font-weight: bold;" class="key-text">sheild</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/mh</span> <img src="images/KeyText/maxhealth.png" alt="maxhealth" class="keyword-preview"> <span style="color: rgb(143, 234, 49); font-weight: bold;" class="key-text">maxhealth</span></div>
+              </div>
           </div>
-          <div class="form-group">
-            <label class="form-label">Burn</label>
-            <input type="text" id="burnScalingInput" placeholder="N/A" class="form-input" />
+
+          <div class="button-group">
+              <button onclick="createCard()" class="form-button">Generate Card</button>
+              <button onclick="clearAllCards()" class="form-button secondary">Clear All Cards</button>
           </div>
-        </div>
+
+          <div class="export-import-section">
+              <h4>💾 Export & Import</h4>
+              <div class="export-import-buttons">
+                  <button onclick="exportAllCardsAsData()" class="form-button export">Export All as Data</button>
+                  <button onclick="exportAllCardsAsPNG()" class="form-button export">Export All as PNG</button>
+                  <button onclick="triggerImport()" class="form-button secondary">Import Card Data</button>
+              </div>
+              <input type="file" id="importInput" accept=".json" class="hidden-input" onchange="importCardData(event)" />
+          </div>
+
+          <div id="errorContainer"></div>
       </div>
 
-      <div class="tag-effects">
-        <label class="form-label">Additional Tags</label>
-        <div id="tagInputs"></div>
-        <button type="button" onclick="addTagInput()" class="form-button secondary" style="margin-top: 10px;">Add Tag</button>
-      </div>
-
-      <div class="on-use-effects">
-        <label class="form-label">On Use Effects</label>
-        <div id="onUseInputs"></div>
-        <button type="button" onclick="addOnUseInput()" class="form-button secondary" style="margin-top: 10px;">Add On Use Effect</button>
-      </div>
-
-      <div class="shortcuts-help">
-        <h4>🎮 Keyword Shortcuts - Type these in text boxes:</h4>
-        <div class="shortcut-grid">
-          <div class="shortcut-item"><span class="shortcut-key">/s</span> <img src="images/KeyText/slow.png" alt="slow" class="keyword-preview"> <span style="color: rgb(203, 159, 110); font-weight: bold;" class="key-text">slow</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/h</span> <img src="images/KeyText/haste.png" alt="haste" class="keyword-preview"> <span style="color: rgb(0, 235, 195); font-weight: bold;" class="key-text">haste</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/he</span> <img src="images/KeyText/heal.png" alt="heal" class="keyword-preview"> <span style="color: rgb(143, 234, 49); font-weight: bold;" class="key-text">heal</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/r</span> <img src="images/KeyText/regen.png" alt="regen" class="keyword-preview"> <span style="color: rgb(143, 234, 49); font-weight: bold;" class="key-text">regen</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/p</span> <img src="images/KeyText/poison.png" alt="poison" class="keyword-preview"> <span style="color: rgb(13, 190, 79); font-weight: bold;" class="key-text">poison</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/b</span> <img src="images/KeyText/burn.png" alt="burn" class="keyword-preview"> <span style="color: rgb(253, 146, 63); font-weight: bold;" class="key-text">burn</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/c</span> <img src="images/KeyText/charge.png" alt="charge" class="keyword-preview"> <span style="color: rgb(0, 235, 195); font-weight: bold;" class="key-text">charge</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/cd</span> <img src="images/KeyText/cooldown.png" alt="cooldown" class="keyword-preview"> <span style="color: rgb(0, 235, 195); font-weight: bold;" class="key-text">cooldown</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/cr</span> <img src="images/KeyText/crit.png" alt="crit" class="keyword-preview"> <span style="color: rgb(244, 82, 60); font-weight: bold;" class="key-text">crit</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/d</span> <img src="images/KeyText/damage.png" alt="damage" class="keyword-preview"> <span style="color: rgb(244, 82, 60); font-weight: bold;" class="key-text">damage</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/de</span> <img src="images/KeyText/destroy.png" alt="destroy" class="keyword-preview"> <span style="color: rgb(198, 44, 66); font-weight: bold;" class="key-text">destroy</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/f</span> <img src="images/KeyText/freeze.png" alt="freeze" class="keyword-preview"> <span style="color: rgb(63, 200, 247); font-weight: bold;" class="key-text">freeze</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/l</span> <img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-preview"> <span style="color: rgb(181, 56, 115); font-weight: bold;" class="key-text">lifesteal</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/v</span> <img src="images/KeyText/value.png" alt="value" class="keyword-preview"> <span style="color: rgb(244, 208, 33); font-weight: bold;" class="key-text">value</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/t</span> <img src="images/KeyText/transform.png" alt="transform" class="keyword-preview"> <span style="color: rgb(90, 230, 233); font-weight: bold;" class="key-text">transform</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/sh</span> <img src="images/KeyText/sheild.png" alt="sheild" class="keyword-preview"> <span style="color: rgb(245, 208, 33); font-weight: bold;" class="key-text">sheild</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/mh</span> <img src="images/KeyText/maxhealth.png" alt="maxhealth" class="keyword-preview"> <span style="color: rgb(143, 234, 49); font-weight: bold;" class="key-text">maxhealth</span></div>
-        </div>
-      </div>
-
-      <div class="button-group">
-        <button onclick="createCard()" class="form-button">Generate Card</button>
-        <button onclick="clearAllCards()" class="form-button secondary">Clear All Cards</button>
-      </div>
-
-      <div class="export-import-section">
-        <h4>💾 Export & Import</h4>
-        <div class="export-import-buttons">
-          <button onclick="exportAllCardsAsData()" class="form-button export">Export All as Data</button>
-          <button onclick="exportAllCardsAsPNG()" class="form-button export">Export All as PNG</button>
-          <button onclick="triggerImport()" class="form-button secondary">Import Card Data</button>
-        </div>
-        <input type="file" id="importInput" accept=".json" class="hidden-input" onchange="importCardData(event)" />
-      </div>
-      
-      <div id="errorContainer"></div>
-    </div>
-
-    <div id="outputContainer"></div>
+      <div id="outputContainer"></div>
   </div>
 
   <!-- Footer -->
@@ -2202,7 +2212,7 @@
       }
     }
 
-    function createCard() {
+      function createCard(ispreview = false) {
       const imageInput = document.getElementById("imageInput");
       const itemName = document.getElementById("itemNameInput").value;
       const cooldownInput = document.getElementById("cooldownInput").value;
@@ -2494,8 +2504,12 @@
           visualContent.appendChild(cardWrapper);
           
           card.appendChild(visualContent);
-          outputContainer.appendChild(card);
-
+            outputContainer.appendChild(card);
+            if (ispreview) {
+                previewContainer.innerHTML = "";
+                previewContainer.appendChild(card);
+            }
+            
           // Modified setTimeout for fixed image height and positioning
           setTimeout(() => {
             // Image container now has fixed height of 150px and 35px top margin (set in CSS)
@@ -2977,6 +2991,14 @@ function createSaveButton(cardData) {
     return saveBtn;
 }
 
+
+      document.addEventListener('DOMContentLoaded', function () {
+          // Attach createCard to all input, select, and textarea elements
+          document.querySelectorAll('input, select, textarea').forEach(function (el) {
+              let eventType = (el.tagName.toLowerCase() === 'select') ? 'change' : 'input';
+              el.addEventListener(eventType, createCard);
+          });
+      });
 
 
     
