@@ -680,9 +680,9 @@
             </div>
         </div>
 
-        <!-- Debug Panel (will be shown when debugging) -->
-        <div id="debugContainer" style="background: rgba(180, 60, 60, 0.9); color: white; padding: 15px; border-radius: 8px; margin: 20px 0; display: none;">
-            <h4>🔧 Initializing...</h4>
+        <!-- Debug Panel (always visible with enhanced styling) -->
+        <div id="debugContainer" style="background: linear-gradient(135deg, rgba(180, 60, 60, 0.95) 0%, rgba(140, 40, 40, 0.95) 100%); color: white; padding: 20px; border-radius: 12px; margin: 20px 0; display: block; border: 2px solid rgba(255, 255, 255, 0.3); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);">
+            <h4>🔧 Initializing Debug System...</h4>
         </div>
 
         <!-- Messages -->
@@ -711,7 +711,7 @@
 
         // Debug state
         let supabase;
-        let debugMode = true;
+        let debugMode = true; // Always enabled
         let initializationSteps = [];
         
         // State
@@ -745,9 +745,8 @@
             const logEntry = { timestamp, step, message, data };
             initializationSteps.push(logEntry);
             
-            if (debugMode) {
-                console.log(`🔍 [${step}] ${message}`, data || '');
-            }
+            // Always log to console since debugMode is always true
+            console.log(`🔍 [${step}] ${message}`, data || '');
             
             updateDebugDisplay();
         }
@@ -755,15 +754,33 @@
         function updateDebugDisplay() {
             const debugContainer = document.getElementById('debugContainer');
             if (debugContainer) {
+                // Show the debug container by default
+                debugContainer.style.display = 'block';
                 debugContainer.innerHTML = `
-                    <h4>🔧 Debug Information</h4>
-                    <div style="max-height: 200px; overflow-y: auto; font-size: 12px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px;">
-                        ${initializationSteps.map(step => 
-                            `<div><strong>[${step.step}]</strong> ${step.message} ${step.data ? JSON.stringify(step.data) : ''}</div>`
+                    <h4>🔧 Debug Information (Live Updates)</h4>
+                    <div style="max-height: 300px; overflow-y: auto; font-size: 11px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; line-height: 1.2;">
+                        ${initializationSteps.slice(-20).map(step => 
+                            `<div style="margin-bottom: 2px;"><strong style="color: #ffcc00;">[${step.step}]</strong> <span style="color: #ccc;">${step.message}</span> ${step.data ? `<span style="color: #88ff88;">${JSON.stringify(step.data).substring(0, 100)}${JSON.stringify(step.data).length > 100 ? '...' : ''}</span>` : ''}</div>`
                         ).join('')}
+                    </div>
+                    <div style="text-align: center; margin-top: 10px;">
+                        <button onclick="clearDebugLog()" style="background: #666; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Clear Log</button>
+                        <button onclick="toggleDebugDetail()" style="background: #666; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-left: 5px;">Toggle Detail</button>
                     </div>
                 `;
             }
+        }
+        
+        function clearDebugLog() {
+            initializationSteps = [];
+            updateDebugDisplay();
+            debugLog('DEBUG', 'Debug log cleared by user');
+        }
+        
+        let showDetailedDebug = true;
+        function toggleDebugDetail() {
+            showDetailedDebug = !showDetailedDebug;
+            debugLog('DEBUG', `Debug detail mode: ${showDetailedDebug ? 'ON' : 'OFF'}`);
         }
         
         function checkSupabaseAvailability() {
@@ -852,10 +869,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             debugLog('INIT', 'DOM Content Loaded, starting initialization...');
             
-            // Show debug panel
+            // Ensure debug panel is visible immediately
             const debugContainer = document.getElementById('debugContainer');
             if (debugContainer) {
                 debugContainer.style.display = 'block';
+                debugLog('DEBUG_PANEL', 'Debug panel made visible');
             }
             
             // Wait for external scripts with multiple retry attempts
@@ -883,12 +901,8 @@
                             setupEventListeners();
                             loadItems();
                             
-                            // Hide debug panel after successful init (optional)
-                            setTimeout(() => {
-                                if (debugContainer && !debugMode) {
-                                    debugContainer.style.display = 'none';
-                                }
-                            }, 3000);
+                            // Keep debug panel visible permanently
+                            debugLog('DEBUG_FINAL', 'Debug panel will remain visible for monitoring');
                         } else {
                             debugLog('ERROR', 'Connection test failed', result.error);
                             showError(`Database connection test failed: ${result.error}`);
@@ -2131,7 +2145,10 @@ Created: ${new Date(cardData.timestamp).toLocaleDateString()}
         }
 
         function triggerImport() {
-            document.getElementById('importInput').click();
+            const importInput = document.getElementById('importInput');
+            if (importInput) {
+                importInput.click();
+            }
         }
 
         function importCardData(event) {
