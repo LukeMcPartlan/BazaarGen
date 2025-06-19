@@ -5,25 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Bazaar Items Browser - View Community Creations | BazaarGen</title>
     
-    <!-- External Libraries with fallback -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2" onload="console.log('Supabase CDN 1 loaded successfully')" onerror="console.error('Supabase CDN 1 failed, trying fallback'); loadSupabaseFallback()"></script>
-    
     <script>
-        // Fallback CDN loader
-        function loadSupabaseFallback() {
+        // Add immediate error tracking
+        window.addEventListener('error', function(e) {
+            console.error('🚨 JavaScript Error Detected:');
+            console.error('Message:', e.message);
+            console.error('Filename:', e.filename);
+            console.error('Line:', e.lineno);
+            console.error('Column:', e.colno);
+            console.error('Error object:', e.error);
+        });
+        
+        console.log('🔍 Error tracking enabled - any JavaScript errors will be logged with details');
+        
+        // Define fallback functions FIRST before any script tags that might call them
+        window.loadSupabaseFallback = function() {
             console.log('Loading Supabase fallback CDN...');
             const script = document.createElement('script');
             script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
             script.onload = () => console.log('Supabase fallback CDN loaded successfully');
             script.onerror = () => {
                 console.error('All Supabase CDNs failed, loading mock version');
-                loadMockSupabase();
+                window.loadMockSupabase();
             };
             document.head.appendChild(script);
-        }
+        };
         
         // Mock Supabase for testing when CDN fails
-        function loadMockSupabase() {
+        window.loadMockSupabase = function() {
             console.log('Creating mock Supabase for testing...');
             window.supabase = {
                 createClient: (url, key) => {
@@ -35,9 +44,9 @@
                                 select: (columns) => {
                                     console.log('Mock select columns:', columns);
                                     return {
-                                        eq: (col, val) => ({ data: mockItems, error: null }),
-                                        or: (condition) => ({ data: mockItems, error: null }),
-                                        order: (col, opts) => ({ data: mockItems, error: null })
+                                        eq: (col, val) => ({ data: window.mockItems, error: null }),
+                                        or: (condition) => ({ data: window.mockItems, error: null }),
+                                        order: (col, opts) => ({ data: window.mockItems, error: null })
                                     };
                                 }
                             };
@@ -85,8 +94,13 @@
             ];
             
             console.log('Mock Supabase setup complete with sample data');
-        }
+        };
+        
+        console.log('✅ All fallback functions defined successfully');
     </script>
+    
+    <!-- External Libraries with fallback - NOW loaded after functions are defined -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2" onload="console.log('Supabase CDN 1 loaded successfully')" onerror="console.error('Supabase CDN 1 failed, trying fallback'); window.loadSupabaseFallback()"></script>
     
     <style>
         * {
@@ -1200,7 +1214,7 @@
                 validatedScalingValues.burn = validateScalingValue(scalingValues.burn, 'Burn');
                 debugLog('CREATE_CARD_SCALING_OK', `Scaling validation complete`, validatedScalingValues);
             } catch (error) {
-                debugLog('CREATE_CARD_SCALING_ERROR', `Scaling validation error: ${error.message}`);
+                debugLog('CREATE_CARD_SCALING_ERROR', 'Scaling validation error: ' + error.message);
                 console.error('Scaling validation error:', error.message);
                 // Continue with empty values if validation fails
             }
@@ -1222,9 +1236,9 @@
                     formattedCooldown = formatCooldown(cooldownInput);
                     debugLog('CREATE_CARD_COOLDOWN_OK', `Cooldown formatted: ${formattedCooldown}`);
                 } catch (error) {
-                    debugLog('CREATE_CARD_COOLDOWN_ERROR', `Cooldown validation error: ${error.message}`);
+                    debugLog('CREATE_CARD_COOLDOWN_ERROR', 'Cooldown validation error: ' + error.message);
                     console.error('Cooldown validation error:', error.message);
-                    formattedCooldown = cooldownInput; // Use as-is if validation fails
+                    formattedCooldown = cooldownInput; // Use original value if validation fails
                 }
             }
 
@@ -1235,9 +1249,9 @@
                     validatedAmmo = validateAmmo(ammo);
                     debugLog('CREATE_CARD_AMMO_OK', `Ammo validated: ${validatedAmmo}`);
                 } catch (error) {
-                    debugLog('CREATE_CARD_AMMO_ERROR', `Ammo validation error: ${error.message}`);
+                    debugLog('CREATE_CARD_AMMO_ERROR', 'Ammo validation error: ' + error.message);
                     console.error('Ammo validation error:', error.message);
-                    validatedAmmo = ammo; // Use as-is if validation fails
+                    validatedAmmo = ammo; // Use original value if validation fails
                 }
             }
 
@@ -1248,9 +1262,9 @@
                     validatedCrit = validateAmmo(crit);
                     debugLog('CREATE_CARD_CRIT_OK', `Crit validated: ${validatedCrit}`);
                 } catch (error) {
-                    debugLog('CREATE_CARD_CRIT_ERROR', `Crit validation error: ${error.message}`);
+                    debugLog('CREATE_CARD_CRIT_ERROR', 'Crit validation error: ' + error.message);
                     console.error('Crit validation error:', error.message);
-                    validatedCrit = crit; // Use as-is if validation fails
+                    validatedCrit = crit; // Use original value if validation fails
                 }
             }
 
@@ -1261,9 +1275,9 @@
                     validatedMulticast = validateAmmo(multicast);
                     debugLog('CREATE_CARD_MULTICAST_OK', `Multicast validated: ${validatedMulticast}`);
                 } catch (error) {
-                    debugLog('CREATE_CARD_MULTICAST_ERROR', `Multicast validation error: ${error.message}`);
+                    debugLog('CREATE_CARD_MULTICAST_ERROR', 'Multicast validation error: ' + error.message);
                     console.error('Multicast validation error:', error.message);
-                    validatedMulticast = multicast; // Use as-is if validation fails
+                    validatedMulticast = multicast; // Use original value if validation fails
                 }
             }
 
@@ -2069,20 +2083,20 @@
 
         // Item actions
         function viewItemDetails(cardData, itemId) {
-            const details = `
-Item: ${cardData.itemName || 'Unnamed'}
-Hero: ${cardData.hero || 'Unknown'}
-Size: ${cardData.itemSize || 'Unknown'}
-Rarity: ${cardData.border || 'Unknown'}
-${cardData.cooldown ? `Cooldown: ${cardData.cooldown}s` : ''}
-${cardData.ammo ? `Ammo: ${cardData.ammo}` : ''}
-${cardData.crit ? `Crit: ${cardData.crit}%` : ''}
-${cardData.multicast ? `Multicast: ${cardData.multicast}` : ''}
-${cardData.passiveEffect ? `\nPassive: ${cardData.passiveEffect}` : ''}
-${cardData.onUseEffects?.length ? `\nOn Use: ${cardData.onUseEffects.join(', ')}` : ''}
-${cardData.tags?.length ? `\nTags: ${cardData.tags.join(', ')}` : ''}
-Created: ${new Date(cardData.timestamp).toLocaleDateString()}
-            `.trim();
+            const details = [
+                "Item: " + (cardData.itemName || 'Unnamed'),
+                "Hero: " + (cardData.hero || 'Unknown'),
+                "Size: " + (cardData.itemSize || 'Unknown'),
+                "Rarity: " + (cardData.border || 'Unknown'),
+                cardData.cooldown ? "Cooldown: " + cardData.cooldown + "s" : "",
+                cardData.ammo ? "Ammo: " + cardData.ammo : "",
+                cardData.crit ? "Crit: " + cardData.crit + "%" : "",
+                cardData.multicast ? "Multicast: " + cardData.multicast : "",
+                cardData.passiveEffect ? "\nPassive: " + cardData.passiveEffect : "",
+                cardData.onUseEffects && cardData.onUseEffects.length ? "\nOn Use: " + cardData.onUseEffects.join(', ') : "",
+                cardData.tags && cardData.tags.length ? "\nTags: " + cardData.tags.join(', ') : "",
+                "Created: " + new Date(cardData.timestamp).toLocaleDateString()
+            ].filter(line => line !== "").join('\n');
 
             alert(details);
             // TODO: Implement proper modal view
