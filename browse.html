@@ -794,16 +794,16 @@
             hideMessages();
 
             try {
-                console.log('Loading items from database...');
+                debugLog('LOAD', 'Loading all items from database...');
                 
+                // Simple query - just get all items
                 let query = supabase
                     .from('items')
                     .select(`
                         id,
                         created_at,
                         contest_number,
-                        item_data,
-                        users!items_user_id_fkey(alias)
+                        item_data
                     `);
 
                 // Apply filters
@@ -813,15 +813,16 @@
                 // Apply sorting
                 query = applySorting(query, filters.sortBy);
 
+                debugLog('QUERY', 'Executing items query...');
                 const { data, error } = await query;
 
                 if (error) {
                     throw error;
                 }
 
+                debugLog('SUCCESS', `Loaded ${data.length} items successfully`);
+
                 allItems = data || [];
-                console.log(`Loaded ${allItems.length} items`);
-                
                 displayedItems = [];
                 currentPage = 0;
                 
@@ -829,21 +830,13 @@
                 loadMoreItems();
 
             } catch (error) {
+                debugLog('ERROR', 'Failed to load items', error.message);
                 console.error('Error loading items:', error);
                 showError('Failed to load items: ' + error.message);
             } finally {
                 isLoading = false;
                 showLoading(false);
             }
-        }
-
-        function getFilters() {
-            return {
-                sortBy: sortBy.value,
-                hero: heroFilter.value,
-                search: searchInput.value.trim(),
-                contest: contestFilter.value
-            };
         }
 
         function applyFilters(query, filters) {
@@ -856,7 +849,32 @@
             }
 
             if (filters.search) {
-                query = query.or(`item_data->>name.ilike.%${filters.search}%,users.alias.ilike.%${filters.search}%`);
+                query = query.ilike('item_data->>name', `%${filters.search}%`);
+            }
+
+            return query;
+        }
+
+        function getFilters() {
+            return {
+                sortBy: sortBy.value,
+                hero: heroFilter.value,
+                search: searchInput.value.trim(),
+                contest: contestFilter.value
+            };
+        }
+
+        function applyFilters(query, filters, includeUserFilters = true) {
+            if (filters.hero) {
+                query = query.eq('item_data->>hero', filters.hero);
+            }
+
+            if (filters.contest !== '') {
+                query = query.eq('contest_number', parseInt(filters.contest));
+            }
+
+            if (filters.search) {
+                query = query.ilike('item_data->>name', `%${filters.search}%`);
             }
 
             return query;
@@ -896,7 +914,6 @@
 
         function createItemCard(item) {
             const itemData = item.item_data || {};
-            const creator = item.users?.alias || 'Anonymous';
             const createdDate = new Date(item.created_at).toLocaleDateString();
 
             const card = document.createElement('div');
@@ -906,7 +923,7 @@
                 <div class="item-header">
                     <div class="item-title">${escapeHtml(itemData.name || 'Unnamed Item')}</div>
                     <div class="item-creator">
-                        by ${escapeHtml(creator)} • ${createdDate}
+                        Created: ${createdDate}
                         ${item.contest_number > 0 ? ` • Contest ${item.contest_number}` : ''}
                     </div>
                 </div>
@@ -933,6 +950,12 @@
                         <div class="item-detail-row">
                             <span>Cooldown:</span>
                             <span>${escapeHtml(itemData.cooldown)}s</span>
+                        </div>
+                    ` : ''}
+                    ${itemData.ammo ? `
+                        <div class="item-detail-row">
+                            <span>Ammo:</span>
+                            <span>${escapeHtml(itemData.ammo)}</span>
                         </div>
                     ` : ''}
                 </div>
