@@ -8,8 +8,6 @@
     <!-- External Libraries with fallback -->
     <script src="https://unpkg.com/@supabase/supabase-js@2" onload="console.log('Supabase CDN 1 loaded successfully')" onerror="console.error('Supabase CDN 1 failed, trying fallback'); loadSupabaseFallback()"></script>
     
-    </div>
-
     <script>
         // Fallback CDN loader
         function loadSupabaseFallback() {
@@ -61,7 +59,10 @@
                         rarity: 'gold',
                         cooldown: '5.0',
                         passive_effect: 'Test passive effect',
-                        on_use_effects: ['Test on use effect']
+                        on_use_effects: ['Test on use effect'],
+                        image_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+                        tags: ['test'],
+                        scaling_values: { damage: '10', heal: '5' }
                     },
                     users: { alias: 'TestUser' }
                 },
@@ -75,7 +76,9 @@
                         item_size: 'Large',
                         rarity: 'diamond',
                         ammo: '3',
-                        passive_effect: 'Blocks incoming damage'
+                        passive_effect: 'Blocks incoming damage',
+                        image_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+                        tags: ['defense']
                     },
                     users: { alias: 'TestCreator' }
                 }
@@ -271,68 +274,30 @@
 
         /* Items Grid */
         .items-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            display: flex;
+            flex-wrap: wrap;
             gap: 20px;
+            justify-content: center;
             margin-bottom: 30px;
         }
 
-        .item-card {
-            background: linear-gradient(135deg, rgb(101, 84, 63) 0%, rgb(89, 72, 51) 100%);
-            border: 2px solid rgb(251, 225, 183);
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
+        /* Card Styles - Import from main page */
+        .card {
+            position: relative;
+            margin: 10px;
+            background: transparent;
+        }
+
+        .card-wrapper {
             position: relative;
         }
 
-        .item-card:hover {
-            transform: translateY(-5px);
-            border-color: rgb(218, 165, 32);
-        }
-
-        .item-header {
-            margin-bottom: 15px;
-        }
-
-        .item-title {
-            font-size: 1.4em;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .item-creator {
-            color: rgb(201, 175, 133);
-            font-size: 0.9em;
-        }
-
-        .item-image {
-            width: 100%;
-            max-width: 120px;
-            height: 120px;
-            object-fit: cover;
-            border-radius: 8px;
-            border: 2px solid rgb(218, 165, 32);
-            margin-bottom: 15px;
-        }
-
-        .item-details {
-            margin-bottom: 15px;
-        }
-
-        .item-detail-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            font-size: 0.9em;
-        }
-
-        .item-tags {
+        .tags-container {
             display: flex;
             flex-wrap: wrap;
             gap: 5px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
+            justify-content: center;
         }
 
         .item-tag {
@@ -340,68 +305,245 @@
             color: rgb(152, 168, 254);
             padding: 4px 8px;
             border-radius: 4px;
-            font-size: 0.8em;
-            font-weight: bold;
-        }
-
-        .item-effects {
-            background: rgba(37, 26, 12, 0.5);
-            border: 1px solid rgb(74, 60, 46);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 15px;
-        }
-
-        .effect-title {
-            color: rgb(218, 165, 32);
-            font-weight: bold;
-            margin-bottom: 8px;
-            font-size: 0.9em;
-            text-transform: uppercase;
-        }
-
-        .effect-text {
-            font-size: 0.9em;
-            line-height: 1.4;
-        }
-
-        .item-actions {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-
-        .action-btn {
-            padding: 8px 15px;
-            border: none;
-            border-radius: 6px;
-            font-weight: bold;
             font-size: 12px;
-            cursor: pointer;
-            text-transform: uppercase;
-            transition: all 0.3s ease;
+            font-weight: bold;
         }
 
-        .btn-view {
-            background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%);
+        .card-visual-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .image-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin-top: 35px;
+            overflow: visible;
+        }
+
+        .image-clip-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            border-radius: 8px;
+        }
+
+        .uploaded-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        .card-frame {
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            width: calc(100% + 30px);
+            height: calc(100% + 30px);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .card-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .card-content {
+            background-color: rgba(251, 225, 183, 0.95);
             color: rgb(37, 26, 12);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            width: 250px;
+            margin-top: 10px;
         }
 
-        .btn-upvote {
-            background: linear-gradient(135deg, rgb(46, 125, 50) 0%, rgb(27, 94, 32) 100%);
+        .text-section {
+            padding: 8px 12px;
+            font-size: 14px;
+            line-height: 1.3;
+        }
+
+        .hero-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: bold;
+            background-color: rgba(218, 165, 32, 0.2);
+        }
+
+        .item-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .hero-header img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .on-use-section {
+            background-color: rgba(218, 165, 32, 0.1);
+        }
+
+        .on-use-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .on-use-line:last-child {
+            margin-bottom: 0;
+        }
+
+        .on-use-line img {
+            width: 16px;
+            height: 16px;
+        }
+
+        .crit-line-hr {
+            border: none;
+            border-top: 2px solid rgb(244, 82, 60);
+            margin: 8px 0;
+        }
+
+        .crit-line {
+            text-align: center;
+            font-weight: bold;
+            color: rgb(244, 82, 60);
+        }
+
+        .cooldown-section {
+            position: absolute;
+            right: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(37, 26, 12, 0.9);
+            color: rgb(251, 225, 183);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+            z-index: 5;
+        }
+
+        .sec-text {
+            font-size: 10px;
+            display: block;
+        }
+
+        .cooldown-border {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 130%;
+            height: 130%;
+            transform: translate(calc(-50% + 2px), -50%);
+            pointer-events: none;
+            z-index: 0;
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+
+        .ammo-section {
+            position: absolute;
+            left: -40px;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(37, 26, 12, 0.9);
+            color: rgb(251, 225, 183);
+            padding: 8px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            z-index: 5;
+        }
+
+        .ammo-section img {
+            width: 20px;
+            height: 20px;
+        }
+
+        .scaling-values-container {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150%;
+            display: flex;
+            gap: 2px;
+            z-index: 10;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 0 5px;
+        }
+
+        .scaling-value {
+            background-color: #333;
             color: white;
+            padding: 6px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: bold;
+            font-family: Arial, sans-serif;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            min-width: 28px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+            flex: 1;
+            max-width: 45px;
         }
 
-        .upvote-count {
+        .scaling-value.heal { background-color: rgb(143, 234, 49); }
+        .scaling-value.regen { background-color: rgb(100, 255, 60); }
+        .scaling-value.shield { background-color: rgb(245, 208, 33); }
+        .scaling-value.damage { background-color: rgb(244, 82, 60); }
+        .scaling-value.poison { background-color: rgb(13, 190, 79); }
+        .scaling-value.burn { background-color: rgb(253, 146, 63); }
+
+        .keyword-icon {
+            width: 16px;
+            height: 18px;
+            display: inline;
+            vertical-align: middle;
+            margin: 0 2px;
+        }
+
+        .key-text {
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            font-weight: bold;
+        }
+
+        .card-controls {
             position: absolute;
             top: 10px;
             right: 10px;
+            z-index: 20;
+            display: flex;
+            gap: 5px;
+        }
+
+        .card-controls button {
             background: rgba(37, 26, 12, 0.8);
             color: rgb(218, 165, 32);
-            padding: 4px 8px;
+            border: none;
             border-radius: 4px;
-            font-size: 0.8em;
-            font-weight: bold;
+            padding: 4px 8px;
+            cursor: pointer;
+            font-size: 12px;
         }
 
         /* Messages */
@@ -449,7 +591,7 @@
             }
             
             .items-grid {
-                grid-template-columns: 1fr;
+                justify-content: center;
             }
             
             .nav-menu {
@@ -542,18 +684,17 @@
         <div id="debugContainer" style="background: rgba(180, 60, 60, 0.9); color: white; padding: 15px; border-radius: 8px; margin: 20px 0; display: none;">
             <h4>🔧 Initializing...</h4>
         </div>
+
         <!-- Messages -->
         <div id="errorMessage" class="error" style="display: none;"></div>
         <div id="loadingMessage" class="loading" style="display: none;">Loading items...</div>
-            No items found. Try adjusting your filters.
-        </div>
-
         <div id="noResults" class="no-results" style="display: none;">
             No items found. Try adjusting your filters.
         </div>
-        <!-- Items Grid -->
 
+        <!-- Items Grid -->
         <div id="itemsGrid" class="items-grid"></div>
+
         <!-- Load More -->
         <div class="load-more-container">
             <button id="loadMoreBtn" class="btn" style="display: none;">Load More Items</button>
@@ -561,6 +702,7 @@
                 You've seen all available items!
             </div>
         </div>
+    </div>
 
     <script>
         // Configuration
@@ -572,6 +714,32 @@
         let debugMode = true;
         let initializationSteps = [];
         
+        // State
+        let allItems = [];
+        let displayedItems = [];
+        let currentPage = 0;
+        const ITEMS_PER_PAGE = 20;
+        const ITEMS_PER_LOAD = 5;
+        let isLoading = false;
+        let cardsData = []; // For compatibility
+
+        // DOM Elements
+        const itemsGrid = document.getElementById('itemsGrid');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const noResults = document.getElementById('noResults');
+        const totalItemsSpan = document.getElementById('totalItems');
+        const showingItemsSpan = document.getElementById('showingItems');
+        const loadingText = document.getElementById('loadingText');
+        const endMessage = document.getElementById('endMessage');
+
+        // Filter elements
+        const sortBy = document.getElementById('sortBy');
+        const heroFilter = document.getElementById('heroFilter');
+        const searchInput = document.getElementById('searchInput');
+        const contestFilter = document.getElementById('contestFilter');
+
         function debugLog(step, message, data = null) {
             const timestamp = new Date().toISOString();
             const logEntry = { timestamp, step, message, data };
@@ -581,7 +749,6 @@
                 console.log(`🔍 [${step}] ${message}`, data || '');
             }
             
-            // Update debug display
             updateDebugDisplay();
         }
         
@@ -681,37 +848,9 @@
             }
         }
 
-        // State
-        let allItems = [];
-        let displayedItems = [];
-        let currentPage = 0;
-        const ITEMS_PER_PAGE = 20;
-        const ITEMS_PER_LOAD = 5;
-        let isLoading = false;
-
-        // DOM Elements
-        const itemsGrid = document.getElementById('itemsGrid');
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        const loadingMessage = document.getElementById('loadingMessage');
-        const errorMessage = document.getElementById('errorMessage');
-        const noResults = document.getElementById('noResults');
-        const totalItemsSpan = document.getElementById('totalItems');
-        const showingItemsSpan = document.getElementById('showingItems');
-        const loadingText = document.getElementById('loadingText');
-        const endMessage = document.getElementById('endMessage');
-
-        // Filter elements
-        const sortBy = document.getElementById('sortBy');
-        const heroFilter = document.getElementById('heroFilter');
-        const searchInput = document.getElementById('searchInput');
-        const contestFilter = document.getElementById('contestFilter');
-
         // Initialize with comprehensive checks
         document.addEventListener('DOMContentLoaded', function() {
             debugLog('INIT', 'DOM Content Loaded, starting initialization...');
-            
-            // Add CSS for card display
-            updateItemsGridCSS();
             
             // Show debug panel
             const debugContainer = document.getElementById('debugContainer');
@@ -799,7 +938,6 @@
             try {
                 debugLog('LOAD', 'Loading all items from database...');
                 
-                // Simple query - just get all items
                 let query = supabase
                     .from('items')
                     .select(`
@@ -824,20 +962,15 @@
                 }
 
                 debugLog('SUCCESS', `Loaded ${data.length} items successfully`);
-                debugLog('DATA', 'Sample item data', data[0]);
 
                 allItems = data || [];
                 displayedItems = [];
                 currentPage = 0;
                 
-                // Clear the grid before adding new items
                 itemsGrid.innerHTML = '';
                 debugLog('CLEAR', 'Cleared items grid');
                 
                 updateStats();
-                
-                // Force load initial items
-                debugLog('INITIAL', 'Starting initial item load...');
                 loadMoreItems();
 
             } catch (error) {
@@ -850,22 +983,6 @@
             }
         }
 
-        function applyFilters(query, filters) {
-            if (filters.hero) {
-                query = query.eq('item_data->>hero', filters.hero);
-            }
-
-            if (filters.contest !== '') {
-                query = query.eq('contest_number', parseInt(filters.contest));
-            }
-
-            if (filters.search) {
-                query = query.ilike('item_data->>name', `%${filters.search}%`);
-            }
-
-            return query;
-        }
-
         function getFilters() {
             return {
                 sortBy: sortBy.value,
@@ -875,7 +992,7 @@
             };
         }
 
-        function applyFilters(query, filters, includeUserFilters = true) {
+        function applyFilters(query, filters) {
             if (filters.hero) {
                 query = query.eq('item_data->>hero', filters.hero);
             }
@@ -899,7 +1016,6 @@
                     return query.order('created_at', { ascending: true });
                 case 'upvotes':
                 case 'upvotes_asc':
-                    // For now, just sort by creation date since upvotes need complex query
                     return query.order('created_at', { ascending: sortValue === 'upvotes_asc' });
                 default:
                     return query.order('created_at', { ascending: false });
@@ -923,20 +1039,17 @@
             newItems.forEach((item, index) => {
                 debugLog('CARD', `Creating card ${startIndex + index}`, {
                     id: item.id,
-                    name: item.item_data?.name,
-                    hasImage: !!item.item_data?.image_data,
-                    hero: item.item_data?.hero,
-                    rarity: item.item_data?.rarity
+                    name: item.item_data?.name
                 });
 
                 try {
-                    const itemCard = createItemCard(item);
+                    const itemCard = createCardFromDatabaseItem(item);
                     if (itemCard) {
                         itemsGrid.appendChild(itemCard);
                         displayedItems.push(item);
                         debugLog('CARD', `Successfully added card to grid for item: ${item.item_data?.name || 'Unnamed'}`);
                     } else {
-                        debugLog('ERROR', `createItemCard returned null for item: ${item.id}`);
+                        debugLog('ERROR', `createCardFromDatabaseItem returned null for item: ${item.id}`);
                     }
                 } catch (error) {
                     debugLog('ERROR', `Failed to create card for item ${item.id}`, error.message);
@@ -948,80 +1061,350 @@
             updateStats();
             updateLoadMoreButton();
             
-            // Force a check if we need to load more immediately
             if (displayedItems.length < ITEMS_PER_PAGE && displayedItems.length < allItems.length) {
                 debugLog('RENDER', 'Need to load more items to reach minimum page size');
                 setTimeout(() => loadMoreItems(), 100);
             }
         }
 
-        function createItemCard(item) {
-            debugLog('CREATE', `Creating card for item: ${item.id}`, {
-                name: item.item_data?.name,
-                hasItemData: !!item.item_data,
-                itemDataKeys: item.item_data ? Object.keys(item.item_data) : []
-            });
-
+        // Modified createCard function to work with database items
+        function createCardFromDatabaseItem(item) {
             const itemData = item.item_data || {};
-            const createdDate = new Date(item.created_at).toLocaleDateString();
+            
+            // Create card data object compatible with original createCard function
+            const cardData = {
+                itemName: itemData.name || 'Unnamed Item',
+                hero: itemData.hero || 'Neutral',
+                cooldown: itemData.cooldown || '',
+                ammo: itemData.ammo || '',
+                crit: itemData.crit || '',
+                multicast: itemData.multicast || '',
+                itemSize: itemData.item_size || 'Medium',
+                border: itemData.rarity || 'gold',
+                passiveEffect: itemData.passive_effect || '',
+                onUseEffects: itemData.on_use_effects || [],
+                tags: itemData.tags || [],
+                scalingValues: itemData.scaling_values || {},
+                imageData: itemData.image_data || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+                timestamp: item.created_at
+            };
 
-            // Validate essential data
-            if (!itemData.name && !itemData.hero && !itemData.image_data) {
-                debugLog('WARNING', `Item ${item.id} has minimal data, creating basic card`);
+            return createCard(cardData, item.id);
+        }
+
+        // Modified createCard function to accept cardData and optional itemId
+        function createCard(cardData, itemId = null) {
+            const itemName = cardData.itemName;
+            const cooldownInput = cardData.cooldown;
+            const hero = cardData.hero;
+            const ammo = cardData.ammo;
+            const crit = cardData.crit;
+            const multicast = cardData.multicast;
+            const itemSize = cardData.itemSize;
+            const border = cardData.border;
+            const passiveInput = cardData.passiveEffect;
+            const imageData = cardData.imageData;
+            const scalingValues = cardData.scalingValues || {};
+
+            // Validate scaling values
+            const validatedScalingValues = {};
+            try {
+                validatedScalingValues.heal = validateScalingValue(scalingValues.heal, 'Heal');
+                validatedScalingValues.regen = validateScalingValue(scalingValues.regen, 'Regen');
+                validatedScalingValues.shield = validateScalingValue(scalingValues.shield, 'Shield');
+                validatedScalingValues.damage = validateScalingValue(scalingValues.damage, 'Damage');
+                validatedScalingValues.poison = validateScalingValue(scalingValues.poison, 'Poison');
+                validatedScalingValues.burn = validateScalingValue(scalingValues.burn, 'Burn');
+            } catch (error) {
+                console.error('Scaling validation error:', error.message);
+                // Continue with empty values if validation fails
             }
 
-            // Create the main card container similar to your original
+            // Check for on use effects
+            const hasOnUseEffects = cardData.onUseEffects && cardData.onUseEffects.some(effect => effect.trim());
+            const hasCooldown = cooldownInput && cooldownInput.trim();
+
+            // Validate and format cooldown
+            let formattedCooldown = '';
+            if (cooldownInput && cooldownInput.trim()) {
+                try {
+                    formattedCooldown = formatCooldown(cooldownInput);
+                } catch (error) {
+                    console.error('Cooldown validation error:', error.message);
+                    formattedCooldown = cooldownInput; // Use as-is if validation fails
+                }
+            }
+
+            // Validate ammo
+            let validatedAmmo = '';
+            if (ammo && ammo.trim()) {
+                try {
+                    validatedAmmo = validateAmmo(ammo);
+                } catch (error) {
+                    console.error('Ammo validation error:', error.message);
+                    validatedAmmo = ammo; // Use as-is if validation fails
+                }
+            }
+
+            // Validate crit
+            let validatedCrit = '';
+            if (crit && crit.trim()) {
+                try {
+                    validatedCrit = validateAmmo(crit);
+                } catch (error) {
+                    console.error('Crit validation error:', error.message);
+                    validatedCrit = crit; // Use as-is if validation fails
+                }
+            }
+
+            // Validate multicast
+            let validatedMulticast = '';
+            if (multicast && multicast.trim()) {
+                try {
+                    validatedMulticast = validateAmmo(multicast);
+                } catch (error) {
+                    console.error('Multicast validation error:', error.message);
+                    validatedMulticast = multicast; // Use as-is if validation fails
+                }
+            }
+
+            const borderColor = getBorderColor(border);
             const card = document.createElement("div");
-            card.className = "card"; // Use same class as original
-            card.setAttribute('data-item-id', item.id);
-            card.style.border = "2px solid red"; // Temporary debug border
-            card.style.minHeight = "200px"; // Ensure card is visible
-            card.style.backgroundColor = "rgba(255,255,255,0.1)"; // Temporary debug background
+            card.className = "card";
 
-            debugLog('CARD_ELEMENT', `Created card element for ${itemData.name || 'Unnamed'}`);
-
-            // Add a simple test content first to ensure visibility
-            const testDiv = document.createElement("div");
-            testDiv.style.padding = "20px";
-            testDiv.style.color = "white";
-            testDiv.style.fontSize = "16px";
-            testDiv.innerHTML = `
-                <h3>TEST CARD: ${itemData.name || 'Unnamed Item'}</h3>
-                <p>ID: ${item.id}</p>
-                <p>Hero: ${itemData.hero || 'Unknown'}</p>
-                <p>Created: ${createdDate}</p>
-                <p>Has Image: ${itemData.image_data ? 'Yes' : 'No'}</p>
-            `;
-            
-            card.appendChild(testDiv);
-            
-            debugLog('CARD_CONTENT', `Added test content to card for ${itemData.name || 'Unnamed'}`);
-
-            // Add card controls (view/upvote buttons)
+            // Add card controls for browser view
             const cardControls = document.createElement("div");
             cardControls.className = "card-controls";
-            cardControls.style.position = "absolute";
-            cardControls.style.top = "10px";
-            cardControls.style.right = "10px";
-            cardControls.style.zIndex = "10";
             
             const viewBtn = document.createElement("button");
             viewBtn.innerHTML = "👁️";
             viewBtn.title = "View item details";
-            viewBtn.style.margin = "0 5px";
-            viewBtn.onclick = () => viewItemDetails(item);
+            viewBtn.onclick = function() {
+                viewItemDetails(cardData, itemId);
+            };
             
             const upvoteBtn = document.createElement("button");
             upvoteBtn.innerHTML = "👍";
             upvoteBtn.title = "Upvote this item";
-            upvoteBtn.style.margin = "0 5px";
-            upvoteBtn.onclick = () => upvoteItem(item.id);
+            upvoteBtn.onclick = function() {
+                upvoteItem(itemId);
+            };
             
             cardControls.appendChild(viewBtn);
             cardControls.appendChild(upvoteBtn);
             card.appendChild(cardControls);
 
-            debugLog('CARD_COMPLETE', `Completed card creation for ${itemData.name || 'Unnamed'}`);
+            const imageContainer = document.createElement("div");
+            imageContainer.className = "image-container";
+            imageContainer.style.border = `3px solid ${borderColor}`;
+
+            // Create a clipping wrapper for the uploaded image
+            const imageClipWrapper = document.createElement("div");
+            imageClipWrapper.className = "image-clip-wrapper";
+
+            const img = document.createElement("img");
+            img.className = "uploaded-image";
+            img.src = imageData;
+            imageClipWrapper.appendChild(img);
+            imageContainer.appendChild(imageClipWrapper);
+
+            // Add frame overlay
+            const frame = createFrameElement(border, itemSize);
+            imageContainer.appendChild(frame);
+
+            // Add scaling values if any exist
+            const scalingContainer = createScalingValuesContainer(validatedScalingValues);
+            if (scalingContainer.children.length > 0) {
+                imageContainer.appendChild(scalingContainer);
+            }
+
+            // Create tags container
+            const tagsContainer = document.createElement("div");
+            tagsContainer.className = "tags-container";
+
+            // Always add item size as first tag
+            const itemSizeTag = document.createElement("span");
+            itemSizeTag.className = "item-tag";
+            itemSizeTag.textContent = itemSize;
+            tagsContainer.appendChild(itemSizeTag);
+
+            // Add additional tags
+            if (cardData.tags && Array.isArray(cardData.tags)) {
+                cardData.tags.forEach(tag => {
+                    if (tag && tag.trim()) {
+                        const tagElement = document.createElement("span");
+                        tagElement.className = "item-tag";
+                        tagElement.textContent = tag.trim();
+                        tagsContainer.appendChild(tagElement);
+                    }
+                });
+            }
+
+            const content = document.createElement("div");
+            content.className = "card-content";
+            content.style.border = `3px solid ${borderColor}`;
+
+            const topSection = document.createElement("div");
+            topSection.className = "text-section hero-header";
+            topSection.style.borderTop = `2px solid ${borderColor}`;
+            topSection.style.borderBottom = `2px solid ${borderColor}`;
+            const itemTitle = document.createElement("div");
+            itemTitle.className = "item-title";
+            itemTitle.textContent = itemName;
+            const heroImg = document.createElement("img");
+            heroImg.src = `images/${hero.toLowerCase()}.png`;
+            heroImg.alt = hero;
+            heroImg.onerror = function() { this.style.display = 'none'; };
+            topSection.appendChild(itemTitle);
+            topSection.appendChild(heroImg);
+            content.appendChild(topSection);
+
+            let onUseSection = null;
+            const effectsContainer = document.createElement("div");
+            
+            // Add on-use effects
+            if (cardData.onUseEffects && Array.isArray(cardData.onUseEffects)) {
+                cardData.onUseEffects.forEach(effect => {
+                    if (effect && effect.trim()) {
+                        const effectLine = document.createElement("div");
+                        effectLine.className = "on-use-line";
+
+                        const icon = document.createElement("img");
+                        icon.src = "images/use-arrow.png";
+                        icon.alt = "-";
+                        icon.onerror = function() { this.textContent = "→"; };
+
+                        const text = document.createElement("span");
+                        text.innerHTML = processKeywordText(effect);
+
+                        effectLine.appendChild(icon);
+                        effectLine.appendChild(text);
+                        effectsContainer.appendChild(effectLine);
+                    }
+                });
+            }
+
+            // Add multicast if > 1
+            if (validatedMulticast && parseInt(validatedMulticast) > 1) {
+                const icon = document.createElement("img");
+                icon.src = "images/use-arrow.png";
+                icon.alt = "-";
+                icon.onerror = function() { this.textContent = "→"; };
+
+                const text = document.createElement("span");
+                text.innerHTML = "Multicast: " + validatedMulticast;
+                const effectLine = document.createElement("div");
+                effectLine.className = "on-use-line";
+
+                effectLine.appendChild(icon);
+                effectLine.appendChild(text);
+                effectsContainer.appendChild(effectLine);
+            }
+
+            // Add crit if exists
+            if (validatedCrit) {
+                const critLineHR = document.createElement("hr");
+                critLineHR.className = "crit-line-hr";
+                effectsContainer.appendChild(critLineHR);
+                
+                const text = document.createElement("span");
+                text.innerHTML = "Crit Chance: " + processKeywordText("/cr") + validatedCrit + "%";
+                const effectLine = document.createElement("div");
+                effectLine.className = "crit-line";
+
+                effectLine.appendChild(text);
+                effectsContainer.appendChild(effectLine);
+            }
+
+            if (effectsContainer.children.length > 0) {
+                onUseSection = document.createElement("div");
+                onUseSection.className = "text-section on-use-section";
+                onUseSection.style.borderTop = `2px solid ${borderColor}`;
+                onUseSection.style.borderBottom = `2px solid ${borderColor}`;
+                onUseSection.appendChild(effectsContainer);
+                content.appendChild(onUseSection);
+            }
+
+            if (passiveInput && passiveInput.trim()) {
+                const passiveSection = document.createElement("div");
+                passiveSection.className = "text-section";
+                passiveSection.style.borderTop = `2px solid ${borderColor}`;
+                passiveSection.style.borderBottom = `2px solid ${borderColor}`;
+                passiveSection.innerHTML = processKeywordText(passiveInput);
+                content.appendChild(passiveSection);
+            }
+
+            // Only show cooldown if there are on use effects
+            if (formattedCooldown && hasOnUseEffects) {
+                const cooldownDiv = document.createElement("div");
+                cooldownDiv.className = "cooldown-section";
+                cooldownDiv.innerHTML = `<span>${formattedCooldown}</span><span class="sec-text">sec</span>`;
+                
+                // Add cooldown border overlay
+                const cooldownBorder = createCooldownBorderElement(border);
+                cooldownDiv.appendChild(cooldownBorder);
+                
+                content.appendChild(cooldownDiv);
+            }
+
+            if (validatedAmmo) {
+                const ammoDiv = document.createElement("div");
+                ammoDiv.className = "ammo-section";
+                ammoDiv.style.border = `3px solid ${borderColor}`;
+                
+                // Add ammo image
+                const ammoImg = document.createElement("img");
+                ammoImg.src = "images/ammo.png";
+                ammoImg.alt = "Ammo";
+                ammoImg.onerror = function() { this.style.display = 'none'; };
+                ammoDiv.appendChild(ammoImg);
+                
+                // Add ammo number
+                const ammoText = document.createElement("span");
+                ammoText.textContent = validatedAmmo;
+                ammoDiv.appendChild(ammoText);
+                
+                content.appendChild(ammoDiv);
+            }
+
+            // Create wrapper and visual content container
+            const cardWrapper = document.createElement("div");
+            cardWrapper.className = "card-wrapper";
+            cardWrapper.appendChild(tagsContainer);
+            cardWrapper.appendChild(content);
+
+            // Create the tight visual content container
+            const visualContent = document.createElement("div");
+            visualContent.className = "card-visual-content";
+            visualContent.appendChild(imageContainer);
+            visualContent.appendChild(cardWrapper);
+            
+            card.appendChild(visualContent);
+            
+            // Modified setTimeout for fixed image height and positioning
+            setTimeout(() => {
+                let widthRatio = 1.0; // Default to medium
+                if (itemSize === "Small") {
+                    widthRatio = 0.5;
+                } else if (itemSize === "Medium") {
+                    widthRatio = 1.0;
+                } else if (itemSize === "Large") {
+                    widthRatio = 1.5;
+                }
+
+                const containerWidth = 150 * widthRatio;
+                imageContainer.style.width = containerWidth + "px";
+
+                img.style.height = "100%";
+                img.style.width = "auto";
+                img.style.objectFit = "cover";
+                img.style.objectPosition = "center";
+
+                // Position cooldown and ammo relative to the on-use section
+                if (onUseSection) {
+                    positionElementsRelativeToOnUse(content, onUseSection);
+                }
+            }, 0);
 
             return card;
         }
@@ -1096,7 +1479,6 @@
         function processKeywordText(text) {
             if (!text || typeof text !== 'string') return '';
             
-            // Use the same keyword processing from your original code
             let processedText = text;
             
             // Process longer patterns first
@@ -1161,144 +1543,34 @@
             }
         }
 
-        function renderTags(itemData) {
-            const tags = [];
-            
-            if (itemData.item_size) tags.push(itemData.item_size);
-            if (itemData.tags && Array.isArray(itemData.tags)) {
-                tags.push(...itemData.tags);
+        // Validation functions (simplified versions for browser)
+        function validateScalingValue(value, type) {
+            if (!value || value.toString().trim() === '') {
+                return '';
             }
-
-            if (tags.length === 0) return '';
-
-            return `
-                <div class="item-tags">
-                    ${tags.map(tag => `<span class="item-tag">${escapeHtml(tag)}</span>`).join('')}
-                </div>
-            `;
+            const trimmed = value.toString().trim();
+            if (!/^\d+$/.test(trimmed)) {
+                throw new Error(`${type} scaling must be a positive integer`);
+            }
+            return trimmed;
         }
 
-        function renderEffects(itemData) {
-            let html = '';
-
-            if (itemData.passive_effect && itemData.passive_effect.trim()) {
-                html += `
-                    <div class="item-effects">
-                        <div class="effect-title">Passive Effect</div>
-                        <div class="effect-text">${escapeHtml(itemData.passive_effect)}</div>
-                    </div>
-                `;
+        function formatCooldown(value) {
+            if (!value || value.trim() === '') return '';
+            const num = parseFloat(value);
+            if (isNaN(num) || num < 0) {
+                throw new Error('Cooldown must be a positive number');
             }
-
-            if (itemData.on_use_effects && Array.isArray(itemData.on_use_effects) && itemData.on_use_effects.length > 0) {
-                const effects = itemData.on_use_effects
-                    .filter(effect => effect && effect.trim())
-                    .map(effect => `<div class="effect-text">→ ${escapeHtml(effect)}</div>`)
-                    .join('');
-
-                if (effects) {
-                    html += `
-                        <div class="item-effects">
-                            <div class="effect-title">On Use Effects</div>
-                            ${effects}
-                        </div>
-                    `;
-                }
-            }
-
-            return html;
+            return num.toString();
         }
 
-        // Updated view and upvote functions to work with new card structure
-        function viewItemDetails(item) {
-            const itemData = item.item_data || {};
-            const details = `
-Item: ${itemData.name || 'Unnamed'}
-Hero: ${itemData.hero || 'Unknown'}
-Size: ${itemData.item_size || 'Unknown'}
-Rarity: ${itemData.rarity || 'Unknown'}
-${itemData.cooldown ? `Cooldown: ${itemData.cooldown}s` : ''}
-${itemData.ammo ? `Ammo: ${itemData.ammo}` : ''}
-${itemData.passive_effect ? `\nPassive: ${itemData.passive_effect}` : ''}
-${itemData.on_use_effects?.length ? `\nOn Use: ${itemData.on_use_effects.join(', ')}` : ''}
-Created: ${new Date(item.created_at).toLocaleDateString()}
-Contest: ${item.contest_number > 0 ? `Contest ${item.contest_number}` : 'General'}
-            `.trim();
-
-            alert(details);
-            // TODO: Implement proper modal view
-        }
-
-        // Remove old render functions and update the grid CSS to work with card layout
-        function updateItemsGridCSS() {
-            const style = document.createElement('style');
-            style.textContent = `
-                .items-grid {
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 20px;
-                    justify-content: center;
-                    margin-bottom: 30px;
-                }
-                
-                .items-grid .card {
-                    margin: 10px;
-                    background: transparent;
-                }
-                
-                /* Import existing card styles from main page */
-                .keyword-icon {
-                    width: 16px;
-                    height: 18px;
-                    display: inline;
-                    vertical-align: middle;
-                    margin: 0 2px;
-                }
-                
-                .key-text {
-                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
-                    font-weight: bold;
-                }
-                
-                .scaling-values-container {
-                    position: absolute;
-                    top: -15px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    width: 150%;
-                    display: flex;
-                    gap: 2px;
-                    z-index: 10;
-                    flex-wrap: wrap;
-                    justify-content: center;
-                    padding: 0 5px;
-                }
-                
-                .scaling-value {
-                    background-color: #333;
-                    color: white;
-                    padding: 6px 8px;
-                    border-radius: 3px;
-                    font-size: 11px;
-                    font-weight: bold;
-                    font-family: Arial, sans-serif;
-                    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-                    border: 1px solid rgba(255, 255, 255, 0.3);
-                    min-width: 28px;
-                    text-align: center;
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-                    flex: 1;
-                    max-width: 45px;
-                }
-                
-                .scaling-value.heal { background-color: rgb(143, 234, 49); }
-                .scaling-value.regen { background-color: rgb(100, 255, 60); }
-                .scaling-value.shield { background-color: rgb(245, 208, 33); }
-                .scaling-value.damage { background-color: rgb(244, 82, 60); }
-                .scaling-value.poison { background-color: rgb(13, 190, 79); }
-                .scaling-value.burn { background-color: rgb(253, 146, 63); }
-            `;
-            document.head.appendChild(style);
+        function validateAmmo(value) {
+            if (!value || value.trim() === '') return '';
+            const num = parseInt(value);
+            if (isNaN(num) || num < 1) {
+                throw new Error('Ammo must be a positive integer');
+            }
+            return num.toString();
         }
 
         function handleFilterChange() {
@@ -1344,19 +1616,24 @@ Contest: ${item.contest_number > 0 ? `Contest ${item.contest_number}` : 'General
         }
 
         // Item actions
-        function viewItem(itemId) {
-            const item = allItems.find(i => i.id === itemId);
-            if (item) {
-                const itemData = item.item_data || {};
-                alert(`
-Item: ${itemData.name || 'Unnamed'}
-Hero: ${itemData.hero || 'Unknown'}
-Creator: ${item.users?.alias || 'Anonymous'}
-Created: ${new Date(item.created_at).toLocaleDateString()}
-${itemData.passive_effect ? `\nPassive: ${itemData.passive_effect}` : ''}
-${itemData.on_use_effects?.length ? `\nOn Use: ${itemData.on_use_effects.join(', ')}` : ''}
-                `.trim());
-            }
+        function viewItemDetails(cardData, itemId) {
+            const details = `
+Item: ${cardData.itemName || 'Unnamed'}
+Hero: ${cardData.hero || 'Unknown'}
+Size: ${cardData.itemSize || 'Unknown'}
+Rarity: ${cardData.border || 'Unknown'}
+${cardData.cooldown ? `Cooldown: ${cardData.cooldown}s` : ''}
+${cardData.ammo ? `Ammo: ${cardData.ammo}` : ''}
+${cardData.crit ? `Crit: ${cardData.crit}%` : ''}
+${cardData.multicast ? `Multicast: ${cardData.multicast}` : ''}
+${cardData.passiveEffect ? `\nPassive: ${cardData.passiveEffect}` : ''}
+${cardData.onUseEffects?.length ? `\nOn Use: ${cardData.onUseEffects.join(', ')}` : ''}
+${cardData.tags?.length ? `\nTags: ${cardData.tags.join(', ')}` : ''}
+Created: ${new Date(cardData.timestamp).toLocaleDateString()}
+            `.trim();
+
+            alert(details);
+            // TODO: Implement proper modal view
         }
 
         function upvoteItem(itemId) {
@@ -1364,7 +1641,118 @@ ${itemData.on_use_effects?.length ? `\nOn Use: ${itemData.on_use_effects.join(',
             alert('Upvote feature coming soon! Please sign in to vote on items.');
         }
 
-        console.log('BazaarGen Items Browser loaded successfully');
+        // Export/Import Functions (for compatibility with original system)
+        function exportAllCardsAsData() {
+            if (cardsData.length === 0) {
+                showMessage('No cards to export!', 'error');
+                return;
+            }
+            const dataToExport = {
+                version: "1.0",
+                timestamp: new Date().toISOString(),
+                cards: cardsData
+            };
+            const dataStr = JSON.stringify(dataToExport, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `Bazaar-cards-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showMessage(`Exported ${cardsData.length} cards successfully!`, 'success');
+        }
+
+        function exportAllCardsAsPNG() {
+            const cards = document.querySelectorAll('.card');
+            if (cards.length === 0) {
+                showMessage('No cards to export!', 'error');
+                return;
+            }
+            showMessage('Generating PNG files...', 'success');
+            
+            let currentIndex = 0;
+            
+            function exportNextCard() {
+                if (currentIndex >= cards.length) {
+                    showMessage(`All ${cards.length} cards exported as PNG!`, 'success');
+                    return;
+                }
+                
+                const card = cards[currentIndex];
+                exportCardAsPNG(card);
+                currentIndex++;
+                
+                setTimeout(exportNextCard, 500);
+            }
+            
+            exportNextCard();
+        }
+
+        function triggerImport() {
+            document.getElementById('importInput').click();
+        }
+
+        function importCardData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    if (!importedData.cards || !Array.isArray(importedData.cards)) {
+                        throw new Error('Invalid file format');
+                    }
+                    
+                    let importedCount = 0;
+                    importedData.cards.forEach(cardData => {
+                        try {
+                            importSingleCard(cardData);
+                            importedCount++;
+                        } catch (error) {
+                            console.error('Error importing card:', error);
+                        }
+                    });
+                    
+                    if (importedCount > 0) {
+                        showMessage(`Successfully imported ${importedCount} cards!`, 'success');
+                    } else {
+                        showMessage('No cards could be imported from this file.', 'error');
+                    }
+                } catch (error) {
+                    showMessage('Error reading file: ' + error.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+            
+            event.target.value = '';
+        }
+
+        function importSingleCard(cardData) {
+            // Create card from imported data
+            const card = createCard(cardData);
+            if (card) {
+                itemsGrid.appendChild(card);
+                cardsData.push(cardData);
+            }
+        }
+
+        function showMessage(message, type) {
+            console.log(`[${type.toUpperCase()}] ${message}`);
+            // You can implement a proper message system here
+        }
+
+        function exportCardAsPNG(card) {
+            // Placeholder for PNG export functionality
+            console.log('PNG export not implemented in browser view');
+        }
+
+        console.log('BazaarGen Items Browser with Card Creation loaded successfully');
     </script>
 </body>
 </html>
