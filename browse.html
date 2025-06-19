@@ -1035,28 +1035,57 @@
             const newItems = allItems.slice(startIndex, endIndex);
 
             debugLog('RENDER', `Rendering ${newItems.length} new items (${startIndex} to ${endIndex-1})`);
+            debugLog('RENDER_ITEMS', 'Items to render:', newItems.map(item => ({
+                id: item.id,
+                name: item.item_data?.name,
+                hero: item.item_data?.hero,
+                hasImageData: !!item.item_data?.image_data,
+                itemDataKeys: item.item_data ? Object.keys(item.item_data) : []
+            })));
 
             newItems.forEach((item, index) => {
-                debugLog('CARD', `Creating card ${startIndex + index}`, {
+                const cardIndex = startIndex + index;
+                debugLog('CARD_START', `Starting card creation ${cardIndex}`, {
                     id: item.id,
-                    name: item.item_data?.name
+                    name: item.item_data?.name,
+                    fullItemData: item.item_data
                 });
 
                 try {
+                    debugLog('CARD_MAPPING', `Calling createCardFromDatabaseItem for ${item.id}`);
                     const itemCard = createCardFromDatabaseItem(item);
+                    
                     if (itemCard) {
+                        debugLog('CARD_SUCCESS', `Card created successfully for ${item.item_data?.name}`, {
+                            cardElement: itemCard.tagName,
+                            cardClasses: itemCard.className,
+                            cardChildren: itemCard.children.length
+                        });
+                        
                         itemsGrid.appendChild(itemCard);
                         displayedItems.push(item);
-                        debugLog('CARD', `Successfully added card to grid for item: ${item.item_data?.name || 'Unnamed'}`);
+                        
+                        debugLog('CARD_ADDED', `Card added to grid for item: ${item.item_data?.name || 'Unnamed'}`, {
+                            gridChildCount: itemsGrid.children.length,
+                            displayedCount: displayedItems.length
+                        });
                     } else {
                         debugLog('ERROR', `createCardFromDatabaseItem returned null for item: ${item.id}`);
                     }
                 } catch (error) {
-                    debugLog('ERROR', `Failed to create card for item ${item.id}`, error.message);
+                    debugLog('ERROR', `Failed to create card for item ${item.id}`, {
+                        errorMessage: error.message,
+                        errorStack: error.stack
+                    });
+                    console.error('Full error creating card:', error);
                 }
             });
 
-            debugLog('RENDER', `Total displayed items: ${displayedItems.length}, Grid children: ${itemsGrid.children.length}`);
+            debugLog('RENDER_COMPLETE', `Card rendering complete`, {
+                totalDisplayed: displayedItems.length, 
+                gridChildren: itemsGrid.children.length,
+                gridHTML: itemsGrid.innerHTML.length > 0 ? 'Has content' : 'Empty'
+            });
 
             updateStats();
             updateLoadMoreButton();
@@ -1069,6 +1098,12 @@
 
         // Modified createCard function to work with database items
         function createCardFromDatabaseItem(item) {
+            debugLog('CARD_MAPPING_START', `Starting createCardFromDatabaseItem for ${item.id}`, {
+                hasItemData: !!item.item_data,
+                itemDataType: typeof item.item_data,
+                itemDataKeys: item.item_data ? Object.keys(item.item_data) : []
+            });
+
             const itemData = item.item_data || {};
             
             // Create card data object compatible with original createCard function
@@ -1089,11 +1124,36 @@
                 timestamp: item.created_at
             };
 
-            return createCard(cardData, item.id);
+            debugLog('CARD_MAPPING_DATA', `Mapped card data for ${item.id}`, {
+                cardData: cardData,
+                hasImage: cardData.imageData.length > 100,
+                effectsCount: cardData.onUseEffects.length,
+                tagsCount: cardData.tags.length
+            });
+
+            debugLog('CARD_CREATE_CALL', `Calling createCard for ${item.id}`);
+            const result = createCard(cardData, item.id);
+            
+            debugLog('CARD_CREATE_RESULT', `createCard returned for ${item.id}`, {
+                resultType: typeof result,
+                isElement: result instanceof Element,
+                hasTagName: result?.tagName,
+                hasClassName: result?.className
+            });
+
+            return result;
         }
 
         // Modified createCard function to accept cardData and optional itemId
         function createCard(cardData, itemId = null) {
+            debugLog('CREATE_CARD_START', `Starting createCard`, {
+                itemId: itemId,
+                cardDataKeys: Object.keys(cardData),
+                itemName: cardData.itemName,
+                hero: cardData.hero,
+                hasImageData: cardData.imageData.length > 100
+            });
+
             const itemName = cardData.itemName;
             const cooldownInput = cardData.cooldown;
             const hero = cardData.hero;
@@ -1106,16 +1166,27 @@
             const imageData = cardData.imageData;
             const scalingValues = cardData.scalingValues || {};
 
+            debugLog('CREATE_CARD_EXTRACT', `Extracted card values`, {
+                itemName, hero, itemSize, border, 
+                hasPassive: !!passiveInput,
+                hasCooldown: !!cooldownInput,
+                hasAmmo: !!ammo,
+                imageDataLength: imageData.length
+            });
+
             // Validate scaling values
             const validatedScalingValues = {};
             try {
+                debugLog('CREATE_CARD_SCALING', `Validating scaling values`, scalingValues);
                 validatedScalingValues.heal = validateScalingValue(scalingValues.heal, 'Heal');
                 validatedScalingValues.regen = validateScalingValue(scalingValues.regen, 'Regen');
                 validatedScalingValues.shield = validateScalingValue(scalingValues.shield, 'Shield');
                 validatedScalingValues.damage = validateScalingValue(scalingValues.damage, 'Damage');
                 validatedScalingValues.poison = validateScalingValue(scalingValues.poison, 'Poison');
                 validatedScalingValues.burn = validateScalingValue(scalingValues.burn, 'Burn');
+                debugLog('CREATE_CARD_SCALING_OK', `Scaling validation complete`, validatedScalingValues);
             } catch (error) {
+                debugLog('CREATE_CARD_SCALING_ERROR', `Scaling validation error: ${error.message}`);
                 console.error('Scaling validation error:', error.message);
                 // Continue with empty values if validation fails
             }
@@ -1123,13 +1194,21 @@
             // Check for on use effects
             const hasOnUseEffects = cardData.onUseEffects && cardData.onUseEffects.some(effect => effect.trim());
             const hasCooldown = cooldownInput && cooldownInput.trim();
+            
+            debugLog('CREATE_CARD_EFFECTS', `Effect validation`, {
+                hasOnUseEffects,
+                hasCooldown,
+                effectsArray: cardData.onUseEffects
+            });
 
             // Validate and format cooldown
             let formattedCooldown = '';
             if (cooldownInput && cooldownInput.trim()) {
                 try {
                     formattedCooldown = formatCooldown(cooldownInput);
+                    debugLog('CREATE_CARD_COOLDOWN_OK', `Cooldown formatted: ${formattedCooldown}`);
                 } catch (error) {
+                    debugLog('CREATE_CARD_COOLDOWN_ERROR', `Cooldown validation error: ${error.message}`);
                     console.error('Cooldown validation error:', error.message);
                     formattedCooldown = cooldownInput; // Use as-is if validation fails
                 }
@@ -1140,7 +1219,9 @@
             if (ammo && ammo.trim()) {
                 try {
                     validatedAmmo = validateAmmo(ammo);
+                    debugLog('CREATE_CARD_AMMO_OK', `Ammo validated: ${validatedAmmo}`);
                 } catch (error) {
+                    debugLog('CREATE_CARD_AMMO_ERROR', `Ammo validation error: ${error.message}`);
                     console.error('Ammo validation error:', error.message);
                     validatedAmmo = ammo; // Use as-is if validation fails
                 }
@@ -1151,9 +1232,315 @@
             if (crit && crit.trim()) {
                 try {
                     validatedCrit = validateAmmo(crit);
+                    debugLog('CREATE_CARD_CRIT_OK', `Crit validated: ${validatedCrit}`);
                 } catch (error) {
+                    debugLog('CREATE_CARD_CRIT_ERROR', `Crit validation error: ${error.message}`);
                     console.error('Crit validation error:', error.message);
                     validatedCrit = crit; // Use as-is if validation fails
+                }
+            }
+
+            // Validate multicast
+            let validatedMulticast = '';
+            if (multicast && multicast.trim()) {
+                try {
+                    validatedMulticast = validateAmmo(multicast);
+                    debugLog('CREATE_CARD_MULTICAST_OK', `Multicast validated: ${validatedMulticast}`);
+                } catch (error) {
+                    debugLog('CREATE_CARD_MULTICAST_ERROR', `Multicast validation error: ${error.message}`);
+                    console.error('Multicast validation error:', error.message);
+                    validatedMulticast = multicast; // Use as-is if validation fails
+                }
+            }
+
+            debugLog('CREATE_CARD_VALIDATION_COMPLETE', `All validation complete`, {
+                formattedCooldown, validatedAmmo, validatedCrit, validatedMulticast
+            });
+
+            const borderColor = getBorderColor(border);
+            debugLog('CREATE_CARD_BORDER', `Border color: ${borderColor} for border: ${border}`);
+
+            const card = document.createElement("div");
+            card.className = "card";
+            debugLog('CREATE_CARD_ELEMENT', `Created main card element`);
+
+            // Add card controls for browser view
+            const cardControls = document.createElement("div");
+            cardControls.className = "card-controls";
+            
+            const viewBtn = document.createElement("button");
+            viewBtn.innerHTML = "👁️";
+            viewBtn.title = "View item details";
+            viewBtn.onclick = function() {
+                viewItemDetails(cardData, itemId);
+            };
+            
+            const upvoteBtn = document.createElement("button");
+            upvoteBtn.innerHTML = "👍";
+            upvoteBtn.title = "Upvote this item";
+            upvoteBtn.onclick = function() {
+                upvoteItem(itemId);
+            };
+            
+            cardControls.appendChild(viewBtn);
+            cardControls.appendChild(upvoteBtn);
+            card.appendChild(cardControls);
+            debugLog('CREATE_CARD_CONTROLS', `Added card controls`);
+
+            const imageContainer = document.createElement("div");
+            imageContainer.className = "image-container";
+            imageContainer.style.border = `3px solid ${borderColor}`;
+            debugLog('CREATE_CARD_IMAGE_CONTAINER', `Created image container with border`);
+
+            // Create a clipping wrapper for the uploaded image
+            const imageClipWrapper = document.createElement("div");
+            imageClipWrapper.className = "image-clip-wrapper";
+
+            const img = document.createElement("img");
+            img.className = "uploaded-image";
+            img.src = imageData;
+            img.onerror = function() {
+                debugLog('CREATE_CARD_IMAGE_ERROR', `Failed to load image for ${itemName}`);
+                this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2NjYyIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjMzMzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
+            };
+            imageClipWrapper.appendChild(img);
+            imageContainer.appendChild(imageClipWrapper);
+            debugLog('CREATE_CARD_IMAGE', `Added image element`);
+
+            // Add frame overlay
+            const frame = createFrameElement(border, itemSize);
+            imageContainer.appendChild(frame);
+            debugLog('CREATE_CARD_FRAME', `Added frame element`);
+
+            // Add scaling values if any exist
+            const scalingContainer = createScalingValuesContainer(validatedScalingValues);
+            if (scalingContainer.children.length > 0) {
+                imageContainer.appendChild(scalingContainer);
+                debugLog('CREATE_CARD_SCALING_CONTAINER', `Added scaling values container with ${scalingContainer.children.length} values`);
+            }
+
+            // Create tags container
+            const tagsContainer = document.createElement("div");
+            tagsContainer.className = "tags-container";
+
+            // Always add item size as first tag
+            const itemSizeTag = document.createElement("span");
+            itemSizeTag.className = "item-tag";
+            itemSizeTag.textContent = itemSize;
+            tagsContainer.appendChild(itemSizeTag);
+
+            // Add additional tags
+            if (cardData.tags && Array.isArray(cardData.tags)) {
+                cardData.tags.forEach(tag => {
+                    if (tag && tag.trim()) {
+                        const tagElement = document.createElement("span");
+                        tagElement.className = "item-tag";
+                        tagElement.textContent = tag.trim();
+                        tagsContainer.appendChild(tagElement);
+                    }
+                });
+            }
+            debugLog('CREATE_CARD_TAGS', `Created tags container with ${tagsContainer.children.length} tags`);
+
+            const content = document.createElement("div");
+            content.className = "card-content";
+            content.style.border = `3px solid ${borderColor}`;
+            debugLog('CREATE_CARD_CONTENT', `Created card content container`);
+
+            // Create header section
+            const topSection = document.createElement("div");
+            topSection.className = "text-section hero-header";
+            topSection.style.borderTop = `2px solid ${borderColor}`;
+            topSection.style.borderBottom = `2px solid ${borderColor}`;
+            const itemTitle = document.createElement("div");
+            itemTitle.className = "item-title";
+            itemTitle.textContent = itemName;
+            const heroImg = document.createElement("img");
+            heroImg.src = `images/${hero.toLowerCase()}.png`;
+            heroImg.alt = hero;
+            heroImg.onerror = function() { 
+                debugLog('CREATE_CARD_HERO_ERROR', `Failed to load hero image for ${hero}`);
+                this.style.display = 'none'; 
+            };
+            topSection.appendChild(itemTitle);
+            topSection.appendChild(heroImg);
+            content.appendChild(topSection);
+            debugLog('CREATE_CARD_HEADER', `Created header section`);
+
+            let onUseSection = null;
+            const effectsContainer = document.createElement("div");
+            
+            // Add on-use effects
+            if (cardData.onUseEffects && Array.isArray(cardData.onUseEffects)) {
+                debugLog('CREATE_CARD_EFFECTS_START', `Processing ${cardData.onUseEffects.length} on-use effects`);
+                cardData.onUseEffects.forEach((effect, index) => {
+                    if (effect && effect.trim()) {
+                        const effectLine = document.createElement("div");
+                        effectLine.className = "on-use-line";
+
+                        const icon = document.createElement("img");
+                        icon.src = "images/use-arrow.png";
+                        icon.alt = "-";
+                        icon.onerror = function() { this.textContent = "→"; };
+
+                        const text = document.createElement("span");
+                        text.innerHTML = processKeywordText(effect);
+
+                        effectLine.appendChild(icon);
+                        effectLine.appendChild(text);
+                        effectsContainer.appendChild(effectLine);
+                        debugLog('CREATE_CARD_EFFECT', `Added effect ${index}: ${effect}`);
+                    }
+                });
+            }
+
+            // Add multicast if > 1
+            if (validatedMulticast && parseInt(validatedMulticast) > 1) {
+                const icon = document.createElement("img");
+                icon.src = "images/use-arrow.png";
+                icon.alt = "-";
+                icon.onerror = function() { this.textContent = "→"; };
+
+                const text = document.createElement("span");
+                text.innerHTML = "Multicast: " + validatedMulticast;
+                const effectLine = document.createElement("div");
+                effectLine.className = "on-use-line";
+
+                effectLine.appendChild(icon);
+                effectLine.appendChild(text);
+                effectsContainer.appendChild(effectLine);
+                debugLog('CREATE_CARD_MULTICAST', `Added multicast: ${validatedMulticast}`);
+            }
+
+            // Add crit if exists
+            if (validatedCrit) {
+                const critLineHR = document.createElement("hr");
+                critLineHR.className = "crit-line-hr";
+                effectsContainer.appendChild(critLineHR);
+                
+                const text = document.createElement("span");
+                text.innerHTML = "Crit Chance: " + processKeywordText("/cr") + validatedCrit + "%";
+                const effectLine = document.createElement("div");
+                effectLine.className = "crit-line";
+
+                effectLine.appendChild(text);
+                effectsContainer.appendChild(effectLine);
+                debugLog('CREATE_CARD_CRIT', `Added crit: ${validatedCrit}%`);
+            }
+
+            if (effectsContainer.children.length > 0) {
+                onUseSection = document.createElement("div");
+                onUseSection.className = "text-section on-use-section";
+                onUseSection.style.borderTop = `2px solid ${borderColor}`;
+                onUseSection.style.borderBottom = `2px solid ${borderColor}`;
+                onUseSection.appendChild(effectsContainer);
+                content.appendChild(onUseSection);
+                debugLog('CREATE_CARD_ON_USE_SECTION', `Created on-use section with ${effectsContainer.children.length} elements`);
+            }
+
+            // Add passive section
+            if (passiveInput && passiveInput.trim()) {
+                const passiveSection = document.createElement("div");
+                passiveSection.className = "text-section";
+                passiveSection.style.borderTop = `2px solid ${borderColor}`;
+                passiveSection.style.borderBottom = `2px solid ${borderColor}`;
+                passiveSection.innerHTML = processKeywordText(passiveInput);
+                content.appendChild(passiveSection);
+                debugLog('CREATE_CARD_PASSIVE', `Added passive section: ${passiveInput}`);
+            }
+
+            // Only show cooldown if there are on use effects
+            if (formattedCooldown && hasOnUseEffects) {
+                const cooldownDiv = document.createElement("div");
+                cooldownDiv.className = "cooldown-section";
+                cooldownDiv.innerHTML = `<span>${formattedCooldown}</span><span class="sec-text">sec</span>`;
+                
+                // Add cooldown border overlay
+                const cooldownBorder = createCooldownBorderElement(border);
+                cooldownDiv.appendChild(cooldownBorder);
+                
+                content.appendChild(cooldownDiv);
+                debugLog('CREATE_CARD_COOLDOWN', `Added cooldown section: ${formattedCooldown}s`);
+            }
+
+            if (validatedAmmo) {
+                const ammoDiv = document.createElement("div");
+                ammoDiv.className = "ammo-section";
+                ammoDiv.style.border = `3px solid ${borderColor}`;
+                
+                // Add ammo image
+                const ammoImg = document.createElement("img");
+                ammoImg.src = "images/ammo.png";
+                ammoImg.alt = "Ammo";
+                ammoImg.onerror = function() { this.style.display = 'none'; };
+                ammoDiv.appendChild(ammoImg);
+                
+                // Add ammo number
+                const ammoText = document.createElement("span");
+                ammoText.textContent = validatedAmmo;
+                ammoDiv.appendChild(ammoText);
+                
+                content.appendChild(ammoDiv);
+                debugLog('CREATE_CARD_AMMO', `Added ammo section: ${validatedAmmo}`);
+            }
+
+            // Create wrapper and visual content container
+            const cardWrapper = document.createElement("div");
+            cardWrapper.className = "card-wrapper";
+            cardWrapper.appendChild(tagsContainer);
+            cardWrapper.appendChild(content);
+
+            // Create the tight visual content container
+            const visualContent = document.createElement("div");
+            visualContent.className = "card-visual-content";
+            visualContent.appendChild(imageContainer);
+            visualContent.appendChild(cardWrapper);
+            
+            card.appendChild(visualContent);
+            debugLog('CREATE_CARD_STRUCTURE', `Assembled card structure`);
+            
+            // Modified setTimeout for fixed image height and positioning
+            setTimeout(() => {
+                debugLog('CREATE_CARD_SIZING', `Starting card sizing for ${itemName}`);
+                let widthRatio = 1.0; // Default to medium
+                if (itemSize === "Small") {
+                    widthRatio = 0.5;
+                } else if (itemSize === "Medium") {
+                    widthRatio = 1.0;
+                } else if (itemSize === "Large") {
+                    widthRatio = 1.5;
+                }
+
+                const containerWidth = 150 * widthRatio;
+                imageContainer.style.width = containerWidth + "px";
+
+                img.style.height = "100%";
+                img.style.width = "auto";
+                img.style.objectFit = "cover";
+                img.style.objectPosition = "center";
+
+                // Position cooldown and ammo relative to the on-use section
+                if (onUseSection) {
+                    positionElementsRelativeToOnUse(content, onUseSection);
+                    debugLog('CREATE_CARD_POSITIONING', `Positioned elements relative to on-use section`);
+                }
+                
+                debugLog('CREATE_CARD_SIZING_COMPLETE', `Card sizing complete for ${itemName}`, {
+                    widthRatio,
+                    containerWidth,
+                    hasOnUseSection: !!onUseSection
+                });
+            }, 0);
+
+            debugLog('CREATE_CARD_COMPLETE', `Card creation complete for ${itemName}`, {
+                cardElement: card.tagName,
+                cardClasses: card.className,
+                childrenCount: card.children.length,
+                hasVisualContent: !!card.querySelector('.card-visual-content')
+            });
+
+            return card;
+        } validation fails
                 }
             }
 
@@ -1411,6 +1798,7 @@
 
         // Helper functions from original code
         function getBorderColor(value) {
+            debugLog('GET_BORDER_COLOR', `Getting border color for: ${value}`);
             switch(value?.toLowerCase()) {
                 case 'bronze': return 'rgb(205, 127, 50)';
                 case 'silver': return 'silver';
@@ -1422,6 +1810,7 @@
         }
 
         function createFrameElement(quality, size) {
+            debugLog('CREATE_FRAME', `Creating frame for quality: ${quality}, size: ${size}`);
             const sizeMap = { 'Small': 's', 'Medium': 'm', 'Large': 'l' };
             const frameSize = sizeMap[size] || 'm';
             const frameQuality = quality?.toLowerCase() || 'gold';
@@ -1432,13 +1821,18 @@
             const frameImg = document.createElement("img");
             frameImg.src = `images/frames/${frameQuality}_${frameSize}_frame.png`;
             frameImg.alt = `${quality} ${size} frame`;
-            frameImg.onerror = () => { frameDiv.style.display = 'none'; };
+            frameImg.onerror = () => { 
+                debugLog('FRAME_ERROR', `Failed to load frame image: ${frameImg.src}`);
+                frameDiv.style.display = 'none'; 
+            };
             
             frameDiv.appendChild(frameImg);
+            debugLog('CREATE_FRAME_COMPLETE', `Frame element created for ${quality} ${size}`);
             return frameDiv;
         }
 
         function createCooldownBorderElement(quality) {
+            debugLog('CREATE_COOLDOWN_BORDER', `Creating cooldown border for quality: ${quality}`);
             const qualityMap = {
                 'bronze': 'Bronze', 'silver': 'silver', 'gold': 'gold',
                 'diamond': 'diamond', 'legendary': 'Legendary'
@@ -1454,14 +1848,17 @@
                 background-size: 100% 100%; background-repeat: no-repeat; background-position: center;
             `;
             
+            debugLog('CREATE_COOLDOWN_BORDER_COMPLETE', `Cooldown border created for ${mappedQuality}`);
             return borderDiv;
         }
 
         function createScalingValuesContainer(scalingData) {
+            debugLog('CREATE_SCALING_START', `Creating scaling values container`, scalingData);
             const container = document.createElement("div");
             container.className = "scaling-values-container";
             
             const scalingTypes = ['heal', 'regen', 'shield', 'damage', 'poison', 'burn'];
+            let addedCount = 0;
             
             scalingTypes.forEach(type => {
                 const value = scalingData[type];
@@ -1470,37 +1867,53 @@
                     scalingElement.className = `scaling-value ${type}`;
                     scalingElement.textContent = value.toString().trim();
                     container.appendChild(scalingElement);
+                    addedCount++;
+                    debugLog('CREATE_SCALING_VALUE', `Added scaling value ${type}: ${value}`);
                 }
             });
             
+            debugLog('CREATE_SCALING_COMPLETE', `Scaling container created with ${addedCount} values`);
             return container;
         }
 
         function processKeywordText(text) {
-            if (!text || typeof text !== 'string') return '';
+            if (!text || typeof text !== 'string') {
+                debugLog('PROCESS_KEYWORD_EMPTY', `Empty or invalid text for keyword processing`);
+                return '';
+            }
+            
+            debugLog('PROCESS_KEYWORD_START', `Processing keyword text: "${text}"`);
             
             let processedText = text;
             
             // Process longer patterns first
-            processedText = processedText.replace(/\/cd/g, '<img src="images/KeyText/cooldown.png" alt="cooldown" class="keyword-icon">');
-            processedText = processedText.replace(/\/cr/g, '<img src="images/KeyText/crit.png" alt="crit" class="keyword-icon">');
-            processedText = processedText.replace(/\/he/g, '<img src="images/KeyText/heal.png" alt="heal" class="keyword-icon">');
-            processedText = processedText.replace(/\/sh/g, '<img src="images/KeyText/sheild.png" alt="sheild" class="keyword-icon">');
-            processedText = processedText.replace(/\/mh/g, '<img src="images/KeyText/maxhealth.png" alt="maxhealth" class="keyword-icon">');
-            processedText = processedText.replace(/\/de/g, '<img src="images/KeyText/destroy.png" alt="destroy" class="keyword-icon">');
+            const replacements = [
+                [/\/cd/g, '<img src="images/KeyText/cooldown.png" alt="cooldown" class="keyword-icon">'],
+                [/\/cr/g, '<img src="images/KeyText/crit.png" alt="crit" class="keyword-icon">'],
+                [/\/he/g, '<img src="images/KeyText/heal.png" alt="heal" class="keyword-icon">'],
+                [/\/sh/g, '<img src="images/KeyText/sheild.png" alt="sheild" class="keyword-icon">'],
+                [/\/mh/g, '<img src="images/KeyText/maxhealth.png" alt="maxhealth" class="keyword-icon">'],
+                [/\/de/g, '<img src="images/KeyText/destroy.png" alt="destroy" class="keyword-icon">'],
+                [/\/s/g, '<img src="images/KeyText/slow.png" alt="slow" class="keyword-icon">'],
+                [/\/h/g, '<img src="images/KeyText/haste.png" alt="haste" class="keyword-icon">'],
+                [/\/r/g, '<img src="images/KeyText/regen.png" alt="regen" class="keyword-icon">'],
+                [/\/p/g, '<img src="images/KeyText/poison.png" alt="poison" class="keyword-icon">'],
+                [/\/b/g, '<img src="images/KeyText/burn.png" alt="burn" class="keyword-icon">'],
+                [/\/c/g, '<img src="images/KeyText/charge.png" alt="charge" class="keyword-icon">'],
+                [/\/d/g, '<img src="images/KeyText/damage.png" alt="damage" class="keyword-icon">'],
+                [/\/f/g, '<img src="images/KeyText/freeze.png" alt="freeze" class="keyword-icon">'],
+                [/\/l/g, '<img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-icon">'],
+                [/\/v/g, '<img src="images/KeyText/value.png" alt="value" class="keyword-icon">'],
+                [/\/t/g, '<img src="images/KeyText/transform.png" alt="transform" class="keyword-icon">']
+            ];
             
-            // Then single-letter patterns
-            processedText = processedText.replace(/\/s/g, '<img src="images/KeyText/slow.png" alt="slow" class="keyword-icon">');
-            processedText = processedText.replace(/\/h/g, '<img src="images/KeyText/haste.png" alt="haste" class="keyword-icon">');
-            processedText = processedText.replace(/\/r/g, '<img src="images/KeyText/regen.png" alt="regen" class="keyword-icon">');
-            processedText = processedText.replace(/\/p/g, '<img src="images/KeyText/poison.png" alt="poison" class="keyword-icon">');
-            processedText = processedText.replace(/\/b/g, '<img src="images/KeyText/burn.png" alt="burn" class="keyword-icon">');
-            processedText = processedText.replace(/\/c/g, '<img src="images/KeyText/charge.png" alt="charge" class="keyword-icon">');
-            processedText = processedText.replace(/\/d/g, '<img src="images/KeyText/damage.png" alt="damage" class="keyword-icon">');
-            processedText = processedText.replace(/\/f/g, '<img src="images/KeyText/freeze.png" alt="freeze" class="keyword-icon">');
-            processedText = processedText.replace(/\/l/g, '<img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-icon">');
-            processedText = processedText.replace(/\/v/g, '<img src="images/KeyText/value.png" alt="value" class="keyword-icon">');
-            processedText = processedText.replace(/\/t/g, '<img src="images/KeyText/transform.png" alt="transform" class="keyword-icon">');
+            replacements.forEach(([regex, replacement]) => {
+                const before = processedText;
+                processedText = processedText.replace(regex, replacement);
+                if (before !== processedText) {
+                    debugLog('PROCESS_KEYWORD_REPLACE', `Replaced pattern ${regex} in text`);
+                }
+            });
             
             // Color keywords
             const keywordRules = {
@@ -1514,15 +1927,28 @@
             
             Object.entries(keywordRules).forEach(([keyword, color]) => {
                 const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+                const before = processedText;
                 processedText = processedText.replace(regex, (match) => {
                     return `<span style="color: ${color}; font-weight: bold;" class="key-text">${match}</span>`;
                 });
+                if (before !== processedText) {
+                    debugLog('PROCESS_KEYWORD_COLOR', `Added color to keyword: ${keyword}`);
+                }
+            });
+            
+            debugLog('PROCESS_KEYWORD_COMPLETE', `Keyword processing complete`, {
+                originalLength: text.length,
+                processedLength: processedText.length,
+                hasImages: processedText.includes('<img'),
+                hasColoredText: processedText.includes('key-text')
             });
             
             return processedText;
         }
 
         function positionElementsRelativeToOnUse(content, onUseSection) {
+            debugLog('POSITION_ELEMENTS_START', `Positioning elements relative to on-use section`);
+            
             content.offsetHeight;
             onUseSection.offsetHeight;
             
@@ -1535,16 +1961,21 @@
             
             if (cooldownSection) {
                 cooldownSection.style.top = `${onUseCenterY - 25}px`;
+                debugLog('POSITION_COOLDOWN', `Positioned cooldown at top: ${onUseCenterY - 25}px`);
             }
             
             if (ammoSection) {
                 const ammoHeight = ammoSection.offsetHeight;
                 ammoSection.style.top = `${onUseCenterY - (ammoHeight / 2)}px`;
+                debugLog('POSITION_AMMO', `Positioned ammo at top: ${onUseCenterY - (ammoHeight / 2)}px`);
             }
+            
+            debugLog('POSITION_ELEMENTS_COMPLETE', `Element positioning complete`);
         }
 
         // Validation functions (simplified versions for browser)
         function validateScalingValue(value, type) {
+            debugLog('VALIDATE_SCALING', `Validating ${type} scaling value: ${value}`);
             if (!value || value.toString().trim() === '') {
                 return '';
             }
@@ -1552,25 +1983,32 @@
             if (!/^\d+$/.test(trimmed)) {
                 throw new Error(`${type} scaling must be a positive integer`);
             }
+            debugLog('VALIDATE_SCALING_OK', `${type} scaling validated: ${trimmed}`);
             return trimmed;
         }
 
         function formatCooldown(value) {
+            debugLog('FORMAT_COOLDOWN', `Formatting cooldown: ${value}`);
             if (!value || value.trim() === '') return '';
             const num = parseFloat(value);
             if (isNaN(num) || num < 0) {
                 throw new Error('Cooldown must be a positive number');
             }
-            return num.toString();
+            const result = num.toString();
+            debugLog('FORMAT_COOLDOWN_OK', `Cooldown formatted: ${result}`);
+            return result;
         }
 
         function validateAmmo(value) {
+            debugLog('VALIDATE_AMMO', `Validating ammo: ${value}`);
             if (!value || value.trim() === '') return '';
             const num = parseInt(value);
             if (isNaN(num) || num < 1) {
                 throw new Error('Ammo must be a positive integer');
             }
-            return num.toString();
+            const result = num.toString();
+            debugLog('VALIDATE_AMMO_OK', `Ammo validated: ${result}`);
+            return result;
         }
 
         function handleFilterChange() {
