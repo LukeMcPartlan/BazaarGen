@@ -710,6 +710,9 @@
         document.addEventListener('DOMContentLoaded', function() {
             debugLog('INIT', 'DOM Content Loaded, starting initialization...');
             
+            // Add CSS for card display
+            updateItemsGridCSS();
+            
             // Show debug panel
             const debugContainer = document.getElementById('debugContainer');
             if (debugContainer) {
@@ -916,64 +919,358 @@
             const itemData = item.item_data || {};
             const createdDate = new Date(item.created_at).toLocaleDateString();
 
-            const card = document.createElement('div');
-            card.className = 'item-card';
+            // Create the main card container similar to your original
+            const card = document.createElement("div");
+            card.className = "card"; // Use same class as original
+            card.setAttribute('data-item-id', item.id);
 
-            card.innerHTML = `
-                <div class="item-header">
-                    <div class="item-title">${escapeHtml(itemData.name || 'Unnamed Item')}</div>
-                    <div class="item-creator">
-                        Created: ${createdDate}
-                        ${item.contest_number > 0 ? ` • Contest ${item.contest_number}` : ''}
-                    </div>
-                </div>
+            // Add card controls (view/upvote buttons)
+            const cardControls = document.createElement("div");
+            cardControls.className = "card-controls";
+            
+            const viewBtn = document.createElement("button");
+            viewBtn.className = "card-export-btn";
+            viewBtn.innerHTML = "👁️";
+            viewBtn.title = "View item details";
+            viewBtn.onclick = () => viewItemDetails(item);
+            
+            const upvoteBtn = document.createElement("button");
+            upvoteBtn.className = "card-save-btn";
+            upvoteBtn.innerHTML = "👍";
+            upvoteBtn.title = "Upvote this item";
+            upvoteBtn.onclick = () => upvoteItem(item.id);
+            
+            cardControls.appendChild(viewBtn);
+            cardControls.appendChild(upvoteBtn);
+            card.appendChild(cardControls);
 
-                ${itemData.image_data ? `
-                    <img src="${itemData.image_data}" alt="${escapeHtml(itemData.name)}" class="item-image" 
-                         onerror="this.style.display='none'">
-                ` : ''}
+            // Create image container similar to original
+            const imageContainer = document.createElement("div");
+            imageContainer.className = "image-container";
+            imageContainer.style.border = `3px solid ${getBorderColor(itemData.rarity || 'gold')}`;
 
-                <div class="item-details">
-                    <div class="item-detail-row">
-                        <span>Hero:</span>
-                        <span>${escapeHtml(itemData.hero || 'Unknown')}</span>
-                    </div>
-                    <div class="item-detail-row">
-                        <span>Size:</span>
-                        <span>${escapeHtml(itemData.item_size || 'Unknown')}</span>
-                    </div>
-                    <div class="item-detail-row">
-                        <span>Rarity:</span>
-                        <span style="color: ${getRarityColor(itemData.rarity)}">${escapeHtml(itemData.rarity || 'Unknown')}</span>
-                    </div>
-                    ${itemData.cooldown ? `
-                        <div class="item-detail-row">
-                            <span>Cooldown:</span>
-                            <span>${escapeHtml(itemData.cooldown)}s</span>
-                        </div>
-                    ` : ''}
-                    ${itemData.ammo ? `
-                        <div class="item-detail-row">
-                            <span>Ammo:</span>
-                            <span>${escapeHtml(itemData.ammo)}</span>
-                        </div>
-                    ` : ''}
-                </div>
+            if (itemData.image_data) {
+                // Create image clipping wrapper
+                const imageClipWrapper = document.createElement("div");
+                imageClipWrapper.className = "image-clip-wrapper";
 
-                ${renderTags(itemData)}
-                ${renderEffects(itemData)}
+                const img = document.createElement("img");
+                img.className = "uploaded-image";
+                img.src = itemData.image_data;
+                img.onerror = () => { imageContainer.style.display = 'none'; };
+                imageClipWrapper.appendChild(img);
+                imageContainer.appendChild(imageClipWrapper);
 
-                <div class="item-actions">
-                    <button class="action-btn btn-view" onclick="viewItem('${item.id}')">
-                        View Details
-                    </button>
-                    <button class="action-btn btn-upvote" onclick="upvoteItem('${item.id}')">
-                        👍 Upvote
-                    </button>
-                </div>
-            `;
+                // Add frame overlay
+                const frame = createFrameElement(itemData.rarity || 'gold', itemData.item_size || 'Medium');
+                imageContainer.appendChild(frame);
+            }
+
+            // Add scaling values if any exist
+            if (itemData.scaling_values) {
+                const scalingContainer = createScalingValuesContainer(itemData.scaling_values);
+                if (scalingContainer.children.length > 0) {
+                    imageContainer.appendChild(scalingContainer);
+                }
+            }
+
+            // Create tags container
+            const tagsContainer = document.createElement("div");
+            tagsContainer.className = "tags-container";
+
+            // Add item size tag
+            if (itemData.item_size) {
+                const itemSizeTag = document.createElement("span");
+                itemSizeTag.className = "item-tag";
+                itemSizeTag.textContent = itemData.item_size;
+                tagsContainer.appendChild(itemSizeTag);
+            }
+
+            // Add additional tags
+            if (itemData.tags && Array.isArray(itemData.tags)) {
+                itemData.tags.forEach(tagText => {
+                    const tag = document.createElement("span");
+                    tag.className = "item-tag";
+                    tag.textContent = tagText;
+                    tagsContainer.appendChild(tag);
+                });
+            }
+
+            // Create main content area
+            const content = document.createElement("div");
+            content.className = "card-content";
+            content.style.border = `3px solid ${getBorderColor(itemData.rarity || 'gold')}`;
+
+            // Top section with title and hero
+            const topSection = document.createElement("div");
+            topSection.className = "text-section hero-header";
+            const borderColor = getBorderColor(itemData.rarity || 'gold');
+            topSection.style.borderTop = `2px solid ${borderColor}`;
+            topSection.style.borderBottom = `2px solid ${borderColor}`;
+            
+            const itemTitle = document.createElement("div");
+            itemTitle.className = "item-title";
+            itemTitle.textContent = itemData.name || 'Unnamed Item';
+            
+            const heroImg = document.createElement("img");
+            heroImg.src = `images/${(itemData.hero || 'neutral').toLowerCase()}.png`;
+            heroImg.alt = itemData.hero || 'Neutral';
+            heroImg.onerror = () => { heroImg.style.display = 'none'; };
+            
+            topSection.appendChild(itemTitle);
+            topSection.appendChild(heroImg);
+            content.appendChild(topSection);
+
+            // On use effects section
+            let onUseSection = null;
+            if (itemData.on_use_effects && Array.isArray(itemData.on_use_effects) && itemData.on_use_effects.length > 0) {
+                const effectsContainer = document.createElement("div");
+                itemData.on_use_effects.forEach(effect => {
+                    if (effect && effect.trim()) {
+                        const effectLine = document.createElement("div");
+                        effectLine.className = "on-use-line";
+
+                        const icon = document.createElement("img");
+                        icon.src = "images/use-arrow.png";
+                        icon.alt = "-";
+                        icon.onerror = () => { icon.style.display = 'none'; };
+
+                        const text = document.createElement("span");
+                        text.innerHTML = processKeywordText(effect);
+
+                        effectLine.appendChild(icon);
+                        effectLine.appendChild(text);
+                        effectsContainer.appendChild(effectLine);
+                    }
+                });
+
+                if (effectsContainer.children.length > 0) {
+                    onUseSection = document.createElement("div");
+                    onUseSection.className = "text-section on-use-section";
+                    onUseSection.style.borderTop = `2px solid ${borderColor}`;
+                    onUseSection.style.borderBottom = `2px solid ${borderColor}`;
+                    onUseSection.appendChild(effectsContainer);
+                    content.appendChild(onUseSection);
+                }
+            }
+
+            // Passive effects section
+            if (itemData.passive_effect && itemData.passive_effect.trim()) {
+                const passiveSection = document.createElement("div");
+                passiveSection.className = "text-section";
+                passiveSection.style.borderTop = `2px solid ${borderColor}`;
+                passiveSection.style.borderBottom = `2px solid ${borderColor}`;
+                passiveSection.innerHTML = processKeywordText(itemData.passive_effect);
+                content.appendChild(passiveSection);
+            }
+
+            // Cooldown section
+            if (itemData.cooldown && onUseSection) {
+                const cooldownDiv = document.createElement("div");
+                cooldownDiv.className = "cooldown-section";
+                cooldownDiv.innerHTML = `<span>${itemData.cooldown}</span><span class="sec-text">sec</span>`;
+                
+                // Add cooldown border overlay
+                const cooldownBorder = createCooldownBorderElement(itemData.rarity || 'gold');
+                cooldownDiv.appendChild(cooldownBorder);
+                
+                content.appendChild(cooldownDiv);
+            }
+
+            // Ammo section
+            if (itemData.ammo) {
+                const ammoDiv = document.createElement("div");
+                ammoDiv.className = "ammo-section";
+                ammoDiv.style.border = `3px solid ${borderColor}`;
+                
+                const ammoImg = document.createElement("img");
+                ammoImg.src = "images/ammo.png";
+                ammoImg.alt = "Ammo";
+                ammoImg.onerror = () => { ammoImg.style.display = 'none'; };
+                ammoDiv.appendChild(ammoImg);
+                
+                const ammoText = document.createElement("span");
+                ammoText.textContent = itemData.ammo;
+                ammoDiv.appendChild(ammoText);
+                
+                content.appendChild(ammoDiv);
+            }
+
+            // Create wrapper and visual content container
+            const cardWrapper = document.createElement("div");
+            cardWrapper.className = "card-wrapper";
+            cardWrapper.appendChild(tagsContainer);
+            cardWrapper.appendChild(content);
+
+            // Create the tight visual content container
+            const visualContent = document.createElement("div");
+            visualContent.className = "card-visual-content";
+            visualContent.appendChild(imageContainer);
+            visualContent.appendChild(cardWrapper);
+            
+            card.appendChild(visualContent);
+
+            // Set dimensions and positioning (from original code)
+            setTimeout(() => {
+                let widthRatio = 1.0;
+                if (itemData.item_size === "Small") {
+                    widthRatio = 0.5;
+                } else if (itemData.item_size === "Large") {
+                    widthRatio = 1.5;
+                }
+
+                const containerWidth = 150 * widthRatio;
+                imageContainer.style.width = containerWidth + "px";
+
+                const img = imageContainer.querySelector('.uploaded-image');
+                if (img) {
+                    img.style.height = "100%";
+                    img.style.width = "auto";
+                    img.style.objectFit = "cover";
+                    img.style.objectPosition = "center";
+                }
+
+                if (onUseSection) {
+                    positionElementsRelativeToOnUse(content, onUseSection);
+                }
+            }, 0);
 
             return card;
+        }
+
+        // Helper functions from original code
+        function getBorderColor(value) {
+            switch(value?.toLowerCase()) {
+                case 'bronze': return 'rgb(205, 127, 50)';
+                case 'silver': return 'silver';
+                case 'gold': return 'gold';
+                case 'diamond': return 'rgb(185, 242, 255)';
+                case 'legendary': return 'rgb(124, 46, 44)';
+                default: return 'gold';
+            }
+        }
+
+        function createFrameElement(quality, size) {
+            const sizeMap = { 'Small': 's', 'Medium': 'm', 'Large': 'l' };
+            const frameSize = sizeMap[size] || 'm';
+            const frameQuality = quality?.toLowerCase() || 'gold';
+            
+            const frameDiv = document.createElement("div");
+            frameDiv.className = "card-frame";
+            
+            const frameImg = document.createElement("img");
+            frameImg.src = `images/frames/${frameQuality}_${frameSize}_frame.png`;
+            frameImg.alt = `${quality} ${size} frame`;
+            frameImg.onerror = () => { frameDiv.style.display = 'none'; };
+            
+            frameDiv.appendChild(frameImg);
+            return frameDiv;
+        }
+
+        function createCooldownBorderElement(quality) {
+            const qualityMap = {
+                'bronze': 'Bronze', 'silver': 'silver', 'gold': 'gold',
+                'diamond': 'diamond', 'legendary': 'Legendary'
+            };
+            
+            const mappedQuality = qualityMap[quality?.toLowerCase()] || 'gold';
+            const borderDiv = document.createElement("div");
+            borderDiv.className = "cooldown-border";
+            borderDiv.style.cssText = `
+                position: absolute; top: 50%; left: 50%; width: 130%; height: 130%;
+                transform: translate(calc(-50% + 2px), -50%); pointer-events: none; z-index: 0;
+                background-image: url('images/cooldown/${mappedQuality}_cooldown.png');
+                background-size: 100% 100%; background-repeat: no-repeat; background-position: center;
+            `;
+            
+            return borderDiv;
+        }
+
+        function createScalingValuesContainer(scalingData) {
+            const container = document.createElement("div");
+            container.className = "scaling-values-container";
+            
+            const scalingTypes = ['heal', 'regen', 'shield', 'damage', 'poison', 'burn'];
+            
+            scalingTypes.forEach(type => {
+                const value = scalingData[type];
+                if (value && value.toString().trim()) {
+                    const scalingElement = document.createElement("div");
+                    scalingElement.className = `scaling-value ${type}`;
+                    scalingElement.textContent = value.toString().trim();
+                    container.appendChild(scalingElement);
+                }
+            });
+            
+            return container;
+        }
+
+        function processKeywordText(text) {
+            if (!text || typeof text !== 'string') return '';
+            
+            // Use the same keyword processing from your original code
+            let processedText = text;
+            
+            // Process longer patterns first
+            processedText = processedText.replace(/\/cd/g, '<img src="images/KeyText/cooldown.png" alt="cooldown" class="keyword-icon">');
+            processedText = processedText.replace(/\/cr/g, '<img src="images/KeyText/crit.png" alt="crit" class="keyword-icon">');
+            processedText = processedText.replace(/\/he/g, '<img src="images/KeyText/heal.png" alt="heal" class="keyword-icon">');
+            processedText = processedText.replace(/\/sh/g, '<img src="images/KeyText/sheild.png" alt="sheild" class="keyword-icon">');
+            processedText = processedText.replace(/\/mh/g, '<img src="images/KeyText/maxhealth.png" alt="maxhealth" class="keyword-icon">');
+            processedText = processedText.replace(/\/de/g, '<img src="images/KeyText/destroy.png" alt="destroy" class="keyword-icon">');
+            
+            // Then single-letter patterns
+            processedText = processedText.replace(/\/s/g, '<img src="images/KeyText/slow.png" alt="slow" class="keyword-icon">');
+            processedText = processedText.replace(/\/h/g, '<img src="images/KeyText/haste.png" alt="haste" class="keyword-icon">');
+            processedText = processedText.replace(/\/r/g, '<img src="images/KeyText/regen.png" alt="regen" class="keyword-icon">');
+            processedText = processedText.replace(/\/p/g, '<img src="images/KeyText/poison.png" alt="poison" class="keyword-icon">');
+            processedText = processedText.replace(/\/b/g, '<img src="images/KeyText/burn.png" alt="burn" class="keyword-icon">');
+            processedText = processedText.replace(/\/c/g, '<img src="images/KeyText/charge.png" alt="charge" class="keyword-icon">');
+            processedText = processedText.replace(/\/d/g, '<img src="images/KeyText/damage.png" alt="damage" class="keyword-icon">');
+            processedText = processedText.replace(/\/f/g, '<img src="images/KeyText/freeze.png" alt="freeze" class="keyword-icon">');
+            processedText = processedText.replace(/\/l/g, '<img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-icon">');
+            processedText = processedText.replace(/\/v/g, '<img src="images/KeyText/value.png" alt="value" class="keyword-icon">');
+            processedText = processedText.replace(/\/t/g, '<img src="images/KeyText/transform.png" alt="transform" class="keyword-icon">');
+            
+            // Color keywords
+            const keywordRules = {
+                'slow': 'rgb(203, 159, 110)', 'haste': 'rgb(0, 235, 195)', 'charge': 'rgb(0, 235, 195)',
+                'cooldown': 'rgb(0, 235, 195)', 'heal': 'rgb(143, 234, 49)', 'regen': 'rgb(143, 234, 49)',
+                'poison': 'rgb(13, 190, 79)', 'burn': 'rgb(253, 146, 63)', 'crit': 'rgb(244, 82, 60)',
+                'damage': 'rgb(244, 82, 60)', 'freeze': 'rgb(63, 200, 247)', 'lifesteal': 'rgb(181, 56, 115)',
+                'value': 'rgb(244, 208, 33)', 'destroy': 'rgb(198, 44, 66)', 'transform': 'rgb(90, 230, 233)',
+                'sheild': 'rgb(245, 208, 33)'
+            };
+            
+            Object.entries(keywordRules).forEach(([keyword, color]) => {
+                const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+                processedText = processedText.replace(regex, (match) => {
+                    return `<span style="color: ${color}; font-weight: bold;" class="key-text">${match}</span>`;
+                });
+            });
+            
+            return processedText;
+        }
+
+        function positionElementsRelativeToOnUse(content, onUseSection) {
+            content.offsetHeight;
+            onUseSection.offsetHeight;
+            
+            const onUseRelativeTop = onUseSection.offsetTop;
+            const onUseHeight = onUseSection.offsetHeight;
+            const onUseCenterY = onUseRelativeTop + (onUseHeight / 2);
+            
+            const cooldownSection = content.querySelector('.cooldown-section');
+            const ammoSection = content.querySelector('.ammo-section');
+            
+            if (cooldownSection) {
+                cooldownSection.style.top = `${onUseCenterY - 25}px`;
+            }
+            
+            if (ammoSection) {
+                const ammoHeight = ammoSection.offsetHeight;
+                ammoSection.style.top = `${onUseCenterY - (ammoHeight / 2)}px`;
+            }
         }
 
         function renderTags(itemData) {
@@ -1024,22 +1321,96 @@
             return html;
         }
 
-        function getRarityColor(rarity) {
-            switch (rarity?.toLowerCase()) {
-                case 'bronze': return 'rgb(205, 127, 50)';
-                case 'silver': return 'silver';
-                case 'gold': return 'gold';
-                case 'diamond': return 'rgb(185, 242, 255)';
-                case 'legendary': return 'rgb(255, 100, 100)';
-                default: return 'rgb(201, 175, 133)';
-            }
+        // Updated view and upvote functions to work with new card structure
+        function viewItemDetails(item) {
+            const itemData = item.item_data || {};
+            const details = `
+Item: ${itemData.name || 'Unnamed'}
+Hero: ${itemData.hero || 'Unknown'}
+Size: ${itemData.item_size || 'Unknown'}
+Rarity: ${itemData.rarity || 'Unknown'}
+${itemData.cooldown ? `Cooldown: ${itemData.cooldown}s` : ''}
+${itemData.ammo ? `Ammo: ${itemData.ammo}` : ''}
+${itemData.passive_effect ? `\nPassive: ${itemData.passive_effect}` : ''}
+${itemData.on_use_effects?.length ? `\nOn Use: ${itemData.on_use_effects.join(', ')}` : ''}
+Created: ${new Date(item.created_at).toLocaleDateString()}
+Contest: ${item.contest_number > 0 ? `Contest ${item.contest_number}` : 'General'}
+            `.trim();
+
+            alert(details);
+            // TODO: Implement proper modal view
         }
 
-        function escapeHtml(text) {
-            if (!text) return '';
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
+        // Remove old render functions and update the grid CSS to work with card layout
+        function updateItemsGridCSS() {
+            const style = document.createElement('style');
+            style.textContent = `
+                .items-grid {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 20px;
+                    justify-content: center;
+                    margin-bottom: 30px;
+                }
+                
+                .items-grid .card {
+                    margin: 10px;
+                    background: transparent;
+                }
+                
+                /* Import existing card styles from main page */
+                .keyword-icon {
+                    width: 16px;
+                    height: 18px;
+                    display: inline;
+                    vertical-align: middle;
+                    margin: 0 2px;
+                }
+                
+                .key-text {
+                    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+                    font-weight: bold;
+                }
+                
+                .scaling-values-container {
+                    position: absolute;
+                    top: -15px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 150%;
+                    display: flex;
+                    gap: 2px;
+                    z-index: 10;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                    padding: 0 5px;
+                }
+                
+                .scaling-value {
+                    background-color: #333;
+                    color: white;
+                    padding: 6px 8px;
+                    border-radius: 3px;
+                    font-size: 11px;
+                    font-weight: bold;
+                    font-family: Arial, sans-serif;
+                    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                    min-width: 28px;
+                    text-align: center;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+                    flex: 1;
+                    max-width: 45px;
+                }
+                
+                .scaling-value.heal { background-color: rgb(143, 234, 49); }
+                .scaling-value.regen { background-color: rgb(100, 255, 60); }
+                .scaling-value.shield { background-color: rgb(245, 208, 33); }
+                .scaling-value.damage { background-color: rgb(244, 82, 60); }
+                .scaling-value.poison { background-color: rgb(13, 190, 79); }
+                .scaling-value.burn { background-color: rgb(253, 146, 63); }
+            `;
+            document.head.appendChild(style);
         }
 
         function handleFilterChange() {
