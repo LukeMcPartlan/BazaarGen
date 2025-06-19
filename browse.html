@@ -824,12 +824,20 @@
                 }
 
                 debugLog('SUCCESS', `Loaded ${data.length} items successfully`);
+                debugLog('DATA', 'Sample item data', data[0]);
 
                 allItems = data || [];
                 displayedItems = [];
                 currentPage = 0;
                 
+                // Clear the grid before adding new items
+                itemsGrid.innerHTML = '';
+                debugLog('CLEAR', 'Cleared items grid');
+                
                 updateStats();
+                
+                // Force load initial items
+                debugLog('INITIAL', 'Starting initial item load...');
                 loadMoreItems();
 
             } catch (error) {
@@ -901,239 +909,110 @@
         function loadMoreItems() {
             if (isLoading || displayedItems.length >= allItems.length) return;
 
+            debugLog('RENDER', `Loading more items: ${displayedItems.length}/${allItems.length}`);
+
             const startIndex = displayedItems.length;
             const endIndex = Math.min(startIndex + ITEMS_PER_LOAD, allItems.length);
             const newItems = allItems.slice(startIndex, endIndex);
 
-            newItems.forEach(item => {
-                const itemCard = createItemCard(item);
-                itemsGrid.appendChild(itemCard);
-                displayedItems.push(item);
+            debugLog('RENDER', `Rendering ${newItems.length} new items (${startIndex} to ${endIndex-1})`);
+
+            newItems.forEach((item, index) => {
+                debugLog('CARD', `Creating card ${startIndex + index}`, {
+                    id: item.id,
+                    name: item.item_data?.name,
+                    hasImage: !!item.item_data?.image_data,
+                    hero: item.item_data?.hero,
+                    rarity: item.item_data?.rarity
+                });
+
+                try {
+                    const itemCard = createItemCard(item);
+                    if (itemCard) {
+                        itemsGrid.appendChild(itemCard);
+                        displayedItems.push(item);
+                        debugLog('CARD', `Successfully added card to grid for item: ${item.item_data?.name || 'Unnamed'}`);
+                    } else {
+                        debugLog('ERROR', `createItemCard returned null for item: ${item.id}`);
+                    }
+                } catch (error) {
+                    debugLog('ERROR', `Failed to create card for item ${item.id}`, error.message);
+                }
             });
+
+            debugLog('RENDER', `Total displayed items: ${displayedItems.length}, Grid children: ${itemsGrid.children.length}`);
 
             updateStats();
             updateLoadMoreButton();
         }
 
         function createItemCard(item) {
+            debugLog('CREATE', `Creating card for item: ${item.id}`, {
+                name: item.item_data?.name,
+                hasItemData: !!item.item_data,
+                itemDataKeys: item.item_data ? Object.keys(item.item_data) : []
+            });
+
             const itemData = item.item_data || {};
             const createdDate = new Date(item.created_at).toLocaleDateString();
+
+            // Validate essential data
+            if (!itemData.name && !itemData.hero && !itemData.image_data) {
+                debugLog('WARNING', `Item ${item.id} has minimal data, creating basic card`);
+            }
 
             // Create the main card container similar to your original
             const card = document.createElement("div");
             card.className = "card"; // Use same class as original
             card.setAttribute('data-item-id', item.id);
+            card.style.border = "2px solid red"; // Temporary debug border
+            card.style.minHeight = "200px"; // Ensure card is visible
+            card.style.backgroundColor = "rgba(255,255,255,0.1)"; // Temporary debug background
+
+            debugLog('CARD_ELEMENT', `Created card element for ${itemData.name || 'Unnamed'}`);
+
+            // Add a simple test content first to ensure visibility
+            const testDiv = document.createElement("div");
+            testDiv.style.padding = "20px";
+            testDiv.style.color = "white";
+            testDiv.style.fontSize = "16px";
+            testDiv.innerHTML = `
+                <h3>TEST CARD: ${itemData.name || 'Unnamed Item'}</h3>
+                <p>ID: ${item.id}</p>
+                <p>Hero: ${itemData.hero || 'Unknown'}</p>
+                <p>Created: ${createdDate}</p>
+                <p>Has Image: ${itemData.image_data ? 'Yes' : 'No'}</p>
+            `;
+            
+            card.appendChild(testDiv);
+            
+            debugLog('CARD_CONTENT', `Added test content to card for ${itemData.name || 'Unnamed'}`);
 
             // Add card controls (view/upvote buttons)
             const cardControls = document.createElement("div");
             cardControls.className = "card-controls";
+            cardControls.style.position = "absolute";
+            cardControls.style.top = "10px";
+            cardControls.style.right = "10px";
+            cardControls.style.zIndex = "10";
             
             const viewBtn = document.createElement("button");
-            viewBtn.className = "card-export-btn";
             viewBtn.innerHTML = "👁️";
             viewBtn.title = "View item details";
+            viewBtn.style.margin = "0 5px";
             viewBtn.onclick = () => viewItemDetails(item);
             
             const upvoteBtn = document.createElement("button");
-            upvoteBtn.className = "card-save-btn";
             upvoteBtn.innerHTML = "👍";
             upvoteBtn.title = "Upvote this item";
+            upvoteBtn.style.margin = "0 5px";
             upvoteBtn.onclick = () => upvoteItem(item.id);
             
             cardControls.appendChild(viewBtn);
             cardControls.appendChild(upvoteBtn);
             card.appendChild(cardControls);
 
-            // Create image container similar to original
-            const imageContainer = document.createElement("div");
-            imageContainer.className = "image-container";
-            imageContainer.style.border = `3px solid ${getBorderColor(itemData.rarity || 'gold')}`;
-
-            if (itemData.image_data) {
-                // Create image clipping wrapper
-                const imageClipWrapper = document.createElement("div");
-                imageClipWrapper.className = "image-clip-wrapper";
-
-                const img = document.createElement("img");
-                img.className = "uploaded-image";
-                img.src = itemData.image_data;
-                img.onerror = () => { imageContainer.style.display = 'none'; };
-                imageClipWrapper.appendChild(img);
-                imageContainer.appendChild(imageClipWrapper);
-
-                // Add frame overlay
-                const frame = createFrameElement(itemData.rarity || 'gold', itemData.item_size || 'Medium');
-                imageContainer.appendChild(frame);
-            }
-
-            // Add scaling values if any exist
-            if (itemData.scaling_values) {
-                const scalingContainer = createScalingValuesContainer(itemData.scaling_values);
-                if (scalingContainer.children.length > 0) {
-                    imageContainer.appendChild(scalingContainer);
-                }
-            }
-
-            // Create tags container
-            const tagsContainer = document.createElement("div");
-            tagsContainer.className = "tags-container";
-
-            // Add item size tag
-            if (itemData.item_size) {
-                const itemSizeTag = document.createElement("span");
-                itemSizeTag.className = "item-tag";
-                itemSizeTag.textContent = itemData.item_size;
-                tagsContainer.appendChild(itemSizeTag);
-            }
-
-            // Add additional tags
-            if (itemData.tags && Array.isArray(itemData.tags)) {
-                itemData.tags.forEach(tagText => {
-                    const tag = document.createElement("span");
-                    tag.className = "item-tag";
-                    tag.textContent = tagText;
-                    tagsContainer.appendChild(tag);
-                });
-            }
-
-            // Create main content area
-            const content = document.createElement("div");
-            content.className = "card-content";
-            content.style.border = `3px solid ${getBorderColor(itemData.rarity || 'gold')}`;
-
-            // Top section with title and hero
-            const topSection = document.createElement("div");
-            topSection.className = "text-section hero-header";
-            const borderColor = getBorderColor(itemData.rarity || 'gold');
-            topSection.style.borderTop = `2px solid ${borderColor}`;
-            topSection.style.borderBottom = `2px solid ${borderColor}`;
-            
-            const itemTitle = document.createElement("div");
-            itemTitle.className = "item-title";
-            itemTitle.textContent = itemData.name || 'Unnamed Item';
-            
-            const heroImg = document.createElement("img");
-            heroImg.src = `images/${(itemData.hero || 'neutral').toLowerCase()}.png`;
-            heroImg.alt = itemData.hero || 'Neutral';
-            heroImg.onerror = () => { heroImg.style.display = 'none'; };
-            
-            topSection.appendChild(itemTitle);
-            topSection.appendChild(heroImg);
-            content.appendChild(topSection);
-
-            // On use effects section
-            let onUseSection = null;
-            if (itemData.on_use_effects && Array.isArray(itemData.on_use_effects) && itemData.on_use_effects.length > 0) {
-                const effectsContainer = document.createElement("div");
-                itemData.on_use_effects.forEach(effect => {
-                    if (effect && effect.trim()) {
-                        const effectLine = document.createElement("div");
-                        effectLine.className = "on-use-line";
-
-                        const icon = document.createElement("img");
-                        icon.src = "images/use-arrow.png";
-                        icon.alt = "-";
-                        icon.onerror = () => { icon.style.display = 'none'; };
-
-                        const text = document.createElement("span");
-                        text.innerHTML = processKeywordText(effect);
-
-                        effectLine.appendChild(icon);
-                        effectLine.appendChild(text);
-                        effectsContainer.appendChild(effectLine);
-                    }
-                });
-
-                if (effectsContainer.children.length > 0) {
-                    onUseSection = document.createElement("div");
-                    onUseSection.className = "text-section on-use-section";
-                    onUseSection.style.borderTop = `2px solid ${borderColor}`;
-                    onUseSection.style.borderBottom = `2px solid ${borderColor}`;
-                    onUseSection.appendChild(effectsContainer);
-                    content.appendChild(onUseSection);
-                }
-            }
-
-            // Passive effects section
-            if (itemData.passive_effect && itemData.passive_effect.trim()) {
-                const passiveSection = document.createElement("div");
-                passiveSection.className = "text-section";
-                passiveSection.style.borderTop = `2px solid ${borderColor}`;
-                passiveSection.style.borderBottom = `2px solid ${borderColor}`;
-                passiveSection.innerHTML = processKeywordText(itemData.passive_effect);
-                content.appendChild(passiveSection);
-            }
-
-            // Cooldown section
-            if (itemData.cooldown && onUseSection) {
-                const cooldownDiv = document.createElement("div");
-                cooldownDiv.className = "cooldown-section";
-                cooldownDiv.innerHTML = `<span>${itemData.cooldown}</span><span class="sec-text">sec</span>`;
-                
-                // Add cooldown border overlay
-                const cooldownBorder = createCooldownBorderElement(itemData.rarity || 'gold');
-                cooldownDiv.appendChild(cooldownBorder);
-                
-                content.appendChild(cooldownDiv);
-            }
-
-            // Ammo section
-            if (itemData.ammo) {
-                const ammoDiv = document.createElement("div");
-                ammoDiv.className = "ammo-section";
-                ammoDiv.style.border = `3px solid ${borderColor}`;
-                
-                const ammoImg = document.createElement("img");
-                ammoImg.src = "images/ammo.png";
-                ammoImg.alt = "Ammo";
-                ammoImg.onerror = () => { ammoImg.style.display = 'none'; };
-                ammoDiv.appendChild(ammoImg);
-                
-                const ammoText = document.createElement("span");
-                ammoText.textContent = itemData.ammo;
-                ammoDiv.appendChild(ammoText);
-                
-                content.appendChild(ammoDiv);
-            }
-
-            // Create wrapper and visual content container
-            const cardWrapper = document.createElement("div");
-            cardWrapper.className = "card-wrapper";
-            cardWrapper.appendChild(tagsContainer);
-            cardWrapper.appendChild(content);
-
-            // Create the tight visual content container
-            const visualContent = document.createElement("div");
-            visualContent.className = "card-visual-content";
-            visualContent.appendChild(imageContainer);
-            visualContent.appendChild(cardWrapper);
-            
-            card.appendChild(visualContent);
-
-            // Set dimensions and positioning (from original code)
-            setTimeout(() => {
-                let widthRatio = 1.0;
-                if (itemData.item_size === "Small") {
-                    widthRatio = 0.5;
-                } else if (itemData.item_size === "Large") {
-                    widthRatio = 1.5;
-                }
-
-                const containerWidth = 150 * widthRatio;
-                imageContainer.style.width = containerWidth + "px";
-
-                const img = imageContainer.querySelector('.uploaded-image');
-                if (img) {
-                    img.style.height = "100%";
-                    img.style.width = "auto";
-                    img.style.objectFit = "cover";
-                    img.style.objectPosition = "center";
-                }
-
-                if (onUseSection) {
-                    positionElementsRelativeToOnUse(content, onUseSection);
-                }
-            }, 0);
+            debugLog('CARD_COMPLETE', `Completed card creation for ${itemData.name || 'Unnamed'}`);
 
             return card;
         }
