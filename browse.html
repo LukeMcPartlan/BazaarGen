@@ -907,9 +907,12 @@
         }
 
         function loadMoreItems() {
-            if (isLoading || displayedItems.length >= allItems.length) return;
-
-            debugLog('RENDER', `Loading more items: ${displayedItems.length}/${allItems.length}`);
+            debugLog('RENDER', `Starting loadMoreItems - displayed: ${displayedItems.length}, available: ${allItems.length}`);
+            
+            if (isLoading || displayedItems.length >= allItems.length) {
+                debugLog('RENDER', 'Skipping loadMoreItems - already loading or no more items');
+                return;
+            }
 
             const startIndex = displayedItems.length;
             const endIndex = Math.min(startIndex + ITEMS_PER_LOAD, allItems.length);
@@ -944,6 +947,12 @@
 
             updateStats();
             updateLoadMoreButton();
+            
+            // Force a check if we need to load more immediately
+            if (displayedItems.length < ITEMS_PER_PAGE && displayedItems.length < allItems.length) {
+                debugLog('RENDER', 'Need to load more items to reach minimum page size');
+                setTimeout(() => loadMoreItems(), 100);
+            }
         }
 
         function createItemCard(item) {
