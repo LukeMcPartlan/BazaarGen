@@ -5,8 +5,85 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Bazaar Items Browser - View Community Creations | BazaarGen</title>
     
-    <!-- External Libraries -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- External Libraries with fallback -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2" onload="console.log('Supabase CDN 1 loaded successfully')" onerror="console.error('Supabase CDN 1 failed, trying fallback'); loadSupabaseFallback()"></script>
+    
+    </div>
+
+    <script>
+        // Fallback CDN loader
+        function loadSupabaseFallback() {
+            console.log('Loading Supabase fallback CDN...');
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+            script.onload = () => console.log('Supabase fallback CDN loaded successfully');
+            script.onerror = () => {
+                console.error('All Supabase CDNs failed, loading mock version');
+                loadMockSupabase();
+            };
+            document.head.appendChild(script);
+        }
+        
+        // Mock Supabase for testing when CDN fails
+        function loadMockSupabase() {
+            console.log('Creating mock Supabase for testing...');
+            window.supabase = {
+                createClient: (url, key) => {
+                    console.log('Mock Supabase client created with URL:', url);
+                    return {
+                        from: (table) => {
+                            console.log('Mock query from table:', table);
+                            return {
+                                select: (columns) => {
+                                    console.log('Mock select columns:', columns);
+                                    return {
+                                        eq: (col, val) => ({ data: mockItems, error: null }),
+                                        or: (condition) => ({ data: mockItems, error: null }),
+                                        order: (col, opts) => ({ data: mockItems, error: null })
+                                    };
+                                }
+                            };
+                        }
+                    };
+                }
+            };
+            
+            // Mock data for testing
+            window.mockItems = [
+                {
+                    id: '1',
+                    created_at: new Date().toISOString(),
+                    contest_number: 0,
+                    item_data: {
+                        name: 'Test Sword',
+                        hero: 'Mak',
+                        item_size: 'Medium',
+                        rarity: 'gold',
+                        cooldown: '5.0',
+                        passive_effect: 'Test passive effect',
+                        on_use_effects: ['Test on use effect']
+                    },
+                    users: { alias: 'TestUser' }
+                },
+                {
+                    id: '2',
+                    created_at: new Date().toISOString(),
+                    contest_number: 1,
+                    item_data: {
+                        name: 'Magic Shield',
+                        hero: 'Vanessa',
+                        item_size: 'Large',
+                        rarity: 'diamond',
+                        ammo: '3',
+                        passive_effect: 'Blocks incoming damage'
+                    },
+                    users: { alias: 'TestCreator' }
+                }
+            ];
+            
+            console.log('Mock Supabase setup complete with sample data');
+        }
+    </script>
     
     <style>
         * {
@@ -461,16 +538,22 @@
             </div>
         </div>
 
+        <!-- Debug Panel (will be shown when debugging) -->
+        <div id="debugContainer" style="background: rgba(180, 60, 60, 0.9); color: white; padding: 15px; border-radius: 8px; margin: 20px 0; display: none;">
+            <h4>🔧 Initializing...</h4>
+        </div>
         <!-- Messages -->
         <div id="errorMessage" class="error" style="display: none;"></div>
         <div id="loadingMessage" class="loading" style="display: none;">Loading items...</div>
-        <div id="noResults" class="no-results" style="display: none;">
             No items found. Try adjusting your filters.
         </div>
 
+        <div id="noResults" class="no-results" style="display: none;">
+            No items found. Try adjusting your filters.
+        </div>
         <!-- Items Grid -->
-        <div id="itemsGrid" class="items-grid"></div>
 
+        <div id="itemsGrid" class="items-grid"></div>
         <!-- Load More -->
         <div class="load-more-container">
             <button id="loadMoreBtn" class="btn" style="display: none;">Load More Items</button>
@@ -478,15 +561,125 @@
                 You've seen all available items!
             </div>
         </div>
-    </div>
 
     <script>
         // Configuration
         const SUPABASE_URL = 'https://zslsedcfihgwbfljqhod.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzbHNlZGNmaWhnd2JmbGpxaG9kIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4NTEwNzksImV4cCI6MjA2NTQyNzA3OX0.wA23SQZ8PZRambG4RVVWlcxUxdVUz4dNKLQgqY_xR08';
 
-        // Initialize Supabase
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Debug state
+        let supabase;
+        let debugMode = true;
+        let initializationSteps = [];
+        
+        function debugLog(step, message, data = null) {
+            const timestamp = new Date().toISOString();
+            const logEntry = { timestamp, step, message, data };
+            initializationSteps.push(logEntry);
+            
+            if (debugMode) {
+                console.log(`🔍 [${step}] ${message}`, data || '');
+            }
+            
+            // Update debug display
+            updateDebugDisplay();
+        }
+        
+        function updateDebugDisplay() {
+            const debugContainer = document.getElementById('debugContainer');
+            if (debugContainer) {
+                debugContainer.innerHTML = `
+                    <h4>🔧 Debug Information</h4>
+                    <div style="max-height: 200px; overflow-y: auto; font-size: 12px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px;">
+                        ${initializationSteps.map(step => 
+                            `<div><strong>[${step.step}]</strong> ${step.message} ${step.data ? JSON.stringify(step.data) : ''}</div>`
+                        ).join('')}
+                    </div>
+                `;
+            }
+        }
+        
+        function checkSupabaseAvailability() {
+            debugLog('STEP 1', 'Checking if window.supabase exists...');
+            
+            if (typeof window === 'undefined') {
+                debugLog('ERROR', 'Window object not available');
+                return { available: false, reason: 'Window object not available' };
+            }
+            
+            if (typeof window.supabase === 'undefined') {
+                debugLog('ERROR', 'window.supabase is undefined');
+                return { available: false, reason: 'Supabase library not loaded from CDN' };
+            }
+            
+            if (typeof window.supabase.createClient !== 'function') {
+                debugLog('ERROR', 'window.supabase.createClient is not a function', typeof window.supabase.createClient);
+                return { available: false, reason: 'Supabase createClient method not available' };
+            }
+            
+            debugLog('SUCCESS', 'Supabase library is available');
+            return { available: true, reason: 'Supabase loaded successfully' };
+        }
+        
+        function initializeSupabase() {
+            debugLog('STEP 2', 'Starting Supabase initialization...');
+            
+            const availability = checkSupabaseAvailability();
+            if (!availability.available) {
+                debugLog('ERROR', 'Supabase not available', availability.reason);
+                showError(`Database connection failed: ${availability.reason}`);
+                return false;
+            }
+            
+            try {
+                debugLog('STEP 3', 'Creating Supabase client...', { url: SUPABASE_URL });
+                
+                supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                
+                if (!supabase) {
+                    debugLog('ERROR', 'Supabase client creation returned null/undefined');
+                    return false;
+                }
+                
+                debugLog('STEP 4', 'Checking Supabase client methods...');
+                
+                if (typeof supabase.from !== 'function') {
+                    debugLog('ERROR', 'Supabase client.from is not a function', typeof supabase.from);
+                    return false;
+                }
+                
+                debugLog('SUCCESS', 'Supabase client initialized successfully');
+                return true;
+                
+            } catch (error) {
+                debugLog('ERROR', 'Exception during Supabase initialization', error.message);
+                showError('Database initialization failed: ' + error.message);
+                return false;
+            }
+        }
+        
+        async function testSupabaseConnection() {
+            debugLog('STEP 5', 'Testing Supabase connection...');
+            
+            try {
+                const testQuery = supabase.from('items').select('id').limit(1);
+                debugLog('STEP 6', 'Created test query, executing...');
+                
+                const { data, error } = await testQuery;
+                
+                if (error) {
+                    debugLog('ERROR', 'Supabase test query failed', error);
+                    return { success: false, error: error.message };
+                }
+                
+                debugLog('SUCCESS', 'Supabase connection test successful', { itemCount: data?.length });
+                return { success: true, data };
+                
+            } catch (error) {
+                debugLog('ERROR', 'Exception during connection test', error.message);
+                return { success: false, error: error.message };
+            }
+        }
 
         // State
         let allItems = [];
@@ -513,11 +706,60 @@
         const searchInput = document.getElementById('searchInput');
         const contestFilter = document.getElementById('contestFilter');
 
-        // Initialize
+        // Initialize with comprehensive checks
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('Page loaded, initializing...');
-            setupEventListeners();
-            loadItems();
+            debugLog('INIT', 'DOM Content Loaded, starting initialization...');
+            
+            // Show debug panel
+            const debugContainer = document.getElementById('debugContainer');
+            if (debugContainer) {
+                debugContainer.style.display = 'block';
+            }
+            
+            // Wait for external scripts with multiple retry attempts
+            let attempts = 0;
+            const maxAttempts = 10;
+            const checkInterval = 500; // Check every 500ms
+            
+            function attemptInitialization() {
+                attempts++;
+                debugLog('RETRY', `Initialization attempt ${attempts}/${maxAttempts}`);
+                
+                if (attempts > maxAttempts) {
+                    debugLog('ERROR', 'Max initialization attempts reached');
+                    showError('Failed to load required libraries after multiple attempts. Please refresh the page or check your internet connection.');
+                    return;
+                }
+                
+                if (initializeSupabase()) {
+                    debugLog('SUCCESS', 'Initialization successful, proceeding...');
+                    
+                    // Test connection before proceeding
+                    testSupabaseConnection().then(result => {
+                        if (result.success) {
+                            debugLog('SUCCESS', 'All systems ready, loading items...');
+                            setupEventListeners();
+                            loadItems();
+                            
+                            // Hide debug panel after successful init (optional)
+                            setTimeout(() => {
+                                if (debugContainer && !debugMode) {
+                                    debugContainer.style.display = 'none';
+                                }
+                            }, 3000);
+                        } else {
+                            debugLog('ERROR', 'Connection test failed', result.error);
+                            showError(`Database connection test failed: ${result.error}`);
+                        }
+                    });
+                } else {
+                    debugLog('RETRY', `Attempt ${attempts} failed, retrying in ${checkInterval}ms...`);
+                    setTimeout(attemptInitialization, checkInterval);
+                }
+            }
+            
+            // Start first attempt
+            attemptInitialization();
         });
 
         function setupEventListeners() {
