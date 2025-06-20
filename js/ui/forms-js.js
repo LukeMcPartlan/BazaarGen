@@ -1,0 +1,695 @@
+/**
+ * Form Utilities and Event Handlers
+ * Handles form interactions, dynamic inputs, and form validation UI
+ */
+class Forms {
+  
+  static isInitialized = false;
+  
+  /**
+   * Initialize form functionality
+   */
+  static init() {
+    if (this.isInitialized) return;
+    
+    document.addEventListener('DOMContentLoaded', () => {
+      this.setupFormEventListeners();
+      this.setupDynamicInputs();
+      this.setupLiveValidation();
+      this.setupFormPersistence();
+      this.isInitialized = true;
+    });
+  }
+
+  /**
+   * Setup event listeners for form inputs
+   */
+  static setupFormEventListeners() {
+    // Auto-generate cards/skills on input change
+    document.querySelectorAll('input, select, textarea').forEach(element => {
+      const eventType = element.tagName.toLowerCase() === 'select' ? 'change' : 'input';
+      
+      element.addEventListener(eventType, () => {
+        this.handleInputChange(element);
+      });
+
+      // Setup validation on blur
+      element.addEventListener('blur', () => {
+        this.validateField(element);
+      });
+    });
+
+    // File input special handling
+    const imageInput = document.getElementById('imageInput');
+    if (imageInput) {
+      imageInput.addEventListener('change', (e) => {
+        this.handleImageUpload(e);
+      });
+    }
+  }
+
+  /**
+   * Handle input changes for live preview
+   * @param {HTMLElement} element - Changed input element
+   */
+  static handleInputChange(element) {
+    // Debounce rapid changes
+    clearTimeout(element.changeTimeout);
+    element.changeTimeout = setTimeout(() => {
+      
+      // Determine if we're on cards or skills page
+      if (window.location.pathname.includes('skills') || document.getElementById('skillNameInput')) {
+        this.updateSkillPreview();
+      } else if (document.getElementById('itemNameInput')) {
+        this.updateCardPreview();
+      }
+      
+    }, 300); // 300ms debounce
+  }
+
+  /**
+   * Update card preview
+   */
+  static updateCardPreview() {
+    try {
+      const previewContainer = document.getElementById('previewContainer');
+      if (!previewContainer) return;
+
+      // Check if we have enough data for a preview
+      const itemName = document.getElementById('itemNameInput')?.value;
+      const imageInput = document.getElementById('imageInput');
+      
+      if (!itemName || !imageInput?.files?.[0]) {
+        previewContainer.innerHTML = '';
+        return;
+      }
+
+      // Create preview card
+      if (window.CardGenerator) {
+        CardGenerator.createCard({
+          formData: true,
+          isPreview: true,
+          container: previewContainer,
+          includeControls: false,
+          mode: 'preview'
+        }).then(cardElement => {
+          // Preview created successfully
+        }).catch(error => {
+          console.log('Preview update skipped:', error.message);
+        });
+      }
+    } catch (error) {
+      console.log('Preview update failed:', error.message);
+    }
+  }
+
+  /**
+   * Update skill preview
+   */
+  static updateSkillPreview() {
+    try {
+      const previewContainer = document.getElementById('previewContainer');
+      if (!previewContainer) return;
+
+      // Check if we have enough data for a preview
+      const skillName = document.getElementById('skillNameInput')?.value;
+      const skillEffect = document.getElementById('skillEffectInput')?.value;
+      const imageInput = document.getElementById('imageInput');
+      
+      if (!skillName || !skillEffect || !imageInput?.files?.[0]) {
+        previewContainer.innerHTML = '';
+        return;
+      }
+
+      // Create preview skill
+      if (window.SkillGenerator) {
+        SkillGenerator.createSkill({
+          formData: true,
+          isPreview: true,
+          container: previewContainer,
+          includeControls: false,
+          mode: 'preview'
+        }).then(skillElement => {
+          // Preview created successfully
+        }).catch(error => {
+          console.log('Preview update skipped:', error.message);
+        });
+      }
+    } catch (error) {
+      console.log('Preview update failed:', error.message);
+    }
+  }
+
+  /**
+   * Handle image upload with validation and preview
+   * @param {Event} event - File input change event
+   */
+  static handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate image file
+    const validation = Validation.validateImageFile(file);
+    if (!validation.valid) {
+      Messages.showError(validation.error);
+      event.target.value = ''; // Clear invalid file
+      return;
+    }
+
+    // Show image preview in form
+    this.showImagePreview(file, event.target);
+    
+    // Trigger preview update
+    this.handleInputChange(event.target);
+  }
+
+  /**
+   * Show image preview next to file input
+   * @param {File} file - Selected image file
+   * @param {HTMLElement} input - File input element
+   */
+  static showImagePreview(file, input) {
+    // Remove existing preview
+    const existingPreview = input.parentNode.querySelector('.image-preview');
+    if (existingPreview) {
+      existingPreview.remove();
+    }
+
+    // Create new preview
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const preview = document.createElement('div');
+      preview.className = 'image-preview';
+      preview.innerHTML = `
+        <img src="${e.target.result}" alt="Preview" style="max-width: 100px; max-height: 100px; border-radius: 4px; margin-top: 8px;">
+        <div style="font-size: 12px; color: #666; margin-top: 4px;">${file.name} (${(file.size / 1024).toFixed(1)} KB)</div>
+      `;
+      input.parentNode.appendChild(preview);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  /**
+   * Setup dynamic input addition/removal
+   */
+  static setupDynamicInputs() {
+    // Tags input management
+    this.setupTagInputs();
+    
+    // On-use effects input management
+    this.setupOnUseInputs();
+  }
+
+  /**
+   * Setup tag input management
+   */
+  static setupTagInputs() {
+    // Add tag input button
+    const addTagBtn = document.querySelector('button[onclick="addTagInput()"]');
+    if (addTagBtn) {
+      addTagBtn.onclick = () => this.addTagInput();
+    }
+  }
+
+  /**
+   * Setup on-use effects input management
+   */
+  static setupOnUseInputs() {
+    // Add on-use effect input button
+    const addOnUseBtn = document.querySelector('button[onclick="addOnUseInput()"]');
+    if (addOnUseBtn) {
+      addOnUseBtn.onclick = () => this.addOnUseInput();
+    }
+  }
+
+  /**
+   * Add a new tag input field
+   */
+  static addTagInput() {
+    const container = document.getElementById("tagInputs");
+    if (!container) return;
+    
+    const inputGroup = document.createElement("div");
+    inputGroup.className = "tag-input-group";
+    
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = "Enter tag text";
+    input.className = "form-input";
+    input.addEventListener('input', () => this.handleInputChange(input));
+    input.addEventListener('blur', () => this.validateField(input));
+    
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.textContent = "Remove";
+    removeButton.className = "form-button remove";
+    removeButton.onclick = () => {
+      container.removeChild(inputGroup);
+      this.handleInputChange(input); // Update preview after removal
+    };
+    
+    inputGroup.appendChild(input);
+    inputGroup.appendChild(removeButton);
+    container.appendChild(inputGroup);
+
+    // Focus on new input
+    input.focus();
+  }
+
+  /**
+   * Add a new on-use effect input field
+   */
+  static addOnUseInput() {
+    const container = document.getElementById("onUseInputs");
+    if (!container) return;
+    
+    const inputGroup = document.createElement("div");
+    inputGroup.className = "on-use-input-group";
+    
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = "Enter on use effect description";
+    input.className = "form-input";
+    input.addEventListener('input', () => this.handleInputChange(input));
+    input.addEventListener('blur', () => this.validateField(input));
+    
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.textContent = "Remove";
+    removeButton.className = "form-button remove";
+    removeButton.onclick = () => {
+      container.removeChild(inputGroup);
+      this.handleInputChange(input); // Update preview after removal
+    };
+    
+    inputGroup.appendChild(input);
+    inputGroup.appendChild(removeButton);
+    container.appendChild(inputGroup);
+
+    // Focus on new input
+    input.focus();
+  }
+
+  /**
+   * Setup live validation for form fields
+   */
+  static setupLiveValidation() {
+    document.querySelectorAll('input, textarea, select').forEach(field => {
+      field.addEventListener('blur', () => {
+        this.validateField(field);
+      });
+
+      // Clear validation on focus
+      field.addEventListener('focus', () => {
+        this.clearFieldValidation(field);
+      });
+    });
+  }
+
+  /**
+   * Validate a single form field and show feedback
+   * @param {HTMLElement} field - Form field to validate
+   */
+  static validateField(field) {
+    if (!window.Validation) return;
+
+    const validation = Validation.validateField(field);
+    
+    this.clearFieldValidation(field);
+    
+    if (!validation.valid) {
+      this.showFieldError(field, validation.error);
+    }
+  }
+
+  /**
+   * Show validation error for a field
+   * @param {HTMLElement} field - Form field with error
+   * @param {string} error - Error message
+   */
+  static showFieldError(field, error) {
+    field.classList.add('error');
+    
+    // Create error message element
+    const errorElement = document.createElement('div');
+    errorElement.className = 'field-error';
+    errorElement.textContent = error;
+    
+    // Insert after the field
+    field.parentNode.insertBefore(errorElement, field.nextSibling);
+  }
+
+  /**
+   * Clear validation styling and messages for a field
+   * @param {HTMLElement} field - Form field to clear
+   */
+  static clearFieldValidation(field) {
+    field.classList.remove('error', 'success');
+    
+    // Remove existing error messages
+    const errorElement = field.parentNode.querySelector('.field-error');
+    if (errorElement) {
+      errorElement.remove();
+    }
+  }
+
+  /**
+   * Setup form data persistence (save form state)
+   */
+  static setupFormPersistence() {
+    // Save form data on input
+    document.querySelectorAll('input, textarea, select').forEach(field => {
+      field.addEventListener('input', () => {
+        this.saveFormState();
+      });
+    });
+
+    // Restore form data on page load
+    this.restoreFormState();
+
+    // Clear saved state when form is submitted successfully
+    document.addEventListener('cardCreated', () => {
+      this.clearSavedFormState();
+    });
+  }
+
+  /**
+   * Save current form state to localStorage
+   */
+  static saveFormState() {
+    const formData = {};
+    
+    document.querySelectorAll('input, textarea, select').forEach(field => {
+      if (field.type === 'file') return; // Skip file inputs
+      
+      const key = field.id || field.name;
+      if (key) {
+        if (field.type === 'checkbox' || field.type === 'radio') {
+          formData[key] = field.checked;
+        } else {
+          formData[key] = field.value;
+        }
+      }
+    });
+
+    try {
+      const page = window.location.pathname.includes('skills') ? 'skills' : 'cards';
+      localStorage.setItem(`bazaargen_form_${page}`, JSON.stringify(formData));
+    } catch (error) {
+      console.warn('Could not save form state:', error);
+    }
+  }
+
+  /**
+   * Restore form state from localStorage
+   */
+  static restoreFormState() {
+    try {
+      const page = window.location.pathname.includes('skills') ? 'skills' : 'cards';
+      const savedData = localStorage.getItem(`bazaargen_form_${page}`);
+      
+      if (!savedData) return;
+      
+      const formData = JSON.parse(savedData);
+      
+      Object.entries(formData).forEach(([key, value]) => {
+        const field = document.getElementById(key) || document.querySelector(`[name="${key}"]`);
+        if (field) {
+          if (field.type === 'checkbox' || field.type === 'radio') {
+            field.checked = value;
+          } else {
+            field.value = value;
+          }
+        }
+      });
+    } catch (error) {
+      console.warn('Could not restore form state:', error);
+    }
+  }
+
+  /**
+   * Clear saved form state
+   */
+  static clearSavedFormState() {
+    try {
+      const page = window.location.pathname.includes('skills') ? 'skills' : 'cards';
+      localStorage.removeItem(`bazaargen_form_${page}`);
+    } catch (error) {
+      console.warn('Could not clear saved form state:', error);
+    }
+  }
+
+  /**
+   * Reset form to default values
+   */
+  static resetForm() {
+    // Clear all form inputs
+    document.querySelectorAll('input, textarea, select').forEach(field => {
+      if (field.type === 'file') {
+        field.value = '';
+      } else if (field.type === 'checkbox' || field.type === 'radio') {
+        field.checked = field.defaultChecked;
+      } else {
+        field.value = field.defaultValue || '';
+      }
+      
+      this.clearFieldValidation(field);
+    });
+
+    // Clear dynamic inputs
+    this.clearDynamicInputs();
+    
+    // Clear image previews
+    document.querySelectorAll('.image-preview').forEach(preview => {
+      preview.remove();
+    });
+
+    // Clear saved state
+    this.clearSavedFormState();
+
+    // Clear preview
+    const previewContainer = document.getElementById('previewContainer');
+    if (previewContainer) {
+      previewContainer.innerHTML = '';
+    }
+  }
+
+  /**
+   * Clear dynamic input containers
+   */
+  static clearDynamicInputs() {
+    const tagInputs = document.getElementById('tagInputs');
+    if (tagInputs) {
+      tagInputs.innerHTML = '';
+    }
+
+    const onUseInputs = document.getElementById('onUseInputs');
+    if (onUseInputs) {
+      onUseInputs.innerHTML = '';
+    }
+  }
+
+  /**
+   * Show form submission feedback
+   * @param {boolean} success - Whether submission was successful
+   * @param {string} message - Feedback message
+   */
+  static showSubmissionFeedback(success, message) {
+    const submitButton = document.querySelector('.form-button:not(.secondary)');
+    if (!submitButton) return;
+
+    const originalText = submitButton.textContent;
+    const originalDisabled = submitButton.disabled;
+
+    if (success) {
+      submitButton.textContent = '✓ Success!';
+      submitButton.style.background = 'linear-gradient(135deg, #4caf50 0%, #45a049 100%)';
+      submitButton.disabled = true;
+
+      setTimeout(() => {
+        submitButton.textContent = originalText;
+        submitButton.style.background = '';
+        submitButton.disabled = originalDisabled;
+      }, 2000);
+    } else {
+      submitButton.textContent = '✗ Error';
+      submitButton.style.background = 'linear-gradient(135deg, #f44336 0%, #d32f2f 100%)';
+      submitButton.disabled = true;
+
+      setTimeout(() => {
+        submitButton.textContent = originalText;
+        submitButton.style.background = '';
+        submitButton.disabled = originalDisabled;
+      }, 2000);
+    }
+  }
+
+  /**
+   * Setup keyboard shortcuts for forms
+   */
+  static setupKeyboardShortcuts() {
+    document.addEventListener('keydown', (e) => {
+      // Ctrl+Enter to submit form
+      if (e.ctrlKey && e.key === 'Enter') {
+        e.preventDefault();
+        const submitButton = document.querySelector('.form-button:not(.secondary)');
+        if (submitButton && !submitButton.disabled) {
+          submitButton.click();
+        }
+      }
+
+      // Ctrl+R to reset form
+      if (e.ctrlKey && e.key === 'r') {
+        e.preventDefault();
+        if (confirm('Are you sure you want to reset the form? This will clear all your input.')) {
+          this.resetForm();
+        }
+      }
+
+      // Escape to clear current field
+      if (e.key === 'Escape' && e.target.tagName === 'INPUT') {
+        e.target.value = '';
+        this.handleInputChange(e.target);
+      }
+    });
+  }
+
+  /**
+   * Setup form accessibility features
+   */
+  static setupAccessibility() {
+    // Add ARIA labels and descriptions
+    document.querySelectorAll('input, textarea, select').forEach(field => {
+      const label = document.querySelector(`label[for="${field.id}"]`);
+      if (label && !field.getAttribute('aria-label')) {
+        field.setAttribute('aria-label', label.textContent.trim());
+      }
+
+      // Add required indicator for screen readers
+      if (field.required) {
+        field.setAttribute('aria-required', 'true');
+      }
+    });
+
+    // Announce validation errors to screen readers
+    const originalShowFieldError = this.showFieldError;
+    this.showFieldError = function(field, error) {
+      originalShowFieldError.call(this, field, error);
+      
+      // Set aria-invalid and aria-describedby
+      field.setAttribute('aria-invalid', 'true');
+      const errorElement = field.parentNode.querySelector('.field-error');
+      if (errorElement) {
+        const errorId = `error-${field.id || Math.random().toString(36).substr(2, 9)}`;
+        errorElement.id = errorId;
+        field.setAttribute('aria-describedby', errorId);
+      }
+    };
+
+    const originalClearFieldValidation = this.clearFieldValidation;
+    this.clearFieldValidation = function(field) {
+      originalClearFieldValidation.call(this, field);
+      
+      // Clear aria attributes
+      field.removeAttribute('aria-invalid');
+      field.removeAttribute('aria-describedby');
+    };
+  }
+
+  /**
+   * Setup form auto-save functionality
+   */
+  static setupAutoSave() {
+    let autoSaveInterval;
+
+    const startAutoSave = () => {
+      autoSaveInterval = setInterval(() => {
+        this.saveFormState();
+      }, 30000); // Auto-save every 30 seconds
+    };
+
+    const stopAutoSave = () => {
+      if (autoSaveInterval) {
+        clearInterval(autoSaveInterval);
+      }
+    };
+
+    // Start auto-save when user starts typing
+    document.addEventListener('input', startAutoSave, { once: true });
+
+    // Stop auto-save when page is unloaded
+    window.addEventListener('beforeunload', stopAutoSave);
+  }
+
+  /**
+   * Get form data as object
+   * @returns {Object} Form data object
+   */
+  static getFormData() {
+    const formData = {};
+    
+    document.querySelectorAll('input, textarea, select').forEach(field => {
+      const key = field.id || field.name;
+      if (key) {
+        if (field.type === 'checkbox' || field.type === 'radio') {
+          formData[key] = field.checked;
+        } else if (field.type === 'file') {
+          formData[key] = field.files;
+        } else {
+          formData[key] = field.value;
+        }
+      }
+    });
+
+    // Get dynamic inputs
+    const tagInputs = document.querySelectorAll('#tagInputs input');
+    formData.tags = Array.from(tagInputs).map(input => input.value.trim()).filter(val => val);
+
+    const onUseInputs = document.querySelectorAll('#onUseInputs input');
+    formData.onUseEffects = Array.from(onUseInputs).map(input => input.value.trim()).filter(val => val);
+
+    return formData;
+  }
+
+  /**
+   * Set form data from object
+   * @param {Object} data - Form data object
+   */
+  static setFormData(data) {
+    Object.entries(data).forEach(([key, value]) => {
+      const field = document.getElementById(key) || document.querySelector(`[name="${key}"]`);
+      if (field) {
+        if (field.type === 'checkbox' || field.type === 'radio') {
+          field.checked = value;
+        } else if (field.type !== 'file') {
+          field.value = value;
+        }
+      }
+    });
+
+    // Set dynamic inputs
+    if (data.tags && Array.isArray(data.tags)) {
+      this.clearDynamicInputs();
+      data.tags.forEach(() => this.addTagInput());
+      const tagInputs = document.querySelectorAll('#tagInputs input');
+      data.tags.forEach((tag, index) => {
+        if (tagInputs[index]) {
+          tagInputs[index].value = tag;
+        }
+      });
+    }
+
+    if (data.onUseEffects && Array.isArray(data.onUseEffects)) {
+      data.onUseEffects.forEach(() => this.addOnUseInput());
+      const onUseInputs = document.querySelectorAll('#onUseInputs input');
+      data.onUseEffects.forEach((effect, index) => {
+        if (onUseInputs[index]) {
+          onUseInputs[index].value = effect;
+        }
+      });
+    }
+  }
+}
+
+// Auto-initialize forms
+Forms.init();
