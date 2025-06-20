@@ -5,34 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Bazaar Items Browser - View Community Creations | BazaarGen</title>
     
+    <!-- External Libraries with fallback -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2" onload="console.log('Supabase CDN 1 loaded successfully')" onerror="console.error('Supabase CDN 1 failed, trying fallback'); loadSupabaseFallback()"></script>
+    
     <script>
-        // Add immediate error tracking
-        window.addEventListener('error', function(e) {
-            console.error('🚨 JavaScript Error Detected:');
-            console.error('Message:', e.message);
-            console.error('Filename:', e.filename);
-            console.error('Line:', e.lineno);
-            console.error('Column:', e.colno);
-            console.error('Error object:', e.error);
-        });
-        
-        console.log('🔍 Error tracking enabled - any JavaScript errors will be logged with details');
-        
-        // Define fallback functions FIRST before any script tags that might call them
-        window.loadSupabaseFallback = function() {
+        // Fallback CDN loader
+        function loadSupabaseFallback() {
             console.log('Loading Supabase fallback CDN...');
             const script = document.createElement('script');
             script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
             script.onload = () => console.log('Supabase fallback CDN loaded successfully');
             script.onerror = () => {
                 console.error('All Supabase CDNs failed, loading mock version');
-                window.loadMockSupabase();
+                loadMockSupabase();
             };
             document.head.appendChild(script);
-        };
+        }
         
         // Mock Supabase for testing when CDN fails
-        window.loadMockSupabase = function() {
+        function loadMockSupabase() {
             console.log('Creating mock Supabase for testing...');
             window.supabase = {
                 createClient: (url, key) => {
@@ -44,9 +35,9 @@
                                 select: (columns) => {
                                     console.log('Mock select columns:', columns);
                                     return {
-                                        eq: (col, val) => ({ data: window.mockItems, error: null }),
-                                        or: (condition) => ({ data: window.mockItems, error: null }),
-                                        order: (col, opts) => ({ data: window.mockItems, error: null })
+                                        eq: (col, val) => ({ data: mockItems, error: null }),
+                                        or: (condition) => ({ data: mockItems, error: null }),
+                                        order: (col, opts) => ({ data: mockItems, error: null })
                                     };
                                 }
                             };
@@ -69,9 +60,7 @@
                         cooldown: '5.0',
                         passive_effect: 'Test passive effect',
                         on_use_effects: ['Test on use effect'],
-                        image_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
-                        tags: ['test'],
-                        scaling_values: { damage: '10', heal: '5' }
+                        image_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
                     },
                     users: { alias: 'TestUser' }
                 },
@@ -86,21 +75,15 @@
                         rarity: 'diamond',
                         ammo: '3',
                         passive_effect: 'Blocks incoming damage',
-                        image_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
-                        tags: ['defense']
+                        image_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
                     },
                     users: { alias: 'TestCreator' }
                 }
             ];
             
             console.log('Mock Supabase setup complete with sample data');
-        };
-        
-        console.log('✅ All fallback functions defined successfully');
+        }
     </script>
-    
-    <!-- External Libraries with fallback - NOW loaded after functions are defined -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2" onload="console.log('Supabase CDN 1 loaded successfully')" onerror="console.error('Supabase CDN 1 failed, trying fallback'); window.loadSupabaseFallback()"></script>
     
     <style>
         * {
@@ -295,23 +278,163 @@
             margin-bottom: 30px;
         }
 
-        /* Card Styles - Import from main page */
+        /* Card styling adapted from main generator */
         .card {
-            position: relative;
+            display: flex;
+            align-items: flex-start;
+            background-color: rgb(101, 84, 63);
+            padding: 1em;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
             margin: 10px;
-            background: transparent;
+            position: relative;
+        }
+
+        .card-visual-content {
+            display: flex;
+            align-items: flex-start;
+            width: fit-content;
+            position: relative;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .card-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            display: flex;
+            gap: 5px;
+        }
+
+        .card-view-btn, .card-upvote-btn {
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            border: 2px solid;
+        }
+
+        .card-view-btn {
+            background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%);
+            color: rgb(37, 26, 12);
+            border-color: rgb(218, 165, 32);
+        }
+
+        .card-view-btn:hover {
+            background: linear-gradient(135deg, rgb(255, 215, 0) 0%, rgb(218, 165, 32) 100%);
+            transform: scale(1.1);
+        }
+
+        .card-upvote-btn {
+            background: linear-gradient(135deg, rgb(46, 125, 50) 0%, rgb(27, 94, 32) 100%);
+            color: white;
+            border-color: rgb(76, 175, 80);
+        }
+
+        .card-upvote-btn:hover {
+            background: linear-gradient(135deg, rgb(76, 175, 80) 0%, rgb(46, 125, 50) 100%);
+            transform: scale(1.1);
+        }
+
+        .image-container {
+            border: 3px solid gold;
+            padding: 5px;
+            margin-right: 50px;
+            margin-top: 35px;
+            border-radius: 10px;
+            overflow: visible;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 150px;
+            width: auto;
+            flex-shrink: 0;
+            background: rgb(74, 60, 46);
+            position: relative;
+        }
+
+        .image-clip-wrapper {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            overflow: hidden;
+            border-radius: 7px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .uploaded-image {
+            height: 100%;
+            width: auto;
+            display: block;
+            object-fit: cover;
+            object-position: center;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            min-width: 100%;
+            min-height: 100%;
+        }
+
+        .card-frame {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 110%;
+            height: 110%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 2;
+            box-sizing: border-box;
+        }
+
+        .card-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            display: block;
+        }
+
+        .card-content {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            border: 3px solid gold;
+            border-radius: 10px;
+            max-width: 400px;
+            min-width: 300px;
+            width: fit-content;
+            background: radial-gradient(ellipse at center, rgb(60, 45, 30) 0%, rgb(45, 35, 22) 40%, rgb(25, 18, 10) 100%) !important;
         }
 
         .card-wrapper {
-            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
         }
 
         .tags-container {
             display: flex;
             flex-wrap: wrap;
             gap: 5px;
-            margin-bottom: 10px;
-            justify-content: center;
+            margin-bottom: 5px;
+            padding: 0;
+            background: transparent;
+            width: 300px;
         }
 
         .item-tag {
@@ -319,140 +442,98 @@
             color: rgb(152, 168, 254);
             padding: 4px 8px;
             border-radius: 4px;
-            font-size: 12px;
+            font-size: 0.8em;
             font-weight: bold;
-        }
-
-        .card-visual-content {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .image-container {
-            position: relative;
-            width: 150px;
-            height: 150px;
-            margin-top: 35px;
-            overflow: visible;
-        }
-
-        .image-clip-wrapper {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            border-radius: 8px;
-        }
-
-        .uploaded-image {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center;
-        }
-
-        .card-frame {
-            position: absolute;
-            top: -15px;
-            left: -15px;
-            width: calc(100% + 30px);
-            height: calc(100% + 30px);
-            pointer-events: none;
-            z-index: 2;
-        }
-
-        .card-frame img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        .card-content {
-            background-color: rgba(251, 225, 183, 0.95);
-            color: rgb(37, 26, 12);
-            border-radius: 10px;
-            overflow: hidden;
-            position: relative;
-            width: 250px;
-            margin-top: 10px;
+            font-family: Arial, sans-serif;
+            text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(152, 168, 254, 0.3);
         }
 
         .text-section {
-            padding: 8px 12px;
-            font-size: 14px;
-            line-height: 1.3;
+            border-top: 2px solid gold;
+            border-bottom: 2px solid gold;
+            padding: 10px;
+            color: rgb(251, 225, 183);
+            font-family: Impact, 'Arial Black', 'Franklin Gothic Bold', Arial, sans-serif;
         }
 
         .hero-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            font-weight: bold;
-            background-color: rgba(218, 165, 32, 0.2);
+            justify-content: space-between;
+            position: relative;
         }
 
         .item-title {
-            font-size: 16px;
-            font-weight: bold;
+            font-size: 2em;
         }
 
         .hero-header img {
-            width: 24px;
-            height: 24px;
-        }
-
-        .on-use-section {
-            background-color: rgba(218, 165, 32, 0.1);
+            max-width: 40px;
+            height: auto;
+            border-radius: 5px;
+            margin-left: 10px;
         }
 
         .on-use-line {
             display: flex;
             align-items: center;
-            gap: 8px;
             margin-bottom: 4px;
+            margin-left: 40px;
         }
 
-        .on-use-line:last-child {
-            margin-bottom: 0;
+        .crit-line {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+            margin-left: 40px;
+        }
+
+        .crit-line-hr {
+            display: flex;
+            align-items: center;
+            margin-bottom: 4px;
+            margin-left: 40px;
+            border: none;
+            height: 2px;
+            width: 80%;
+            background: linear-gradient(to right, transparent, #8B5C2A, transparent);
+        }
+
+        .on-use-section {
+            padding-left: 20px;
         }
 
         .on-use-line img {
             width: 16px;
-            height: 16px;
-        }
-
-        .crit-line-hr {
-            border: none;
-            border-top: 2px solid rgb(244, 82, 60);
-            margin: 8px 0;
-        }
-
-        .crit-line {
-            text-align: center;
-            font-weight: bold;
-            color: rgb(244, 82, 60);
+            height: 18px;
+            margin-right: 8px;
         }
 
         .cooldown-section {
+            left: -30px;
+            border-radius: 50%;
+            border: 3px solid rgb(52, 45, 68);
+            width: 50px;
+            height: 50px;
+            padding: 0;
+            font-size: 1.2em;
+            line-height: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            background-color: #222;
             position: absolute;
-            right: -40px;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(37, 26, 12, 0.9);
-            color: rgb(251, 225, 183);
-            padding: 8px 12px;
-            border-radius: 8px;
-            font-weight: bold;
-            text-align: center;
-            z-index: 5;
+            z-index: 1;
+            overflow: visible;
         }
 
-        .sec-text {
-            font-size: 10px;
+        .cooldown-section span {
             display: block;
+            position: relative;
+            z-index: 1;
         }
 
         .cooldown-border {
@@ -464,25 +545,32 @@
             transform: translate(calc(-50% + 2px), -50%);
             pointer-events: none;
             z-index: 0;
-            background-size: 100% 100%;
-            background-repeat: no-repeat;
-            background-position: center;
+        }
+
+        .cooldown-section .sec-text {
+            font-size: 0.6em;
+            color: rgb(217, 149, 81);
         }
 
         .ammo-section {
+            right: -30px;
+            border-radius: 10px;
+            border: 3px solid silver;
+            padding: 5px 10px;
+            font-size: 0.9em;
+            height: auto;
+            width: auto;
             position: absolute;
-            left: -40px;
-            top: 50%;
-            transform: translateY(-50%);
-            background-color: rgba(37, 26, 12, 0.9);
-            color: rgb(251, 225, 183);
-            padding: 8px;
-            border-radius: 8px;
+            z-index: 1;
+            background-color: rgb(37, 26, 12);
+            color: rgb(254, 142, 0);
+            font-weight: bold;
+            font-family: Impact, 'Arial Black', 'Franklin Gothic Bold', Arial, sans-serif;
+            text-shadow: 1px 1px 2px black;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 4px;
-            z-index: 5;
+            gap: 3px;
         }
 
         .ammo-section img {
@@ -541,25 +629,6 @@
             font-weight: bold;
         }
 
-        .card-controls {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 20;
-            display: flex;
-            gap: 5px;
-        }
-
-        .card-controls button {
-            background: rgba(37, 26, 12, 0.8);
-            color: rgb(218, 165, 32);
-            border: none;
-            border-radius: 4px;
-            padding: 4px 8px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-
         /* Messages */
         .loading {
             text-align: center;
@@ -590,7 +659,84 @@
             margin: 30px 0;
         }
 
-        /* Responsive */
+        /* Debug Toggle */
+        .debug-toggle {
+            background: linear-gradient(135deg, rgb(180, 60, 60) 0%, rgb(140, 40, 40) 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            margin-top: 20px;
+        }
+
+        .debug-toggle:hover {
+            background: linear-gradient(135deg, rgb(200, 80, 80) 0%, rgb(180, 60, 60) 100%);
+            transform: translateY(-2px);
+        }
+
+        .debug-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(180, 60, 60, 0.95);
+            color: white;
+            padding: 20px;
+            border-top: 3px solid #fff;
+            max-height: 40vh;
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            z-index: 999;
+        }
+
+        .debug-panel.show {
+            transform: translateY(0);
+        }
+
+        .debug-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 10px;
+        }
+
+        .debug-close {
+            background: none;
+            border: 1px solid white;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .debug-close:hover {
+            background: white;
+            color: rgb(180, 60, 60);
+        }
+
+        .debug-content {
+            font-size: 12px;
+            font-family: monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+
+        .debug-content div {
+            margin-bottom: 5px;
+            padding: 2px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
         @media (max-width: 768px) {
             .main-content {
                 padding: 1em;
@@ -605,7 +751,7 @@
             }
             
             .items-grid {
-                justify-content: center;
+                grid-template-columns: 1fr;
             }
             
             .nav-menu {
@@ -694,9 +840,8 @@
             </div>
         </div>
 
-        <!-- Debug Panel (always visible with enhanced styling) -->
-        <div id="debugContainer" style="background: linear-gradient(135deg, rgba(180, 60, 60, 0.95) 0%, rgba(140, 40, 40, 0.95) 100%); color: white; padding: 20px; border-radius: 12px; margin: 20px 0; display: block; border: 2px solid rgba(255, 255, 255, 0.3); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);">
-            <h4>🔧 Initializing Debug System...</h4>
+        <!-- Debug Panel (will be shown when debugging) -->
+        <div id="debugContainer" style="display: none;">
         </div>
 
         <!-- Messages -->
@@ -718,6 +863,43 @@
         </div>
     </div>
 
+    <!-- Footer with Debug Toggle -->
+    <footer style="background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(89, 72, 51) 100%); border-top: 3px solid rgb(251, 225, 183); margin-top: 40px; padding: 30px 0; text-align: center; box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.3);">
+        <div style="max-width: 800px; margin: 0 auto; padding: 0 20px;">
+            <div style="color: rgb(251, 225, 183); font-size: 1.5em; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">
+                ⚔️ BazaarGen Community Browser ⚔️
+            </div>
+            <div style="color: rgb(201, 175, 133); font-size: 1em; margin-bottom: 20px; line-height: 1.6;">
+                Explore amazing creations from the BazaarGen community. Filter, search, and discover new items!
+            </div>
+            
+            <!-- Debug Toggle Button -->
+            <button id="debugToggle" class="debug-toggle" onclick="toggleDebugPanel()" title="Toggle Debug Panel">
+                🔧 Show Debug Panel
+            </button>
+            
+            <div style="height: 2px; background: linear-gradient(90deg, transparent 0%, rgb(218, 165, 32) 50%, transparent 100%); margin: 20px 0;"></div>
+            
+            <div style="color: rgb(150, 120, 90); font-size: 0.9em; font-style: italic;">
+                © 2025 BazaarGen Community Browser
+            </div>
+            <div style="color: rgb(150, 120, 90); font-size: 0.9em; margin-top: 8px;">
+                Built for The Bazaar community
+            </div>
+        </div>
+    </footer>
+
+    <!-- Debug Panel -->
+    <div id="debugPanel" class="debug-panel">
+        <div class="debug-header">
+            <h4>🔧 Debug Information</h4>
+            <button class="debug-close" onclick="toggleDebugPanel()">Close</button>
+        </div>
+        <div id="debugContent" class="debug-content">
+            <div>Debug information will appear here...</div>
+        </div>
+    </div>
+
     <script>
         // Configuration
         const SUPABASE_URL = 'https://zslsedcfihgwbfljqhod.supabase.co';
@@ -725,76 +907,40 @@
 
         // Debug state
         let supabase;
-        let debugMode = true; // Always enabled
+        let debugMode = false; // Changed to false by default
         let initializationSteps = [];
         
-        // State
-        let allItems = [];
-        let displayedItems = [];
-        let currentPage = 0;
-        const ITEMS_PER_PAGE = 20;
-        const ITEMS_PER_LOAD = 5;
-        let isLoading = false;
-        let cardsData = []; // For compatibility
-
-        // DOM Elements
-        const itemsGrid = document.getElementById('itemsGrid');
-        const loadMoreBtn = document.getElementById('loadMoreBtn');
-        const loadingMessage = document.getElementById('loadingMessage');
-        const errorMessage = document.getElementById('errorMessage');
-        const noResults = document.getElementById('noResults');
-        const totalItemsSpan = document.getElementById('totalItems');
-        const showingItemsSpan = document.getElementById('showingItems');
-        const loadingText = document.getElementById('loadingText');
-        const endMessage = document.getElementById('endMessage');
-
-        // Filter elements
-        const sortBy = document.getElementById('sortBy');
-        const heroFilter = document.getElementById('heroFilter');
-        const searchInput = document.getElementById('searchInput');
-        const contestFilter = document.getElementById('contestFilter');
-
         function debugLog(step, message, data = null) {
             const timestamp = new Date().toISOString();
             const logEntry = { timestamp, step, message, data };
             initializationSteps.push(logEntry);
             
-            // Always log to console since debugMode is always true
-            console.log(`🔍 [${step}] ${message}`, data || '');
+            if (debugMode) {
+                console.log(`🔍 [${step}] ${message}`, data || '');
+            }
             
+            // Update debug display
             updateDebugDisplay();
         }
         
         function updateDebugDisplay() {
-            const debugContainer = document.getElementById('debugContainer');
-            if (debugContainer) {
-                // Show the debug container by default
-                debugContainer.style.display = 'block';
-                debugContainer.innerHTML = `
-                    <h4>🔧 Debug Information (Live Updates)</h4>
-                    <div style="max-height: 300px; overflow-y: auto; font-size: 11px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; line-height: 1.2;">
-                        ${initializationSteps.slice(-20).map(step => 
-                            `<div style="margin-bottom: 2px;"><strong style="color: #ffcc00;">[${step.step}]</strong> <span style="color: #ccc;">${step.message}</span> ${step.data ? `<span style="color: #88ff88;">${JSON.stringify(step.data).substring(0, 100)}${JSON.stringify(step.data).length > 100 ? '...' : ''}</span>` : ''}</div>`
-                        ).join('')}
-                    </div>
-                    <div style="text-align: center; margin-top: 10px;">
-                        <button onclick="clearDebugLog()" style="background: #666; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Clear Log</button>
-                        <button onclick="toggleDebugDetail()" style="background: #666; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-left: 5px;">Toggle Detail</button>
-                    </div>
-                `;
+            const debugContent = document.getElementById('debugContent');
+            if (debugContent) {
+                debugContent.innerHTML = initializationSteps.map(step => 
+                    `<div><strong>[${step.step}]</strong> ${step.message} ${step.data ? JSON.stringify(step.data) : ''}</div>`
+                ).join('');
+                
+                // Auto-scroll to bottom
+                debugContent.scrollTop = debugContent.scrollHeight;
             }
         }
-        
-        function clearDebugLog() {
-            initializationSteps = [];
-            updateDebugDisplay();
-            debugLog('DEBUG', 'Debug log cleared by user');
-        }
-        
-        let showDetailedDebug = true;
-        function toggleDebugDetail() {
-            showDetailedDebug = !showDetailedDebug;
-            debugLog('DEBUG', `Debug detail mode: ${showDetailedDebug ? 'ON' : 'OFF'}`);
+
+        function toggleDebugPanel() {
+            const debugPanel = document.getElementById('debugPanel');
+            debugPanel.classList.toggle('show');
+            
+            // Enable debug mode when panel is shown
+            debugMode = debugPanel.classList.contains('show');
         }
         
         function checkSupabaseAvailability() {
@@ -879,16 +1025,34 @@
             }
         }
 
+        // State
+        let allItems = [];
+        let displayedItems = [];
+        let currentPage = 0;
+        const ITEMS_PER_PAGE = 20;
+        const ITEMS_PER_LOAD = 5;
+        let isLoading = false;
+
+        // DOM Elements
+        const itemsGrid = document.getElementById('itemsGrid');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const noResults = document.getElementById('noResults');
+        const totalItemsSpan = document.getElementById('totalItems');
+        const showingItemsSpan = document.getElementById('showingItems');
+        const loadingText = document.getElementById('loadingText');
+        const endMessage = document.getElementById('endMessage');
+
+        // Filter elements
+        const sortBy = document.getElementById('sortBy');
+        const heroFilter = document.getElementById('heroFilter');
+        const searchInput = document.getElementById('searchInput');
+        const contestFilter = document.getElementById('contestFilter');
+
         // Initialize with comprehensive checks
         document.addEventListener('DOMContentLoaded', function() {
             debugLog('INIT', 'DOM Content Loaded, starting initialization...');
-            
-            // Ensure debug panel is visible immediately
-            const debugContainer = document.getElementById('debugContainer');
-            if (debugContainer) {
-                debugContainer.style.display = 'block';
-                debugLog('DEBUG_PANEL', 'Debug panel made visible');
-            }
             
             // Wait for external scripts with multiple retry attempts
             let attempts = 0;
@@ -914,9 +1078,6 @@
                             debugLog('SUCCESS', 'All systems ready, loading items...');
                             setupEventListeners();
                             loadItems();
-                            
-                            // Keep debug panel visible permanently
-                            debugLog('DEBUG_FINAL', 'Debug panel will remain visible for monitoring');
                         } else {
                             debugLog('ERROR', 'Connection test failed', result.error);
                             showError(`Database connection test failed: ${result.error}`);
@@ -964,8 +1125,9 @@
             hideMessages();
 
             try {
-                debugLog('LOAD', 'Loading all items from database...');
+                debugLog('LOAD', 'Loading ALL items from database (no user data needed)...');
                 
+                // Query ALL items - completely removed user relationship
                 let query = supabase
                     .from('items')
                     .select(`
@@ -975,14 +1137,14 @@
                         item_data
                     `);
 
-                // Apply filters
+                // Apply filters (but not user-based ones)
                 const filters = getFilters();
                 query = applyFilters(query, filters);
                 
                 // Apply sorting
                 query = applySorting(query, filters.sortBy);
 
-                debugLog('QUERY', 'Executing items query...');
+                debugLog('QUERY', 'Executing items query for ALL items (no user data)...');
                 const { data, error } = await query;
 
                 if (error) {
@@ -990,22 +1152,30 @@
                 }
 
                 debugLog('SUCCESS', `Loaded ${data.length} items successfully`);
+                debugLog('DATA', 'Sample item data', data[0]);
 
                 allItems = data || [];
                 displayedItems = [];
                 currentPage = 0;
                 
+                // Clear the grid before adding new items
                 itemsGrid.innerHTML = '';
                 debugLog('CLEAR', 'Cleared items grid');
                 
                 updateStats();
+                
+                // IMPORTANT: Set isLoading to false BEFORE calling loadMoreItems
+                isLoading = false;
+                showLoading(false);
+                
+                // Force load initial items
+                debugLog('INITIAL', 'Starting initial item load...');
                 loadMoreItems();
 
             } catch (error) {
                 debugLog('ERROR', 'Failed to load items', error.message);
                 console.error('Error loading items:', error);
                 showError('Failed to load items: ' + error.message);
-            } finally {
                 isLoading = false;
                 showLoading(false);
             }
@@ -1044,6 +1214,7 @@
                     return query.order('created_at', { ascending: true });
                 case 'upvotes':
                 case 'upvotes_asc':
+                    // For now, just sort by creation date since upvotes need complex query
                     return query.order('created_at', { ascending: sortValue === 'upvotes_asc' });
                 default:
                     return query.order('created_at', { ascending: false });
@@ -1063,78 +1234,59 @@
             const newItems = allItems.slice(startIndex, endIndex);
 
             debugLog('RENDER', `Rendering ${newItems.length} new items (${startIndex} to ${endIndex-1})`);
-            debugLog('RENDER_ITEMS', 'Items to render:', newItems.map(item => ({
-                id: item.id,
-                name: item.item_data?.name,
-                hero: item.item_data?.hero,
-                hasImageData: !!item.item_data?.image_data,
-                itemDataKeys: item.item_data ? Object.keys(item.item_data) : []
-            })));
 
             newItems.forEach((item, index) => {
-                const cardIndex = startIndex + index;
-                debugLog('CARD_START', `Starting card creation ${cardIndex}`, {
+                debugLog('CARD', `Creating card ${startIndex + index}`, {
                     id: item.id,
                     name: item.item_data?.name,
-                    fullItemData: item.item_data
+                    hasImage: !!item.item_data?.image_data,
+                    hero: item.item_data?.hero,
+                    rarity: item.item_data?.rarity
                 });
 
                 try {
-                    debugLog('CARD_MAPPING', `Calling createCardFromDatabaseItem for ${item.id}`);
-                    const itemCard = createCardFromDatabaseItem(item);
-                    
+                    const itemCard = createItemCard(item);
                     if (itemCard) {
-                        debugLog('CARD_SUCCESS', `Card created successfully for ${item.item_data?.name}`, {
-                            cardElement: itemCard.tagName,
-                            cardClasses: itemCard.className,
-                            cardChildren: itemCard.children.length
-                        });
-                        
                         itemsGrid.appendChild(itemCard);
                         displayedItems.push(item);
-                        
-                        debugLog('CARD_ADDED', `Card added to grid for item: ${item.item_data?.name || 'Unnamed'}`, {
-                            gridChildCount: itemsGrid.children.length,
-                            displayedCount: displayedItems.length
-                        });
+                        debugLog('CARD', `Successfully added card to grid for item: ${item.item_data?.name || 'Unnamed'}`);
                     } else {
-                        debugLog('ERROR', `createCardFromDatabaseItem returned null for item: ${item.id}`);
+                        debugLog('ERROR', `createItemCard returned null for item: ${item.id}`);
                     }
                 } catch (error) {
-                    debugLog('ERROR', `Failed to create card for item ${item.id}`, {
-                        errorMessage: error.message,
-                        errorStack: error.stack
-                    });
-                    console.error('Full error creating card:', error);
+                    debugLog('ERROR', `Failed to create card for item ${item.id}`, error.message);
                 }
             });
 
-            debugLog('RENDER_COMPLETE', `Card rendering complete`, {
-                totalDisplayed: displayedItems.length, 
-                gridChildren: itemsGrid.children.length,
-                gridHTML: itemsGrid.innerHTML.length > 0 ? 'Has content' : 'Empty'
-            });
+            debugLog('RENDER', `Total displayed items: ${displayedItems.length}, Grid children: ${itemsGrid.children.length}`);
 
             updateStats();
             updateLoadMoreButton();
             
+            // Force a check if we need to load more immediately
             if (displayedItems.length < ITEMS_PER_PAGE && displayedItems.length < allItems.length) {
                 debugLog('RENDER', 'Need to load more items to reach minimum page size');
                 setTimeout(() => loadMoreItems(), 100);
             }
         }
 
-        // Modified createCard function to work with database items
-        function createCardFromDatabaseItem(item) {
-            debugLog('CARD_MAPPING_START', `Starting createCardFromDatabaseItem for ${item.id}`, {
+        // MAIN FIX: Updated createItemCard function to properly render items using generator logic
+        function createItemCard(item) {
+            debugLog('CREATE', `Creating card for item: ${item.id}`, {
+                name: item.item_data?.name,
                 hasItemData: !!item.item_data,
-                itemDataType: typeof item.item_data,
                 itemDataKeys: item.item_data ? Object.keys(item.item_data) : []
             });
 
             const itemData = item.item_data || {};
             
-            // Create card data object compatible with original createCard function
+            // Validate essential data
+            if (!itemData.name && !itemData.hero && !itemData.image_data) {
+                debugLog('WARNING', `Item ${item.id} has minimal data, skipping`);
+                return null;
+            }
+
+            // Convert database format to generator format for compatibility
             const cardData = {
                 itemName: itemData.name || 'Unnamed Item',
                 hero: itemData.hero || 'Neutral',
@@ -1148,461 +1300,33 @@
                 onUseEffects: itemData.on_use_effects || [],
                 tags: itemData.tags || [],
                 scalingValues: itemData.scaling_values || {},
-                imageData: itemData.image_data || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+                imageData: itemData.image_data || '',
                 timestamp: item.created_at
             };
 
-            debugLog('CARD_MAPPING_DATA', `Mapped card data for ${item.id}`, {
-                cardData: cardData,
-                hasImage: cardData.imageData.length > 100,
-                effectsCount: cardData.onUseEffects.length,
-                tagsCount: cardData.tags.length
-            });
-
-            debugLog('CARD_CREATE_CALL', `Calling createCard for ${item.id}`);
-            const result = createCard(cardData, item.id);
-            
-            debugLog('CARD_CREATE_RESULT', `createCard returned for ${item.id}`, {
-                resultType: typeof result,
-                isElement: result instanceof Element,
-                hasTagName: result?.tagName,
-                hasClassName: result?.className
-            });
-
-            return result;
-        }
-
-        // Modified createCard function to accept cardData and optional itemId
-        function createCard(cardData, itemId = null) {
-            debugLog('CREATE_CARD_START', `Starting createCard`, {
-                itemId: itemId,
-                cardDataKeys: Object.keys(cardData),
-                itemName: cardData.itemName,
-                hero: cardData.hero,
-                hasImageData: cardData.imageData.length > 100
-            });
-
-            const itemName = cardData.itemName;
-            const cooldownInput = cardData.cooldown;
-            const hero = cardData.hero;
-            const ammo = cardData.ammo;
-            const crit = cardData.crit;
-            const multicast = cardData.multicast;
-            const itemSize = cardData.itemSize;
-            const border = cardData.border;
-            const passiveInput = cardData.passiveEffect;
-            const imageData = cardData.imageData;
-            const scalingValues = cardData.scalingValues || {};
-
-            debugLog('CREATE_CARD_EXTRACT', `Extracted card values`, {
-                itemName, hero, itemSize, border, 
-                hasPassive: !!passiveInput,
-                hasCooldown: !!cooldownInput,
-                hasAmmo: !!ammo,
-                imageDataLength: imageData.length
-            });
-
-            // Validate scaling values
-            const validatedScalingValues = {};
-            try {
-                debugLog('CREATE_CARD_SCALING', `Validating scaling values`, scalingValues);
-                validatedScalingValues.heal = validateScalingValue(scalingValues.heal, 'Heal');
-                validatedScalingValues.regen = validateScalingValue(scalingValues.regen, 'Regen');
-                validatedScalingValues.shield = validateScalingValue(scalingValues.shield, 'Shield');
-                validatedScalingValues.damage = validateScalingValue(scalingValues.damage, 'Damage');
-                validatedScalingValues.poison = validateScalingValue(scalingValues.poison, 'Poison');
-                validatedScalingValues.burn = validateScalingValue(scalingValues.burn, 'Burn');
-                debugLog('CREATE_CARD_SCALING_OK', `Scaling validation complete`, validatedScalingValues);
-            } catch (error) {
-                debugLog('CREATE_CARD_SCALING_ERROR', 'Scaling validation error: ' + error.message);
-                console.error('Scaling validation error:', error.message);
-                // Continue with empty values if validation fails
-            }
-
-            // Check for on use effects
-            const hasOnUseEffects = cardData.onUseEffects && cardData.onUseEffects.some(effect => effect.trim());
-            const hasCooldown = cooldownInput && cooldownInput.trim();
-            
-            debugLog('CREATE_CARD_EFFECTS', `Effect validation`, {
-                hasOnUseEffects,
-                hasCooldown,
-                effectsArray: cardData.onUseEffects
-            });
-
-            // Validate and format cooldown
-            let formattedCooldown = '';
-            if (cooldownInput && cooldownInput.trim()) {
-                try {
-                    formattedCooldown = formatCooldown(cooldownInput);
-                    debugLog('CREATE_CARD_COOLDOWN_OK', `Cooldown formatted: ${formattedCooldown}`);
-                } catch (error) {
-                    debugLog('CREATE_CARD_COOLDOWN_ERROR', 'Cooldown validation error: ' + error.message);
-                    console.error('Cooldown validation error:', error.message);
-                    formattedCooldown = cooldownInput; // Use original value if validation fails
-                }
-            }
-
-            // Validate ammo
-            let validatedAmmo = '';
-            if (ammo && ammo.trim()) {
-                try {
-                    validatedAmmo = validateAmmo(ammo);
-                    debugLog('CREATE_CARD_AMMO_OK', `Ammo validated: ${validatedAmmo}`);
-                } catch (error) {
-                    debugLog('CREATE_CARD_AMMO_ERROR', 'Ammo validation error: ' + error.message);
-                    console.error('Ammo validation error:', error.message);
-                    validatedAmmo = ammo; // Use original value if validation fails
-                }
-            }
-
-            // Validate crit
-            let validatedCrit = '';
-            if (crit && crit.trim()) {
-                try {
-                    validatedCrit = validateAmmo(crit);
-                    debugLog('CREATE_CARD_CRIT_OK', `Crit validated: ${validatedCrit}`);
-                } catch (error) {
-                    debugLog('CREATE_CARD_CRIT_ERROR', 'Crit validation error: ' + error.message);
-                    console.error('Crit validation error:', error.message);
-                    validatedCrit = crit; // Use original value if validation fails
-                }
-            }
-
-            // Validate multicast
-            let validatedMulticast = '';
-            if (multicast && multicast.trim()) {
-                try {
-                    validatedMulticast = validateAmmo(multicast);
-                    debugLog('CREATE_CARD_MULTICAST_OK', `Multicast validated: ${validatedMulticast}`);
-                } catch (error) {
-                    debugLog('CREATE_CARD_MULTICAST_ERROR', 'Multicast validation error: ' + error.message);
-                    console.error('Multicast validation error:', error.message);
-                    validatedMulticast = multicast; // Use original value if validation fails
-                }
-            }
-
-            debugLog('CREATE_CARD_VALIDATION_COMPLETE', `All validation complete`, {
-                formattedCooldown, validatedAmmo, validatedCrit, validatedMulticast
-            });
-
-            const borderColor = getBorderColor(border);
-            debugLog('CREATE_CARD_BORDER', `Border color: ${borderColor} for border: ${border}`);
-
+            // Create card using the exact same logic as the main generator
+            const borderColor = getBorderColor(cardData.border);
             const card = document.createElement("div");
             card.className = "card";
-            debugLog('CREATE_CARD_ELEMENT', `Created main card element`);
 
-            // Add card controls for browser view
+            // Add view and upvote buttons for browser
             const cardControls = document.createElement("div");
             cardControls.className = "card-controls";
             
             const viewBtn = document.createElement("button");
+            viewBtn.className = "card-view-btn";
             viewBtn.innerHTML = "👁️";
             viewBtn.title = "View item details";
             viewBtn.onclick = function() {
-                viewItemDetails(cardData, itemId);
+                viewItemDetails(item);
             };
             
             const upvoteBtn = document.createElement("button");
+            upvoteBtn.className = "card-upvote-btn";
             upvoteBtn.innerHTML = "👍";
             upvoteBtn.title = "Upvote this item";
             upvoteBtn.onclick = function() {
-                upvoteItem(itemId);
-            };
-            
-            cardControls.appendChild(viewBtn);
-            cardControls.appendChild(upvoteBtn);
-            card.appendChild(cardControls);
-            debugLog('CREATE_CARD_CONTROLS', `Added card controls`);
-
-            const imageContainer = document.createElement("div");
-            imageContainer.className = "image-container";
-            imageContainer.style.border = `3px solid ${borderColor}`;
-            debugLog('CREATE_CARD_IMAGE_CONTAINER', `Created image container with border`);
-
-            // Create a clipping wrapper for the uploaded image
-            const imageClipWrapper = document.createElement("div");
-            imageClipWrapper.className = "image-clip-wrapper";
-
-            const img = document.createElement("img");
-            img.className = "uploaded-image";
-            img.src = imageData;
-            img.onerror = function() {
-                debugLog('CREATE_CARD_IMAGE_ERROR', `Failed to load image for ${itemName}`);
-                this.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2NjYyIvPjx0ZXh0IHg9IjUwIiB5PSI1MCIgZm9udC1mYW1pbHk9IkFyaWFsIiBmb250LXNpemU9IjE0IiBmaWxsPSIjMzMzIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSI+Tm8gSW1hZ2U8L3RleHQ+PC9zdmc+';
-            };
-            imageClipWrapper.appendChild(img);
-            imageContainer.appendChild(imageClipWrapper);
-            debugLog('CREATE_CARD_IMAGE', `Added image element`);
-
-            // Add frame overlay
-            const frame = createFrameElement(border, itemSize);
-            imageContainer.appendChild(frame);
-            debugLog('CREATE_CARD_FRAME', `Added frame element`);
-
-            // Add scaling values if any exist
-            const scalingContainer = createScalingValuesContainer(validatedScalingValues);
-            if (scalingContainer.children.length > 0) {
-                imageContainer.appendChild(scalingContainer);
-                debugLog('CREATE_CARD_SCALING_CONTAINER', `Added scaling values container with ${scalingContainer.children.length} values`);
-            }
-
-            // Create tags container
-            const tagsContainer = document.createElement("div");
-            tagsContainer.className = "tags-container";
-
-            // Always add item size as first tag
-            const itemSizeTag = document.createElement("span");
-            itemSizeTag.className = "item-tag";
-            itemSizeTag.textContent = itemSize;
-            tagsContainer.appendChild(itemSizeTag);
-
-            // Add additional tags
-            if (cardData.tags && Array.isArray(cardData.tags)) {
-                cardData.tags.forEach(tag => {
-                    if (tag && tag.trim()) {
-                        const tagElement = document.createElement("span");
-                        tagElement.className = "item-tag";
-                        tagElement.textContent = tag.trim();
-                        tagsContainer.appendChild(tagElement);
-                    }
-                });
-            }
-            debugLog('CREATE_CARD_TAGS', `Created tags container with ${tagsContainer.children.length} tags`);
-
-            const content = document.createElement("div");
-            content.className = "card-content";
-            content.style.border = `3px solid ${borderColor}`;
-            debugLog('CREATE_CARD_CONTENT', `Created card content container`);
-
-            // Create header section
-            const topSection = document.createElement("div");
-            topSection.className = "text-section hero-header";
-            topSection.style.borderTop = `2px solid ${borderColor}`;
-            topSection.style.borderBottom = `2px solid ${borderColor}`;
-            const itemTitle = document.createElement("div");
-            itemTitle.className = "item-title";
-            itemTitle.textContent = itemName;
-            const heroImg = document.createElement("img");
-            heroImg.src = `images/${hero.toLowerCase()}.png`;
-            heroImg.alt = hero;
-            heroImg.onerror = function() { 
-                debugLog('CREATE_CARD_HERO_ERROR', `Failed to load hero image for ${hero}`);
-                this.style.display = 'none'; 
-            };
-            topSection.appendChild(itemTitle);
-            topSection.appendChild(heroImg);
-            content.appendChild(topSection);
-            debugLog('CREATE_CARD_HEADER', `Created header section`);
-
-            let onUseSection = null;
-            const effectsContainer = document.createElement("div");
-            
-            // Add on-use effects
-            if (cardData.onUseEffects && Array.isArray(cardData.onUseEffects)) {
-                debugLog('CREATE_CARD_EFFECTS_START', `Processing ${cardData.onUseEffects.length} on-use effects`);
-                cardData.onUseEffects.forEach((effect, index) => {
-                    if (effect && effect.trim()) {
-                        const effectLine = document.createElement("div");
-                        effectLine.className = "on-use-line";
-
-                        const icon = document.createElement("img");
-                        icon.src = "images/use-arrow.png";
-                        icon.alt = "-";
-                        icon.onerror = function() { this.textContent = "→"; };
-
-                        const text = document.createElement("span");
-                        text.innerHTML = processKeywordText(effect);
-
-                        effectLine.appendChild(icon);
-                        effectLine.appendChild(text);
-                        effectsContainer.appendChild(effectLine);
-                        debugLog('CREATE_CARD_EFFECT', `Added effect ${index}: ${effect}`);
-                    }
-                });
-            }
-
-            // Add multicast if > 1
-            if (validatedMulticast && parseInt(validatedMulticast) > 1) {
-                const icon = document.createElement("img");
-                icon.src = "images/use-arrow.png";
-                icon.alt = "-";
-                icon.onerror = function() { this.textContent = "→"; };
-
-                const text = document.createElement("span");
-                text.innerHTML = "Multicast: " + validatedMulticast;
-                const effectLine = document.createElement("div");
-                effectLine.className = "on-use-line";
-
-                effectLine.appendChild(icon);
-                effectLine.appendChild(text);
-                effectsContainer.appendChild(effectLine);
-                debugLog('CREATE_CARD_MULTICAST', `Added multicast: ${validatedMulticast}`);
-            }
-
-            // Add crit if exists
-            if (validatedCrit) {
-                const critLineHR = document.createElement("hr");
-                critLineHR.className = "crit-line-hr";
-                effectsContainer.appendChild(critLineHR);
-                
-                const text = document.createElement("span");
-                text.innerHTML = "Crit Chance: " + processKeywordText("/cr") + validatedCrit + "%";
-                const effectLine = document.createElement("div");
-                effectLine.className = "crit-line";
-
-                effectLine.appendChild(text);
-                effectsContainer.appendChild(effectLine);
-                debugLog('CREATE_CARD_CRIT', `Added crit: ${validatedCrit}%`);
-            }
-
-            if (effectsContainer.children.length > 0) {
-                onUseSection = document.createElement("div");
-                onUseSection.className = "text-section on-use-section";
-                onUseSection.style.borderTop = `2px solid ${borderColor}`;
-                onUseSection.style.borderBottom = `2px solid ${borderColor}`;
-                onUseSection.appendChild(effectsContainer);
-                content.appendChild(onUseSection);
-                debugLog('CREATE_CARD_ON_USE_SECTION', `Created on-use section with ${effectsContainer.children.length} elements`);
-            }
-
-            // Add passive section
-            if (passiveInput && passiveInput.trim()) {
-                const passiveSection = document.createElement("div");
-                passiveSection.className = "text-section";
-                passiveSection.style.borderTop = `2px solid ${borderColor}`;
-                passiveSection.style.borderBottom = `2px solid ${borderColor}`;
-                passiveSection.innerHTML = processKeywordText(passiveInput);
-                content.appendChild(passiveSection);
-                debugLog('CREATE_CARD_PASSIVE', `Added passive section: ${passiveInput}`);
-            }
-
-            // Only show cooldown if there are on use effects
-            if (formattedCooldown && hasOnUseEffects) {
-                const cooldownDiv = document.createElement("div");
-                cooldownDiv.className = "cooldown-section";
-                cooldownDiv.innerHTML = `<span>${formattedCooldown}</span><span class="sec-text">sec</span>`;
-                
-                // Add cooldown border overlay
-                const cooldownBorder = createCooldownBorderElement(border);
-                cooldownDiv.appendChild(cooldownBorder);
-                
-                content.appendChild(cooldownDiv);
-                debugLog('CREATE_CARD_COOLDOWN', `Added cooldown section: ${formattedCooldown}s`);
-            }
-
-            if (validatedAmmo) {
-                const ammoDiv = document.createElement("div");
-                ammoDiv.className = "ammo-section";
-                ammoDiv.style.border = `3px solid ${borderColor}`;
-                
-                // Add ammo image
-                const ammoImg = document.createElement("img");
-                ammoImg.src = "images/ammo.png";
-                ammoImg.alt = "Ammo";
-                ammoImg.onerror = function() { this.style.display = 'none'; };
-                ammoDiv.appendChild(ammoImg);
-                
-                // Add ammo number
-                const ammoText = document.createElement("span");
-                ammoText.textContent = validatedAmmo;
-                ammoDiv.appendChild(ammoText);
-                
-                content.appendChild(ammoDiv);
-                debugLog('CREATE_CARD_AMMO', `Added ammo section: ${validatedAmmo}`);
-            }
-
-            // Create wrapper and visual content container
-            const cardWrapper = document.createElement("div");
-            cardWrapper.className = "card-wrapper";
-            cardWrapper.appendChild(tagsContainer);
-            cardWrapper.appendChild(content);
-
-            // Create the tight visual content container
-            const visualContent = document.createElement("div");
-            visualContent.className = "card-visual-content";
-            visualContent.appendChild(imageContainer);
-            visualContent.appendChild(cardWrapper);
-            
-            card.appendChild(visualContent);
-            debugLog('CREATE_CARD_STRUCTURE', `Assembled card structure`);
-            
-            // Modified setTimeout for fixed image height and positioning
-            setTimeout(() => {
-                debugLog('CREATE_CARD_SIZING', `Starting card sizing for ${itemName}`);
-                let widthRatio = 1.0; // Default to medium
-                if (itemSize === "Small") {
-                    widthRatio = 0.5;
-                } else if (itemSize === "Medium") {
-                    widthRatio = 1.0;
-                } else if (itemSize === "Large") {
-                    widthRatio = 1.5;
-                }
-
-                const containerWidth = 150 * widthRatio;
-                imageContainer.style.width = containerWidth + "px";
-
-                img.style.height = "100%";
-                img.style.width = "auto";
-                img.style.objectFit = "cover";
-                img.style.objectPosition = "center";
-
-                // Position cooldown and ammo relative to the on-use section
-                if (onUseSection) {
-                    positionElementsRelativeToOnUse(content, onUseSection);
-                    debugLog('CREATE_CARD_POSITIONING', `Positioned elements relative to on-use section`);
-                }
-                
-                debugLog('CREATE_CARD_SIZING_COMPLETE', `Card sizing complete for ${itemName}`, {
-                    widthRatio,
-                    containerWidth,
-                    hasOnUseSection: !!onUseSection
-                });
-            }, 0);
-
-            debugLog('CREATE_CARD_COMPLETE', `Card creation complete for ${itemName}`, {
-                cardElement: card.tagName,
-                cardClasses: card.className,
-                childrenCount: card.children.length,
-                hasVisualContent: !!card.querySelector('.card-visual-content')
-            });
-
-            return card;
-        } validation fails
-                }
-            }
-
-            // Validate multicast
-            let validatedMulticast = '';
-            if (multicast && multicast.trim()) {
-                try {
-                    validatedMulticast = validateAmmo(multicast);
-                } catch (error) {
-                    console.error('Multicast validation error:', error.message);
-                    validatedMulticast = multicast; // Use as-is if validation fails
-                }
-            }
-
-            const borderColor = getBorderColor(border);
-            const card = document.createElement("div");
-            card.className = "card";
-
-            // Add card controls for browser view
-            const cardControls = document.createElement("div");
-            cardControls.className = "card-controls";
-            
-            const viewBtn = document.createElement("button");
-            viewBtn.innerHTML = "👁️";
-            viewBtn.title = "View item details";
-            viewBtn.onclick = function() {
-                viewItemDetails(cardData, itemId);
-            };
-            
-            const upvoteBtn = document.createElement("button");
-            upvoteBtn.innerHTML = "👍";
-            upvoteBtn.title = "Upvote this item";
-            upvoteBtn.onclick = function() {
-                upvoteItem(itemId);
+                upvoteItem(item.id);
             };
             
             cardControls.appendChild(viewBtn);
@@ -1617,18 +1341,30 @@
             const imageClipWrapper = document.createElement("div");
             imageClipWrapper.className = "image-clip-wrapper";
 
-            const img = document.createElement("img");
-            img.className = "uploaded-image";
-            img.src = imageData;
-            imageClipWrapper.appendChild(img);
+            if (cardData.imageData) {
+                const img = document.createElement("img");
+                img.className = "uploaded-image";
+                img.src = cardData.imageData;
+                img.onerror = function() {
+                    debugLog('ERROR', `Failed to load image for item: ${cardData.itemName}`);
+                    // Show placeholder or hide image container
+                    imageClipWrapper.style.background = '#333';
+                    imageClipWrapper.innerHTML = '<div style="color: white; text-align: center; padding: 20px;">Image not available</div>';
+                };
+                imageClipWrapper.appendChild(img);
+            } else {
+                imageClipWrapper.style.background = '#333';
+                imageClipWrapper.innerHTML = '<div style="color: white; text-align: center; padding: 20px;">No image</div>';
+            }
+            
             imageContainer.appendChild(imageClipWrapper);
 
             // Add frame overlay
-            const frame = createFrameElement(border, itemSize);
+            const frame = createFrameElement(cardData.border, cardData.itemSize);
             imageContainer.appendChild(frame);
 
             // Add scaling values if any exist
-            const scalingContainer = createScalingValuesContainer(validatedScalingValues);
+            const scalingContainer = createScalingValuesContainer(cardData.scalingValues);
             if (scalingContainer.children.length > 0) {
                 imageContainer.appendChild(scalingContainer);
             }
@@ -1640,20 +1376,18 @@
             // Always add item size as first tag
             const itemSizeTag = document.createElement("span");
             itemSizeTag.className = "item-tag";
-            itemSizeTag.textContent = itemSize;
+            itemSizeTag.textContent = cardData.itemSize;
             tagsContainer.appendChild(itemSizeTag);
 
             // Add additional tags
-            if (cardData.tags && Array.isArray(cardData.tags)) {
-                cardData.tags.forEach(tag => {
-                    if (tag && tag.trim()) {
-                        const tagElement = document.createElement("span");
-                        tagElement.className = "item-tag";
-                        tagElement.textContent = tag.trim();
-                        tagsContainer.appendChild(tagElement);
-                    }
-                });
-            }
+            cardData.tags.forEach(tagText => {
+                if (tagText && tagText.trim()) {
+                    const tag = document.createElement("span");
+                    tag.className = "item-tag";
+                    tag.textContent = tagText.trim();
+                    tagsContainer.appendChild(tag);
+                }
+            });
 
             const content = document.createElement("div");
             content.className = "card-content";
@@ -1665,49 +1399,51 @@
             topSection.style.borderBottom = `2px solid ${borderColor}`;
             const itemTitle = document.createElement("div");
             itemTitle.className = "item-title";
-            itemTitle.textContent = itemName;
+            itemTitle.textContent = cardData.itemName;
             const heroImg = document.createElement("img");
-            heroImg.src = `images/${hero.toLowerCase()}.png`;
-            heroImg.alt = hero;
-            heroImg.onerror = function() { this.style.display = 'none'; };
+            heroImg.src = `images/${cardData.hero.toLowerCase()}.png`;
+            heroImg.alt = cardData.hero;
+            heroImg.onerror = function() {
+                this.style.display = 'none'; // Hide if hero image not found
+            };
             topSection.appendChild(itemTitle);
             topSection.appendChild(heroImg);
             content.appendChild(topSection);
 
             let onUseSection = null;
             const effectsContainer = document.createElement("div");
-            
-            // Add on-use effects
-            if (cardData.onUseEffects && Array.isArray(cardData.onUseEffects)) {
-                cardData.onUseEffects.forEach(effect => {
-                    if (effect && effect.trim()) {
-                        const effectLine = document.createElement("div");
-                        effectLine.className = "on-use-line";
 
-                        const icon = document.createElement("img");
-                        icon.src = "images/use-arrow.png";
-                        icon.alt = "-";
-                        icon.onerror = function() { this.textContent = "→"; };
+            // Add on use effects
+            cardData.onUseEffects.forEach(effect => {
+                if (effect && effect.trim()) {
+                    const effectLine = document.createElement("div");
+                    effectLine.className = "on-use-line";
 
-                        const text = document.createElement("span");
-                        text.innerHTML = processKeywordText(effect);
+                    const icon = document.createElement("img");
+                    icon.src = "images/use-arrow.png";
+                    icon.alt = "-";
+                    icon.onerror = function() {
+                        this.style.display = 'none';
+                    };
 
-                        effectLine.appendChild(icon);
-                        effectLine.appendChild(text);
-                        effectsContainer.appendChild(effectLine);
-                    }
-                });
-            }
+                    const text = document.createElement("span");
+                    text.innerHTML = processKeywordText(effect);
+
+                    effectLine.appendChild(icon);
+                    effectLine.appendChild(text);
+                    effectsContainer.appendChild(effectLine);
+                }
+            });
 
             // Add multicast if > 1
-            if (validatedMulticast && parseInt(validatedMulticast) > 1) {
+            if (cardData.multicast && parseInt(cardData.multicast) > 1) {
                 const icon = document.createElement("img");
                 icon.src = "images/use-arrow.png";
                 icon.alt = "-";
-                icon.onerror = function() { this.textContent = "→"; };
+                icon.onerror = function() { this.style.display = 'none'; };
 
                 const text = document.createElement("span");
-                text.innerHTML = "Multicast: " + validatedMulticast;
+                text.innerHTML = "Multicast: " + cardData.multicast;
                 const effectLine = document.createElement("div");
                 effectLine.className = "on-use-line";
 
@@ -1716,14 +1452,14 @@
                 effectsContainer.appendChild(effectLine);
             }
 
-            // Add crit if exists
-            if (validatedCrit) {
+            // Add crit if present
+            if (cardData.crit && cardData.crit.trim()) {
                 const critLineHR = document.createElement("hr");
                 critLineHR.className = "crit-line-hr";
                 effectsContainer.appendChild(critLineHR);
-                
+
                 const text = document.createElement("span");
-                text.innerHTML = "Crit Chance: " + processKeywordText("/cr") + validatedCrit + "%";
+                text.innerHTML = "Crit Chance: " + processKeywordText("/cr") + cardData.crit + "%";
                 const effectLine = document.createElement("div");
                 effectLine.className = "crit-line";
 
@@ -1740,43 +1476,43 @@
                 content.appendChild(onUseSection);
             }
 
-            if (passiveInput && passiveInput.trim()) {
+            // Add passive effect
+            if (cardData.passiveEffect && cardData.passiveEffect.trim()) {
                 const passiveSection = document.createElement("div");
                 passiveSection.className = "text-section";
                 passiveSection.style.borderTop = `2px solid ${borderColor}`;
                 passiveSection.style.borderBottom = `2px solid ${borderColor}`;
-                passiveSection.innerHTML = processKeywordText(passiveInput);
+                passiveSection.innerHTML = processKeywordText(cardData.passiveEffect);
                 content.appendChild(passiveSection);
             }
 
-            // Only show cooldown if there are on use effects
-            if (formattedCooldown && hasOnUseEffects) {
+            // Add cooldown (only if there are on use effects)
+            if (cardData.cooldown && cardData.cooldown.trim() && onUseSection) {
                 const cooldownDiv = document.createElement("div");
                 cooldownDiv.className = "cooldown-section";
-                cooldownDiv.innerHTML = `<span>${formattedCooldown}</span><span class="sec-text">sec</span>`;
+                cooldownDiv.innerHTML = `<span>${cardData.cooldown}</span><span class="sec-text">sec</span>`;
                 
                 // Add cooldown border overlay
-                const cooldownBorder = createCooldownBorderElement(border);
+                const cooldownBorder = createCooldownBorderElement(cardData.border);
                 cooldownDiv.appendChild(cooldownBorder);
                 
                 content.appendChild(cooldownDiv);
             }
 
-            if (validatedAmmo) {
+            // Add ammo
+            if (cardData.ammo && cardData.ammo.trim()) {
                 const ammoDiv = document.createElement("div");
                 ammoDiv.className = "ammo-section";
                 ammoDiv.style.border = `3px solid ${borderColor}`;
                 
-                // Add ammo image
                 const ammoImg = document.createElement("img");
                 ammoImg.src = "images/ammo.png";
                 ammoImg.alt = "Ammo";
                 ammoImg.onerror = function() { this.style.display = 'none'; };
                 ammoDiv.appendChild(ammoImg);
                 
-                // Add ammo number
                 const ammoText = document.createElement("span");
-                ammoText.textContent = validatedAmmo;
+                ammoText.textContent = cardData.ammo;
                 ammoDiv.appendChild(ammoText);
                 
                 content.appendChild(ammoDiv);
@@ -1795,38 +1531,38 @@
             visualContent.appendChild(cardWrapper);
             
             card.appendChild(visualContent);
-            
-            // Modified setTimeout for fixed image height and positioning
+
+            // Set dimensions and positioning
             setTimeout(() => {
-                let widthRatio = 1.0; // Default to medium
-                if (itemSize === "Small") {
+                let widthRatio = 1.0;
+                if (cardData.itemSize === "Small") {
                     widthRatio = 0.5;
-                } else if (itemSize === "Medium") {
-                    widthRatio = 1.0;
-                } else if (itemSize === "Large") {
+                } else if (cardData.itemSize === "Large") {
                     widthRatio = 1.5;
                 }
 
                 const containerWidth = 150 * widthRatio;
                 imageContainer.style.width = containerWidth + "px";
 
-                img.style.height = "100%";
-                img.style.width = "auto";
-                img.style.objectFit = "cover";
-                img.style.objectPosition = "center";
+                const img = imageContainer.querySelector('.uploaded-image');
+                if (img) {
+                    img.style.height = "100%";
+                    img.style.width = "auto";
+                    img.style.objectFit = "cover";
+                    img.style.objectPosition = "center";
+                }
 
-                // Position cooldown and ammo relative to the on-use section
                 if (onUseSection) {
                     positionElementsRelativeToOnUse(content, onUseSection);
                 }
             }, 0);
 
+            debugLog('CARD_COMPLETE', `Completed card creation for ${cardData.itemName}`);
             return card;
         }
 
-        // Helper functions from original code
+        // Helper functions from the main generator
         function getBorderColor(value) {
-            debugLog('GET_BORDER_COLOR', `Getting border color for: ${value}`);
             switch(value?.toLowerCase()) {
                 case 'bronze': return 'rgb(205, 127, 50)';
                 case 'silver': return 'silver';
@@ -1838,7 +1574,6 @@
         }
 
         function createFrameElement(quality, size) {
-            debugLog('CREATE_FRAME', `Creating frame for quality: ${quality}, size: ${size}`);
             const sizeMap = { 'Small': 's', 'Medium': 'm', 'Large': 'l' };
             const frameSize = sizeMap[size] || 'm';
             const frameQuality = quality?.toLowerCase() || 'gold';
@@ -1849,18 +1584,13 @@
             const frameImg = document.createElement("img");
             frameImg.src = `images/frames/${frameQuality}_${frameSize}_frame.png`;
             frameImg.alt = `${quality} ${size} frame`;
-            frameImg.onerror = () => { 
-                debugLog('FRAME_ERROR', `Failed to load frame image: ${frameImg.src}`);
-                frameDiv.style.display = 'none'; 
-            };
+            frameImg.onerror = () => { frameDiv.style.display = 'none'; };
             
             frameDiv.appendChild(frameImg);
-            debugLog('CREATE_FRAME_COMPLETE', `Frame element created for ${quality} ${size}`);
             return frameDiv;
         }
 
         function createCooldownBorderElement(quality) {
-            debugLog('CREATE_COOLDOWN_BORDER', `Creating cooldown border for quality: ${quality}`);
             const qualityMap = {
                 'bronze': 'Bronze', 'silver': 'silver', 'gold': 'gold',
                 'diamond': 'diamond', 'legendary': 'Legendary'
@@ -1876,17 +1606,14 @@
                 background-size: 100% 100%; background-repeat: no-repeat; background-position: center;
             `;
             
-            debugLog('CREATE_COOLDOWN_BORDER_COMPLETE', `Cooldown border created for ${mappedQuality}`);
             return borderDiv;
         }
 
         function createScalingValuesContainer(scalingData) {
-            debugLog('CREATE_SCALING_START', `Creating scaling values container`, scalingData);
             const container = document.createElement("div");
             container.className = "scaling-values-container";
             
             const scalingTypes = ['heal', 'regen', 'shield', 'damage', 'poison', 'burn'];
-            let addedCount = 0;
             
             scalingTypes.forEach(type => {
                 const value = scalingData[type];
@@ -1895,53 +1622,37 @@
                     scalingElement.className = `scaling-value ${type}`;
                     scalingElement.textContent = value.toString().trim();
                     container.appendChild(scalingElement);
-                    addedCount++;
-                    debugLog('CREATE_SCALING_VALUE', `Added scaling value ${type}: ${value}`);
                 }
             });
             
-            debugLog('CREATE_SCALING_COMPLETE', `Scaling container created with ${addedCount} values`);
             return container;
         }
 
         function processKeywordText(text) {
-            if (!text || typeof text !== 'string') {
-                debugLog('PROCESS_KEYWORD_EMPTY', `Empty or invalid text for keyword processing`);
-                return '';
-            }
-            
-            debugLog('PROCESS_KEYWORD_START', `Processing keyword text: "${text}"`);
+            if (!text || typeof text !== 'string') return '';
             
             let processedText = text;
             
             // Process longer patterns first
-            const replacements = [
-                [/\/cd/g, '<img src="images/KeyText/cooldown.png" alt="cooldown" class="keyword-icon">'],
-                [/\/cr/g, '<img src="images/KeyText/crit.png" alt="crit" class="keyword-icon">'],
-                [/\/he/g, '<img src="images/KeyText/heal.png" alt="heal" class="keyword-icon">'],
-                [/\/sh/g, '<img src="images/KeyText/sheild.png" alt="sheild" class="keyword-icon">'],
-                [/\/mh/g, '<img src="images/KeyText/maxhealth.png" alt="maxhealth" class="keyword-icon">'],
-                [/\/de/g, '<img src="images/KeyText/destroy.png" alt="destroy" class="keyword-icon">'],
-                [/\/s/g, '<img src="images/KeyText/slow.png" alt="slow" class="keyword-icon">'],
-                [/\/h/g, '<img src="images/KeyText/haste.png" alt="haste" class="keyword-icon">'],
-                [/\/r/g, '<img src="images/KeyText/regen.png" alt="regen" class="keyword-icon">'],
-                [/\/p/g, '<img src="images/KeyText/poison.png" alt="poison" class="keyword-icon">'],
-                [/\/b/g, '<img src="images/KeyText/burn.png" alt="burn" class="keyword-icon">'],
-                [/\/c/g, '<img src="images/KeyText/charge.png" alt="charge" class="keyword-icon">'],
-                [/\/d/g, '<img src="images/KeyText/damage.png" alt="damage" class="keyword-icon">'],
-                [/\/f/g, '<img src="images/KeyText/freeze.png" alt="freeze" class="keyword-icon">'],
-                [/\/l/g, '<img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-icon">'],
-                [/\/v/g, '<img src="images/KeyText/value.png" alt="value" class="keyword-icon">'],
-                [/\/t/g, '<img src="images/KeyText/transform.png" alt="transform" class="keyword-icon">']
-            ];
+            processedText = processedText.replace(/\/cd/g, '<img src="images/KeyText/cooldown.png" alt="cooldown" class="keyword-icon">');
+            processedText = processedText.replace(/\/cr/g, '<img src="images/KeyText/crit.png" alt="crit" class="keyword-icon">');
+            processedText = processedText.replace(/\/he/g, '<img src="images/KeyText/heal.png" alt="heal" class="keyword-icon">');
+            processedText = processedText.replace(/\/sh/g, '<img src="images/KeyText/sheild.png" alt="sheild" class="keyword-icon">');
+            processedText = processedText.replace(/\/mh/g, '<img src="images/KeyText/maxhealth.png" alt="maxhealth" class="keyword-icon">');
+            processedText = processedText.replace(/\/de/g, '<img src="images/KeyText/destroy.png" alt="destroy" class="keyword-icon">');
             
-            replacements.forEach(([regex, replacement]) => {
-                const before = processedText;
-                processedText = processedText.replace(regex, replacement);
-                if (before !== processedText) {
-                    debugLog('PROCESS_KEYWORD_REPLACE', `Replaced pattern ${regex} in text`);
-                }
-            });
+            // Then single-letter patterns
+            processedText = processedText.replace(/\/s/g, '<img src="images/KeyText/slow.png" alt="slow" class="keyword-icon">');
+            processedText = processedText.replace(/\/h/g, '<img src="images/KeyText/haste.png" alt="haste" class="keyword-icon">');
+            processedText = processedText.replace(/\/r/g, '<img src="images/KeyText/regen.png" alt="regen" class="keyword-icon">');
+            processedText = processedText.replace(/\/p/g, '<img src="images/KeyText/poison.png" alt="poison" class="keyword-icon">');
+            processedText = processedText.replace(/\/b/g, '<img src="images/KeyText/burn.png" alt="burn" class="keyword-icon">');
+            processedText = processedText.replace(/\/c/g, '<img src="images/KeyText/charge.png" alt="charge" class="keyword-icon">');
+            processedText = processedText.replace(/\/d/g, '<img src="images/KeyText/damage.png" alt="damage" class="keyword-icon">');
+            processedText = processedText.replace(/\/f/g, '<img src="images/KeyText/freeze.png" alt="freeze" class="keyword-icon">');
+            processedText = processedText.replace(/\/l/g, '<img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-icon">');
+            processedText = processedText.replace(/\/v/g, '<img src="images/KeyText/value.png" alt="value" class="keyword-icon">');
+            processedText = processedText.replace(/\/t/g, '<img src="images/KeyText/transform.png" alt="transform" class="keyword-icon">');
             
             // Color keywords
             const keywordRules = {
@@ -1955,28 +1666,15 @@
             
             Object.entries(keywordRules).forEach(([keyword, color]) => {
                 const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
-                const before = processedText;
                 processedText = processedText.replace(regex, (match) => {
                     return `<span style="color: ${color}; font-weight: bold;" class="key-text">${match}</span>`;
                 });
-                if (before !== processedText) {
-                    debugLog('PROCESS_KEYWORD_COLOR', `Added color to keyword: ${keyword}`);
-                }
-            });
-            
-            debugLog('PROCESS_KEYWORD_COMPLETE', `Keyword processing complete`, {
-                originalLength: text.length,
-                processedLength: processedText.length,
-                hasImages: processedText.includes('<img'),
-                hasColoredText: processedText.includes('key-text')
             });
             
             return processedText;
         }
 
         function positionElementsRelativeToOnUse(content, onUseSection) {
-            debugLog('POSITION_ELEMENTS_START', `Positioning elements relative to on-use section`);
-            
             content.offsetHeight;
             onUseSection.offsetHeight;
             
@@ -1989,54 +1687,12 @@
             
             if (cooldownSection) {
                 cooldownSection.style.top = `${onUseCenterY - 25}px`;
-                debugLog('POSITION_COOLDOWN', `Positioned cooldown at top: ${onUseCenterY - 25}px`);
             }
             
             if (ammoSection) {
                 const ammoHeight = ammoSection.offsetHeight;
                 ammoSection.style.top = `${onUseCenterY - (ammoHeight / 2)}px`;
-                debugLog('POSITION_AMMO', `Positioned ammo at top: ${onUseCenterY - (ammoHeight / 2)}px`);
             }
-            
-            debugLog('POSITION_ELEMENTS_COMPLETE', `Element positioning complete`);
-        }
-
-        // Validation functions (simplified versions for browser)
-        function validateScalingValue(value, type) {
-            debugLog('VALIDATE_SCALING', `Validating ${type} scaling value: ${value}`);
-            if (!value || value.toString().trim() === '') {
-                return '';
-            }
-            const trimmed = value.toString().trim();
-            if (!/^\d+$/.test(trimmed)) {
-                throw new Error(`${type} scaling must be a positive integer`);
-            }
-            debugLog('VALIDATE_SCALING_OK', `${type} scaling validated: ${trimmed}`);
-            return trimmed;
-        }
-
-        function formatCooldown(value) {
-            debugLog('FORMAT_COOLDOWN', `Formatting cooldown: ${value}`);
-            if (!value || value.trim() === '') return '';
-            const num = parseFloat(value);
-            if (isNaN(num) || num < 0) {
-                throw new Error('Cooldown must be a positive number');
-            }
-            const result = num.toString();
-            debugLog('FORMAT_COOLDOWN_OK', `Cooldown formatted: ${result}`);
-            return result;
-        }
-
-        function validateAmmo(value) {
-            debugLog('VALIDATE_AMMO', `Validating ammo: ${value}`);
-            if (!value || value.trim() === '') return '';
-            const num = parseInt(value);
-            if (isNaN(num) || num < 1) {
-                throw new Error('Ammo must be a positive integer');
-            }
-            const result = num.toString();
-            debugLog('VALIDATE_AMMO_OK', `Ammo validated: ${result}`);
-            return result;
         }
 
         function handleFilterChange() {
@@ -2082,23 +1738,44 @@
         }
 
         // Item actions
-        function viewItemDetails(cardData, itemId) {
-            const details = [
-                "Item: " + (cardData.itemName || 'Unnamed'),
-                "Hero: " + (cardData.hero || 'Unknown'),
-                "Size: " + (cardData.itemSize || 'Unknown'),
-                "Rarity: " + (cardData.border || 'Unknown'),
-                cardData.cooldown ? "Cooldown: " + cardData.cooldown + "s" : "",
-                cardData.ammo ? "Ammo: " + cardData.ammo : "",
-                cardData.crit ? "Crit: " + cardData.crit + "%" : "",
-                cardData.multicast ? "Multicast: " + cardData.multicast : "",
-                cardData.passiveEffect ? "\nPassive: " + cardData.passiveEffect : "",
-                cardData.onUseEffects && cardData.onUseEffects.length ? "\nOn Use: " + cardData.onUseEffects.join(', ') : "",
-                cardData.tags && cardData.tags.length ? "\nTags: " + cardData.tags.join(', ') : "",
-                "Created: " + new Date(cardData.timestamp).toLocaleDateString()
-            ].filter(line => line !== "").join('\n');
+        function viewItemDetails(item) {
+            const itemData = item.item_data || {};
+            const createdDate = new Date(item.created_at).toLocaleDateString();
+            
+            let details = `Item: ${itemData.name || 'Unnamed'}\n`;
+            details += `Hero: ${itemData.hero || 'Unknown'}\n`;
+            details += `Size: ${itemData.item_size || 'Unknown'}\n`;
+            details += `Rarity: ${itemData.rarity || 'Unknown'}\n`;
+            details += `Created: ${createdDate}\n`;
+            details += `Contest: ${item.contest_number > 0 ? `Contest ${item.contest_number}` : 'General'}\n`;
+            
+            if (itemData.cooldown) details += `Cooldown: ${itemData.cooldown}s\n`;
+            if (itemData.ammo) details += `Ammo: ${itemData.ammo}\n`;
+            if (itemData.crit) details += `Crit: ${itemData.crit}%\n`;
+            if (itemData.multicast && parseInt(itemData.multicast) > 1) details += `Multicast: ${itemData.multicast}\n`;
+            
+            if (itemData.passive_effect) {
+                details += `\nPassive Effect:\n${itemData.passive_effect}\n`;
+            }
+            
+            if (itemData.on_use_effects?.length) {
+                details += `\nOn Use Effects:\n${itemData.on_use_effects.map(effect => `• ${effect}`).join('\n')}\n`;
+            }
+            
+            if (itemData.tags?.length) {
+                details += `\nTags: ${itemData.tags.join(', ')}\n`;
+            }
+            
+            if (itemData.scaling_values) {
+                const scalings = Object.entries(itemData.scaling_values)
+                    .filter(([key, value]) => value && value.toString().trim())
+                    .map(([key, value]) => `${key}: ${value}`);
+                if (scalings.length > 0) {
+                    details += `\nScaling Values:\n${scalings.join(', ')}\n`;
+                }
+            }
 
-            alert(details);
+            alert(details.trim());
             // TODO: Implement proper modal view
         }
 
@@ -2107,121 +1784,16 @@
             alert('Upvote feature coming soon! Please sign in to vote on items.');
         }
 
-        // Export/Import Functions (for compatibility with original system)
-        function exportAllCardsAsData() {
-            if (cardsData.length === 0) {
-                showMessage('No cards to export!', 'error');
-                return;
-            }
-            const dataToExport = {
-                version: "1.0",
-                timestamp: new Date().toISOString(),
-                cards: cardsData
-            };
-            const dataStr = JSON.stringify(dataToExport, null, 2);
-            const dataBlob = new Blob([dataStr], { type: 'application/json' });
-            const url = URL.createObjectURL(dataBlob);
-            
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = `Bazaar-cards-${new Date().toISOString().split('T')[0]}.json`;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-            showMessage(`Exported ${cardsData.length} cards successfully!`, 'success');
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
         }
 
-        function exportAllCardsAsPNG() {
-            const cards = document.querySelectorAll('.card');
-            if (cards.length === 0) {
-                showMessage('No cards to export!', 'error');
-                return;
-            }
-            showMessage('Generating PNG files...', 'success');
-            
-            let currentIndex = 0;
-            
-            function exportNextCard() {
-                if (currentIndex >= cards.length) {
-                    showMessage(`All ${cards.length} cards exported as PNG!`, 'success');
-                    return;
-                }
-                
-                const card = cards[currentIndex];
-                exportCardAsPNG(card);
-                currentIndex++;
-                
-                setTimeout(exportNextCard, 500);
-            }
-            
-            exportNextCard();
-        }
-
-        function triggerImport() {
-            const importInput = document.getElementById('importInput');
-            if (importInput) {
-                importInput.click();
-            }
-        }
-
-        function importCardData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    
-                    if (!importedData.cards || !Array.isArray(importedData.cards)) {
-                        throw new Error('Invalid file format');
-                    }
-                    
-                    let importedCount = 0;
-                    importedData.cards.forEach(cardData => {
-                        try {
-                            importSingleCard(cardData);
-                            importedCount++;
-                        } catch (error) {
-                            console.error('Error importing card:', error);
-                        }
-                    });
-                    
-                    if (importedCount > 0) {
-                        showMessage(`Successfully imported ${importedCount} cards!`, 'success');
-                    } else {
-                        showMessage('No cards could be imported from this file.', 'error');
-                    }
-                } catch (error) {
-                    showMessage('Error reading file: ' + error.message, 'error');
-                }
-            };
-            reader.readAsText(file);
-            
-            event.target.value = '';
-        }
-
-        function importSingleCard(cardData) {
-            // Create card from imported data
-            const card = createCard(cardData);
-            if (card) {
-                itemsGrid.appendChild(card);
-                cardsData.push(cardData);
-            }
-        }
-
-        function showMessage(message, type) {
-            console.log(`[${type.toUpperCase()}] ${message}`);
-            // You can implement a proper message system here
-        }
-
-        function exportCardAsPNG(card) {
-            // Placeholder for PNG export functionality
-            console.log('PNG export not implemented in browser view');
-        }
-
-        console.log('BazaarGen Items Browser with Card Creation loaded successfully');
+        console.log('BazaarGen Items Browser loaded successfully');
     </script>
 </body>
 </html>
