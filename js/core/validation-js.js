@@ -336,4 +336,400 @@ class Validation {
       for (let i = 0; i < data[expectedProperty].length; i++) {
         const item = data[expectedProperty][i];
         
-        if
+        if (type === 'cards') {
+          const validation = this.validateCardData(item);
+          if (!validation.valid) {
+            return { 
+              valid: false, 
+              error: `Invalid card at index ${i}: ${validation.error}` 
+            };
+          }
+        } else if (type === 'skills') {
+          const validation = this.validateSkillData(item);
+          if (!validation.valid) {
+            return { 
+              valid: false, 
+              error: `Invalid skill at index ${i}: ${validation.error}` 
+            };
+          }
+        }
+      }
+
+      return { valid: true, count: data[expectedProperty].length };
+
+    } catch (error) {
+      return { 
+        valid: false, 
+        error: "Error validating import data: " + error.message 
+      };
+    }
+  }
+
+  /**
+   * Sanitize text input to prevent XSS
+   * @param {string} text - Text to sanitize
+   * @returns {string} Sanitized text
+   */
+  static sanitizeText(text) {
+    if (!text || typeof text !== 'string') return '';
+    
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  /**
+   * Validate email format
+   * @param {string} email - Email to validate
+   * @returns {Object} Validation result
+   */
+  static validateEmail(email) {
+    if (!email || typeof email !== 'string') {
+      return { valid: false, error: "Email is required" };
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return { valid: false, error: "Invalid email format" };
+    }
+
+    return { valid: true };
+  }
+
+  /**
+   * Validate alias/username format
+   * @param {string} alias - Alias to validate
+   * @returns {Object} Validation result
+   */
+  static validateAlias(alias) {
+    if (!alias || typeof alias !== 'string') {
+      return { valid: false, error: "Alias is required" };
+    }
+
+    const trimmed = alias.trim();
+
+    if (trimmed.length < 2) {
+      return { valid: false, error: "Alias must be at least 2 characters" };
+    }
+
+    if (trimmed.length > 20) {
+      return { valid: false, error: "Alias must be less than 20 characters" };
+    }
+
+    // Check for emojis
+    if (/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(trimmed)) {
+      return { valid: false, error: "Emojis are not allowed in aliases" };
+    }
+
+    // Check for inappropriate characters
+    if (!/^[a-zA-Z0-9_-]+$/.test(trimmed)) {
+      return { valid: false, error: "Alias can only contain letters, numbers, underscores, and hyphens" };
+    }
+
+    return { valid: true, alias: trimmed };
+  }
+
+  /**
+   * Validate form data before submission
+   * @param {HTMLFormElement} form - Form element to validate
+   * @returns {Object} Validation result with field-specific errors
+   */
+  static validateForm(form) {
+    const errors = {};
+    const formData = new FormData(form);
+
+    // Get all required fields
+    const requiredFields = form.querySelectorAll('[required]');
+    
+    requiredFields.forEach(field => {
+      const value = formData.get(field.name);
+      if (!value || (typeof value === 'string' && !value.trim())) {
+        errors[field.name] = `${field.name} is required`;
+      }
+    });
+
+    // Validate specific field types
+    const emailFields = form.querySelectorAll('input[type="email"]');
+    emailFields.forEach(field => {
+      const value = formData.get(field.name);
+      if (value) {
+        const emailValidation = this.validateEmail(value);
+        if (!emailValidation.valid) {
+          errors[field.name] = emailValidation.error;
+        }
+      }
+    });
+
+    const numberFields = form.querySelectorAll('input[type="number"]');
+    numberFields.forEach(field => {
+      const value = formData.get(field.name);
+      if (value) {
+        const num = parseFloat(value);
+        if (isNaN(num)) {
+          errors[field.name] = 'Must be a valid number';
+        } else if (field.min && num < parseFloat(field.min)) {
+          errors[field.name] = `Must be at least ${field.min}`;
+        } else if (field.max && num > parseFloat(field.max)) {
+          errors[field.name] = `Must be no more than ${field.max}`;
+        }
+      }
+    });
+
+    return {
+      valid: Object.keys(errors).length === 0,
+      errors: errors
+    };
+  }
+
+  /**
+   * Real-time validation for input fields
+   * @param {HTMLInputElement} field - Input field to validate
+   * @returns {Object} Validation result
+   */
+  static validateField(field) {
+    if (!field) return { valid: true };
+
+    const value = field.value;
+    const fieldType = field.type;
+    const fieldName = field.name || field.id || 'Field';
+
+    // Required field check
+    if (field.required && (!value || !value.trim())) {
+      return { valid: false, error: `${fieldName} is required` };
+    }
+
+    // Type-specific validation
+    switch (fieldType) {
+      case 'email':
+        return value ? this.validateEmail(value) : { valid: true };
+        
+      case 'number':
+        if (value) {
+          const num = parseFloat(value);
+          if (isNaN(num)) {
+            return { valid: false, error: 'Must be a valid number' };
+          }
+          if (field.min && num < parseFloat(field.min)) {
+            return { valid: false, error: `Must be at least ${field.min}` };
+          }
+          if (field.max && num > parseFloat(field.max)) {
+            return { valid: false, error: `Must be no more than ${field.max}` };
+          }
+        }
+        break;
+        
+      case 'text':
+      case 'textarea':
+        if (field.maxLength && value.length > field.maxLength) {
+          return { 
+            valid: false, 
+            error: `Cannot exceed ${field.maxLength} characters` 
+          };
+        }
+        break;
+    }
+
+    return { valid: true };
+  }
+} 'cards') {
+          const validation = this.validateCardData(item);
+          if (!validation.valid) {
+            return { 
+              valid: false, 
+              error: `Invalid card at index ${i}: ${validation.error}` 
+            };
+          }
+        } else if (type === 'skills') {
+          const validation = this.validateSkillData(item);
+          if (!validation.valid) {
+            return { 
+              valid: false, 
+              error: `Invalid skill at index ${i}: ${validation.error}` 
+            };
+          }
+        }
+      }
+
+      return { valid: true, count: data[expectedProperty].length };
+
+    } catch (error) {
+      return { 
+        valid: false, 
+        error: "Error validating import data: " + error.message 
+      };
+    }
+  }
+
+  /**
+   * Sanitize text input to prevent XSS
+   * @param {string} text - Text to sanitize
+   * @returns {string} Sanitized text
+   */
+  static sanitizeText(text) {
+    if (!text || typeof text !== 'string') return '';
+    
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  /**
+   * Validate email format
+   * @param {string} email - Email to validate
+   * @returns {Object} Validation result
+   */
+  static validateEmail(email) {
+    if (!email || typeof email !== 'string') {
+      return { valid: false, error: "Email is required" };
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return { valid: false, error: "Invalid email format" };
+    }
+
+    return { valid: true };
+  }
+
+  /**
+   * Validate alias/username format
+   * @param {string} alias - Alias to validate
+   * @returns {Object} Validation result
+   */
+  static validateAlias(alias) {
+    if (!alias || typeof alias !== 'string') {
+      return { valid: false, error: "Alias is required" };
+    }
+
+    const trimmed = alias.trim();
+
+    if (trimmed.length < 2) {
+      return { valid: false, error: "Alias must be at least 2 characters" };
+    }
+
+    if (trimmed.length > 20) {
+      return { valid: false, error: "Alias must be less than 20 characters" };
+    }
+
+    // Check for emojis
+    if (/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(trimmed)) {
+      return { valid: false, error: "Emojis are not allowed in aliases" };
+    }
+
+    // Check for inappropriate characters
+    if (!/^[a-zA-Z0-9_-]+$/.test(trimmed)) {
+      return { valid: false, error: "Alias can only contain letters, numbers, underscores, and hyphens" };
+    }
+
+    return { valid: true, alias: trimmed };
+  }
+
+  /**
+   * Validate form data before submission
+   * @param {HTMLFormElement} form - Form element to validate
+   * @returns {Object} Validation result with field-specific errors
+   */
+  static validateForm(form) {
+    const errors = {};
+    const formData = new FormData(form);
+
+    // Get all required fields
+    const requiredFields = form.querySelectorAll('[required]');
+    
+    requiredFields.forEach(field => {
+      const value = formData.get(field.name);
+      if (!value || (typeof value === 'string' && !value.trim())) {
+        errors[field.name] = `${field.name} is required`;
+      }
+    });
+
+    // Validate specific field types
+    const emailFields = form.querySelectorAll('input[type="email"]');
+    emailFields.forEach(field => {
+      const value = formData.get(field.name);
+      if (value) {
+        const emailValidation = this.validateEmail(value);
+        if (!emailValidation.valid) {
+          errors[field.name] = emailValidation.error;
+        }
+      }
+    });
+
+    const numberFields = form.querySelectorAll('input[type="number"]');
+    numberFields.forEach(field => {
+      const value = formData.get(field.name);
+      if (value) {
+        const num = parseFloat(value);
+        if (isNaN(num)) {
+          errors[field.name] = 'Must be a valid number';
+        } else if (field.min && num < parseFloat(field.min)) {
+          errors[field.name] = `Must be at least ${field.min}`;
+        } else if (field.max && num > parseFloat(field.max)) {
+          errors[field.name] = `Must be no more than ${field.max}`;
+        }
+      }
+    });
+
+    return {
+      valid: Object.keys(errors).length === 0,
+      errors: errors
+    };
+  }
+
+  /**
+   * Real-time validation for input fields
+   * @param {HTMLInputElement} field - Input field to validate
+   * @returns {Object} Validation result
+   */
+  static validateField(field) {
+    if (!field) return { valid: true };
+
+    const value = field.value;
+    const fieldType = field.type;
+    const fieldName = field.name || field.id || 'Field';
+
+    // Required field check
+    if (field.required && (!value || !value.trim())) {
+      return { valid: false, error: `${fieldName} is required` };
+    }
+
+    // Type-specific validation
+    switch (fieldType) {
+      case 'email':
+        return value ? this.validateEmail(value) : { valid: true };
+        
+      case 'number':
+        if (value) {
+          const num = parseFloat(value);
+          if (isNaN(num)) {
+            return { valid: false, error: 'Must be a valid number' };
+          }
+          if (field.min && num < parseFloat(field.min)) {
+            return { valid: false, error: `Must be at least ${field.min}` };
+          }
+          if (field.max && num > parseFloat(field.max)) {
+            return { valid: false, error: `Must be no more than ${field.max}` };
+          }
+        }
+        break;
+        
+      case 'text':
+      case 'textarea':
+        if (field.maxLength && value.length > field.maxLength) {
+          return { 
+            valid: false, 
+            error: `Cannot exceed ${field.maxLength} characters` 
+          };
+        }
+        break;
+    }
+
+    return { valid: true };
+  }
+}
