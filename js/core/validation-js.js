@@ -533,7 +533,8 @@ class Validation {
     }
     
     if (fieldType === 'text' || fieldType === 'textarea') {
-      if (field.maxLength && value.length > field.maxLength) {
+      // FIX: Only check maxLength if it's actually set and > 0
+      if (field.maxLength && field.maxLength > 0 && value.length > field.maxLength) {
         return { 
           valid: false, 
           error: 'Cannot exceed ' + field.maxLength + ' characters'
