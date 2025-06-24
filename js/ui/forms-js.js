@@ -21,6 +21,7 @@ class Forms {
       this.setupAccessibility();
       this.setupAutoSave();
       this.setupDefaultImage(); // Add default image setup
+      this.setupDefaultValues(); // Add default form values
       
       // Ensure any existing dynamic inputs are properly initialized
       setTimeout(() => {
@@ -29,6 +30,23 @@ class Forms {
       
       this.isInitialized = true;
     });
+  }
+
+  /**
+   * Setup default form values
+   */
+  static setupDefaultValues() {
+    // Set default item name
+    const itemNameInput = document.getElementById('itemNameInput');
+    if (itemNameInput && !itemNameInput.value) {
+      itemNameInput.value = 'Item Name';
+    }
+
+    // Set default skill name if on skills page
+    const skillNameInput = document.getElementById('skillNameInput');
+    if (skillNameInput && !skillNameInput.value) {
+      skillNameInput.value = 'Skill Name';
+    }
   }
 
   /**
@@ -343,10 +361,10 @@ static setupPassiveInputs() {
     addPassiveBtn.onclick = () => this.addPassiveInput();
   }
   
-  // Add initial passive effect input if container is empty
+  // Add initial passive effect input with default text if container is empty
   const passiveContainer = document.getElementById('passiveInputs');
   if (passiveContainer && passiveContainer.children.length === 0) {
-    this.addPassiveInput();
+    this.addPassiveInputWithDefault();
   }
 }
   /**
@@ -454,6 +472,56 @@ static setupPassiveInputs() {
   }
 
   /**
+   * Add a new on-use effect input field with default text
+   */
+  static addOnUseInputWithDefault() {
+    const container = document.getElementById("onUseInputs");
+    if (!container) return;
+    
+    const inputGroup = document.createElement("div");
+    inputGroup.className = "on-use-input-group";
+    
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = "Enter on use effect description";
+    input.className = "form-input";
+    input.value = "Deal 50 /d to the enemy"; // Default text
+    
+    // Add event listeners for preview updates
+    input.addEventListener('input', (e) => {
+      this.handleInputChange(e.target);
+    });
+    
+    input.addEventListener('blur', (e) => {
+      this.validateField(e.target);
+    });
+    
+    // Add change event as well to be sure
+    input.addEventListener('change', (e) => {
+      this.handleInputChange(e.target);
+    });
+    
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.textContent = "Remove";
+    removeButton.className = "form-button remove";
+    removeButton.onclick = () => {
+      container.removeChild(inputGroup);
+      // Trigger preview update after removal
+      this.handleInputChange(input);
+    };
+    
+    inputGroup.appendChild(input);
+    inputGroup.appendChild(removeButton);
+    container.appendChild(inputGroup);
+    
+    // Immediately trigger a preview update to ensure the new input is recognized
+    setTimeout(() => {
+      this.handleInputChange(input);
+    }, 100);
+  }
+
+  /**
    * Add a new passive effect input field
    */
   static addPassiveInput() {
@@ -504,6 +572,58 @@ static setupPassiveInputs() {
       this.handleInputChange(input);
     }, 100);
   }
+
+  /**
+   * Add a new passive effect input field with default text
+   */
+  static addPassiveInputWithDefault() {
+    const container = document.getElementById("passiveInputs");
+    if (!container) return;
+    
+    const inputGroup = document.createElement("div");
+    inputGroup.className = "passive-input-group";
+    
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = "Enter passive effect description";
+    input.className = "form-input";
+    input.value = "When you use an item, gain 1 /h for 3 seconds"; // Default text
+    
+    // Add event listeners for preview updates
+    input.addEventListener('input', (e) => {
+      this.handleInputChange(e.target);
+    });
+    
+    input.addEventListener('blur', (e) => {
+      this.validateField(e.target);
+    });
+    
+    // Add change event as well to be sure
+    input.addEventListener('change', (e) => {
+      this.handleInputChange(e.target);
+    });
+    
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.textContent = "Remove";
+    removeButton.className = "form-button remove";
+    removeButton.onclick = () => {
+      container.removeChild(inputGroup);
+      // Trigger preview update after removal
+      this.handleInputChange(input);
+    };
+    
+    inputGroup.appendChild(input);
+    inputGroup.appendChild(removeButton);
+    container.appendChild(inputGroup);
+    
+    // Immediately trigger a preview update to ensure the new input is recognized
+    setTimeout(() => {
+      this.handleInputChange(input);
+    }, 100);
+  }
+
+  // ... rest of the existing methods remain exactly the same ...
 
   /**
    * Reinitialize event listeners for all dynamic inputs
@@ -777,9 +897,12 @@ static setupPassiveInputs() {
       previewContainer.innerHTML = '';
     }
 
-    // Reload default image after reset
+    // Add default effects after reset
     setTimeout(() => {
       this.setupDefaultImage();
+      this.setupDefaultValues();
+      this.addPassiveInputWithDefault();
+      this.addOnUseInputWithDefault();
     }, 100);
   }
 
