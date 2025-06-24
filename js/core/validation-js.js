@@ -342,10 +342,13 @@ class Validation {
         if (type === 'cards') {
           const validation = this.validateCardData(item);
           if (!validation.valid) {
-            return { 
-              valid: false, 
-              error: "Invalid card at index " + i + ": " + validation.error
-            };
+
+             console.error('Validation failed:', validation.error);
+              if (mode === 'generator' || mode === 'preview')
+              {
+              Messages.showError(validation.error);
+              }
+            return null;
           }
         } else if (type === 'skills') {
           const validation = this.validateSkillData(item);
