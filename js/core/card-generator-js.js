@@ -3,77 +3,77 @@
  * Handles card creation from multiple data sources (form input, imported data, database items)
  */
 class CardGenerator {
-  /**
-   * Main card creation function
-   * @param {Object} options - Configuration options
-   * @param {Object} options.data - Pre-existing card data object
-   * @param {boolean} options.formData - Extract data from form inputs
-   * @param {boolean} options.isPreview - Whether this is a preview card
-   * @param {HTMLElement} options.container - Container to append card to
-   * @param {boolean} options.includeControls - Whether to include control buttons
-   * @param {string} options.mode - 'generator' | 'browser' | 'preview'
-   * @returns {HTMLElement|null} The created card element
-   */
-  static createCard(options = {}) {
-    const {
-      data = null,
-      formData = false,
-      isPreview = false,
-      container = null,
-      includeControls = true,
-      mode = 'generator'
-    } = options;
+ 
+/**
+ * Main card creation function
+ * @param {Object} options - Configuration options
+ * @param {Object} options.data - Pre-existing card data object
+ * @param {boolean} options.formData - Extract data from form inputs
+ * @param {boolean} options.isPreview - Whether this is a preview card
+ * @param {HTMLElement} options.container - Container to append card to
+ * @param {boolean} options.includeControls - Whether to include control buttons
+ * @param {string} options.mode - 'generator' | 'browser' | 'preview'
+ * @returns {Promise<HTMLElement|null>} The created card element
+ */
+static async createCard(options = {}) {
+  const {
+    data = null,
+    formData = false,
+    isPreview = false,
+    container = null,
+    includeControls = true,
+    mode = 'generator'
+  } = options;
 
-    try {
-      // Determine data source and extract card data
-      let cardData;
-      if (data) {
-        cardData = this.normalizeCardData(data);
-      } else if (formData) {
-        cardData = this.extractFormData();
-      } else {
-        throw new Error('No data source provided');
-      }
+  try {
+    // Determine data source and extract card data
+    let cardData;
+    if (data) {
+      cardData = this.normalizeCardData(data);
+    } else if (formData) {
+      cardData = await this.extractFormData(); // ← Now properly awaiting the Promise
+    } else {
+      throw new Error('No data source provided');
+    }
 
-      // Validate card data
-      const validation = Validation.validateCardData(cardData);
-      if (!validation.valid) {
-        if (mode === 'generator') {
-          Messages.showError(validation.error);
-        }
-        return null;
-      }
-
-      // Create the card element
-      const cardElement = this.buildCardElement(cardData, mode, includeControls);
-
-      // Add to container if specified
-      if (container) {
-        if (isPreview) {
-          container.innerHTML = '';
-        }
-        container.appendChild(cardElement);
-      }
-
-      // Store card data for export if in generator mode
-      if (mode === 'generator' && !isPreview && window.cardsData) {
-        window.cardsData.push(cardData);
-      }
-
-      // Apply sizing and positioning after DOM insertion
-      this.applyCardSizing(cardElement, cardData);
-
-      return cardElement;
-
-    } catch (error) {
-      console.error('Error creating card:', error);
+    // Validate card data
+    const validation = Validation.validateCardData(cardData);
+    if (!validation.valid) {
       if (mode === 'generator') {
-        Messages.showError('Error creating card: ' + error.message);
+        Messages.showError(validation.error);
       }
       return null;
     }
-  }
 
+    // Create the card element
+    const cardElement = this.buildCardElement(cardData, mode, includeControls);
+
+    // Add to container if specified
+    if (container) {
+      if (isPreview) {
+        container.innerHTML = '';
+      }
+      container.appendChild(cardElement);
+    }
+
+    // Store card data for export if in generator mode
+    if (mode === 'generator' && !isPreview && window.cardsData) {
+      window.cardsData.push(cardData);
+    }
+
+    // Apply sizing and positioning after DOM insertion
+    this.applyCardSizing(cardElement, cardData);
+
+    return cardElement;
+
+  } catch (error) {
+    console.error('Error creating card:', error);
+    if (mode === 'generator') {
+      Messages.showError('Error creating card: ' + error.message);
+    }
+    return null;
+  }
+}
   /**
    * Extract card data from form inputs
    */
