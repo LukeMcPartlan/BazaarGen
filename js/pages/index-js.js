@@ -18,8 +18,162 @@ class IndexPageController {
       this.setupFormEvents();
       this.setupCardManagement();
       this.setupGlobalVariables();
+      this.setupDefaultEffects(); // Add default effects on load
       this.isInitialized = true;
     });
+  }
+
+  /**
+   * Setup default passive and on-use effects when page loads
+   */
+  static setupDefaultEffects() {
+    // Add default passive effect
+    this.addDefaultPassiveEffect();
+    
+    // Add default on-use effect
+    this.addDefaultOnUseEffect();
+  }
+
+  /**
+   * Add a default passive effect input with placeholder text
+   */
+  static addDefaultPassiveEffect() {
+    const passiveInputs = document.getElementById('passiveInputs');
+    if (!passiveInputs) return;
+
+    const defaultPassiveValue = "When you use an item, gain 1 /h for 3 seconds";
+    
+    const passiveDiv = document.createElement('div');
+    passiveDiv.className = 'passive-input-group';
+    passiveDiv.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+        <textarea 
+          placeholder="Enter passive effect..." 
+          class="form-input passive-effect-input" 
+          rows="2" 
+          style="flex: 1; resize: vertical; min-height: 50px;">${defaultPassiveValue}</textarea>
+        <button type="button" onclick="this.parentElement.parentElement.remove()" 
+                class="form-button secondary" 
+                style="padding: 8px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          ✕
+        </button>
+      </div>
+    `;
+    
+    passiveInputs.appendChild(passiveDiv);
+
+    // Add event listener for live preview updates
+    const textArea = passiveDiv.querySelector('textarea');
+    textArea.addEventListener('input', () => {
+      this.handleFormChange();
+    });
+  }
+
+  /**
+   * Add a default on-use effect input with placeholder text
+   */
+  static addDefaultOnUseEffect() {
+    const onUseInputs = document.getElementById('onUseInputs');
+    if (!onUseInputs) return;
+
+    const defaultOnUseValue = "Deal 50 /d to the enemy";
+    
+    const onUseDiv = document.createElement('div');
+    onUseDiv.className = 'on-use-input-group';
+    onUseDiv.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+        <textarea 
+          placeholder="Enter on use effect..." 
+          class="form-input on-use-effect-input" 
+          rows="2" 
+          style="flex: 1; resize: vertical; min-height: 50px;">${defaultOnUseValue}</textarea>
+        <button type="button" onclick="this.parentElement.parentElement.remove()" 
+                class="form-button secondary" 
+                style="padding: 8px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          ✕
+        </button>
+      </div>
+    `;
+    
+    onUseInputs.appendChild(onUseDiv);
+
+    // Add event listener for live preview updates
+    const textArea = onUseDiv.querySelector('textarea');
+    textArea.addEventListener('input', () => {
+      this.handleFormChange();
+    });
+  }
+
+  /**
+   * Enhanced addPassiveInput function with better UX
+   */
+  static addPassiveInput() {
+    const passiveInputs = document.getElementById('passiveInputs');
+    if (!passiveInputs) return;
+
+    const passiveDiv = document.createElement('div');
+    passiveDiv.className = 'passive-input-group';
+    passiveDiv.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+        <textarea 
+          placeholder="Enter passive effect..." 
+          class="form-input passive-effect-input" 
+          rows="2" 
+          style="flex: 1; resize: vertical; min-height: 50px;"></textarea>
+        <button type="button" onclick="this.parentElement.parentElement.remove()" 
+                class="form-button secondary" 
+                style="padding: 8px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          ✕
+        </button>
+      </div>
+    `;
+    
+    passiveInputs.appendChild(passiveDiv);
+
+    // Add event listener for live preview updates
+    const textArea = passiveDiv.querySelector('textarea');
+    textArea.addEventListener('input', () => {
+      this.handleFormChange();
+    });
+
+    // Focus on the new input
+    textArea.focus();
+  }
+
+  /**
+   * Enhanced addOnUseInput function with better UX
+   */
+  static addOnUseInput() {
+    const onUseInputs = document.getElementById('onUseInputs');
+    if (!onUseInputs) return;
+
+    const onUseDiv = document.createElement('div');
+    onUseDiv.className = 'on-use-input-group';
+    onUseDiv.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+        <textarea 
+          placeholder="Enter on use effect..." 
+          class="form-input on-use-effect-input" 
+          rows="2" 
+          style="flex: 1; resize: vertical; min-height: 50px;"></textarea>
+        <button type="button" onclick="this.parentElement.parentElement.remove()" 
+                class="form-button secondary" 
+                style="padding: 8px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          ✕
+        </button>
+      </div>
+    `;
+    
+    onUseInputs.appendChild(onUseDiv);
+
+    // Add event listener for live preview updates
+    const textArea = onUseDiv.querySelector('textarea');
+    textArea.addEventListener('input', () => {
+      this.handleFormChange();
+    });
+
+    // Focus on the new input
+    textArea.focus();
   }
 
   /**
@@ -179,40 +333,163 @@ class IndexPageController {
       ExportImport.triggerFileInput('.json', window.importCardData);
     };
 
-    // Setup dynamic input functions
+    // Setup dynamic input functions - now use our enhanced versions
     window.addTagInput = () => {
       Forms.addTagInput();
     };
 
+    window.addPassiveInput = () => {
+      this.addPassiveInput();
+    };
+
     window.addOnUseInput = () => {
-      Forms.addOnUseInput();
+      this.addOnUseInput();
     };
   }
 
   /**
-   * Get current form data
-   * @returns {Object} Current form data
+   * Reset form with default effects
    */
-  static getCurrentFormData() {
-    return Forms.getFormData();
+  static resetForm() {
+    Forms.resetForm();
+    
+    // Clear existing effects
+    const passiveInputs = document.getElementById('passiveInputs');
+    const onUseInputs = document.getElementById('onUseInputs');
+    
+    if (passiveInputs) passiveInputs.innerHTML = '';
+    if (onUseInputs) onUseInputs.innerHTML = '';
+    
+    // Re-add default effects
+    this.setupDefaultEffects();
+    
+    this.cardsData = [];
+    window.cardsData = this.cardsData;
   }
 
   /**
-   * Set form data
+   * Get current form data including effects
+   */
+  static getCurrentFormData() {
+    const baseData = Forms.getFormData();
+    
+    // Get passive effects
+    const passiveEffects = Array.from(document.querySelectorAll('.passive-effect-input'))
+      .map(input => input.value.trim())
+      .filter(value => value.length > 0);
+    
+    // Get on-use effects
+    const onUseEffects = Array.from(document.querySelectorAll('.on-use-effect-input'))
+      .map(input => input.value.trim())
+      .filter(value => value.length > 0);
+    
+    return {
+      ...baseData,
+      passiveEffects,
+      onUseEffects
+    };
+  }
+
+  /**
+   * Set form data including effects
    * @param {Object} data - Form data to set
    */
   static setFormData(data) {
     Forms.setFormData(data);
+    
+    // Clear existing effects
+    const passiveInputs = document.getElementById('passiveInputs');
+    const onUseInputs = document.getElementById('onUseInputs');
+    
+    if (passiveInputs) passiveInputs.innerHTML = '';
+    if (onUseInputs) onUseInputs.innerHTML = '';
+    
+    // Set passive effects
+    if (data.passiveEffects && data.passiveEffects.length > 0) {
+      data.passiveEffects.forEach(effect => {
+        this.addPassiveInputWithValue(effect);
+      });
+    } else {
+      this.addDefaultPassiveEffect();
+    }
+    
+    // Set on-use effects
+    if (data.onUseEffects && data.onUseEffects.length > 0) {
+      data.onUseEffects.forEach(effect => {
+        this.addOnUseInputWithValue(effect);
+      });
+    } else {
+      this.addDefaultOnUseEffect();
+    }
   }
 
   /**
-   * Reset the form
+   * Add passive input with specific value
    */
-  static resetForm() {
-    Forms.resetForm();
-    this.cardsData = [];
-    window.cardsData = this.cardsData;
+  static addPassiveInputWithValue(value) {
+    const passiveInputs = document.getElementById('passiveInputs');
+    if (!passiveInputs) return;
+
+    const passiveDiv = document.createElement('div');
+    passiveDiv.className = 'passive-input-group';
+    passiveDiv.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+        <textarea 
+          placeholder="Enter passive effect..." 
+          class="form-input passive-effect-input" 
+          rows="2" 
+          style="flex: 1; resize: vertical; min-height: 50px;">${value}</textarea>
+        <button type="button" onclick="this.parentElement.parentElement.remove()" 
+                class="form-button secondary" 
+                style="padding: 8px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          ✕
+        </button>
+      </div>
+    `;
+    
+    passiveInputs.appendChild(passiveDiv);
+
+    // Add event listener for live preview updates
+    const textArea = passiveDiv.querySelector('textarea');
+    textArea.addEventListener('input', () => {
+      this.handleFormChange();
+    });
   }
+
+  /**
+   * Add on-use input with specific value
+   */
+  static addOnUseInputWithValue(value) {
+    const onUseInputs = document.getElementById('onUseInputs');
+    if (!onUseInputs) return;
+
+    const onUseDiv = document.createElement('div');
+    onUseDiv.className = 'on-use-input-group';
+    onUseDiv.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+        <textarea 
+          placeholder="Enter on use effect..." 
+          class="form-input on-use-effect-input" 
+          rows="2" 
+          style="flex: 1; resize: vertical; min-height: 50px;">${value}</textarea>
+        <button type="button" onclick="this.parentElement.parentElement.remove()" 
+                class="form-button secondary" 
+                style="padding: 8px 12px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          ✕
+        </button>
+      </div>
+    `;
+    
+    onUseInputs.appendChild(onUseDiv);
+
+    // Add event listener for live preview updates
+    const textArea = onUseDiv.querySelector('textarea');
+    textArea.addEventListener('input', () => {
+      this.handleFormChange();
+    });
+  }
+
+  // ... rest of the existing methods remain the same ...
 
   /**
    * Get all generated cards data
@@ -279,7 +556,6 @@ class IndexPageController {
       </div>
     `;
 
-    // You could show this in a modal or dedicated container
     console.log('Card Statistics:', stats);
     return statsHtml;
   }
