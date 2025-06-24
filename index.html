@@ -30,7 +30,7 @@
               window.location.href = correctUrl;
           }
       }
-</script>
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bazaar Card Generator - Create Custom Game Cards | BazaarGen Tool</title>
@@ -70,16 +70,12 @@
   <meta name="theme-color" content="#8B7A65" />
   <link rel="canonical" href="https://Bazaargen.com/" />
 
-  
-
-  
   <!-- External Libraries -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  
- <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <!-- Top Navigation -->
@@ -98,43 +94,42 @@
           <a href="#" class="nav-link" data-page="contests">Contests</a>
         </li>
       </ul>
-       <!-- Google sign in stuff-->
-                         <div class="nav-actions">
-              <!-- Google Sign-In Button (shown when not signed in) -->
-              <div id="google-signin-button"></div>
-          
-              <!-- User Info (shown when signed in) -->
-              <div class="user-info" id="user-info" style="display: none; align-items: center; gap: 10px;">
-                  <span class="user-alias" id="user-alias" style="font-weight: 500; color: #333; cursor: pointer;" onclick="editAlias()" title="Click to edit alias"></span>
-                  <button class="sign-out-btn" onclick="signOut()" style="background: none; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: #666; font-size: 14px;">Sign Out</button>
+      
+      <!-- Google sign in stuff-->
+      <div class="nav-actions">
+        <!-- Google Sign-In Button (shown when not signed in) -->
+        <div id="google-signin-button"></div>
+    
+        <!-- User Info (shown when signed in) -->
+        <div class="user-info" id="user-info" style="display: none; align-items: center; gap: 10px;">
+            <span class="user-alias" id="user-alias" style="font-weight: 500; color: #333; cursor: pointer;" onclick="editAlias()" title="Click to edit alias"></span>
+            <button class="sign-out-btn" onclick="signOut()" style="background: none; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: #666; font-size: 14px;">Sign Out</button>
+        </div>
+      </div>
+      
+      <!-- Alias Creation Modal -->
+      <div id="alias-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+          <div style="background: white; padding: 30px; border-radius: 8px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+              <h2 id="alias-modal-title" style="margin: 0 0 10px 0; color: #333;">Welcome to BazaarGen!</h2>
+              <p id="alias-modal-description" style="color: #666; margin: 0 0 20px 0;">Choose an alias to display on the site</p>
+              
+              <input type="text" id="alias-input" placeholder="Enter your alias" 
+                     style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 16px; margin-bottom: 10px; box-sizing: border-box;">
+              
+              <div id="alias-error" style="color: #d32f2f; font-size: 14px; margin-bottom: 15px; min-height: 20px;"></div>
+              
+              <div style="display: flex; gap: 10px; justify-content: center;">
+                  <button id="alias-cancel-btn" onclick="cancelAliasCreation()" 
+                          style="padding: 10px 20px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; color: #666;">
+                      Cancel
+                  </button>
+                  <button id="alias-save-btn" onclick="saveAlias()" 
+                          style="padding: 10px 20px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer;">
+                      Save Alias
+                  </button>
               </div>
           </div>
-          
-          <!-- 3. Alias Creation Modal -->
-          <div id="alias-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
-              <div style="background: white; padding: 30px; border-radius: 8px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
-                  <h2 id="alias-modal-title" style="margin: 0 0 10px 0; color: #333;">Welcome to BazaarGen!</h2>
-                  <p id="alias-modal-description" style="color: #666; margin: 0 0 20px 0;">Choose an alias to display on the site</p>
-                  
-                  <input type="text" id="alias-input" placeholder="Enter your alias" 
-                         style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 16px; margin-bottom: 10px; box-sizing: border-box;">
-                  
-                  <div id="alias-error" style="color: #d32f2f; font-size: 14px; margin-bottom: 15px; min-height: 20px;"></div>
-                  
-                  <div style="display: flex; gap: 10px; justify-content: center;">
-                      <button id="alias-cancel-btn" onclick="cancelAliasCreation()" 
-                              style="padding: 10px 20px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; color: #666;">
-                          Cancel
-                      </button>
-                      <button id="alias-save-btn" onclick="saveAlias()" 
-                              style="padding: 10px 20px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer;">
-                          Save Alias
-                      </button>
-                  </div>
-              </div>
-          </div>
-      <!--end of google stuff-->
-    </div>
+      </div>
 
       <div class="nav-toggle" id="nav-toggle">
         <span></span>
@@ -144,16 +139,15 @@
     </div>
   </nav>
 
-  <div class="main-content">
-      <!-- Page Header -->
-      <div class="page-header">
-          <h1 class="page-title">Bazaar Card Generator</h1>
-      </div>
+  <!-- Page Header -->
+  <div class="page-header">
+      <h1 class="page-title">Bazaar Card Generator</h1>
+  </div>
 
-      <div id="previewContainer"></div>
-      <br />
-
-      <div class="input-container">
+  <!-- Main Two-Column Container -->
+  <div class="main-container">
+      <!-- Left Column - Form -->
+      <div class="form-column">
           <div class="form-grid">
               <div class="form-group full-width">
                   <label class="form-label">Card Image</label>
@@ -175,7 +169,7 @@
                       <option value="Dooly">Dooly</option>
                       <option value="Stelle">Stelle</option>
                       <option value="Jules">Jules</option>
-                      <option value="Vampire"> Vampire</option>
+                      <option value="Vampire">Vampire</option>
                   </select>
               </div>
 
@@ -225,8 +219,8 @@
               </div>
           </div>
 
+          <!-- Scaling Values Section -->
           <div class="tag-effects">
-              
               <div class="form-grid">
                   <div class="form-group">
                       <label class="form-label">Heal</label>
@@ -255,18 +249,21 @@
               </div>
           </div>
 
+          <!-- Tags Section -->
           <div class="tag-effects">
               <label class="form-label">Additional Tags</label>
               <div id="tagInputs"></div>
               <button type="button" onclick="addTagInput()" class="form-button secondary" style="margin-top: 10px;">Add Tag</button>
           </div>
 
+          <!-- On Use Effects Section -->
           <div class="on-use-effects">
               <label class="form-label">On Use Effects</label>
               <div id="onUseInputs"></div>
               <button type="button" onclick="addOnUseInput()" class="form-button secondary" style="margin-top: 10px;">Add On Use Effect</button>
           </div>
 
+          <!-- Keyboard Shortcuts Help -->
           <div class="shortcuts-help">
               <h4>🎮 Keyword Shortcuts - Type these in text boxes:</h4>
               <div class="shortcut-grid">
@@ -289,27 +286,59 @@
                   <div class="shortcut-item"><span class="shortcut-key">/mh</span> <img src="images/KeyText/maxhealth.png" alt="maxhealth" class="keyword-preview"> <span style="color: rgb(143, 234, 49); font-weight: bold;" class="key-text">maxhealth</span></div>
               </div>
           </div>
-
-          <div class="button-group">
-              <button onclick="createCard()" class="form-button">Save Card</button>
-              <button onclick="clearAllCards()" class="form-button secondary">Clear All Cards</button>
-          </div>
-
-          <div class="export-import-section">
-              <h4>💾 Export & Import</h4>
-              <div class="export-import-buttons">
-                  <button onclick="exportAllCardsAsData()" class="form-button export">Export All as Data</button>
-                  <button onclick="exportAllCardsAsPNG()" class="form-button export">Export All as PNG</button>
-                  <button onclick="triggerImport()" class="form-button secondary">Import Card Data</button>
-              </div>
-              <input type="file" id="importInput" accept=".json" class="hidden-input" onchange="importCardData(event)" />
-          </div>
-
-          <div id="errorContainer"></div>
       </div>
 
-      <div id="outputContainer"></div>
+      <!-- Right Column - Preview -->
+      <div class="preview-column">
+          <div class="preview-header">
+              🔮 Live Preview
+          </div>
+          <div id="previewContainer">
+              <div class="preview-placeholder">
+                  <p>🎨 Your card preview will appear here</p>
+                  <p style="margin-top: 10px; font-size: 0.9em;">Add an item name and upload an image to see the magic happen!</p>
+              </div>
+          </div>
+          
+          <!-- Save Card Button in Preview Column -->
+          <div class="preview-actions">
+              <button onclick="createCard()" class="form-button save-card-btn">⚔️ Save Card ⚔️</button>
+          </div>
+      </div>
   </div>
+
+  <!-- Full Width Sections Below -->
+  <div class="bottom-sections">
+      <!-- Management Actions -->
+      <div class="management-section">
+          <h3 class="section-title">🗂️ Card Management</h3>
+          <div class="management-actions">
+              <button onclick="clearAllCards()" class="form-button secondary clear-all-btn">🗑️ Clear All Cards</button>
+              
+              <div class="export-import-group">
+                  <button onclick="exportAllCardsAsData()" class="form-button export">💾 Export as Data</button>
+                  <button onclick="exportAllCardsAsPNG()" class="form-button export">🖼️ Export as PNG</button>
+                  <button onclick="triggerImport()" class="form-button secondary">📥 Import Data</button>
+              </div>
+          </div>
+      </div>
+
+      <!-- Saved Cards Display -->
+      <div class="saved-cards-section">
+          <h3 class="section-title">💼 Your Created Cards</h3>
+          <div id="outputContainer" class="cards-grid">
+              <!-- Generated cards will appear here -->
+              <div class="cards-placeholder">
+                  <p>🃏 Your saved cards will appear here after you create them!</p>
+                  <p style="margin-top: 10px; font-size: 0.9em;">Each card will have export and delete options.</p>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Hidden Elements -->
+  <div id="errorContainer"></div>
+  <input type="file" id="importInput" accept=".json" class="hidden-input" onchange="importCardData(event)" />
 
   <!-- Footer -->
   <footer class="footer">
@@ -352,28 +381,27 @@
     <p>HTML5 Card Generator, CSS3 Styling, JavaScript Interactive Tool, Responsive Web Design, Mobile Friendly Generator, Canvas Based Tool, SVG Graphics, Image Processing, File Upload Tool, Client Side Processing, No Server Required, Offline Capable, Progressive Web App, Modern Web Standards, Cross Browser Compatible, Fast Loading Tool, Optimized Performance, Memory Efficient, Touch Friendly Interface, Keyboard Shortcuts, Accessibility Features, Screen Reader Compatible, High DPI Support, Retina Display Ready</p>
   </div>
 
- <!-- Remove inline JavaScript and add these script tags before closing </body> -->
+  <!-- Scripts -->
+  <!-- Core modules (load first) -->
+  <script src="js/core/validation-js.js"></script>
+  <script src="js/core/keyword-processor-js.js"></script>
+  <script src="js/core/card-generator-js.js"></script>
+  <script src="js/core/skill-generator-js.js"></script>
 
-<!-- Core modules (load first) -->
-<script src="js/core/validation-js.js"></script>
-<script src="js/core/keyword-processor-js.js"></script>
-<script src="js/core/card-generator-js.js"></script>
-<script src="js/core/skill-generator-js.js"></script>
+  <!-- UI modules -->
+  <script src="js/ui/messages-js.js"></script>
+  <script src="js/ui/forms-js.js"></script>
+  <script src="js/ui/navigation-js.js"></script>
 
-<!-- UI modules -->
-<script src="js/ui/messages-js.js"></script>
-<script src="js/ui/forms-js.js"></script>
-<script src="js/ui/navigation-js.js"></script>
+  <!-- Auth modules -->
+  <script src="js/auth/supabase-client-js.js"></script>
+  <script src="js/auth/google-auth-js.js"></script>
 
-<!-- Auth modules -->
-<script src="js/auth/supabase-client-js.js"></script>
-<script src="js/auth/google-auth-js.js"></script>
+  <!-- Data modules -->
+  <script src="js/data/export-import-js.js"></script>
+  <script src="js/data/database-js.js"></script>
 
-<!-- Data modules -->
-<script src="js/data/export-import-js.js"></script>
-<script src="js/data/database-js.js"></script>
-
-<!-- Page-specific module (load last) -->
-<script src="js/pages/index-js.js"></script>
+  <!-- Page-specific module (load last) -->
+  <script src="js/pages/index-js.js"></script>
 </body>
 </html>
