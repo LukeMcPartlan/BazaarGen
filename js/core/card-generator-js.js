@@ -1,3 +1,5 @@
+console.log('🔄 Starting to load card-generator-js.js file...');
+
 /**
  * Unified Card Generator
  * Handles card creation from multiple data sources (form input, imported data, database items)
@@ -16,6 +18,8 @@ class CardGenerator {
  * @returns {Promise<HTMLElement|null>} The created card element
  */
 static async createCard(options = {}) {
+  console.log('🎯 CardGenerator.createCard called with options:', options);
+  
   const {
     data = null,
     formData = false,
@@ -26,30 +30,51 @@ static async createCard(options = {}) {
   } = options;
 
   try {
+    console.log('📊 Starting card creation process...');
+    
     // Determine data source and extract card data
     let cardData;
     if (data) {
+      console.log('📋 Using provided data');
       cardData = this.normalizeCardData(data);
     } else if (formData) {
+      console.log('📝 Extracting data from form...');
       cardData = await this.extractFormData(); // ← Now properly awaiting the Promise
+      console.log('✅ Form data extracted:', cardData);
     } else {
       throw new Error('No data source provided');
     }
 
+    // Check dependencies before validation
+    if (typeof Validation === 'undefined') {
+      console.error('❌ Validation class not available');
+      throw new Error('Validation class not loaded');
+    }
+
+    console.log('🔍 Validating card data...');
     // Validate card data
     const validation = Validation.validateCardData(cardData);
     if (!validation.valid) {
-      if (mode === 'generator') {
-        Messages.showError(validation.error);
+      console.error('❌ Validation failed:', validation.error);
+      if (mode === 'generator' || mode === 'preview') {
+        if (typeof Messages !== 'undefined') {
+          Messages.showError(validation.error);
+        } else {
+          console.error('❌ Messages class not available, showing alert instead');
+          alert('Validation Error: ' + validation.error);
+        }
       }
       return null;
     }
+    console.log('✅ Validation passed');
 
+    console.log('🏗️ Building card element...');
     // Create the card element
     const cardElement = this.buildCardElement(cardData, mode, includeControls);
 
     // Add to container if specified
     if (container) {
+      console.log('📦 Adding card to container');
       if (isPreview) {
         container.innerHTML = '';
       }
@@ -58,32 +83,44 @@ static async createCard(options = {}) {
 
     // Store card data for export if in generator mode
     if (mode === 'generator' && !isPreview && window.cardsData) {
+      console.log('💾 Storing card data for export');
       window.cardsData.push(cardData);
     }
 
     // Apply sizing and positioning after DOM insertion
     this.applyCardSizing(cardElement, cardData);
 
+    console.log('✅ Card created successfully');
     return cardElement;
 
   } catch (error) {
-    console.error('Error creating card:', error);
+    console.error('❌ Error creating card:', error);
     if (mode === 'generator') {
-      Messages.showError('Error creating card: ' + error.message);
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('Error creating card: ' + error.message);
+      } else {
+        console.error('❌ Messages class not available for error display');
+        alert('Error creating card: ' + error.message);
+      }
     }
     return null;
   }
 }
+
   /**
    * Extract card data from form inputs
    */
   static extractFormData() {
+    console.log('📝 Extracting form data...');
+    
     const imageInput = document.getElementById("imageInput");
     
     // Check for required image
     if (!imageInput?.files?.[0]) {
+      console.error('❌ No image file found');
       throw new Error("Please upload an image first.");
     }
+    console.log('🖼️ Image file found:', imageInput.files[0].name);
 
     // Get form values
     const itemName = document.getElementById("itemNameInput")?.value || '';
@@ -95,6 +132,10 @@ static async createCard(options = {}) {
     const itemSize = document.getElementById("itemSizeSelect")?.value || 'Medium';
     const border = document.getElementById("borderSelect")?.value || 'gold';
     const passiveInput = document.getElementById("passiveInput")?.value || '';
+
+    console.log('📋 Basic form values extracted:', {
+      itemName, hero, cooldown, ammo, crit, multicast, itemSize, border
+    });
 
     // Get scaling values
     const scalingValues = {
@@ -110,10 +151,17 @@ static async createCard(options = {}) {
     const onUseInputs = document.querySelectorAll("#onUseInputs input");
     const tagInputs = document.querySelectorAll("#tagInputs input");
 
+    console.log('🏷️ Dynamic inputs found:');
+    console.log('  - Tag inputs:', tagInputs.length, 'values:', Array.from(tagInputs).map(i => i.value));
+    console.log('  - OnUse inputs:', onUseInputs.length, 'values:', Array.from(onUseInputs).map(i => i.value));
+
     return new Promise((resolve) => {
+      console.log('📖 Reading image file...');
       const reader = new FileReader();
       reader.onload = function(e) {
-        resolve({
+        console.log('✅ Image file read successfully');
+        
+        const extractedData = {
           itemName: itemName,
           hero: hero,
           cooldown: cooldown,
@@ -128,7 +176,10 @@ static async createCard(options = {}) {
           scalingValues: scalingValues,
           imageData: e.target.result,
           timestamp: new Date().toISOString()
-        });
+        };
+        
+        console.log('📦 Final extracted data:', extractedData);
+        resolve(extractedData);
       };
       reader.readAsDataURL(imageInput.files[0]);
     });
@@ -138,6 +189,8 @@ static async createCard(options = {}) {
    * Normalize card data from different sources (import, database, etc.)
    */
   static normalizeCardData(data) {
+    console.log('🔄 Normalizing card data:', data);
+    
     // Handle database format
     if (data.item_data) {
       const itemData = data.item_data;
@@ -186,6 +239,8 @@ static async createCard(options = {}) {
    * Build the complete card element
    */
   static buildCardElement(cardData, mode = 'generator', includeControls = true) {
+    console.log('🏗️ Building card element for mode:', mode);
+    
     const borderColor = this.getBorderColor(cardData.border);
     const card = document.createElement("div");
     card.className = "card";
@@ -218,6 +273,7 @@ static async createCard(options = {}) {
     
     card.appendChild(visualContent);
 
+    console.log('✅ Card element built successfully');
     return card;
   }
 
@@ -341,6 +397,8 @@ static async createCard(options = {}) {
    * Create tags container
    */
   static createTagsContainer(cardData) {
+    console.log('🏷️ Creating tags container with tags:', cardData.tags);
+    
     const tagsContainer = document.createElement("div");
     tagsContainer.className = "tags-container";
 
@@ -353,6 +411,7 @@ static async createCard(options = {}) {
     // Add additional tags
     cardData.tags.forEach(tagText => {
       if (tagText && tagText.trim()) {
+        console.log('🏷️ Adding tag:', tagText);
         const tag = document.createElement("span");
         tag.className = "item-tag";
         tag.textContent = tagText.trim();
@@ -360,6 +419,7 @@ static async createCard(options = {}) {
       }
     });
 
+    console.log('✅ Tags container created with', tagsContainer.children.length, 'tags');
     return tagsContainer;
   }
 
@@ -431,12 +491,15 @@ static async createCard(options = {}) {
    * Create on-use effects section
    */
   static createOnUseSection(cardData, borderColor) {
+    console.log('⚡ Creating on-use section with effects:', cardData.onUseEffects);
+    
     const effectsContainer = document.createElement("div");
     let hasEffects = false;
 
     // Add on use effects
     cardData.onUseEffects.forEach(effect => {
       if (effect && effect.trim()) {
+        console.log('⚡ Adding on-use effect:', effect);
         const effectLine = document.createElement("div");
         effectLine.className = "on-use-line";
 
@@ -446,7 +509,12 @@ static async createCard(options = {}) {
         icon.onerror = function() { this.style.display = 'none'; };
 
         const text = document.createElement("span");
-        text.innerHTML = KeywordProcessor.processKeywordText(effect);
+        if (typeof KeywordProcessor !== 'undefined') {
+          text.innerHTML = KeywordProcessor.processKeywordText(effect);
+        } else {
+          console.warn('⚠️ KeywordProcessor not available, using plain text');
+          text.textContent = effect;
+        }
 
         effectLine.appendChild(icon);
         effectLine.appendChild(text);
@@ -481,7 +549,11 @@ static async createCard(options = {}) {
       effectsContainer.appendChild(critLineHR);
 
       const text = document.createElement("span");
-      text.innerHTML = "Crit Chance: " + KeywordProcessor.processKeywordText("/cr") + cardData.crit + "%";
+      if (typeof KeywordProcessor !== 'undefined') {
+        text.innerHTML = "Crit Chance: " + KeywordProcessor.processKeywordText("/cr") + cardData.crit + "%";
+      } else {
+        text.innerHTML = "Crit Chance: " + cardData.crit + "%";
+      }
       const effectLine = document.createElement("div");
       effectLine.className = "crit-line";
 
@@ -491,6 +563,7 @@ static async createCard(options = {}) {
     }
 
     if (!hasEffects) {
+      console.log('⚡ No on-use effects found, returning null');
       return null;
     }
 
@@ -499,6 +572,8 @@ static async createCard(options = {}) {
     onUseSection.style.borderTop = `2px solid ${borderColor}`;
     onUseSection.style.borderBottom = `2px solid ${borderColor}`;
     onUseSection.appendChild(effectsContainer);
+    
+    console.log('✅ On-use section created successfully');
     return onUseSection;
   }
 
@@ -510,7 +585,14 @@ static async createCard(options = {}) {
     passiveSection.className = "text-section";
     passiveSection.style.borderTop = `2px solid ${borderColor}`;
     passiveSection.style.borderBottom = `2px solid ${borderColor}`;
-    passiveSection.innerHTML = KeywordProcessor.processKeywordText(cardData.passiveEffect);
+    
+    if (typeof KeywordProcessor !== 'undefined') {
+      passiveSection.innerHTML = KeywordProcessor.processKeywordText(cardData.passiveEffect);
+    } else {
+      console.warn('⚠️ KeywordProcessor not available, using plain text');
+      passiveSection.textContent = cardData.passiveEffect;
+    }
+    
     return passiveSection;
   }
 
@@ -678,10 +760,24 @@ static async createCard(options = {}) {
     
     return container;
   }
-
-
 }
 
+console.log('✅ CardGenerator class defined successfully');
 
+// Make CardGenerator available globally
+try {
+  window.CardGenerator = CardGenerator;
+  console.log('✅ CardGenerator added to window object successfully');
+  console.log('🔍 Testing CardGenerator availability:', typeof window.CardGenerator);
+} catch (error) {
+  console.error('❌ Error adding CardGenerator to window:', error);
+}
 
-window.CardGenerator = CardGenerator;
+console.log('🎉 card-generator-js.js file loaded completely!');
+
+// Final dependency check
+console.log('📊 Dependency check:');
+console.log('  - Validation:', typeof Validation !== 'undefined' ? '✅ Available' : '❌ Missing');
+console.log('  - Messages:', typeof Messages !== 'undefined' ? '✅ Available' : '❌ Missing');
+console.log('  - KeywordProcessor:', typeof KeywordProcessor !== 'undefined' ? '✅ Available' : '❌ Missing');
+
