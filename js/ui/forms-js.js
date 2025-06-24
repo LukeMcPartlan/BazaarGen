@@ -336,14 +336,19 @@ class Forms {
   /**
    * Setup passive effects input management
    */
-  static setupPassiveInputs() {
-    // Add passive effect input button
-    const addPassiveBtn = document.querySelector('button[onclick="addPassiveInput()"]');
-    if (addPassiveBtn) {
-      addPassiveBtn.onclick = () => this.addPassiveInput();
-    }
+static setupPassiveInputs() {
+  // Add passive effect input button
+  const addPassiveBtn = document.querySelector('button[onclick="addPassiveInput()"]');
+  if (addPassiveBtn) {
+    addPassiveBtn.onclick = () => this.addPassiveInput();
   }
-
+  
+  // Add initial passive effect input if container is empty
+  const passiveContainer = document.getElementById('passiveInputs');
+  if (passiveContainer && passiveContainer.children.length === 0) {
+    this.addPassiveInput();
+  }
+}
   /**
    * Add a new tag input field
    */
