@@ -20,6 +20,7 @@ class Forms {
       this.setupKeyboardShortcuts();
       this.setupAccessibility();
       this.setupAutoSave();
+      this.setupDefaultImage(); // Add default image setup
       
       // Ensure any existing dynamic inputs are properly initialized
       setTimeout(() => {
@@ -28,6 +29,48 @@ class Forms {
       
       this.isInitialized = true;
     });
+  }
+
+  /**
+   * Setup default image loading
+   */
+  static setupDefaultImage() {
+    const imageInput = document.getElementById('imageInput');
+    if (!imageInput) return;
+
+    const defaultImagePath = imageInput.getAttribute('data-default-image');
+    if (!defaultImagePath) return;
+
+    // Load default image on page load
+    this.loadDefaultImage(defaultImagePath, imageInput);
+  }
+
+  /**
+   * Load default image and set it as the current image
+   * @param {string} imagePath - Path to default image
+   * @param {HTMLElement} imageInput - Image input element
+   */
+  static loadDefaultImage(imagePath, imageInput) {
+    fetch(imagePath)
+      .then(response => response.blob())
+      .then(blob => {
+        // Create a File object from the blob
+        const file = new File([blob], 'default.png', { type: blob.type });
+        
+        // Create a new FileList with our default file
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        imageInput.files = dataTransfer.files;
+
+        // Show preview
+        this.showImagePreview(file, imageInput);
+        
+        // Trigger preview update
+        this.handleInputChange(imageInput);
+      })
+      .catch(error => {
+        console.warn('Could not load default image:', error);
+      });
   }
 
   /**
@@ -74,9 +117,10 @@ class Forms {
       });
     });
     
-    // Observe changes in the tag and onUse containers
+    // Observe changes in the tag, onUse, and passive containers
     const tagContainer = document.getElementById('tagInputs');
     const onUseContainer = document.getElementById('onUseInputs');
+    const passiveContainer = document.getElementById('passiveInputs');
     
     if (tagContainer) {
       observer.observe(tagContainer, { childList: true, subtree: true });
@@ -84,6 +128,10 @@ class Forms {
     
     if (onUseContainer) {
       observer.observe(onUseContainer, { childList: true, subtree: true });
+    }
+    
+    if (passiveContainer) {
+      observer.observe(passiveContainer, { childList: true, subtree: true });
     }
   }
 
@@ -126,8 +174,10 @@ class Forms {
     // Debug: Log current dynamic input values
     const tagInputs = document.querySelectorAll('#tagInputs input');
     const onUseInputs = document.querySelectorAll('#onUseInputs input');
+    const passiveInputs = document.querySelectorAll('#passiveInputs input');
     console.log('🏷️ Tag inputs found:', tagInputs.length, 'values:', Array.from(tagInputs).map(i => i.value));
     console.log('⚡ OnUse inputs found:', onUseInputs.length, 'values:', Array.from(onUseInputs).map(i => i.value));
+    console.log('🛡️ Passive inputs found:', passiveInputs.length, 'values:', Array.from(passiveInputs).map(i => i.value));
     
     if (!itemName || !imageInput?.files?.[0]) {
       console.log('❌ Missing requirements - itemName:', !!itemName, 'image:', !!imageInput?.files?.[0]);
@@ -256,6 +306,9 @@ class Forms {
     
     // On-use effects input management
     this.setupOnUseInputs();
+    
+    // Passive effects input management
+    this.setupPassiveInputs();
   }
 
   /**
@@ -277,6 +330,17 @@ class Forms {
     const addOnUseBtn = document.querySelector('button[onclick="addOnUseInput()"]');
     if (addOnUseBtn) {
       addOnUseBtn.onclick = () => this.addOnUseInput();
+    }
+  }
+
+  /**
+   * Setup passive effects input management
+   */
+  static setupPassiveInputs() {
+    // Add passive effect input button
+    const addPassiveBtn = document.querySelector('button[onclick="addPassiveInput()"]');
+    if (addPassiveBtn) {
+      addPassiveBtn.onclick = () => this.addPassiveInput();
     }
   }
 
@@ -385,6 +449,58 @@ class Forms {
   }
 
   /**
+   * Add a new passive effect input field
+   */
+  static addPassiveInput() {
+    const container = document.getElementById("passiveInputs");
+    if (!container) return;
+    
+    const inputGroup = document.createElement("div");
+    inputGroup.className = "passive-input-group";
+    
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = "Enter passive effect description";
+    input.className = "form-input";
+    
+    // Add event listeners for preview updates
+    input.addEventListener('input', (e) => {
+      this.handleInputChange(e.target);
+    });
+    
+    input.addEventListener('blur', (e) => {
+      this.validateField(e.target);
+    });
+    
+    // Add change event as well to be sure
+    input.addEventListener('change', (e) => {
+      this.handleInputChange(e.target);
+    });
+    
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.textContent = "Remove";
+    removeButton.className = "form-button remove";
+    removeButton.onclick = () => {
+      container.removeChild(inputGroup);
+      // Trigger preview update after removal
+      this.handleInputChange(input);
+    };
+    
+    inputGroup.appendChild(input);
+    inputGroup.appendChild(removeButton);
+    container.appendChild(inputGroup);
+
+    // Focus on new input
+    input.focus();
+    
+    // Immediately trigger a preview update to ensure the new input is recognized
+    setTimeout(() => {
+      this.handleInputChange(input);
+    }, 100);
+  }
+
+  /**
    * Reinitialize event listeners for all dynamic inputs
    * Call this if dynamic inputs aren't responding to changes
    */
@@ -418,6 +534,33 @@ class Forms {
     
     // Reinitialize on-use inputs
     document.querySelectorAll('#onUseInputs input').forEach(input => {
+      // Remove existing listeners to avoid duplicates
+      const oldHandler = input._handleInputChange;
+      if (oldHandler) {
+        input.removeEventListener('input', oldHandler);
+        input.removeEventListener('change', oldHandler);
+      }
+      
+      const oldBlurHandler = input._validateField;
+      if (oldBlurHandler) {
+        input.removeEventListener('blur', oldBlurHandler);
+      }
+      
+      // Create new handlers and store references
+      const newInputHandler = (e) => this.handleInputChange(e.target);
+      const newBlurHandler = (e) => this.validateField(e.target);
+      
+      input._handleInputChange = newInputHandler;
+      input._validateField = newBlurHandler;
+      
+      // Add fresh listeners
+      input.addEventListener('input', newInputHandler);
+      input.addEventListener('change', newInputHandler);
+      input.addEventListener('blur', newBlurHandler);
+    });
+    
+    // Reinitialize passive inputs
+    document.querySelectorAll('#passiveInputs input').forEach(input => {
       // Remove existing listeners to avoid duplicates
       const oldHandler = input._handleInputChange;
       if (oldHandler) {
@@ -628,6 +771,11 @@ class Forms {
     if (previewContainer) {
       previewContainer.innerHTML = '';
     }
+
+    // Reload default image after reset
+    setTimeout(() => {
+      this.setupDefaultImage();
+    }, 100);
   }
 
   /**
@@ -642,6 +790,11 @@ class Forms {
     const onUseInputs = document.getElementById('onUseInputs');
     if (onUseInputs) {
       onUseInputs.innerHTML = '';
+    }
+
+    const passiveInputs = document.getElementById('passiveInputs');
+    if (passiveInputs) {
+      passiveInputs.innerHTML = '';
     }
   }
 
@@ -804,6 +957,9 @@ class Forms {
     const onUseInputs = document.querySelectorAll('#onUseInputs input');
     formData.onUseEffects = Array.from(onUseInputs).map(input => input.value.trim()).filter(val => val);
 
+    const passiveInputs = document.querySelectorAll('#passiveInputs input');
+    formData.passiveEffects = Array.from(passiveInputs).map(input => input.value.trim()).filter(val => val);
+
     return formData;
   }
 
@@ -841,6 +997,16 @@ class Forms {
       data.onUseEffects.forEach((effect, index) => {
         if (onUseInputs[index]) {
           onUseInputs[index].value = effect;
+        }
+      });
+    }
+
+    if (data.passiveEffects && Array.isArray(data.passiveEffects)) {
+      data.passiveEffects.forEach(() => this.addPassiveInput());
+      const passiveInputs = document.querySelectorAll('#passiveInputs input');
+      data.passiveEffects.forEach((effect, index) => {
+        if (passiveInputs[index]) {
+          passiveInputs[index].value = effect;
         }
       });
     }
