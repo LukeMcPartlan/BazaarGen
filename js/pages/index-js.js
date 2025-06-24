@@ -27,34 +27,30 @@ class IndexPageController {
    */
   static setupCardGeneration() {
     // Main create card function
-    window.createCard = async (isPreview = false) => {
-      try {
-        const cardData = await CardGenerator.extractFormData();
-        
-        const cardElement = CardGenerator.createCard({
-          data: cardData,
-          isPreview: isPreview,
-          container: isPreview ? document.getElementById('previewContainer') : document.getElementById('outputContainer'),
-          includeControls: !isPreview,
-          mode: isPreview ? 'preview' : 'generator'
-        });
+   window.createCard = async (isPreview = false) => {
+  try {
+    const cardElement = await CardGenerator.createCard({
+      formData: true,  // Let CardGenerator handle the form extraction
+      isPreview: isPreview,
+      container: isPreview ? document.getElementById('previewContainer') : document.getElementById('outputContainer'),
+      includeControls: !isPreview,
+      mode: isPreview ? 'preview' : 'generator'
+    });
 
-        if (cardElement && !isPreview) {
-          this.cardsData.push(cardData);
-          
-          // Dispatch custom event
-          document.dispatchEvent(new CustomEvent('cardCreated', {
-            detail: { cardData, cardElement }
-          }));
-        }
+    if (cardElement && !isPreview) {
+      // Dispatch custom event
+      document.dispatchEvent(new CustomEvent('cardCreated', {
+        detail: { cardElement }
+      }));
+    }
 
-        return cardElement;
-      } catch (error) {
-        console.error('Error in createCard:', error);
-        Messages.showError(error.message);
-        return null;
-      }
-    };
+    return cardElement;
+  } catch (error) {
+    console.error('Error in createCard:', error);
+    Messages.showError(error.message);
+    return null;
+  }
+};
 
     // Setup the main generate button
     const generateButton = document.querySelector('button[onclick="createCard()"]');
