@@ -151,7 +151,10 @@
           <div class="form-grid">
               <div class="form-group full-width">
                   <label class="form-label">Card Image</label>
-                  <input type="file" id="imageInput" accept="image/*" class="form-input" />
+                  <input type="file" id="imageInput" accept="image/*" class="form-input" data-default-image="images/default.png" />
+                  <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">
+                      Default image will load automatically. Upload your own to replace it.
+                  </small>
               </div>
 
               <div class="form-group">
@@ -184,16 +187,6 @@
               </div>
 
               <div class="form-group">
-                  <label class="form-label">Base Crit</label>
-                  <input type="text" id="critInput" placeholder="e.g. 20" class="form-input" />
-              </div>
-
-              <div class="form-group">
-                  <label class="form-label">Multicast</label>
-                  <input type="text" id="multicastInput" placeholder="e.g. 3" class="form-input" />
-              </div>
-
-              <div class="form-group">
                   <label class="form-label">Item Size</label>
                   <select id="itemSizeSelect" class="form-select">
                       <option value="Small">Small</option>
@@ -213,9 +206,11 @@
                   </select>
               </div>
 
+              <!-- Passive Effects Section - Now Dynamic -->
               <div class="form-group full-width">
                   <label class="form-label">Passive Effects</label>
-                  <input type="text" id="passiveInput" placeholder="Enter passive effect description" class="form-input" />
+                  <div id="passiveInputs"></div>
+                  <button type="button" onclick="addPassiveInput()" class="form-button secondary" style="margin-top: 10px;">Add Passive Effect</button>
               </div>
           </div>
 
@@ -259,6 +254,19 @@
           <!-- On Use Effects Section -->
           <div class="on-use-effects">
               <label class="form-label">On Use Effects</label>
+              
+              <!-- Moved Crit and Multicast here -->
+              <div class="form-grid" style="margin-bottom: 15px;">
+                  <div class="form-group">
+                      <label class="form-label">Base Crit</label>
+                      <input type="text" id="critInput" placeholder="e.g. 20" class="form-input" />
+                  </div>
+                  <div class="form-group">
+                      <label class="form-label">Multicast</label>
+                      <input type="text" id="multicastInput" placeholder="e.g. 3" class="form-input" />
+                  </div>
+              </div>
+              
               <div id="onUseInputs"></div>
               <button type="button" onclick="addOnUseInput()" class="form-button secondary" style="margin-top: 10px;">Add On Use Effect</button>
           </div>
