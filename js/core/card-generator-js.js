@@ -678,4 +678,6 @@ static async createCard(options = {}) {
     
     return container;
   }
+
+ window.CardGenerator = CardGenerator;
 }
