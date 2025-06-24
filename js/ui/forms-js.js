@@ -17,15 +17,24 @@ class Forms {
       this.setupDynamicInputs();
       this.setupLiveValidation();
       this.setupFormPersistence();
+      this.setupKeyboardShortcuts();
+      this.setupAccessibility();
+      this.setupAutoSave();
+      
+      // Ensure any existing dynamic inputs are properly initialized
+      setTimeout(() => {
+        this.reinitializeDynamicInputs();
+      }, 100);
+      
       this.isInitialized = true;
     });
   }
 
   /**
-   * Setup event listeners for form inputs
+   * Enhanced setup for form event listeners that includes dynamic input monitoring
    */
   static setupFormEventListeners() {
-    // Auto-generate cards/skills on input change
+    // Setup event listeners for existing form inputs
     document.querySelectorAll('input, select, textarea').forEach(element => {
       const eventType = element.tagName.toLowerCase() === 'select' ? 'change' : 'input';
       
@@ -45,6 +54,36 @@ class Forms {
       imageInput.addEventListener('change', (e) => {
         this.handleImageUpload(e);
       });
+    }
+    
+    // Set up a MutationObserver to watch for dynamically added inputs
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            // Check if the added node contains input elements
+            const inputs = node.querySelectorAll ? node.querySelectorAll('input') : [];
+            if (inputs.length > 0 || node.tagName === 'INPUT') {
+              // Reinitialize dynamic inputs after a short delay
+              setTimeout(() => {
+                this.reinitializeDynamicInputs();
+              }, 50);
+            }
+          }
+        });
+      });
+    });
+    
+    // Observe changes in the tag and onUse containers
+    const tagContainer = document.getElementById('tagInputs');
+    const onUseContainer = document.getElementById('onUseInputs');
+    
+    if (tagContainer) {
+      observer.observe(tagContainer, { childList: true, subtree: true });
+    }
+    
+    if (onUseContainer) {
+      observer.observe(onUseContainer, { childList: true, subtree: true });
     }
   }
 
@@ -236,8 +275,20 @@ class Forms {
     input.type = "text";
     input.placeholder = "Enter tag text";
     input.className = "form-input";
-    input.addEventListener('input', () => this.handleInputChange(input));
-    input.addEventListener('blur', () => this.validateField(input));
+    
+    // Add event listeners for preview updates
+    input.addEventListener('input', (e) => {
+      this.handleInputChange(e.target);
+    });
+    
+    input.addEventListener('blur', (e) => {
+      this.validateField(e.target);
+    });
+    
+    // Add change event as well to be sure
+    input.addEventListener('change', (e) => {
+      this.handleInputChange(e.target);
+    });
     
     const removeButton = document.createElement("button");
     removeButton.type = "button";
@@ -245,7 +296,8 @@ class Forms {
     removeButton.className = "form-button remove";
     removeButton.onclick = () => {
       container.removeChild(inputGroup);
-      this.handleInputChange(input); // Update preview after removal
+      // Trigger preview update after removal
+      this.handleInputChange(input);
     };
     
     inputGroup.appendChild(input);
@@ -254,6 +306,11 @@ class Forms {
 
     // Focus on new input
     input.focus();
+    
+    // Immediately trigger a preview update to ensure the new input is recognized
+    setTimeout(() => {
+      this.handleInputChange(input);
+    }, 100);
   }
 
   /**
@@ -270,8 +327,20 @@ class Forms {
     input.type = "text";
     input.placeholder = "Enter on use effect description";
     input.className = "form-input";
-    input.addEventListener('input', () => this.handleInputChange(input));
-    input.addEventListener('blur', () => this.validateField(input));
+    
+    // Add event listeners for preview updates
+    input.addEventListener('input', (e) => {
+      this.handleInputChange(e.target);
+    });
+    
+    input.addEventListener('blur', (e) => {
+      this.validateField(e.target);
+    });
+    
+    // Add change event as well to be sure
+    input.addEventListener('change', (e) => {
+      this.handleInputChange(e.target);
+    });
     
     const removeButton = document.createElement("button");
     removeButton.type = "button";
@@ -279,7 +348,8 @@ class Forms {
     removeButton.className = "form-button remove";
     removeButton.onclick = () => {
       container.removeChild(inputGroup);
-      this.handleInputChange(input); // Update preview after removal
+      // Trigger preview update after removal
+      this.handleInputChange(input);
     };
     
     inputGroup.appendChild(input);
@@ -288,6 +358,73 @@ class Forms {
 
     // Focus on new input
     input.focus();
+    
+    // Immediately trigger a preview update to ensure the new input is recognized
+    setTimeout(() => {
+      this.handleInputChange(input);
+    }, 100);
+  }
+
+  /**
+   * Reinitialize event listeners for all dynamic inputs
+   * Call this if dynamic inputs aren't responding to changes
+   */
+  static reinitializeDynamicInputs() {
+    // Reinitialize tag inputs
+    document.querySelectorAll('#tagInputs input').forEach(input => {
+      // Remove existing listeners to avoid duplicates
+      const oldHandler = input._handleInputChange;
+      if (oldHandler) {
+        input.removeEventListener('input', oldHandler);
+        input.removeEventListener('change', oldHandler);
+      }
+      
+      const oldBlurHandler = input._validateField;
+      if (oldBlurHandler) {
+        input.removeEventListener('blur', oldBlurHandler);
+      }
+      
+      // Create new handlers and store references
+      const newInputHandler = (e) => this.handleInputChange(e.target);
+      const newBlurHandler = (e) => this.validateField(e.target);
+      
+      input._handleInputChange = newInputHandler;
+      input._validateField = newBlurHandler;
+      
+      // Add fresh listeners
+      input.addEventListener('input', newInputHandler);
+      input.addEventListener('change', newInputHandler);
+      input.addEventListener('blur', newBlurHandler);
+    });
+    
+    // Reinitialize on-use inputs
+    document.querySelectorAll('#onUseInputs input').forEach(input => {
+      // Remove existing listeners to avoid duplicates
+      const oldHandler = input._handleInputChange;
+      if (oldHandler) {
+        input.removeEventListener('input', oldHandler);
+        input.removeEventListener('change', oldHandler);
+      }
+      
+      const oldBlurHandler = input._validateField;
+      if (oldBlurHandler) {
+        input.removeEventListener('blur', oldBlurHandler);
+      }
+      
+      // Create new handlers and store references
+      const newInputHandler = (e) => this.handleInputChange(e.target);
+      const newBlurHandler = (e) => this.validateField(e.target);
+      
+      input._handleInputChange = newInputHandler;
+      input._validateField = newBlurHandler;
+      
+      // Add fresh listeners
+      input.addEventListener('input', newInputHandler);
+      input.addEventListener('change', newInputHandler);
+      input.addEventListener('blur', newBlurHandler);
+    });
+    
+    console.log('Dynamic input event listeners reinitialized');
   }
 
   /**
