@@ -110,38 +110,57 @@ class Forms {
    * Update card preview
    */
   static updateCardPreview() {
-    try {
-      const previewContainer = document.getElementById('previewContainer');
-      if (!previewContainer) return;
-
-      // Check if we have enough data for a preview
-      const itemName = document.getElementById('itemNameInput')?.value;
-      const imageInput = document.getElementById('imageInput');
-      
-      if (!itemName || !imageInput?.files?.[0]) {
-        previewContainer.innerHTML = '';
-        return;
-      }
-
-      // Create preview card
-      if (window.CardGenerator) {
-        CardGenerator.createCard({
-          formData: true,
-          isPreview: true,
-          container: previewContainer,
-          includeControls: false,
-          mode: 'preview'
-        }).then(cardElement => {
-          // Preview created successfully
-        }).catch(error => {
-          console.log('Preview update skipped:', error.message);
-        });
-      }
-    } catch (error) {
-      console.log('Preview update failed:', error.message);
+  try {
+    console.log('🔄 updateCardPreview called');
+    
+    const previewContainer = document.getElementById('previewContainer');
+    if (!previewContainer) {
+      console.log('❌ No preview container found');
+      return;
     }
-  }
 
+    // Check if we have enough data for a preview
+    const itemName = document.getElementById('itemNameInput')?.value;
+    const imageInput = document.getElementById('imageInput');
+    
+    // Debug: Log current dynamic input values
+    const tagInputs = document.querySelectorAll('#tagInputs input');
+    const onUseInputs = document.querySelectorAll('#onUseInputs input');
+    console.log('🏷️ Tag inputs found:', tagInputs.length, 'values:', Array.from(tagInputs).map(i => i.value));
+    console.log('⚡ OnUse inputs found:', onUseInputs.length, 'values:', Array.from(onUseInputs).map(i => i.value));
+    
+    if (!itemName || !imageInput?.files?.[0]) {
+      console.log('❌ Missing requirements - itemName:', !!itemName, 'image:', !!imageInput?.files?.[0]);
+      previewContainer.innerHTML = '';
+      return;
+    }
+
+    console.log('✅ Creating preview card...');
+    
+    // Create preview card
+    if (window.CardGenerator) {
+      CardGenerator.createCard({
+        formData: true,
+        isPreview: true,
+        container: previewContainer,
+        includeControls: false,
+        mode: 'preview'
+      }).then(cardElement => {
+        console.log('✅ Preview created successfully:', !!cardElement);
+      }).catch(error => {
+        console.error('❌ Preview creation failed:', error);
+        // Show the error to help debug
+        if (window.Messages) {
+          Messages.showError('Preview Error: ' + error.message);
+        }
+      });
+    } else {
+      console.log('❌ CardGenerator not available');
+    }
+  } catch (error) {
+    console.error('❌ updateCardPreview failed:', error);
+  }
+}
   /**
    * Update skill preview
    */
