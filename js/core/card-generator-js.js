@@ -131,7 +131,6 @@ static async createCard(options = {}) {
     const multicast = document.getElementById("multicastInput")?.value || '';
     const itemSize = document.getElementById("itemSizeSelect")?.value || 'Medium';
     const border = document.getElementById("borderSelect")?.value || 'gold';
-    const passiveInput = document.getElementById("passiveInput")?.value || '';
 
     console.log('📋 Basic form values extracted:', {
       itemName, hero, cooldown, ammo, crit, multicast, itemSize, border
@@ -147,13 +146,15 @@ static async createCard(options = {}) {
       burn: document.getElementById("burnScalingInput")?.value || ''
     };
 
-    // Get on-use effects and tags
+    // Get dynamic inputs - on-use effects, tags, and passive effects
     const onUseInputs = document.querySelectorAll("#onUseInputs input");
     const tagInputs = document.querySelectorAll("#tagInputs input");
+    const passiveInputs = document.querySelectorAll("#passiveInputs input");
 
     console.log('🏷️ Dynamic inputs found:');
     console.log('  - Tag inputs:', tagInputs.length, 'values:', Array.from(tagInputs).map(i => i.value));
     console.log('  - OnUse inputs:', onUseInputs.length, 'values:', Array.from(onUseInputs).map(i => i.value));
+    console.log('  - Passive inputs:', passiveInputs.length, 'values:', Array.from(passiveInputs).map(i => i.value));
 
     return new Promise((resolve) => {
       console.log('📖 Reading image file...');
@@ -170,7 +171,7 @@ static async createCard(options = {}) {
           multicast: multicast,
           itemSize: itemSize,
           border: border,
-          passiveEffect: passiveInput,
+          passiveEffects: Array.from(passiveInputs).map(input => input.value.trim()).filter(val => val), // Now array
           onUseEffects: Array.from(onUseInputs).map(input => input.value.trim()).filter(val => val),
           tags: Array.from(tagInputs).map(input => input.value.trim()).filter(val => val),
           scalingValues: scalingValues,
@@ -203,7 +204,7 @@ static async createCard(options = {}) {
         multicast: itemData.multicast || '',
         itemSize: itemData.item_size || 'Medium',
         border: itemData.rarity || 'gold',
-        passiveEffect: itemData.passive_effect || '',
+        passiveEffects: itemData.passive_effects || itemData.passive_effect ? [itemData.passive_effect] : [], // Handle both formats
         onUseEffects: itemData.on_use_effects || [],
         tags: itemData.tags || [],
         scalingValues: itemData.scaling_values || {},
@@ -215,6 +216,12 @@ static async createCard(options = {}) {
     }
 
     // Already in correct format (import or generator format)
+    // Handle backward compatibility for old single passiveEffect
+    let passiveEffects = data.passiveEffects || [];
+    if (data.passiveEffect && !passiveEffects.length) {
+      passiveEffects = [data.passiveEffect];
+    }
+
     return {
       itemName: data.itemName || '',
       hero: data.hero || 'Neutral',
@@ -224,7 +231,7 @@ static async createCard(options = {}) {
       multicast: data.multicast || '',
       itemSize: data.itemSize || 'Medium',
       border: data.border || 'gold',
-      passiveEffect: data.passiveEffect || '',
+      passiveEffects: passiveEffects, // Now always an array
       onUseEffects: data.onUseEffects || [],
       tags: data.tags || [],
       scalingValues: data.scalingValues || {},
@@ -441,8 +448,8 @@ static async createCard(options = {}) {
       content.appendChild(onUseSection);
     }
 
-    // Passive effects section
-    if (cardData.passiveEffect && cardData.passiveEffect.trim()) {
+    // Passive effects section - now checks for array and length
+    if (cardData.passiveEffects && cardData.passiveEffects.length > 0) {
       const passiveSection = this.createPassiveSection(cardData, borderColor);
       content.appendChild(passiveSection);
     }
@@ -578,21 +585,46 @@ static async createCard(options = {}) {
   }
 
   /**
-   * Create passive effects section
+   * Create passive effects section - now handles multiple effects
    */
   static createPassiveSection(cardData, borderColor) {
+    console.log('🛡️ Creating passive section with effects:', cardData.passiveEffects);
+    
     const passiveSection = document.createElement("div");
-    passiveSection.className = "text-section";
+    passiveSection.className = "text-section passive-section";
     passiveSection.style.borderTop = `2px solid ${borderColor}`;
     passiveSection.style.borderBottom = `2px solid ${borderColor}`;
     
-    if (typeof KeywordProcessor !== 'undefined') {
-      passiveSection.innerHTML = KeywordProcessor.processKeywordText(cardData.passiveEffect);
-    } else {
-      console.warn('⚠️ KeywordProcessor not available, using plain text');
-      passiveSection.textContent = cardData.passiveEffect;
-    }
+    // Create container for all passive effects
+    const passiveContainer = document.createElement("div");
+    passiveContainer.className = "passive-effects-container";
     
+    // Add each passive effect on its own line
+    cardData.passiveEffects.forEach((effect, index) => {
+      if (effect && effect.trim()) {
+        console.log('🛡️ Adding passive effect:', effect);
+        
+        const effectLine = document.createElement("div");
+        effectLine.className = "passive-effect-line";
+        
+        // Add some spacing between multiple effects
+        if (index > 0) {
+          effectLine.style.marginTop = "8px";
+        }
+        
+        if (typeof KeywordProcessor !== 'undefined') {
+          effectLine.innerHTML = KeywordProcessor.processKeywordText(effect.trim());
+        } else {
+          console.warn('⚠️ KeywordProcessor not available, using plain text');
+          effectLine.textContent = effect.trim();
+        }
+        
+        passiveContainer.appendChild(effectLine);
+      }
+    });
+    
+    passiveSection.appendChild(passiveContainer);
+    console.log('✅ Passive section created with', cardData.passiveEffects.length, 'effects');
     return passiveSection;
   }
 
@@ -780,4 +812,3 @@ console.log('📊 Dependency check:');
 console.log('  - Validation:', typeof Validation !== 'undefined' ? '✅ Available' : '❌ Missing');
 console.log('  - Messages:', typeof Messages !== 'undefined' ? '✅ Available' : '❌ Missing');
 console.log('  - KeywordProcessor:', typeof KeywordProcessor !== 'undefined' ? '✅ Available' : '❌ Missing');
-
