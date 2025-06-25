@@ -654,6 +654,153 @@ static async createItemCard(item) {
     restoreFilters();
   }
 
+/**
+ * Create comments section for an item
+ * @param {string} itemId - Item ID
+ * @returns {HTMLElement} Comments section element
+ */
+static async createCommentsSection(itemId) {
+  const commentsContainer = document.createElement('div');
+  commentsContainer.className = 'comments-section';
+  commentsContainer.style.cssText = `
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 0 0 8px 8px;
+    padding: 15px;
+    margin-top: -1px;
+  `;
+
+  // Comments header
+  const header = document.createElement('div');
+  header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;';
+  header.innerHTML = `
+    <h4 style="margin: 0; color: #333; font-size: 16px;">Comments</h4>
+    <button class="toggle-comments-btn" style="
+      background: none;
+      border: 1px solid #ddd;
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      color: #666;
+    ">Show/Hide</button>
+  `;
+
+  // Comments list
+  const commentsList = document.createElement('div');
+  commentsList.className = 'comments-list';
+  commentsList.id = `comments-${itemId}`;
+  commentsList.style.cssText = 'max-height: 300px; overflow-y: auto; margin-bottom: 10px;';
+
+  // Add comment form (only if user is signed in)
+  const commentForm = document.createElement('div');
+  commentForm.className = 'comment-form';
+  
+  if (window.GoogleAuth && GoogleAuth.isSignedIn()) {
+    commentForm.innerHTML = `
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
+        <input type="text" 
+               id="comment-input-${itemId}" 
+               placeholder="Add a comment..." 
+               style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        <button onclick="BrowsePageController.addComment('${itemId}')" 
+                style="padding: 8px 16px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">
+          Post
+        </button>
+      </div>
+    `;
+  } else {
+    commentForm.innerHTML = `
+      <div style="text-align: center; padding: 10px; color: #666; font-style: italic;">
+        Sign in to comment
+      </div>
+    `;
+  }
+
+  // Load comments
+  await this.loadComments(itemId, commentsList);
+
+  // Toggle functionality
+  const toggleBtn = header.querySelector('.toggle-comments-btn');
+  toggleBtn.addEventListener('click', () => {
+    const isHidden = commentsList.style.display === 'none';
+    commentsList.style.display = isHidden ? 'block' : 'none';
+    commentForm.style.display = isHidden ? 'block' : 'none';
+    toggleBtn.textContent = isHidden ? 'Hide' : 'Show';
+  });
+
+  commentsContainer.appendChild(header);
+  commentsContainer.appendChild(commentsList);
+  commentsContainer.appendChild(commentForm);
+
+  return commentsContainer;
+}
+
+/**
+ * Load comments for an item
+ * @param {string} itemId - Item ID
+ * @param {HTMLElement} container - Container to display comments
+ */
+static async loadComments(itemId, container) {
+  try {
+    const comments = await SupabaseClient.getComments(itemId);
+    
+    if (comments.length === 0) {
+      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No comments yet</div>';
+      return;
+    }
+
+    container.innerHTML = comments.map(comment => `
+      <div style="padding: 10px; border-bottom: 1px solid #eee;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+          <strong style="color: #333;">${comment.user_alias}</strong>
+          <span style="font-size: 12px; color: #999;">
+            ${new Date(comment.created_at).toLocaleDateString()}
+          </span>
+        </div>
+        <div style="color: #666; font-size: 14px;">${comment.content}</div>
+      </div>
+    `).join('');
+  } catch (error) {
+    console.error('Error loading comments:', error);
+    container.innerHTML = '<div style="padding: 10px; color: #d32f2f;">Error loading comments</div>';
+  }
+}
+/**
+ * Add a comment to an item
+ * @param {string} itemId - Item ID
+ */
+static async addComment(itemId) {
+  const input = document.getElementById(`comment-input-${itemId}`);
+  const commentText = input.value.trim();
+  
+  if (!commentText) {
+    Messages.showError('Please enter a comment');
+    return;
+  }
+
+  try {
+    await SupabaseClient.addComment(itemId, commentText);  // Removed 'card' parameter
+    
+    // Clear input
+    input.value = '';
+    
+    // Reload comments
+    const container = document.getElementById(`comments-${itemId}`);
+    await this.loadComments(itemId, container);
+    
+    Messages.showSuccess('Comment added!');
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    Messages.showError('Failed to add comment');
+  }
+}
+
+
+
+
+
+  
   /**
    * Show browse statistics
    */
