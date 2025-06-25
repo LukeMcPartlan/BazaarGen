@@ -48,6 +48,12 @@ class Forms {
       cooldownInput.value = '6';
     }
 
+    // Set default damage
+    const damageInput = document.getElementById('damageScalingInput');
+    if (damageInput && !damageInput.value) {
+      damageInput.value = '50';
+    }
+
     // Set default skill name if on skills page
     const skillNameInput = document.getElementById('skillNameInput');
     if (skillNameInput && !skillNameInput.value) {
@@ -120,6 +126,14 @@ class Forms {
     if (imageInput) {
       imageInput.addEventListener('change', (e) => {
         this.handleImageUpload(e);
+      });
+    }
+
+    // Special handling for damage input to auto-update weapon tag
+    const damageInput = document.getElementById('damageScalingInput');
+    if (damageInput) {
+      damageInput.addEventListener('input', () => {
+        this.handleInputChange(damageInput);
       });
     }
     
@@ -497,7 +511,7 @@ static setupPassiveInputs() {
     input.type = "text";
     input.placeholder = "Enter on use effect description";
     input.className = "form-input";
-    input.value = "Deal 50 /d Damage to the enemy"; // Default text
+    input.value = "Deal 50 /d to the enemy"; // Default text
     
     // Add event listeners for preview updates
     input.addEventListener('input', (e) => {
@@ -599,7 +613,7 @@ static setupPassiveInputs() {
     input.type = "text";
     input.placeholder = "Enter passive effect description";
     input.className = "form-input";
-    input.value = "When you use an ajacent item, gain 5 /d Damage"; // Default text
+    input.value = "When you use an item, gain 1 /h for 3 seconds"; // Default text
     
     // Add event listeners for preview updates
     input.addEventListener('input', (e) => {
@@ -1099,7 +1113,18 @@ static setupPassiveInputs() {
 
     // Get dynamic inputs
     const tagInputs = document.querySelectorAll('#tagInputs input');
-    formData.tags = Array.from(tagInputs).map(input => input.value.trim()).filter(val => val);
+    let tags = Array.from(tagInputs).map(input => input.value.trim()).filter(val => val);
+
+    // Auto-add "Weapon" tag if damage is present and not zero
+    const damageValue = document.getElementById('damageScalingInput')?.value;
+    if (damageValue && damageValue.trim() !== '' && damageValue.trim() !== '0' && damageValue.trim().toLowerCase() !== 'n/a') {
+      // Only add "Weapon" tag if it's not already present
+      if (!tags.some(tag => tag.toLowerCase() === 'weapon')) {
+        tags.push('Weapon');
+      }
+    }
+
+    formData.tags = tags;
 
     const onUseInputs = document.querySelectorAll('#onUseInputs input');
     formData.onUseEffects = Array.from(onUseInputs).map(input => input.value.trim()).filter(val => val);
