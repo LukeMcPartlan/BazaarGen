@@ -573,6 +573,82 @@ class SupabaseClient {
     }
   }
 
+/**
+ * Load items with filters for browse page
+ * @param {Object} options - Query options
+ * @returns {Promise<Array>} Array of items
+ */
+static async loadItems(options = {}) {
+  try {
+    this.debug('Loading items from database with options:', options);
+    
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
+
+    // Start with base query - get items with user info
+    let query = this.supabase
+      .from('items')
+      .select(`
+        *,
+        users!items_user_email_fkey (
+          alias
+        )
+      `)
+      .order('created_at', { ascending: false });
+
+    // Apply hero filter
+    if (options.hero) {
+      this.debug('Filtering by hero:', options.hero);
+      // Use filter on the JSON column
+      query = query.filter('item_data->hero', 'eq', `"${options.hero}"`);
+    }
+
+    // Apply contest filter
+    if (options.contest !== undefined && options.contest !== '') {
+      this.debug('Filtering by contest:', options.contest);
+      query = query.eq('contest_number', parseInt(options.contest));
+    }
+
+    // Apply search filter
+    if (options.search) {
+      this.debug('Searching for:', options.search);
+      // Search in the item name within the JSON data
+      query = query.filter('item_data->itemName', 'ilike', `%${options.search}%`);
+    }
+
+    // Apply sorting
+    switch (options.sortBy) {
+      case 'oldest':
+        query = query.order('created_at', { ascending: true });
+        break;
+      case 'recent':
+      default:
+        query = query.order('created_at', { ascending: false });
+        break;
+      // Note: upvotes sorting would require a votes/upvotes column in your database
+    }
+
+    const { data, error } = await query;
+
+    this.debug('Items query result:', { data, error, count: data?.length });
+
+    if (error) {
+      this.debug('Items query error:', error);
+      throw error;
+    }
+
+    this.debug('Retrieved items successfully:', data?.length || 0, 'items');
+    return data || [];
+  } catch (error) {
+    this.debug('Error loading items:', error);
+    console.error('Error loading items:', error);
+    throw error;
+  }
+}
+
+  
+
   /**
    * Setup real-time subscriptions
    */
