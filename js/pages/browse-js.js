@@ -226,7 +226,7 @@ static async loadMoreItems() {
  * @param {Object} item - Item data from database
  * @returns {HTMLElement|null} Created card element
  */
-static createItemCard(item) {
+static async createItemCard(item) {
   if (!item.item_data) {
     console.warn(`Item ${item.id} has no item_data`);
     return null;
@@ -241,7 +241,7 @@ static createItemCard(item) {
     cardData.creator_alias = item.users?.alias || 'Unknown';
     cardData.database_id = item.id;
 
-    const cardElement = CardGenerator.createCard({
+    const cardElement = await CardGenerator.createCard({
       data: cardData,
       mode: 'browser',
       includeControls: true
