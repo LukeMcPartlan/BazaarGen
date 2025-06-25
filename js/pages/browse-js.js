@@ -221,30 +221,38 @@ class BrowsePageController {
     }
   }
 
-  /**
-   * Create item card element
-   * @param {Object} item - Item data from database
-   * @returns {HTMLElement|null} Created card element
-   */
-  static createItemCard(item) {
-    if (!item.item_data) {
-      console.warn(`Item ${item.id} has no item_data`);
-      return null;
-    }
-
-    try {
-      const cardElement = CardGenerator.createCard({
-        data: item,
-        mode: 'browser',
-        includeControls: true
-      });
-
-      return cardElement;
-    } catch (error) {
-      console.error('Error creating item card:', error);
-      return null;
-    }
+ /**
+ * Create item card element
+ * @param {Object} item - Item data from database
+ * @returns {HTMLElement|null} Created card element
+ */
+static createItemCard(item) {
+  if (!item.item_data) {
+    console.warn(`Item ${item.id} has no item_data`);
+    return null;
   }
+
+  try {
+    // The item_data from the database should already be in the correct format
+    const cardData = item.item_data;
+    
+    // Add any additional metadata
+    cardData.created_at = item.created_at;
+    cardData.creator_alias = item.users?.alias || 'Unknown';
+    cardData.database_id = item.id;
+
+    const cardElement = CardGenerator.createCard({
+      data: cardData,
+      mode: 'browser',
+      includeControls: true
+    });
+
+    return cardElement;
+  } catch (error) {
+    console.error('Error creating item card:', error);
+    return null;
+  }
+}
 
   /**
    * Handle filter changes
