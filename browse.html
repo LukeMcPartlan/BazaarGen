@@ -234,4 +234,187 @@
 
     
 </body>
+<script>
+document.addEventListener('DOMContentLoaded', async function () {
+    // DOM elements
+    const itemsGrid = document.getElementById('itemsGrid');
+    const loadMoreBtn = document.getElementById('loadMoreBtn');
+    const loadingMessage = document.getElementById('loadingMessage');
+    const errorMessage = document.getElementById('errorMessage');
+    const noResults = document.getElementById('noResults');
+    const totalItemsSpan = document.getElementById('totalItems');
+    const showingItemsSpan = document.getElementById('showingItems');
+    const endMessage = document.getElementById('endMessage');
+
+    // Filter elements
+    const sortBy = document.getElementById('sortBy');
+    const heroFilter = document.getElementById('heroFilter');
+    const searchInput = document.getElementById('searchInput');
+    const contestFilter = document.getElementById('contestFilter');
+
+    // State
+    let allItems = [];
+    let displayedItems = [];
+    let currentPage = 0;
+    const ITEMS_PER_PAGE = 20;
+    const ITEMS_PER_LOAD = 5;
+    let isLoading = false;
+
+    // Utility to clear and hide messages
+    function hideMessages() {
+        errorMessage.style.display = 'none';
+        loadingMessage.style.display = 'none';
+        noResults.style.display = 'none';
+        endMessage.style.display = 'none';
+    }
+
+    function showLoading(visible) {
+        loadingMessage.style.display = visible ? '' : 'none';
+    }
+
+    function showError(msg) {
+        errorMessage.textContent = msg;
+        errorMessage.style.display = '';
+    }
+
+    function updateStats() {
+        totalItemsSpan.textContent = allItems.length;
+        showingItemsSpan.textContent = displayedItems.length;
+    }
+
+    function updateLoadMoreButton() {
+        loadMoreBtn.style.display = (displayedItems.length < allItems.length) ? '' : 'none';
+        endMessage.style.display = (displayedItems.length >= allItems.length && allItems.length > 0) ? '' : 'none';
+    }
+
+    // Fetch items from Supabase (with filters applied)
+    async function loadItems() {
+        if (isLoading) return;
+        isLoading = true;
+        showLoading(true);
+        hideMessages();
+
+        try {
+            let query = supabase
+                .from('items')
+                .select(`
+                    id,
+                    created_at,
+                    contest_number,
+                    item_data
+                `);
+
+            // Apply filters
+            if (heroFilter.value) {
+                query = query.eq('item_data->>hero', heroFilter.value);
+            }
+            if (contestFilter.value !== '') {
+                query = query.eq('contest_number', parseInt(contestFilter.value));
+            }
+            if (searchInput.value.trim()) {
+                query = query.ilike('item_data->>name', `%${searchInput.value.trim()}%`);
+            }
+            // Sorting
+            switch (sortBy.value) {
+                case 'recent': query = query.order('created_at', { ascending: false }); break;
+                case 'oldest': query = query.order('created_at', { ascending: true }); break;
+                // Add upvotes logic here if your DB supports it
+                default: query = query.order('created_at', { ascending: false });
+            }
+
+            const { data, error } = await query;
+            if (error) throw error;
+
+            allItems = data || [];
+            displayedItems = [];
+            currentPage = 0;
+            itemsGrid.innerHTML = '';
+
+            updateStats();
+            showLoading(false);
+
+            if (allItems.length === 0) {
+                noResults.style.display = '';
+                updateLoadMoreButton();
+                return;
+            }
+
+            loadMoreItems();
+
+        } catch (error) {
+            showError('Failed to load items: ' + error.message);
+            showLoading(false);
+        } finally {
+            isLoading = false;
+        }
+    }
+
+    // Render the next batch of items
+    async function loadMoreItems() {
+        if (isLoading) return;
+
+        isLoading = true;
+        showLoading(true);
+
+        const startIndex = displayedItems.length;
+        const endIndex = Math.min(startIndex + ITEMS_PER_LOAD, allItems.length);
+        const newItems = allItems.slice(startIndex, endIndex);
+
+        // Render all cards, using CardGenerator
+        const cardPromises = newItems.map(async (item) => {
+            // Convert DB format to card generator format
+            let cardData = CardGenerator.normalizeCardData ? CardGenerator.normalizeCardData(item.item_data) : item.item_data;
+            // If you want to include DB fields like created_at, add them to cardData here
+            cardData.timestamp = item.created_at;
+
+            // Use browser mode for cards on this page
+            const cardElement = await CardGenerator.createCard({
+                data: cardData,
+                mode: 'browser',
+                includeControls: true
+            });
+            if (cardElement) {
+                itemsGrid.appendChild(cardElement);
+                displayedItems.push(item);
+            }
+        });
+        await Promise.all(cardPromises);
+
+        updateStats();
+        updateLoadMoreButton();
+        showLoading(false);
+
+        // Show "end" message if all loaded
+        if (displayedItems.length >= allItems.length) {
+            endMessage.style.display = '';
+        }
+    }
+
+    // Attach event listeners for filters/search/sort
+    function setupEventListeners() {
+        sortBy.addEventListener('change', () => loadItems());
+        heroFilter.addEventListener('change', () => loadItems());
+        contestFilter.addEventListener('change', () => loadItems());
+        let searchTimeout;
+        searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => loadItems(), 500);
+        });
+        loadMoreBtn.addEventListener('click', loadMoreItems);
+        // Optionally, infinite scroll:
+        window.addEventListener('scroll', function () {
+            if (window.innerHeight + window.scrollY >= document.documentElement.offsetHeight - 200) {
+                if (!isLoading && displayedItems.length < allItems.length) {
+                    loadMoreItems();
+                }
+            }
+        });
+    }
+
+    // Startup
+    setupEventListeners();
+    loadItems();
+});
+</script>
+    
 </html>
