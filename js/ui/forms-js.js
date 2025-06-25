@@ -1,79 +1,4 @@
 /**
-   * Handle tag input changes to manage weapon tag conflicts
-   */
-  static handleTagInputChange() {
-    // Check if user manually added "Weapon" tag
-    const tagInputs = document.querySelectorAll('#tagInputs input:not([data-auto-added])');
-    const hasManualWeaponTag = Array.from(tagInputs).some(input => 
-      input.value.toLowerCase() === 'weapon'
-    );
-
-    if (hasManualWeaponTag) {
-      // Remove auto weapon tag if user added manual one
-      this.removeAutoWeaponTag();
-    } else {
-      // Update auto weapon tag based on damage value
-      this.updateWeaponTagIndicator();
-    }
-  }
-
-  /**
-   * Add a new tag input field
-   */
-  static addTagInput() {
-    const container = document.getElementById("tagInputs");
-    if (!container) return;
-    
-    const inputGroup = document.createElement("div");
-    inputGroup.className = "tag-input-group";
-    
-    const input = document.createElement("input");
-    input.type = "text";
-    input.placeholder = "Enter tag text";
-    input.className = "form-input";
-    
-    // Add event listeners for preview updates
-    input.addEventListener('input', (e) => {
-      this.handleInputChange(e.target);
-      // Check for weapon tag conflicts when user types
-      this.handleTagInputChange();
-    });
-    
-    input.addEventListener('blur', (e) => {
-      this.validateField(e.target);
-      this.handleTagInputChange();
-    });
-    
-    // Add change event as well to be sure
-    input.addEventListener('change', (e) => {
-      this.handleInputChange(e.target);
-      this.handleTagInputChange();
-    });
-    
-    const removeButton = document.createElement("button");
-    removeButton.type = "button";
-    removeButton.textContent = "Remove";
-    removeButton.className = "form-button remove";
-    removeButton.onclick = () => {
-      container.removeChild(inputGroup);
-      // Trigger preview update after removal
-      this.handleInputChange(input);
-      // Re-check weapon tag after removal
-      setTimeout(() => this.handleTagInputChange(), 100);
-    };
-    
-    inputGroup.appendChild(input);
-    inputGroup.appendChild(removeButton);
-    container.appendChild(inputGroup);
-
-    // Focus on new input
-    input.focus();
-    
-    // Immediately trigger a preview update to ensure the new input is recognized
-    setTimeout(() => {
-      this.handleInputChange(input);
-    }, 100);
-  }/**
  * Form Utilities and Event Handlers
  * Handles form interactions, dynamic inputs, and form validation UI
  */
@@ -348,62 +273,82 @@ class Forms {
   }
 
   /**
+   * Handle tag input changes to manage weapon tag conflicts
+   */
+  static handleTagInputChange() {
+    // Check if user manually added "Weapon" tag
+    const tagInputs = document.querySelectorAll('#tagInputs input:not([data-auto-added])');
+    const hasManualWeaponTag = Array.from(tagInputs).some(input => 
+      input.value.toLowerCase() === 'weapon'
+    );
+
+    if (hasManualWeaponTag) {
+      // Remove auto weapon tag if user added manual one
+      this.removeAutoWeaponTag();
+    } else {
+      // Update auto weapon tag based on damage value
+      this.updateWeaponTagIndicator();
+    }
+  }
+
+  /**
    * Update card preview
    */
   static updateCardPreview() {
-  try {
-    console.log('🔄 updateCardPreview called');
-    
-    const previewContainer = document.getElementById('previewContainer');
-    if (!previewContainer) {
-      console.log('❌ No preview container found');
-      return;
-    }
+    try {
+      console.log('🔄 updateCardPreview called');
+      
+      const previewContainer = document.getElementById('previewContainer');
+      if (!previewContainer) {
+        console.log('❌ No preview container found');
+        return;
+      }
 
-    // Check if we have enough data for a preview
-    const itemName = document.getElementById('itemNameInput')?.value;
-    const imageInput = document.getElementById('imageInput');
-    
-    // Debug: Log current dynamic input values
-    const tagInputs = document.querySelectorAll('#tagInputs input');
-    const onUseInputs = document.querySelectorAll('#onUseInputs input');
-    const passiveInputs = document.querySelectorAll('#passiveInputs input');
-    console.log('🏷️ Tag inputs found:', tagInputs.length, 'values:', Array.from(tagInputs).map(i => i.value));
-    console.log('⚡ OnUse inputs found:', onUseInputs.length, 'values:', Array.from(onUseInputs).map(i => i.value));
-    console.log('🛡️ Passive inputs found:', passiveInputs.length, 'values:', Array.from(passiveInputs).map(i => i.value));
-    
-    if (!itemName || !imageInput?.files?.[0]) {
-      console.log('❌ Missing requirements - itemName:', !!itemName, 'image:', !!imageInput?.files?.[0]);
-      previewContainer.innerHTML = '';
-      return;
-    }
+      // Check if we have enough data for a preview
+      const itemName = document.getElementById('itemNameInput')?.value;
+      const imageInput = document.getElementById('imageInput');
+      
+      // Debug: Log current dynamic input values
+      const tagInputs = document.querySelectorAll('#tagInputs input');
+      const onUseInputs = document.querySelectorAll('#onUseInputs input');
+      const passiveInputs = document.querySelectorAll('#passiveInputs input');
+      console.log('🏷️ Tag inputs found:', tagInputs.length, 'values:', Array.from(tagInputs).map(i => i.value));
+      console.log('⚡ OnUse inputs found:', onUseInputs.length, 'values:', Array.from(onUseInputs).map(i => i.value));
+      console.log('🛡️ Passive inputs found:', passiveInputs.length, 'values:', Array.from(passiveInputs).map(i => i.value));
+      
+      if (!itemName || !imageInput?.files?.[0]) {
+        console.log('❌ Missing requirements - itemName:', !!itemName, 'image:', !!imageInput?.files?.[0]);
+        previewContainer.innerHTML = '';
+        return;
+      }
 
-    console.log('✅ Creating preview card...');
-    
-    // Create preview card
-    if (window.CardGenerator) {
-      CardGenerator.createCard({
-        formData: true,
-        isPreview: true,
-        container: previewContainer,
-        includeControls: false,
-        mode: 'preview'
-      }).then(cardElement => {
-        console.log('✅ Preview created successfully:', !!cardElement);
-      }).catch(error => {
-        console.error('❌ Preview creation failed:', error);
-        // Show the error to help debug
-        if (window.Messages) {
-          Messages.showError('Preview Error: ' + error.message);
-        }
-      });
-    } else {
-      console.log('❌ CardGenerator not available');
+      console.log('✅ Creating preview card...');
+      
+      // Create preview card
+      if (window.CardGenerator) {
+        CardGenerator.createCard({
+          formData: true,
+          isPreview: true,
+          container: previewContainer,
+          includeControls: false,
+          mode: 'preview'
+        }).then(cardElement => {
+          console.log('✅ Preview created successfully:', !!cardElement);
+        }).catch(error => {
+          console.error('❌ Preview creation failed:', error);
+          // Show the error to help debug
+          if (window.Messages) {
+            Messages.showError('Preview Error: ' + error.message);
+          }
+        });
+      } else {
+        console.log('❌ CardGenerator not available');
+      }
+    } catch (error) {
+      console.error('❌ updateCardPreview failed:', error);
     }
-  } catch (error) {
-    console.error('❌ updateCardPreview failed:', error);
   }
-}
+
   /**
    * Update skill preview
    */
@@ -535,19 +480,20 @@ class Forms {
   /**
    * Setup passive effects input management
    */
-static setupPassiveInputs() {
-  // Add passive effect input button
-  const addPassiveBtn = document.querySelector('button[onclick="addPassiveInput()"]');
-  if (addPassiveBtn) {
-    addPassiveBtn.onclick = () => this.addPassiveInput();
+  static setupPassiveInputs() {
+    // Add passive effect input button
+    const addPassiveBtn = document.querySelector('button[onclick="addPassiveInput()"]');
+    if (addPassiveBtn) {
+      addPassiveBtn.onclick = () => this.addPassiveInput();
+    }
+    
+    // Add initial passive effect input with default text if container is empty
+    const passiveContainer = document.getElementById('passiveInputs');
+    if (passiveContainer && passiveContainer.children.length === 0) {
+      this.addPassiveInputWithDefault();
+    }
   }
-  
-  // Add initial passive effect input with default text if container is empty
-  const passiveContainer = document.getElementById('passiveInputs');
-  if (passiveContainer && passiveContainer.children.length === 0) {
-    this.addPassiveInputWithDefault();
-  }
-}
+
   /**
    * Add a new tag input field
    */
@@ -566,15 +512,19 @@ static setupPassiveInputs() {
     // Add event listeners for preview updates
     input.addEventListener('input', (e) => {
       this.handleInputChange(e.target);
+      // Check for weapon tag conflicts when user types
+      this.handleTagInputChange();
     });
     
     input.addEventListener('blur', (e) => {
       this.validateField(e.target);
+      this.handleTagInputChange();
     });
     
     // Add change event as well to be sure
     input.addEventListener('change', (e) => {
       this.handleInputChange(e.target);
+      this.handleTagInputChange();
     });
     
     const removeButton = document.createElement("button");
@@ -585,6 +535,8 @@ static setupPassiveInputs() {
       container.removeChild(inputGroup);
       // Trigger preview update after removal
       this.handleInputChange(input);
+      // Re-check weapon tag after removal
+      setTimeout(() => this.handleTagInputChange(), 100);
     };
     
     inputGroup.appendChild(input);
@@ -803,8 +755,6 @@ static setupPassiveInputs() {
       this.handleInputChange(input);
     }, 100);
   }
-
-  // ... rest of the existing methods remain exactly the same ...
 
   /**
    * Reinitialize event listeners for all dynamic inputs
