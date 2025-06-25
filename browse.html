@@ -5,92 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Bazaar Items Browser - View Community Creations | BazaarGen</title>
     
-    <!-- External Libraries with fallback -->
-    <script src="https://unpkg.com/@supabase/supabase-js@2" onload="console.log('Supabase CDN 1 loaded successfully')" onerror="console.error('Supabase CDN 1 failed, trying fallback'); loadSupabaseFallback()"></script>
-    
-    <script>
-        // Fallback CDN loader
-        function loadSupabaseFallback() {
-            console.log('Loading Supabase fallback CDN...');
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-            script.onload = () => console.log('Supabase fallback CDN loaded successfully');
-            script.onerror = () => {
-                console.error('All Supabase CDNs failed, loading mock version');
-                loadMockSupabase();
-            };
-            document.head.appendChild(script);
-        }
-        
-        // Mock Supabase for testing when CDN fails
-        function loadMockSupabase() {
-            console.log('Creating mock Supabase for testing...');
-            window.supabase = {
-                createClient: (url, key) => {
-                    console.log('Mock Supabase client created with URL:', url);
-                    return {
-                        from: (table) => {
-                            console.log('Mock query from table:', table);
-                            return {
-                                select: (columns) => {
-                                    console.log('Mock select columns:', columns);
-                                    return {
-                                        eq: (col, val) => ({ data: mockItems, error: null }),
-                                        or: (condition) => ({ data: mockItems, error: null }),
-                                        order: (col, opts) => ({ data: mockItems, error: null })
-                                    };
-                                }
-                            };
-                        }
-                    };
-                }
-            };
-            
-            // Mock data for testing
-            window.mockItems = [
-                {
-                    id: '1',
-                    created_at: new Date().toISOString(),
-                    contest_number: 0,
-                    item_data: {
-                        name: 'Test Sword',
-                        hero: 'Mak',
-                        item_size: 'Medium',
-                        rarity: 'gold',
-                        cooldown: '5.0',
-                        passive_effect: 'Test passive effect',
-                        on_use_effects: ['Test on use effect'],
-                        image_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
-                    },
-                    users: { alias: 'TestUser' }
-                },
-                {
-                    id: '2',
-                    created_at: new Date().toISOString(),
-                    contest_number: 1,
-                    item_data: {
-                        name: 'Magic Shield',
-                        hero: 'Vanessa',
-                        item_size: 'Large',
-                        rarity: 'diamond',
-                        ammo: '3',
-                        passive_effect: 'Blocks incoming damage',
-                        image_data: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg=='
-                    },
-                    users: { alias: 'TestCreator' }
-                }
-            ];
-            
-            console.log('Mock Supabase setup complete with sample data');
-        }
-    </script>
+    <!-- External Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+    <!-- Core scripts -->
     <script src="js/core/validation-js.js"></script>
-<script src="js/core/keyword-processor-js.js"></script>
-<script src="js/core/card-generator-js.js"></script>
+    <script src="js/core/keyword-processor-js.js"></script>
+    <script src="js/core/card-generator-js.js"></script>
+    <script src="js/ui/messages-js.js"></script>
+    
+    <!-- Database and Browse functionality -->
     <script src="js/auth/supabase-client-js.js"></script>
-<script src="js/pages/browse-js.js"></script>
- <!-- <script src="js/core/messages-js.js"></script> -->
+    <script src="js/pages/browse-js.js"></script>
     
     <link rel="stylesheet" href="styles.css" />
 </head>
@@ -123,8 +49,6 @@
                     <select id="sortBy" class="control-select">
                         <option value="recent">Most Recent</option>
                         <option value="oldest">Oldest First</option>
-                        <option value="upvotes">Most Upvotes</option>
-                        <option value="upvotes_asc">Least Upvotes</option>
                     </select>
                 </div>
 
@@ -174,10 +98,6 @@
             </div>
         </div>
 
-        <!-- Debug Panel (will be shown when debugging) -->
-        <div id="debugContainer" style="display: none;">
-        </div>
-
         <!-- Messages -->
         <div id="errorMessage" class="error" style="display: none;"></div>
         <div id="loadingMessage" class="loading" style="display: none;">Loading items...</div>
@@ -197,7 +117,7 @@
         </div>
     </div>
 
-    <!-- Footer with Debug Toggle -->
+    <!-- Footer -->
     <footer style="background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(89, 72, 51) 100%); border-top: 3px solid rgb(251, 225, 183); margin-top: 40px; padding: 30px 0; text-align: center; box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.3);">
         <div style="max-width: 800px; margin: 0 auto; padding: 0 20px;">
             <div style="color: rgb(251, 225, 183); font-size: 1.5em; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">
@@ -206,11 +126,6 @@
             <div style="color: rgb(201, 175, 133); font-size: 1em; margin-bottom: 20px; line-height: 1.6;">
                 Explore amazing creations from the BazaarGen community. Filter, search, and discover new items!
             </div>
-            
-            <!-- Debug Toggle Button -->
-            <button id="debugToggle" class="debug-toggle" onclick="toggleDebugPanel()" title="Toggle Debug Panel">
-                🔧 Show Debug Panel
-            </button>
             
             <div style="height: 2px; background: linear-gradient(90deg, transparent 0%, rgb(218, 165, 32) 50%, transparent 100%); margin: 20px 0;"></div>
             
@@ -222,201 +137,5 @@
             </div>
         </div>
     </footer>
-
-    <!-- Debug Panel -->
-    <div id="debugPanel" class="debug-panel">
-        <div class="debug-header">
-            <h4>🔧 Debug Information</h4>
-            <button class="debug-close" onclick="toggleDebugPanel()">Close</button>
-        </div>
-        <div id="debugContent" class="debug-content">
-            <div>Debug information will appear here...</div>
-        </div>
-    </div>
-
-    
 </body>
-<script>
-document.addEventListener('DOMContentLoaded', async function () {
-    // DOM elements
-    const itemsGrid = document.getElementById('itemsGrid');
-    const loadMoreBtn = document.getElementById('loadMoreBtn');
-    const loadingMessage = document.getElementById('loadingMessage');
-    const errorMessage = document.getElementById('errorMessage');
-    const noResults = document.getElementById('noResults');
-    const totalItemsSpan = document.getElementById('totalItems');
-    const showingItemsSpan = document.getElementById('showingItems');
-    const endMessage = document.getElementById('endMessage');
-
-    // Filter elements
-    const sortBy = document.getElementById('sortBy');
-    const heroFilter = document.getElementById('heroFilter');
-    const searchInput = document.getElementById('searchInput');
-    const contestFilter = document.getElementById('contestFilter');
-
-    // State
-    let allItems = [];
-    let displayedItems = [];
-    let currentPage = 0;
-    const ITEMS_PER_PAGE = 20;
-    const ITEMS_PER_LOAD = 5;
-    let isLoading = false;
-
-    // Utility to clear and hide messages
-    function hideMessages() {
-        errorMessage.style.display = 'none';
-        loadingMessage.style.display = 'none';
-        noResults.style.display = 'none';
-        endMessage.style.display = 'none';
-    }
-
-    function showLoading(visible) {
-        loadingMessage.style.display = visible ? '' : 'none';
-    }
-
-    function showError(msg) {
-        errorMessage.textContent = msg;
-        errorMessage.style.display = '';
-    }
-
-    function updateStats() {
-        totalItemsSpan.textContent = allItems.length;
-        showingItemsSpan.textContent = displayedItems.length;
-    }
-
-    function updateLoadMoreButton() {
-        loadMoreBtn.style.display = (displayedItems.length < allItems.length) ? '' : 'none';
-        endMessage.style.display = (displayedItems.length >= allItems.length && allItems.length > 0) ? '' : 'none';
-    }
-
-    // Fetch items from Supabase (with filters applied)
-    async function loadItems() {
-        if (isLoading) return;
-        isLoading = true;
-        showLoading(true);
-        hideMessages();
-
-        try {
-            let query = supabase
-                .from('items')
-                .select(`
-                    id,
-                    created_at,
-                    contest_number,
-                    item_data
-                `);
-
-            // Apply filters
-            if (heroFilter.value) {
-                query = query.eq('item_data->>hero', heroFilter.value);
-            }
-            if (contestFilter.value !== '') {
-                query = query.eq('contest_number', parseInt(contestFilter.value));
-            }
-            if (searchInput.value.trim()) {
-                query = query.ilike('item_data->>name', `%${searchInput.value.trim()}%`);
-            }
-            // Sorting
-            switch (sortBy.value) {
-                case 'recent': query = query.order('created_at', { ascending: false }); break;
-                case 'oldest': query = query.order('created_at', { ascending: true }); break;
-                // Add upvotes logic here if your DB supports it
-                default: query = query.order('created_at', { ascending: false });
-            }
-
-            const { data, error } = await query;
-            if (error) throw error;
-
-            allItems = data || [];
-            displayedItems = [];
-            currentPage = 0;
-            itemsGrid.innerHTML = '';
-
-            updateStats();
-            showLoading(false);
-
-            if (allItems.length === 0) {
-                noResults.style.display = '';
-                updateLoadMoreButton();
-                return;
-            }
-
-            loadMoreItems();
-
-        } catch (error) {
-            showError('Failed to load items: ' + error.message);
-            showLoading(false);
-        } finally {
-            isLoading = false;
-        }
-    }
-
-    // Render the next batch of items
-    async function loadMoreItems() {
-        if (isLoading) return;
-
-        isLoading = true;
-        showLoading(true);
-
-        const startIndex = displayedItems.length;
-        const endIndex = Math.min(startIndex + ITEMS_PER_LOAD, allItems.length);
-        const newItems = allItems.slice(startIndex, endIndex);
-
-        // Render all cards, using CardGenerator
-        const cardPromises = newItems.map(async (item) => {
-            // Convert DB format to card generator format
-            let cardData = CardGenerator.normalizeCardData ? CardGenerator.normalizeCardData(item.item_data) : item.item_data;
-            // If you want to include DB fields like created_at, add them to cardData here
-            cardData.timestamp = item.created_at;
-
-            // Use browser mode for cards on this page
-            const cardElement = await CardGenerator.createCard({
-                data: cardData,
-                mode: 'browser',
-                includeControls: true
-            });
-            if (cardElement) {
-                itemsGrid.appendChild(cardElement);
-                displayedItems.push(item);
-            }
-        });
-        await Promise.all(cardPromises);
-
-        updateStats();
-        updateLoadMoreButton();
-        showLoading(false);
-
-        // Show "end" message if all loaded
-        if (displayedItems.length >= allItems.length) {
-            endMessage.style.display = '';
-        }
-    }
-
-    // Attach event listeners for filters/search/sort
-    function setupEventListeners() {
-        sortBy.addEventListener('change', () => loadItems());
-        heroFilter.addEventListener('change', () => loadItems());
-        contestFilter.addEventListener('change', () => loadItems());
-        let searchTimeout;
-        searchInput.addEventListener('input', function () {
-            clearTimeout(searchTimeout);
-            searchTimeout = setTimeout(() => loadItems(), 500);
-        });
-        loadMoreBtn.addEventListener('click', loadMoreItems);
-        // Optionally, infinite scroll:
-        window.addEventListener('scroll', function () {
-            if (window.innerHeight + window.scrollY >= document.documentElement.offsetHeight - 200) {
-                if (!isLoading && displayedItems.length < allItems.length) {
-                    loadMoreItems();
-                }
-            }
-        });
-    }
-
-    // Startup
-    setupEventListeners();
-    loadItems();
-});
-</script>
-    
 </html>
