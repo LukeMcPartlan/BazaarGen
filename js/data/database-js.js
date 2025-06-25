@@ -1,9 +1,19 @@
 /**
- * Database Operations
+ * Database Operations with Enhanced Debugging
  * Handles saving cards and skills to the database
  */
 class Database {
-  
+  static debugMode = true; // Enable debugging
+
+  /**
+   * Debug logging function
+   */
+  static debug(message, data = null) {
+    if (this.debugMode) {
+      console.log(`[Database] ${message}`, data || '');
+    }
+  }
+
   /**
    * Save card to database
    * @param {Object} cardData - Card data to save
@@ -11,30 +21,50 @@ class Database {
    */
   static async saveCard(cardData) {
     try {
+      this.debug('Starting card save process...', cardData);
+
       // Check if user is signed in
+      if (!GoogleAuth || typeof GoogleAuth.isSignedIn !== 'function') {
+        throw new Error('GoogleAuth not available');
+      }
+
       if (!GoogleAuth.isSignedIn()) {
+        this.debug('User not signed in, cannot save card');
         Messages.showError('Please sign in to save items to the database');
         return;
       }
 
+      this.debug('User is signed in');
+
       // Check if Supabase is available
+      if (!SupabaseClient || typeof SupabaseClient.isReady !== 'function') {
+        throw new Error('SupabaseClient not available');
+      }
+
       if (!SupabaseClient.isReady()) {
+        this.debug('Database not ready');
         Messages.showError('Database connection not available. Please try again later.');
         return;
       }
+
+      this.debug('Database is ready');
 
       // Show loading state
       const saveButtons = document.querySelectorAll('.card-save-btn');
       const saveButton = this.findSaveButton(saveButtons, cardData);
 
       if (saveButton) {
+        this.debug('Setting save button to loading state');
         this.setSaveButtonState(saveButton, 'loading');
       }
 
       // Save to database
+      this.debug('Calling SupabaseClient.saveCard...');
       const result = await SupabaseClient.saveCard(cardData);
+      this.debug('Database save result:', result);
 
       if (result.success) {
+        this.debug('Card saved successfully');
         Messages.showSuccess(`"${cardData.itemName}" saved to database successfully!`);
         
         if (saveButton) {
@@ -48,6 +78,7 @@ class Database {
       }
 
     } catch (error) {
+      this.debug('Error saving card to database:', error);
       console.error('Error saving card to database:', error);
       
       let errorMessage = 'Failed to save item to database. ';
@@ -75,30 +106,50 @@ class Database {
    */
   static async saveSkill(skillData) {
     try {
+      this.debug('Starting skill save process...', skillData);
+
       // Check if user is signed in
+      if (!GoogleAuth || typeof GoogleAuth.isSignedIn !== 'function') {
+        throw new Error('GoogleAuth not available');
+      }
+
       if (!GoogleAuth.isSignedIn()) {
+        this.debug('User not signed in, cannot save skill');
         Messages.showError('Please sign in to save skills to the database');
         return;
       }
 
+      this.debug('User is signed in');
+
       // Check if Supabase is available
+      if (!SupabaseClient || typeof SupabaseClient.isReady !== 'function') {
+        throw new Error('SupabaseClient not available');
+      }
+
       if (!SupabaseClient.isReady()) {
+        this.debug('Database not ready');
         Messages.showError('Database connection not available. Please try again later.');
         return;
       }
+
+      this.debug('Database is ready');
 
       // Show loading state
       const saveButtons = document.querySelectorAll('.skill-save-btn');
       const saveButton = this.findSaveButton(saveButtons, skillData);
 
       if (saveButton) {
+        this.debug('Setting save button to loading state');
         this.setSaveButtonState(saveButton, 'loading');
       }
 
       // Save to database
+      this.debug('Calling SupabaseClient.saveSkill...');
       const result = await SupabaseClient.saveSkill(skillData);
+      this.debug('Database save result:', result);
 
       if (result.success) {
+        this.debug('Skill saved successfully');
         Messages.showSuccess(`"${skillData.skillName}" saved to database successfully!`);
         
         if (saveButton) {
@@ -112,6 +163,7 @@ class Database {
       }
 
     } catch (error) {
+      this.debug('Error saving skill to database:', error);
       console.error('Error saving skill to database:', error);
       
       let errorMessage = 'Failed to save skill to database. ';
@@ -139,17 +191,27 @@ class Database {
    * @returns {HTMLElement|null} The matching save button
    */
   static findSaveButton(saveButtons, itemData) {
+    this.debug('Finding save button for item:', itemData.itemName || itemData.skillName);
+    
     // Try to find button by timestamp or other unique identifier
-    return Array.from(saveButtons).find(btn => {
+    const foundButton = Array.from(saveButtons).find(btn => {
       // If button has data-timestamp attribute, use that
       const timestamp = btn.getAttribute('data-timestamp');
       if (timestamp && itemData.timestamp === timestamp) {
+        this.debug('Found button by timestamp match');
         return true;
       }
       
       // Fallback: find by checking if button is not disabled (last clicked)
-      return !btn.disabled;
+      const notDisabled = !btn.disabled;
+      if (notDisabled) {
+        this.debug('Found button by disabled state');
+      }
+      return notDisabled;
     });
+
+    this.debug('Save button found:', !!foundButton);
+    return foundButton;
   }
 
   /**
@@ -158,6 +220,8 @@ class Database {
    * @param {string} state - Button state ('default', 'loading', 'success', 'error')
    */
   static setSaveButtonState(button, state) {
+    this.debug('Setting button state to:', state);
+    
     // Reset classes and styles
     button.disabled = false;
     button.style.background = '';
@@ -167,18 +231,21 @@ class Database {
         button.disabled = true;
         button.innerHTML = '⏳';
         button.title = 'Saving...';
+        this.debug('Button set to loading state');
         break;
         
       case 'success':
         button.innerHTML = '✅';
         button.title = 'Saved to database';
         button.style.background = 'linear-gradient(135deg, rgb(46, 125, 50) 0%, rgb(27, 94, 32) 100%)';
+        this.debug('Button set to success state');
         break;
         
       case 'error':
         button.innerHTML = '❌';
         button.title = 'Failed to save';
         button.style.background = 'linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%)';
+        this.debug('Button set to error state');
         break;
         
       case 'default':
@@ -186,6 +253,7 @@ class Database {
         button.innerHTML = '🗃️';
         button.title = 'Save to database';
         button.disabled = false;
+        this.debug('Button set to default state');
         break;
     }
   }
@@ -196,6 +264,8 @@ class Database {
    * @returns {string} User-friendly error message
    */
   static getErrorMessage(error) {
+    this.debug('Processing error message:', error);
+    
     if (error.code === '42501') {
       return 'Permission denied. Please check your account permissions.';
     } else if (error.code === '23505') {
@@ -206,6 +276,10 @@ class Database {
       return 'Please sign in to save items.';
     } else if (error.message?.includes('network')) {
       return 'Network error. Please check your internet connection.';
+    } else if (error.message?.includes('GoogleAuth not available')) {
+      return 'Authentication system not loaded. Please refresh the page.';
+    } else if (error.message?.includes('SupabaseClient not available')) {
+      return 'Database system not loaded. Please refresh the page.';
     } else {
       return `Error: ${error.message || 'Unknown error occurred'}`;
     }
@@ -218,11 +292,13 @@ class Database {
    */
   static async loadUserItems(type = 'cards') {
     try {
-      if (!GoogleAuth.isSignedIn()) {
+      this.debug(`Loading user ${type}...`);
+
+      if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
         throw new Error('User not signed in');
       }
 
-      if (!SupabaseClient.isReady()) {
+      if (!SupabaseClient || !SupabaseClient.isReady()) {
         throw new Error('Database not available');
       }
 
@@ -230,15 +306,19 @@ class Database {
 
       let items;
       if (type === 'cards') {
+        this.debug('Calling getUserItems...');
         items = await SupabaseClient.getUserItems();
       } else {
+        this.debug('Calling getUserSkills...');
         items = await SupabaseClient.getUserSkills();
       }
 
+      this.debug(`Loaded ${items.length} ${type}`);
       hideLoading();
       return items;
 
     } catch (error) {
+      this.debug(`Error loading user ${type}:`, error);
       console.error(`Error loading user ${type}:`, error);
       Messages.showError(`Failed to load your ${type}: ${error.message}`);
       return [];
@@ -253,11 +333,13 @@ class Database {
    */
   static async deleteItem(itemId, type = 'cards') {
     try {
-      if (!GoogleAuth.isSignedIn()) {
+      this.debug(`Deleting ${type.slice(0, -1)} with ID:`, itemId);
+
+      if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
         throw new Error('User not signed in');
       }
 
-      if (!SupabaseClient.isReady()) {
+      if (!SupabaseClient || !SupabaseClient.isReady()) {
         throw new Error('Database not available');
       }
 
@@ -268,6 +350,8 @@ class Database {
           confirmMessage,
           async () => {
             try {
+              this.debug('User confirmed deletion');
+              
               let result;
               if (type === 'cards') {
                 result = await SupabaseClient.deleteItem(itemId);
@@ -275,22 +359,30 @@ class Database {
                 result = await SupabaseClient.deleteSkill(itemId);
               }
 
+              this.debug('Delete result:', result);
+
               if (result.success) {
+                this.debug('Item deleted successfully');
                 Messages.showSuccess(`${type.slice(0, -1)} deleted successfully!`);
                 resolve(true);
               } else {
                 throw new Error('Delete operation failed');
               }
             } catch (error) {
+              this.debug('Delete operation failed:', error);
               Messages.showError(`Failed to delete ${type.slice(0, -1)}: ${error.message}`);
               resolve(false);
             }
           },
-          () => resolve(false)
+          () => {
+            this.debug('User canceled deletion');
+            resolve(false);
+          }
         );
       });
 
     } catch (error) {
+      this.debug(`Error deleting ${type.slice(0, -1)}:`, error);
       console.error(`Error deleting ${type.slice(0, -1)}:`, error);
       Messages.showError(`Failed to delete ${type.slice(0, -1)}: ${error.message}`);
       return false;
@@ -303,14 +395,18 @@ class Database {
    */
   static async getStatistics() {
     try {
-      if (!SupabaseClient.isReady()) {
+      this.debug('Getting database statistics...');
+
+      if (!SupabaseClient || !SupabaseClient.isReady()) {
         throw new Error('Database not available');
       }
 
       const stats = await SupabaseClient.getStatistics();
+      this.debug('Database statistics:', stats);
       return stats;
 
     } catch (error) {
+      this.debug('Error getting database statistics:', error);
       console.error('Error getting database statistics:', error);
       return {
         items: 0,
@@ -327,14 +423,19 @@ class Database {
    */
   static async checkConnection() {
     try {
-      if (!SupabaseClient.isReady()) {
+      this.debug('Checking database connection...');
+
+      if (!SupabaseClient || !SupabaseClient.isReady()) {
+        this.debug('SupabaseClient not ready');
         return false;
       }
 
       const result = await SupabaseClient.testConnection();
+      this.debug('Connection check result:', result);
       return result.success;
 
     } catch (error) {
+      this.debug('Database connection check failed:', error);
       console.error('Database connection check failed:', error);
       return false;
     }
@@ -344,17 +445,23 @@ class Database {
    * Setup database event listeners
    */
   static setupEventListeners() {
+    this.debug('Setting up database event listeners...');
+
     // Global functions for HTML onclick handlers
     window.saveCardToDatabase = (cardData) => {
+      this.debug('saveCardToDatabase called from HTML');
       this.saveCard(cardData);
     };
 
     window.saveSkillToDatabase = (skillData) => {
+      this.debug('saveSkillToDatabase called from HTML');
       this.saveSkill(skillData);
     };
 
     // Listen for authentication state changes
-    document.addEventListener('userSignedIn', () => {
+    document.addEventListener('userSignedIn', (event) => {
+      this.debug('User signed in event received:', event.detail);
+      
       // Re-enable save buttons when user signs in
       document.querySelectorAll('.card-save-btn, .skill-save-btn').forEach(btn => {
         btn.disabled = false;
@@ -362,13 +469,17 @@ class Database {
       });
     });
 
-    document.addEventListener('userSignedOut', () => {
+    document.addEventListener('userSignedOut', (event) => {
+      this.debug('User signed out event received');
+      
       // Disable save buttons when user signs out
       document.querySelectorAll('.card-save-btn, .skill-save-btn').forEach(btn => {
         btn.disabled = true;
         btn.title = 'Sign in to save';
       });
     });
+
+    this.debug('Database event listeners setup complete');
   }
 
   /**
@@ -376,12 +487,19 @@ class Database {
    * @param {string} containerId - ID of container to show status in
    */
   static async showDatabaseStatus(containerId = 'database-status') {
+    this.debug('Showing database status in container:', containerId);
+    
     const container = document.getElementById(containerId);
-    if (!container) return;
+    if (!container) {
+      this.debug('Status container not found');
+      return;
+    }
 
     try {
       const isConnected = await this.checkConnection();
       const stats = await this.getStatistics();
+
+      this.debug('Database status:', { isConnected, stats });
 
       container.innerHTML = `
         <div class="database-status ${isConnected ? 'connected' : 'disconnected'}">
@@ -401,7 +519,10 @@ class Database {
           `}
         </div>
       `;
+      
+      this.debug('Database status UI updated');
     } catch (error) {
+      this.debug('Error showing database status:', error);
       container.innerHTML = `
         <div class="database-status error">
           <h4>Database Status</h4>
@@ -412,268 +533,110 @@ class Database {
   }
 
   /**
-   * Backup user data
-   * @returns {Promise<void>}
+   * Get debug information
+   * @returns {Object} Debug information
    */
-  static async backupUserData() {
-    try {
-      if (!GoogleAuth.isSignedIn()) {
-        Messages.showError('Please sign in to backup your data');
-        return;
-      }
+  static getDebugInfo() {
+    return {
+      debugMode: this.debugMode,
+      googleAuthAvailable: typeof GoogleAuth !== 'undefined',
+      googleAuthReady: typeof GoogleAuth !== 'undefined' && GoogleAuth.isInitialized,
+      supabaseClientAvailable: typeof SupabaseClient !== 'undefined',
+      supabaseClientReady: typeof SupabaseClient !== 'undefined' && SupabaseClient.isReady(),
+      messagesAvailable: typeof Messages !== 'undefined'
+    };
+  }
 
-      const hideLoading = Messages.showLoading('Creating backup...');
+  /**
+   * Toggle debug mode
+   * @returns {boolean} New debug mode state
+   */
+  static toggleDebugMode() {
+    this.debugMode = !this.debugMode;
+    this.debug('Debug mode toggled:', this.debugMode ? 'ON' : 'OFF');
+    return this.debugMode;
+  }
 
-      // Load user's cards and skills
-      const [cards, skills] = await Promise.all([
-        this.loadUserItems('cards'),
-        this.loadUserItems('skills')
-      ]);
+  /**
+   * Run diagnostic tests
+   * @returns {Promise<Object>} Diagnostic results
+   */
+  static async runDiagnostics() {
+    this.debug('Running database diagnostics...');
+    
+    const results = {
+      timestamp: new Date().toISOString(),
+      tests: {}
+    };
 
-      hideLoading();
+    // Test 1: Check if classes are available
+    results.tests.classesAvailable = {
+      googleAuth: typeof GoogleAuth !== 'undefined',
+      supabaseClient: typeof SupabaseClient !== 'undefined',
+      messages: typeof Messages !== 'undefined'
+    };
 
-      // Create backup data
-      const backupData = {
-        version: "1.0",
-        timestamp: new Date().toISOString(),
-        user: GoogleAuth.getUserDisplayName(),
-        backup_type: "full_user_data",
-        cards: cards || [],
-        skills: skills || [],
-        stats: {
-          total_cards: cards?.length || 0,
-          total_skills: skills?.length || 0
-        }
+    // Test 2: Check authentication
+    if (typeof GoogleAuth !== 'undefined') {
+      results.tests.authentication = {
+        initialized: GoogleAuth.isInitialized,
+        signedIn: GoogleAuth.isSignedIn(),
+        userEmail: GoogleAuth.getUserEmail(),
+        displayName: GoogleAuth.getUserDisplayName()
       };
-
-      // Download backup
-      const filename = `BazaarGen-backup-${GoogleAuth.getUserDisplayName()}-${ExportImport.getDateString()}.json`;
-      ExportImport.downloadJSON(backupData, filename);
-
-      Messages.showSuccess(`Backup created successfully! Downloaded ${backupData.stats.total_cards} cards and ${backupData.stats.total_skills} skills.`);
-
-    } catch (error) {
-      console.error('Error creating backup:', error);
-      Messages.showError('Failed to create backup: ' + error.message);
     }
-  }
 
-  /**
-   * Restore user data from backup
-   * @param {Event} event - File input change event
-   * @returns {Promise<void>}
-   */
-  static async restoreUserData(event) {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    try {
-      if (!GoogleAuth.isSignedIn()) {
-        Messages.showError('Please sign in to restore data');
-        return;
-      }
-
-      const fileContent = await ExportImport.readFileAsText(file);
-      const backupData = JSON.parse(fileContent);
-
-      // Validate backup data
-      if (!backupData.backup_type || backupData.backup_type !== 'full_user_data') {
-        throw new Error('Invalid backup file format');
-      }
-
-      const confirmMessage = `This will restore ${backupData.stats?.total_cards || 0} cards and ${backupData.stats?.total_skills || 0} skills from backup created on ${new Date(backupData.timestamp).toLocaleDateString()}. Continue?`;
-
-      Messages.showConfirmation(
-        confirmMessage,
-        async () => {
-          try {
-            const hideLoading = Messages.showLoading('Restoring data...');
-
-            let restoredCards = 0;
-            let restoredSkills = 0;
-
-            // Restore cards
-            if (backupData.cards && Array.isArray(backupData.cards)) {
-              for (const cardData of backupData.cards) {
-                try {
-                  await SupabaseClient.saveCard(cardData);
-                  restoredCards++;
-                } catch (error) {
-                  console.warn('Failed to restore card:', cardData.itemName, error);
-                }
-              }
-            }
-
-            // Restore skills
-            if (backupData.skills && Array.isArray(backupData.skills)) {
-              for (const skillData of backupData.skills) {
-                try {
-                  await SupabaseClient.saveSkill(skillData);
-                  restoredSkills++;
-                } catch (error) {
-                  console.warn('Failed to restore skill:', skillData.skillName, error);
-                }
-              }
-            }
-
-            hideLoading();
-            Messages.showSuccess(`Restore completed! Restored ${restoredCards} cards and ${restoredSkills} skills.`);
-
-          } catch (error) {
-            Messages.showError('Failed to restore data: ' + error.message);
-          }
-        }
-      );
-
-    } catch (error) {
-      Messages.showError('Error reading backup file: ' + error.message);
-    } finally {
-      event.target.value = '';
-    }
-  }
-
-  /**
-   * Get user's usage statistics
-   * @returns {Promise<Object>} Usage statistics
-   */
-  static async getUserStats() {
-    try {
-      if (!GoogleAuth.isSignedIn()) {
-        return null;
-      }
-
-      const [cards, skills] = await Promise.all([
-        this.loadUserItems('cards'),
-        this.loadUserItems('skills')
-      ]);
-
-      // Calculate statistics
-      const cardsByHero = {};
-      const cardsByRarity = {};
-      const skillsByRarity = {};
-
-      cards.forEach(card => {
-        const hero = card.item_data?.hero || 'Unknown';
-        const rarity = card.item_data?.rarity || 'Unknown';
-        
-        cardsByHero[hero] = (cardsByHero[hero] || 0) + 1;
-        cardsByRarity[rarity] = (cardsByRarity[rarity] || 0) + 1;
-      });
-
-      skills.forEach(skill => {
-        const rarity = skill.skill_data?.rarity || 'Unknown';
-        skillsByRarity[rarity] = (skillsByRarity[rarity] || 0) + 1;
-      });
-
-      return {
-        totalCards: cards.length,
-        totalSkills: skills.length,
-        cardsByHero,
-        cardsByRarity,
-        skillsByRarity,
-        joinDate: cards.length > 0 ? new Date(Math.min(...cards.map(c => new Date(c.created_at)))).toDateString() : 'Unknown'
-      };
-
-    } catch (error) {
-      console.error('Error getting user stats:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Display user statistics in UI
-   * @param {string} containerId - ID of container to display stats
-   */
-  static async displayUserStats(containerId = 'user-stats') {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-
-    try {
-      const stats = await this.getUserStats();
-      
-      if (!stats) {
-        container.innerHTML = '<div class="stats-error">Please sign in to view your statistics</div>';
-        return;
-      }
-
-      container.innerHTML = `
-        <div class="user-stats">
-          <h4>Your Statistics</h4>
-          <div class="stats-grid">
-            <div class="stat-item">
-              <div class="stat-number">${stats.totalCards}</div>
-              <div class="stat-label">Cards Created</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-number">${stats.totalSkills}</div>
-              <div class="stat-label">Skills Created</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-number">${Object.keys(stats.cardsByHero).length}</div>
-              <div class="stat-label">Heroes Used</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-date">${stats.joinDate}</div>
-              <div class="stat-label">Member Since</div>
-            </div>
-          </div>
-          
-          ${stats.totalCards > 0 ? `
-            <div class="stats-breakdown">
-              <h5>Cards by Hero</h5>
-              <div class="breakdown-list">
-                ${Object.entries(stats.cardsByHero)
-                  .sort((a, b) => b[1] - a[1])
-                  .map(([hero, count]) => `<div>${hero}: ${count}</div>`)
-                  .join('')}
-              </div>
-            </div>
-          ` : ''}
-          
-          ${stats.totalCards > 0 || stats.totalSkills > 0 ? `
-            <div class="stats-breakdown">
-              <h5>Items by Rarity</h5>
-              <div class="breakdown-list">
-                ${Object.entries({...stats.cardsByRarity, ...stats.skillsByRarity})
-                  .sort((a, b) => b[1] - a[1])
-                  .map(([rarity, count]) => `<div>${rarity}: ${count}</div>`)
-                  .join('')}
-              </div>
-            </div>
-          ` : ''}
-        </div>
-      `;
-
-    } catch (error) {
-      container.innerHTML = `<div class="stats-error">Error loading statistics: ${error.message}</div>`;
-    }
-  }
-
-  /**
-   * Setup periodic auto-backup
-   * @param {number} intervalMinutes - Backup interval in minutes
-   */
-  static setupAutoBackup(intervalMinutes = 60) {
-    if (!GoogleAuth.isSignedIn()) return;
-
-    setInterval(async () => {
+    // Test 3: Check database connection
+    if (typeof SupabaseClient !== 'undefined') {
       try {
-        if (GoogleAuth.isSignedIn()) {
-          const stats = await this.getUserStats();
-          if (stats && (stats.totalCards > 0 || stats.totalSkills > 0)) {
-            console.log('Performing auto-backup...');
-            await this.backupUserData();
-          }
-        }
+        const connectionTest = await SupabaseClient.testConnection();
+        results.tests.database = {
+          ready: SupabaseClient.isReady(),
+          connectionTest: connectionTest,
+          statistics: await this.getStatistics()
+        };
       } catch (error) {
-        console.warn('Auto-backup failed:', error);
+        results.tests.database = {
+          ready: false,
+          error: error.message
+        };
       }
-    }, intervalMinutes * 60 * 1000);
+    }
+
+    this.debug('Diagnostic results:', results);
+    return results;
   }
 }
 
 // Auto-setup event listeners
 Database.setupEventListeners();
 
-// Setup global functions for HTML
+// Make available globally
 window.Database = Database;
+
+// Global debug functions
+window.debugDatabase = () => {
+  console.log('=== Database Debug Info ===');
+  console.log('Debug Info:', Database.getDebugInfo());
+  
+  Database.runDiagnostics().then(results => {
+    console.log('Diagnostic Results:', results);
+  });
+};
+
+window.toggleDatabaseDebug = () => {
+  const newMode = Database.toggleDebugMode();
+  console.log('Database debug mode:', newMode ? 'ENABLED' : 'DISABLED');
+};
+
+// Run diagnostics on load
+document.addEventListener('DOMContentLoaded', () => {
+  Database.debug('Database class loaded and ready');
+  
+  // Run diagnostics after a delay to let other systems load
+  setTimeout(async () => {
+    if (Database.debugMode) {
+      await Database.runDiagnostics();
+    }
+  }, 3000);
+});
