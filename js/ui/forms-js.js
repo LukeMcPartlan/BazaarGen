@@ -497,7 +497,7 @@ static setupPassiveInputs() {
     input.type = "text";
     input.placeholder = "Enter on use effect description";
     input.className = "form-input";
-    input.value = "Deal 50 /d to the enemy"; // Default text
+    input.value = "Deal 50 /d Damage to the enemy"; // Default text
     
     // Add event listeners for preview updates
     input.addEventListener('input', (e) => {
@@ -599,7 +599,7 @@ static setupPassiveInputs() {
     input.type = "text";
     input.placeholder = "Enter passive effect description";
     input.className = "form-input";
-    input.value = "When you use an item, gain 1 /h for 3 seconds"; // Default text
+    input.value = "When you use an ajacent item, gain 5 /d Damage"; // Default text
     
     // Add event listeners for preview updates
     input.addEventListener('input', (e) => {
