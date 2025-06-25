@@ -27,15 +27,8 @@ class IndexPageController {
    * Setup default passive and on-use effects when page loads
    */
   static setupDefaultEffects() {
-    // Add default passive effect using existing Forms.addPassiveInput with default text
-    if (window.Forms) {
-      window.Forms.addPassiveInputWithDefault();
-    }
-    
-    // Add default on-use effect using existing Forms.addOnUseInput with default text  
-    if (window.Forms) {
-      window.Forms.addOnUseInputWithDefault();
-    }
+    // Let Forms handle the default setup during initialization
+    // This is now handled in Forms.setupPassiveInputs() and Forms.setupOnUseInputs()
   }
 
   /**
