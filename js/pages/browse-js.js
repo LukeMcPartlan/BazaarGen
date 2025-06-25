@@ -233,12 +233,43 @@ static async createItemCard(item) {
   }
 
   try {
-    // The item_data from the database should already be in the correct format
+    // Create a wrapper div for the entire card section
+    const cardWrapper = document.createElement('div');
+    cardWrapper.className = 'card-wrapper';
+    cardWrapper.style.cssText = 'margin-bottom: 30px;';
+
+    // Create creator info section
+    const creatorInfo = document.createElement('div');
+    creatorInfo.className = 'creator-info';
+    creatorInfo.style.cssText = `
+      padding: 10px 15px;
+      background: rgba(0,0,0,0.05);
+      border-radius: 8px 8px 0 0;
+      font-size: 14px;
+      color: #666;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    `;
+
+    const creatorAlias = item.user_alias || 'Unknown Creator';
+    const createdDate = new Date(item.created_at).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+
+    creatorInfo.innerHTML = `
+      <span style="font-weight: 600; color: #333;">
+        <span style="color: #888;">Created by:</span> ${creatorAlias}
+      </span>
+      <span style="color: #999; font-size: 12px;">${createdDate}</span>
+    `;
+
+    // Create the card
     const cardData = item.item_data;
-    
-    // Add any additional metadata
     cardData.created_at = item.created_at;
-    cardData.creator_alias = item.users?.alias || 'Unknown';
+    cardData.creator_alias = creatorAlias;
     cardData.database_id = item.id;
 
     const cardElement = await CardGenerator.createCard({
@@ -247,22 +278,20 @@ static async createItemCard(item) {
       includeControls: true
     });
 
-    return cardElement;
+    // Create comments section
+    const commentsSection = await this.createCommentsSection(item.id);
+
+    // Assemble the wrapper
+    cardWrapper.appendChild(creatorInfo);
+    cardWrapper.appendChild(cardElement);
+    cardWrapper.appendChild(commentsSection);
+
+    return cardWrapper;
   } catch (error) {
     console.error('Error creating item card:', error);
     return null;
   }
 }
-
-  /**
-   * Handle filter changes
-   */
-  static handleFilterChange() {
-    if (this.itemsGrid) {
-      this.itemsGrid.innerHTML = '';
-    }
-    this.loadItems();
-  }
 
   /**
    * Update statistics display
