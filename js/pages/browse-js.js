@@ -191,35 +191,35 @@ class BrowsePageController {
   /**
    * Load more items for display
    */
-  static loadMoreItems() {
-    if (this.isLoading || this.displayedItems.length >= this.allItems.length) {
-      return;
-    }
+static async loadMoreItems() {
+  if (this.isLoading || this.displayedItems.length >= this.allItems.length) {
+    return;
+  }
 
-    const startIndex = this.displayedItems.length;
-    const endIndex = Math.min(startIndex + this.ITEMS_PER_LOAD, this.allItems.length);
-    const newItems = this.allItems.slice(startIndex, endIndex);
+  const startIndex = this.displayedItems.length;
+  const endIndex = Math.min(startIndex + this.ITEMS_PER_LOAD, this.allItems.length);
+  const newItems = this.allItems.slice(startIndex, endIndex);
 
-    newItems.forEach(item => {
-      try {
-        const itemCard = this.createItemCard(item);
-        if (itemCard && this.itemsGrid) {
-          this.itemsGrid.appendChild(itemCard);
-          this.displayedItems.push(item);
-        }
-      } catch (error) {
-        console.error(`Failed to create card for item ${item.id}:`, error);
+  for (const item of newItems) {
+    try {
+      const itemCard = await this.createItemCard(item);
+      if (itemCard && this.itemsGrid) {
+        this.itemsGrid.appendChild(itemCard);
+        this.displayedItems.push(item);
       }
-    });
-
-    this.updateStats();
-    this.updateLoadMoreButton();
-    
-    // Force a check if we need to load more immediately
-    if (this.displayedItems.length < 20 && this.displayedItems.length < this.allItems.length) {
-      setTimeout(() => this.loadMoreItems(), 100);
+    } catch (error) {
+      console.error(`Failed to create card for item ${item.id}:`, error);
     }
   }
+
+  this.updateStats();
+  this.updateLoadMoreButton();
+  
+  // Force a check if we need to load more immediately
+  if (this.displayedItems.length < 20 && this.displayedItems.length < this.allItems.length) {
+    setTimeout(() => this.loadMoreItems(), 100);
+  }
+}
 
  /**
  * Create item card element
