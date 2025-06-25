@@ -573,6 +573,94 @@ class SupabaseClient {
     }
   }
 
+/**
+ * Get comments for an item
+ * @param {string|number} itemId - Item ID
+ * @returns {Promise<Array>} Array of comments
+ */
+static async getComments(itemId) {
+  try {
+    this.debug('Getting comments for item:', itemId);
+    
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
+
+    const { data, error } = await this.supabase
+      .from('comments')
+      .select('*')
+      .eq('item_id', itemId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      this.debug('Comments query error:', error);
+      throw error;
+    }
+
+    this.debug('Retrieved comments:', data?.length || 0);
+    return data || [];
+  } catch (error) {
+    this.debug('Error fetching comments:', error);
+    console.error('Error fetching comments:', error);
+    throw error;
+  }
+}
+
+/**
+ * Add a comment to an item
+ * @param {string|number} itemId - Item ID
+ * @param {string} commentText - Comment text
+ * @returns {Promise<Object>} Created comment
+ */
+static async addComment(itemId, commentText) {
+  try {
+    this.debug('Adding comment to item:', itemId);
+    
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
+
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      throw new Error('User not signed in');
+    }
+
+    const userEmail = GoogleAuth.getUserEmail();
+    const userProfile = GoogleAuth.getUserProfile();
+
+    const commentData = {
+      item_id: itemId,
+      user_email: userEmail,
+      user_alias: userProfile?.alias || 'Unknown',
+      content: commentText,  // Changed from comment_text to content
+      created_at: new Date().toISOString()
+    };
+
+    this.debug('Comment data:', commentData);
+
+    const { data, error } = await this.supabase
+      .from('comments')
+      .insert([commentData])
+      .select()
+      .single();
+
+    if (error) {
+      this.debug('Comment insert error:', error);
+      throw error;
+    }
+
+    this.debug('Comment added successfully:', data);
+    return data;
+  } catch (error) {
+    this.debug('Error adding comment:', error);
+    console.error('Error adding comment:', error);
+    throw error;
+  }
+}
+
+
+
+
+  
   /**
    * Load items with filters for browse page
    * @param {Object} options - Query options
