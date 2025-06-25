@@ -42,6 +42,12 @@ class Forms {
       itemNameInput.value = 'Item Name';
     }
 
+    // Set default cooldown
+    const cooldownInput = document.getElementById('cooldownInput');
+    if (cooldownInput && !cooldownInput.value) {
+      cooldownInput.value = '6';
+    }
+
     // Set default skill name if on skills page
     const skillNameInput = document.getElementById('skillNameInput');
     if (skillNameInput && !skillNameInput.value) {
@@ -348,6 +354,12 @@ class Forms {
     const addOnUseBtn = document.querySelector('button[onclick="addOnUseInput()"]');
     if (addOnUseBtn) {
       addOnUseBtn.onclick = () => this.addOnUseInput();
+    }
+    
+    // Add initial on-use effect input with default text if container is empty
+    const onUseContainer = document.getElementById('onUseInputs');
+    if (onUseContainer && onUseContainer.children.length === 0) {
+      this.addOnUseInputWithDefault();
     }
   }
 
@@ -901,8 +913,15 @@ static setupPassiveInputs() {
     setTimeout(() => {
       this.setupDefaultImage();
       this.setupDefaultValues();
-      this.addPassiveInputWithDefault();
-      this.addOnUseInputWithDefault();
+      // Add default fields if containers are empty
+      const passiveContainer = document.getElementById('passiveInputs');
+      if (passiveContainer && passiveContainer.children.length === 0) {
+        this.addPassiveInputWithDefault();
+      }
+      const onUseContainer = document.getElementById('onUseInputs');
+      if (onUseContainer && onUseContainer.children.length === 0) {
+        this.addOnUseInputWithDefault();
+      }
     }, 100);
   }
 
