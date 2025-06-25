@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends System Example</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f7fa;
+            line-height: 1.6;
+        }
+
+        .friends-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .friends-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .friends-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .friends-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 14px;
+            font-weight: 500;
+            color: #6c757d;
+            transition: all 0.2s;
+        }
+
+        .friends-tab.active {
+            background: white;
+            color: #495057;
+            border-bottom: 2px solid #007bff;
+        }
+
+        .friends-tab:hover {
+            background: #e9ecef;
+        }
+
+        .friends-content {
+            padding: 20px;
+            min-height: 400px;
+        }
+
+        .search-section {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .friends-list, .requests-list, .search-results {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .friend-item, .request-item, .user-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            transition: all 0.2s;
+        }
+
+        .friend-item:hover, .request-item:hover, .user-item:hover {
+            background: #e9ecef;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .user-details h4 {
+            margin: 0;
+            color: #495057;
+            font-size: 16px;
+        }
+
+        .user-details p {
+            margin: 0;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .friend-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #dee2e6;
+            color: #6c757d;
+        }
+
+        .btn-outline:hover {
+            background: #f8f9fa;
+        }
+
+        .friendship-status {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+
+        .status-friends {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-pending-sent {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-pending-received {
+            background: #cce7ff;
+            color: #004085;
+        }
+
+        .status-blocked {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e9ecef;
+            border-top: 2px solid #007bff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            background: #28a745;
+        }
+
+        .notification.error {
+            background: #dc3545;
+        }
+
+        .friends-stats {
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <div class="friends-container">
+        <div class="friends-header">
+            <h1>👥 Friends System</h1>
+            <p>Connect with other BazaarGen users</p>
+        </div>
+
+        <div class="friends-tabs">
+            <button class="friends-tab active" onclick="showTab('friends')">
+                My Friends <span id="friendsCount">(0)</span>
+            </button>
+            <button class="friends-tab" onclick="showTab('requests')">
+                Friend Requests <span id="requestsCount">(0)</span>
+            </button>
+            <button class="friends-tab" onclick="showTab('search')">
+                Find Friends
+            </button>
+        </div>
+
+        <div class="friends-content">
+            <!-- Friends Statistics -->
+            <div class="friends-stats" id="friendsStats" style="display: none;">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalFriends">0</div>
+                    <div class="stat-label">Friends</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="pendingRequests">0</div>
+                    <div class="stat-label">Pending</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="totalCards">0</div>
+                    <div class="stat-label">Cards Shared</div>
+                </div>
+            </div>
+
+            <!-- Friends Tab -->
+            <div id="friendsTab" class="tab-content">
+                <div class="loading" id="friendsLoading">
+                    <div class="spinner"></div>
+                    Loading your friends...
+                </div>
+                <div class="friends-list" id="friendsList"></div>
+                <div class="empty-state" id="friendsEmpty" style="display: none;">
+                    <h3>No friends yet</h3>
+                    <p>Start by searching for users to add as friends!</p>
+                    <button class="btn btn-primary" onclick="showTab('search')">Find Friends</button>
+                </div>
+            </div>
+
+            <!-- Friend Requests Tab -->
+            <div id="requestsTab" class="tab-content" style="display: none;">
+                <div class="loading" id="requestsLoading">
+                    <div class="spinner"></div>
+                    Loading friend requests...
+                </div>
+                <div class="requests-list" id="requestsList"></div>
+                <div class="empty-state" id="requestsEmpty" style="display: none;">
+                    <h3>No pending requests</h3>
+                    <p>You'll see friend requests from other users here.</p>
+                </div>
+            </div>
+
+            <!-- Search Tab -->
+            <div id="searchTab" class="tab-content" style="display: none;">
+                <div class="search-section">
+                    <input 
+                        type="text" 
+                        class="search-input" 
+                        id="searchInput" 
+                        placeholder="Search by username or email..."
+                        oninput="searchUsers(this.value)"
+                    >
+                </div>
+                <div class="search-results" id="searchResults"></div>
+                <div class="empty-state" id="searchEmpty">
+                    <h3>🔍 Search for friends</h3>
+                    <p>Enter a username or email address to find other BazaarGen users.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global state
+        let currentTab = 'friends';
+        let searchTimeout = null;
+
+        // Tab management
+        function showTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.friends-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update tab content
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+            document.getElementById(tabName + 'Tab').style.display = 'block';
+
+            currentTab = tabName;
+
+            // Load data for the tab
+            switch(tabName) {
+                case 'friends':
+                    loadFriends();
+                    break;
+                case 'requests':
+                    loadFriendRequests();
+                    break;
+                case 'search':
+                    // Search tab doesn't auto-load
+                    break;
+            }
+        }
+
+        // Load user's friends
+        async function loadFriends() {
+            const loadingEl = document.getElementById('friendsLoading');
+            const listEl = document.getElementById('friendsList');
+            const emptyEl = document.getElementById('friendsEmpty');
+
+            loadingEl.style.display = 'flex';
+            listEl.innerHTML = '';
+            emptyEl.style.display = 'none';
+
+            try {
+                if (typeof FriendsManager === 'undefined') {
+                    throw new Error('Friends system not loaded');
+                }
+
+                const friends = await FriendsManager.getFriends();
+                
+                loadingEl.style.display = 'none';
+
+                if (friends.length === 0) {
+                    emptyEl.style.display = 'block';
+                } else {
+                    friends.forEach(friend => {
+                        const friendElement = createFriendElement(friend);
+                        listEl.appendChild(friendElement);
+                    });
+                }
+
+                // Update counts
+                document.getElementById('friendsCount').textContent = `(${friends.length})`;
+                document.getElementById('totalFriends').textContent = friends.length;
+
+            } catch (error) {
+                console.error('Error loading friends:', error);
+                loadingEl.style.display = 'none';
+                listEl.innerHTML = `<div class="empty-state"><h3>Error loading friends</h3><p>${error.message}</p></div>`;
+            }
+        }
+
+        // Load friend requests
+        async function loadFriendRequests() {
+            const loadingEl = document.getElementById('requestsLoading');
+            const listEl = document.getElementById('requestsList');
+            const emptyEl = document.getElementById('requestsEmpty');
+
+            loadingEl.style.display = 'flex';
+            listEl.innerHTML = '';
+            emptyEl.style.display = 'none';
+
+            try {
+                if (typeof FriendsManager === 'undefined') {
+                    throw new Error('Friends system not loaded');
+                }
+
+                const requests = await FriendsManager.getPendingFriendRequests();
+                
+                loadingEl.style.display = 'none';
+
+                if (requests.length === 0) {
+                    emptyEl.style.display = 'block';
+                } else {
+                    requests.forEach(request => {
+                        const requestElement = createRequestElement(request);
+                        listEl.appendChild(requestElement);
+                    });
+                }
+
+                // Update counts
+                document.getElementById('requestsCount').textContent = `(${requests.length})`;
+                document.getElementById('pendingRequests').textContent = requests.length;
+
+            } catch (error) {
+                console.error('Error loading friend requests:', error);
+                loadingEl.style.display = 'none';
+                listEl.innerHTML = `<div class="empty-state"><h3>Error loading requests</h3><p>${error.message}</p></div>`;
+            }
+        }
+
+        // Search users
+        function searchUsers(searchTerm) {
+            clearTimeout(searchTimeout);
+            
+            const resultsEl = document.getElementById('searchResults');
+            const emptyEl = document.getElementById('searchEmpty');
+
+            if (!searchTerm || searchTerm.trim().length < 2) {
+                resultsEl.innerHTML = '';
+                emptyEl.style.display = 'block';
+                return;
+            }
+
+            emptyEl.style.display = 'none';
+            resultsEl.innerHTML = '<div class="loading"><div class="spinner"></div>Searching...</div>';
+
+            searchTimeout = setTimeout(async () => {
+                try {
+                    if (typeof FriendsManager === 'undefined') {
+                        throw new Error('Friends system not loaded');
+                    }
+
+                    const users = await FriendsManager.searchUsers(searchTerm.trim());
+                    
+                    resultsEl.innerHTML = '';
+
+                    if (users.length === 0) {
+                        resultsEl.innerHTML = '<div class="empty-state"><h3>No users found</h3><p>Try a different search term.</p></div>';
+                    } else {
+                        users.forEach(user => {
+                            const userElement = createUserElement(user);
+                            resultsEl.appendChild(userElement);
+                        });
+                    }
+
+                } catch (error) {
+                    console.error('Error searching users:', error);
+                    resultsEl.innerHTML = `<div class="empty-state"><h3>Search error</h3><p>${error.message}</p></div>`;
+                }
+            }, 500);
+        }
+
+        // Create friend element
+        function createFriendElement(friend) {
+            const div = document.createElement('div');
+            div.className = 'friend-item';
+            
+            const initials = friend.friend_alias.substring(0, 2).toUpperCase();
+            const friendSince = new Date(friend.friendship_since).toLocaleDateString();
+            
+            div.innerHTML = `
+                <div class="user-info">
+                    <div class="user-avatar">${initials}</div>
+                    <div class="user-details">
+                        <h4>${friend.friend_alias}</h4>
+                        <p>Friends since ${friendSince}</p>
+                    </div>
+                </div>
+                <div class="friend-actions">
+                    <button class="btn btn-outline" onclick="viewFriendCards('${friend.friend_email}')">
+                        📱 View Cards
+                    </button>
+                    <button class="btn btn-danger" onclick="unfriendUser('${friend.friend_email}')">
+                        🚫 Unfriend
+                    </button>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        // Create request element
+        function createRequestElement(request) {
+            const div = document.createElement('div');
+            div.className = 'request-item';
+            
+            const initials = request.requester_alias.substring(0, 2).toUpperCase();
+            const requestDate = new Date(request.request_date).toLocaleDateString();
+            
+            div.innerHTML = `
+                <div class="user-info">
+                    <div class="user-avatar">${initials}</div>
+                    <div class="user-details">
+                        <h4>${request.requester_alias}</h4>
+                        <p>Sent ${requestDate}</p>
+                    </div>
+                </div>
+                <div class="friend-actions">
+                    <button class="btn btn-success" onclick="acceptRequest(${request.request_id})">
+                        ✅ Accept
+                    </button>
+                    <button class="btn btn-secondary" onclick="declineRequest(${request.request_id})">
+                        ❌ Decline
+                    </button>
+                    <button class="btn btn-danger" onclick="blockUser(${request.request_id})">
+                        🚫 Block
+                    </button>
+                </div>
+            `;
+            
+            return div;
+        }
+
+        // Create user search result element
+        function createUserElement(user) {
+            const div = document.createElement('div');
+            div.className = 'user-item';
+            
+            const initials = user.alias.substring(0, 2).toUpperCase();
+            
+            let statusBadge = '';
+            let actionButton = '';
+            
+            switch(user.friendship_status) {
+                case 'friends':
+                    statusBadge = '<span class="friendship-status status-friends">Friends</span>';
+                    actionButton = `<button class="btn btn-outline" onclick="viewFriendCards('${user.email}')">📱 View Cards</button>`;
+                    break;
+                case 'pending_sent':
+                    statusBadge = '<span class="friendship-status status-pending-sent">Request Sent</span>';
+                    actionButton = '<button class="btn btn-outline" disabled>⏳ Pending</button>';
+                    break;
+                case 'pending_received':
+                    statusBadge = '<span class="friendship-status status-pending-received">Respond to Request</span>';
+                    actionButton = `<button class="btn btn-success" onclick="acceptRequestByEmail('${user.email}')">✅ Accept</button>`;
+                    break;
+                case 'blocked':
+                    statusBadge = '<span class="friendship-status status-blocked">Blocked</span>';
+                    actionButton = '<button class="btn btn-outline" disabled>🚫 Blocked</button>';
+                    break;
+                default:
+                    actionButton = `<button class="btn btn-primary" onclick="sendFriendRequest('${user.email}')">👥 Add Friend</button>`;
+            }
+            
+            div.innerHTML = `
+                <div class="user-info">
+                    <div class="user-avatar">${initials}</div>
+                    <div class="user-details">
+                        <h4>${user.alias} ${statusBadge}</h4>
+                        <p>${user.email}</p>
+                    </div>
+                </div>
+                <div class="friend-actions">
+                    ${actionButton}
+                </div>
+            `;
+            
+            return div;
+        }
+
+        // Action functions
+        async function acceptRequest(requestId) {
+            try {
+                const result = await FriendsManager.respondToFriendRequest(requestId, 'accepted');
+                if (result.success) {
+                    loadFriendRequests(); // Refresh requests
+                    loadFriends(); // Refresh friends list
+                    showNotification('Friend request accepted!', 'success');
+                }
+            } catch (error) {
+                showNotification('Error accepting request: ' + error.message, 'error');
+            }
+        }
+
+        async function declineRequest(requestId) {
+            try {
+                const result = await FriendsManager.respondToFriendRequest(requestId, 'declined');
+                if (result.success) {
+                    loadFriendRequests(); // Refresh requests
+                    showNotification('Friend request declined', 'success');
+                }
+            } catch (error) {
+                showNotification('Error declining request: ' + error.message, 'error');
+            }
+        }
+
+        async function blockUser(requestId) {
+            if (confirm('Are you sure you want to block this user? They will not be able to send you friend requests.')) {
+                try {
+                    const result = await FriendsManager.respondToFriendRequest(requestId, 'blocked');
+                    if (result.success) {
+                        loadFriendRequests(); // Refresh requests
+                        showNotification('User blocked', 'success');
+                    }
+                } catch (error) {
+                    showNotification('Error blocking user: ' + error.message, 'error');
+                }
+            }
+        }
+
+        async function acceptRequestByEmail(email) {
+            try {
+                const result = await FriendsManager.acceptFriendRequestByEmail(email);
+                if (result.success) {
+                    // Refresh search results to update status
+                    const searchInput = document.getElementById('searchInput');
+                    if (searchInput.value) {
+                        searchUsers(searchInput.value);
+                    }
+                    loadFriends(); // Refresh friends list
+                    showNotification('Friend request accepted!', 'success');
+                }
+            } catch (error) {
+                showNotification('Error accepting request: ' + error.message, 'error');
+            }
+        }
+
+        function viewFriendCards(email) {
+            // This would integrate with your existing card viewing system
+            showNotification(`Feature coming soon: View ${email}'s cards`, 'success');
+        }
+
+        // Notification system
+        function showNotification(message, type = 'success') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Trigger animation
+            setTimeout(() => notification.classList.add('show'), 100);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if user is signed in
+            if (typeof GoogleAuth === 'undefined' || !GoogleAuth.isSignedIn()) {
+                document.querySelector('.friends-content').innerHTML = `
+                    <div class="empty-state">
+                        <h3>Please sign in</h3>
+                        <p>You need to be signed in to use the friends system.</p>
+                        <button class="btn btn-primary" onclick="window.location.href='/'">Go to Main Page</button>
+                    </div>
+                `;
+                return;
+            }
+
+            // Show stats and load initial data
+            document.getElementById('friendsStats').style.display = 'flex';
+            loadFriends();
+        });
+
+        // Global functions for window scope
+        window.sendFriendRequest = async (email) => {
+            try {
+                const result = await FriendsManager.sendFriendRequest(email);
+                if (result.success) {
+                    // Refresh search results to update status
+                    const searchInput = document.getElementById('searchInput');
+                    if (searchInput.value) {
+                        searchUsers(searchInput.value);
+                    }
+                    showNotification('Friend request sent!', 'success');
+                }
+            } catch (error) {
+                showNotification('Error sending request: ' + error.message, 'error');
+            }
+        };
+
+        window.unfriendUser = async (email) => {
+            try {
+                const result = await FriendsManager.unfriendUser(email);
+                if (result.success) {
+                    loadFriends(); // Refresh friends list
+                    showNotification('User unfriended', 'success');
+                }
+            } catch (error) {
+                showNotification('Error unfriending user: ' + error.message, 'error');
+            }
+        };
+    </script>
+</body>
+</html>
