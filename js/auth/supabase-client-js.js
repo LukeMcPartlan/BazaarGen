@@ -679,6 +679,55 @@ window.debugSupabase = () => {
       console.log('Connection Test Result:', result);
     });
   }
+/**
+ * Query items from the database
+ * @param {Object} options - Query options (e.g., filters, sort)
+ * @returns {Promise<Array>} Array of items or []
+ */
+static async loadItems(options = {}) {
+  this.debug('Loading items from database...', options);
+
+  if (!this.isReady()) {
+    throw new Error('Supabase not initialized');
+  }
+
+  // Start building the query
+  let query = this.supabase.from('items').select('*');
+
+  // Apply sorting
+  if (options.sortBy) {
+    query = query.order(options.sortBy, { ascending: false });
+  }
+
+  // Apply hero filter
+  if (options.hero) {
+    query = query.eq('hero', options.hero);
+  }
+
+  // Apply contest filter
+  if (options.contest) {
+    query = query.eq('contest', options.contest);
+  }
+
+  // Apply search filter
+  if (options.search) {
+    query = query.ilike('itemName', `%${options.search}%`);
+  }
+
+  // Fetch the data
+  const { data, error } = await query;
+
+  if (error) {
+    this.debug('Error loading items:', error);
+    throw error;
+  }
+
+  this.debug('Items loaded:', data);
+  return data;
+}
+
+
+  
 };
 
 window.toggleSupabaseDebug = () => {
