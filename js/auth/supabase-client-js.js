@@ -755,58 +755,84 @@ window.debugSupabase = () => {
       console.log('Connection Test Result:', result);
     });
   }
-/**
- * Query items from the database
- * @param {Object} options - Query options (e.g., filters, sort)
- * @returns {Promise<Array>} Array of items or []
- */
-static async loadItems(options = {}) {
-  this.debug('Loading items from database...', options);
+ /**
+   * Load items with filters for browse page
+   * @param {Object} options - Query options
+   * @returns {Promise<Array>} Array of items
+   */
+  static async loadItems(options = {}) {
+    try {
+      this.debug('Loading items from database with options:', options);
+      
+      if (!this.isReady()) {
+        throw new Error('Database not available');
+      }
 
-  if (!this.isReady()) {
-    throw new Error('Supabase not initialized');
+      // Start with base query - get items with user info
+      let query = this.supabase
+        .from('items')
+        .select(`
+          *,
+          users!items_user_email_fkey (
+            alias
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      // Apply hero filter
+      if (options.hero) {
+        this.debug('Filtering by hero:', options.hero);
+        // Use filter on the JSON column
+        query = query.filter('item_data->hero', 'eq', `"${options.hero}"`);
+      }
+
+      // Apply contest filter
+      if (options.contest !== undefined && options.contest !== '') {
+        this.debug('Filtering by contest:', options.contest);
+        query = query.eq('contest_number', parseInt(options.contest));
+      }
+
+      // Apply search filter
+      if (options.search) {
+        this.debug('Searching for:', options.search);
+        // Search in the item name within the JSON data
+        query = query.filter('item_data->itemName', 'ilike', `%${options.search}%`);
+      }
+
+      // Apply sorting
+      switch (options.sortBy) {
+        case 'oldest':
+          query = query.order('created_at', { ascending: true });
+          break;
+        case 'recent':
+        default:
+          query = query.order('created_at', { ascending: false });
+          break;
+        // Note: upvotes sorting would require a votes/upvotes column in your database
+      }
+
+      const { data, error } = await query;
+
+      this.debug('Items query result:', { data, error, count: data?.length });
+
+      if (error) {
+        this.debug('Items query error:', error);
+        throw error;
+      }
+
+      this.debug('Retrieved items successfully:', data?.length || 0, 'items');
+      return data || [];
+    } catch (error) {
+      this.debug('Error loading items:', error);
+      console.error('Error loading items:', error);
+      throw error;
+    }
   }
 
-  // Start building the query
-  let query = this.supabase.from('items').select('*');
+}  // <-- This is the closing brace of the SupabaseClient class
 
-  // Apply sorting
-  if (options.sortBy) {
-    query = query.order(options.sortBy, { ascending: false });
-  }
-
-  // Apply hero filter
-  if (options.hero) {
-    query = query.eq('hero', options.hero);
-  }
-
-  // Apply contest filter
-  if (options.contest) {
-    query = query.eq('contest', options.contest);
-  }
-
-  // Apply search filter
-  if (options.search) {
-    query = query.ilike('itemName', `%${options.search}%`);
-  }
-
-  // Fetch the data
-  const { data, error } = await query;
-
-  if (error) {
-    this.debug('Error loading items:', error);
-    throw error;
-  }
-
-  this.debug('Items loaded:', data);
-  return data;
-}
-
-
-  
-};
-
-window.toggleSupabaseDebug = () => {
-  const newMode = SupabaseClient.toggleDebugMode();
-  console.log('Supabase debug mode:', newMode ? 'ENABLED' : 'DISABLED');
-};
+// Auto-initialize Supabase client
+document.addEventListener('DOMContentLoaded', () => {
+  SupabaseClient.debug('DOM loaded, initializing...');
+  SupabaseClient.init();
+});
