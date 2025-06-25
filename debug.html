@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BazaarGen Debug Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            line-height: 1.6;
+        }
+        
+        .debug-dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .debug-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .debug-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .debug-section {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .debug-section h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+            background: #f8f9fa;
+        }
+        
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .status-ok { background-color: #28a745; }
+        .status-warning { background-color: #ffc107; }
+        .status-error { background-color: #dc3545; }
+        .status-info { background-color: #17a2b8; }
+        
+        .debug-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .debug-button:hover {
+            background: #0056b3;
+        }
+        
+        .debug-button.secondary {
+            background: #6c757d;
+        }
+        
+        .debug-button.danger {
+            background: #dc3545;
+        }
+        
+        .debug-output {
+            background: #1e1e1e;
+            color: #ffffff;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        
+        .debug-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        
+        .debug-table th,
+        .debug-table td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .debug-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .debug-actions {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .refresh-status {
+            float: right;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="debug-dashboard">
+        <div class="debug-header">
+            <h1>🔧 BazaarGen Debug Dashboard</h1>
+            <p>Monitor authentication, database connections, and system status</p>
+            <div class="refresh-status" id="refreshStatus">Last updated: Never</div>
+        </div>
+
+        <div class="debug-grid">
+            <!-- Google Authentication Status -->
+            <div class="debug-section">
+                <h3>🔐 Google Authentication</h3>
+                <div id="authStatus">
+                    <div class="status-indicator">
+                        <div class="status-dot status-info" id="authStatusDot"></div>
+                        <span id="authStatusText">Checking...</span>
+                    </div>
+                </div>
+                
+                <table class="debug-table" id="authTable">
+                    <tr><th>Property</th><th>Value</th></tr>
+                    <tr><td>Initialized</td><td id="authInitialized">-</td></tr>
+                    <tr><td>Signed In</td><td id="authSignedIn">-</td></tr>
+                    <tr><td>User Email</td><td id="authEmail">-</td></tr>
+                    <tr><td>Display Name</td><td id="authDisplayName">-</td></tr>
+                    <tr><td>Google API</td><td id="authGoogleAPI">-</td></tr>
+                </table>
+                
+                <button class="debug-button" onclick="testGoogleAuth()">Test Auth</button>
+                <button class="debug-button secondary" onclick="toggleGoogleAuthDebug()">Toggle Debug</button>
+                <button class="debug-button danger" onclick="signOut()" id="signOutBtn">Sign Out</button>
+            </div>
+
+            <!-- Database Connection Status -->
+            <div class="debug-section">
+                <h3>🗄️ Database Connection</h3>
+                <div id="dbStatus">
+                    <div class="status-indicator">
+                        <div class="status-dot status-info" id="dbStatusDot"></div>
+                        <span id="dbStatusText">Checking...</span>
+                    </div>
+                </div>
+                
+                <table class="debug-table" id="dbTable">
+                    <tr><th>Property</th><th>Value</th></tr>
+                    <tr><td>Initialized</td><td id="dbInitialized">-</td></tr>
+                    <tr><td>Ready</td><td id="dbReady">-</td></tr>
+                    <tr><td>URL</td><td id="dbUrl">-</td></tr>
+                    <tr><td>Connection</td><td id="dbConnection">-</td></tr>
+                    <tr><td>Total Users</td><td id="dbUsers">-</td></tr>
+                    <tr><td>Total Items</td><td id="dbItems">-</td></tr>
+                </table>
+                
+                <button class="debug-button" onclick="testDatabase()">Test Connection</button>
+                <button class="debug-button secondary" onclick="toggleSupabaseDebug()">Toggle Debug</button>
+            </div>
+
+            <!-- System Libraries -->
+            <div class="debug-section">
+                <h3>📚 System Libraries</h3>
+                <div id="librariesStatus">
+                    <div class="status-indicator">
+                        <div class="status-dot status-info" id="libStatusDot"></div>
+                        <span id="libStatusText">Checking...</span>
+                    </div>
+                </div>
+                
+                <table class="debug-table" id="libTable">
+                    <tr><th>Library</th><th>Status</th></tr>
+                    <tr><td>Google API</td><td id="libGoogle">-</td></tr>
+                    <tr><td>Supabase</td><td id="libSupabase">-</td></tr>
+                    <tr><td>html2canvas</td><td id="libHtml2canvas">-</td></tr>
+                    <tr><td>GoogleAuth</td><td id="libGoogleAuth">-</td></tr>
+                    <tr><td>SupabaseClient</td><td id="libSupabaseClient">-</td></tr>
+                    <tr><td>Forms</td><td id="libForms">-</td></tr>
+                    <tr><td>Messages</td><td id="libMessages">-</td></tr>
+                </table>
+                
+                <button class="debug-button" onclick="checkAllLibraries()">Recheck Libraries</button>
+            </div>
+
+            <!-- Console Output -->
+            <div class="debug-section">
+                <h3>📊 Console Output</h3>
+                <div class="debug-output" id="consoleOutput">
+                    Console messages will appear here...
+                </div>
+                <button class="debug-button" onclick="clearConsoleOutput()">Clear</button>
+                <button class="debug-button secondary" onclick="exportLogs()">Export Logs</button>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="debug-actions">
+            <h3>⚡ Quick Actions</h3>
+            <button class="debug-button" onclick="refreshAllStatus()">🔄 Refresh All</button>
+            <button class="debug-button" onclick="runFullDiagnostic()">🔍 Full Diagnostic</button>
+            <button class="debug-button secondary" onclick="simulateSignIn()">👤 Simulate Sign In</button>
+            <button class="debug-button secondary" onclick="testDatabaseOperations()">💾 Test DB Operations</button>
+            <button class="debug-button danger" onclick="clearAllData()">🗑️ Clear All Data</button>
+        </div>
+    </div>
+
+    <script>
+        // Intercept console messages
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+        const consoleMessages = [];
+
+        function addConsoleMessage(type, args) {
+            const timestamp = new Date().toLocaleTimeString();
+            const message = args.map(arg => 
+                typeof arg === 'object' ? JSON.stringify(arg, null, 2) : String(arg)
+            ).join(' ');
+            
+            consoleMessages.push({ timestamp, type, message });
+            updateConsoleOutput();
+            
+            // Limit console history
+            if (consoleMessages.length > 100) {
+                consoleMessages.shift();
+            }
+        }
+
+        console.log = function(...args) {
+            addConsoleMessage('log', args);
+            originalLog.apply(console, args);
+        };
+
+        console.error = function(...args) {
+            addConsoleMessage('error', args);
+            originalError.apply(console, args);
+        };
+
+        console.warn = function(...args) {
+            addConsoleMessage('warn', args);
+            originalWarn.apply(console, args);
+        };
+
+        function updateConsoleOutput() {
+            const output = document.getElementById('consoleOutput');
+            const recent = consoleMessages.slice(-20); // Show last 20 messages
+            
+            output.innerHTML = recent.map(msg => 
+                `<div style="color: ${getMessageColor(msg.type)}">
+                    [${msg.timestamp}] ${msg.message}
+                </div>`
+            ).join('');
+            
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function getMessageColor(type) {
+            switch(type) {
+                case 'error': return '#ff6b6b';
+                case 'warn': return '#feca57';
+                default: return '#ffffff';
+            }
+        }
+
+        function clearConsoleOutput() {
+            consoleMessages.length = 0;
+            updateConsoleOutput();
+        }
+
+        function exportLogs() {
+            const logs = consoleMessages.map(msg => 
+                `[${msg.timestamp}] ${msg.type.toUpperCase()}: ${msg.message}`
+            ).join('\n');
+            
+            const blob = new Blob([logs], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `bazaargen-debug-${new Date().toISOString().split('T')[0]}.txt`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        // Status checking functions
+        function checkAuthStatus() {
+            try {
+                const isInitialized = typeof GoogleAuth !== 'undefined' && GoogleAuth.isInitialized;
+                const isSignedIn = typeof GoogleAuth !== 'undefined' && GoogleAuth.isSignedIn();
+                const userEmail = typeof GoogleAuth !== 'undefined' ? GoogleAuth.getUserEmail() : null;
+                const displayName = typeof GoogleAuth !== 'undefined' ? GoogleAuth.getUserDisplayName() : null;
+                const googleAPI = typeof google !== 'undefined' && google.accounts;
+
+                document.getElementById('authInitialized').textContent = isInitialized ? '✅ Yes' : '❌ No';
+                document.getElementById('authSignedIn').textContent = isSignedIn ? '✅ Yes' : '❌ No';
+                document.getElementById('authEmail').textContent = userEmail || '-';
+                document.getElementById('authDisplayName').textContent = displayName || '-';
+                document.getElementById('authGoogleAPI').textContent = googleAPI ? '✅ Loaded' : '❌ Missing';
+
+                const statusDot = document.getElementById('authStatusDot');
+                const statusText = document.getElementById('authStatusText');
+                const signOutBtn = document.getElementById('signOutBtn');
+
+                if (!googleAPI) {
+                    statusDot.className = 'status-dot status-error';
+                    statusText.textContent = 'Google API not loaded';
+                } else if (!isInitialized) {
+                    statusDot.className = 'status-dot status-warning';
+                    statusText.textContent = 'Not initialized';
+                } else if (isSignedIn) {
+                    statusDot.className = 'status-dot status-ok';
+                    statusText.textContent = 'Signed in and ready';
+                    signOutBtn.style.display = 'inline-block';
+                } else {
+                    statusDot.className = 'status-dot status-info';
+                    statusText.textContent = 'Ready for sign in';
+                    signOutBtn.style.display = 'none';
+                }
+
+            } catch (error) {
+                console.error('Error checking auth status:', error);
+            }
+        }
+
+        async function checkDatabaseStatus() {
+            try {
+                const isInitialized = typeof SupabaseClient !== 'undefined' && SupabaseClient.isInitialized;
+                const isReady = typeof SupabaseClient !== 'undefined' && SupabaseClient.isReady();
+                
+                document.getElementById('dbInitialized').textContent = isInitialized ? '✅ Yes' : '❌ No';
+                document.getElementById('dbReady').textContent = isReady ? '✅ Yes' : '❌ No';
+
+                if (typeof SupabaseClient !== 'undefined' && isReady) {
+                    const connectionInfo = SupabaseClient.getConnectionInfo();
+                    document.getElementById('dbUrl').textContent = connectionInfo.url || '-';
+                    
+                    // Test connection
+                    const connectionTest = await SupabaseClient.testConnection();
+                    document.getElementById('dbConnection').textContent = connectionTest.success ? '✅ Connected' : '❌ Failed';
+                    
+                    // Get statistics
+                    const stats = await SupabaseClient.getStatistics();
+                    document.getElementById('dbUsers').textContent = stats.users || 0;
+                    document.getElementById('dbItems').textContent = stats.items || 0;
+
+                    const statusDot = document.getElementById('dbStatusDot');
+                    const statusText = document.getElementById('dbStatusText');
+
+                    if (connectionTest.success) {
+                        statusDot.className = 'status-dot status-ok';
+                        statusText.textContent = 'Connected and ready';
+                    } else {
+                        statusDot.className = 'status-dot status-error';
+                        statusText.textContent = 'Connection failed';
+                    }
+                } else {
+                    document.getElementById('dbUrl').textContent = '-';
+                    document.getElementById('dbConnection').textContent = '❌ Not ready';
+                    document.getElementById('dbUsers').textContent = '-';
+                    document.getElementById('dbItems').textContent = '-';
+
+                    const statusDot = document.getElementById('dbStatusDot');
+                    const statusText = document.getElementById('dbStatusText');
+                    statusDot.className = 'status-dot status-error';
+                    statusText.textContent = 'Not initialized';
+                }
+
+            } catch (error) {
+                console.error('Error checking database status:', error);
+            }
+        }
+
+        function checkAllLibraries() {
+            const libraries = [
+                { name: 'Google API', check: () => typeof google !== 'undefined', id: 'libGoogle' },
+                { name: 'Supabase', check: () => typeof supabase !== 'undefined', id: 'libSupabase' },
+                { name: 'html2canvas', check: () => typeof html2canvas !== 'undefined', id: 'libHtml2canvas' },
+                { name: 'GoogleAuth', check: () => typeof GoogleAuth !== 'undefined', id: 'libGoogleAuth' },
+                { name: 'SupabaseClient', check: () => typeof SupabaseClient !== 'undefined', id: 'libSupabaseClient' },
+                { name: 'Forms', check: () => typeof Forms !== 'undefined', id: 'libForms' },
+                { name: 'Messages', check: () => typeof Messages !== 'undefined', id: 'libMessages' }
+            ];
+
+            let allLoaded = true;
+
+            libraries.forEach(lib => {
+                const isLoaded = lib.check();
+                document.getElementById(lib.id).textContent = isLoaded ? '✅ Loaded' : '❌ Missing';
+                if (!isLoaded) allLoaded = false;
+            });
+
+            const statusDot = document.getElementById('libStatusDot');
+            const statusText = document.getElementById('libStatusText');
+
+            if (allLoaded) {
+                statusDot.className = 'status-dot status-ok';
+                statusText.textContent = 'All libraries loaded';
+            } else {
+                statusDot.className = 'status-dot status-error';
+                statusText.textContent = 'Some libraries missing';
+            }
+        }
+
+        async function refreshAllStatus() {
+            console.log('🔄 Refreshing all status...');
+            checkAuthStatus();
+            await checkDatabaseStatus();
+            checkAllLibraries();
+            document.getElementById('refreshStatus').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+        }
+
+        async function runFullDiagnostic() {
+            console.log('🔍 Running full diagnostic...');
+            
+            console.log('=== FULL DIAGNOSTIC REPORT ===');
+            console.log('Timestamp:', new Date().toISOString());
+            
+            // Check all systems
+            await refreshAllStatus();
+            
+            // Test auth if available
+            if (typeof testGoogleAuth === 'function') {
+                await testGoogleAuth();
+            }
+            
+            // Test database if available
+            if (typeof testDatabase === 'function') {
+                await testDatabase();
+            }
+            
+            console.log('=== DIAGNOSTIC COMPLETE ===');
+        }
+
+        function simulateSignIn() {
+            console.log('👤 Simulating sign in process...');
+            if (typeof GoogleAuth !== 'undefined') {
+                GoogleAuth.promptSignIn();
+            } else {
+                console.error('GoogleAuth not available');
+            }
+        }
+
+        async function testDatabaseOperations() {
+            console.log('💾 Testing database operations...');
+            
+            if (typeof SupabaseClient === 'undefined' || !SupabaseClient.isReady()) {
+                console.error('Database not ready for testing');
+                return;
+            }
+
+            try {
+                // Test connection
+                const connectionTest = await SupabaseClient.testConnection();
+                console.log('Connection test:', connectionTest);
+
+                // Test statistics
+                const stats = await SupabaseClient.getStatistics();
+                console.log('Database statistics:', stats);
+
+                console.log('✅ Database operations test completed');
+            } catch (error) {
+                console.error('❌ Database operations test failed:', error);
+            }
+        }
+
+        function clearAllData() {
+            if (confirm('Are you sure you want to clear all local data? This will sign you out and clear all stored information.')) {
+                console.log('🗑️ Clearing all local data...');
+                
+                // Clear session storage
+                sessionStorage.clear();
+                
+                // Clear local storage
+                localStorage.clear();
+                
+                // Sign out if possible
+                if (typeof GoogleAuth !== 'undefined' && GoogleAuth.isSignedIn()) {
+                    GoogleAuth.signOut();
+                }
+                
+                console.log('✅ All local data cleared');
+                setTimeout(() => location.reload(), 1000);
+            }
+        }
+
+        // Global test functions
+        window.testGoogleAuth = async function() {
+            if (typeof GoogleAuth !== 'undefined') {
+                console.log('=== Google Auth Test ===');
+                console.log('Is initialized:', GoogleAuth.isInitialized);
+                console.log('Is signed in:', GoogleAuth.isSignedIn());
+                console.log('User email:', GoogleAuth.getUserEmail());
+                console.log('Display name:', GoogleAuth.getUserDisplayName());
+                console.log('User profile:', GoogleAuth.getUserProfile());
+            } else {
+                console.error('GoogleAuth not available');
+            }
+        };
+
+        window.testDatabase = async function() {
+            if (typeof SupabaseClient !== 'undefined') {
+                console.log('=== Database Test ===');
+                const info = SupabaseClient.getConnectionInfo();
+                console.log('Connection info:', info);
+                
+                if (SupabaseClient.isReady()) {
+                    const test = await SupabaseClient.testConnection();
+                    console.log('Connection test:', test);
+                }
+            } else {
+                console.error('SupabaseClient not available');
+            }
+        };
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🔧 Debug Dashboard loaded');
+            setTimeout(refreshAllStatus, 1000);
+            
+            // Auto-refresh every 30 seconds
+            setInterval(refreshAllStatus, 30000);
+        });
+    </script>
+</body>
+</html>
