@@ -1,4 +1,79 @@
 /**
+   * Handle tag input changes to manage weapon tag conflicts
+   */
+  static handleTagInputChange() {
+    // Check if user manually added "Weapon" tag
+    const tagInputs = document.querySelectorAll('#tagInputs input:not([data-auto-added])');
+    const hasManualWeaponTag = Array.from(tagInputs).some(input => 
+      input.value.toLowerCase() === 'weapon'
+    );
+
+    if (hasManualWeaponTag) {
+      // Remove auto weapon tag if user added manual one
+      this.removeAutoWeaponTag();
+    } else {
+      // Update auto weapon tag based on damage value
+      this.updateWeaponTagIndicator();
+    }
+  }
+
+  /**
+   * Add a new tag input field
+   */
+  static addTagInput() {
+    const container = document.getElementById("tagInputs");
+    if (!container) return;
+    
+    const inputGroup = document.createElement("div");
+    inputGroup.className = "tag-input-group";
+    
+    const input = document.createElement("input");
+    input.type = "text";
+    input.placeholder = "Enter tag text";
+    input.className = "form-input";
+    
+    // Add event listeners for preview updates
+    input.addEventListener('input', (e) => {
+      this.handleInputChange(e.target);
+      // Check for weapon tag conflicts when user types
+      this.handleTagInputChange();
+    });
+    
+    input.addEventListener('blur', (e) => {
+      this.validateField(e.target);
+      this.handleTagInputChange();
+    });
+    
+    // Add change event as well to be sure
+    input.addEventListener('change', (e) => {
+      this.handleInputChange(e.target);
+      this.handleTagInputChange();
+    });
+    
+    const removeButton = document.createElement("button");
+    removeButton.type = "button";
+    removeButton.textContent = "Remove";
+    removeButton.className = "form-button remove";
+    removeButton.onclick = () => {
+      container.removeChild(inputGroup);
+      // Trigger preview update after removal
+      this.handleInputChange(input);
+      // Re-check weapon tag after removal
+      setTimeout(() => this.handleTagInputChange(), 100);
+    };
+    
+    inputGroup.appendChild(input);
+    inputGroup.appendChild(removeButton);
+    container.appendChild(inputGroup);
+
+    // Focus on new input
+    input.focus();
+    
+    // Immediately trigger a preview update to ensure the new input is recognized
+    setTimeout(() => {
+      this.handleInputChange(input);
+    }, 100);
+  }/**
  * Form Utilities and Event Handlers
  * Handles form interactions, dynamic inputs, and form validation UI
  */
@@ -215,6 +290,9 @@ class Forms {
       existingIndicator.remove();
     }
 
+    // Remove existing auto-weapon tag
+    this.removeAutoWeaponTag();
+
     const damageValue = damageInput.value;
     if (damageValue && damageValue.trim() !== '' && damageValue.trim() !== '0' && damageValue.trim().toLowerCase() !== 'n/a') {
       // Create indicator
@@ -222,7 +300,51 @@ class Forms {
       indicator.className = 'weapon-tag-indicator';
       indicator.innerHTML = '<small style="color: #4caf50; font-size: 12px; margin-top: 4px;">⚔️ "Weapon" tag will be auto-added</small>';
       damageInput.parentNode.appendChild(indicator);
+
+      // Add actual weapon tag to DOM
+      this.addAutoWeaponTag();
     }
+  }
+
+  /**
+   * Add auto weapon tag to the tags container
+   */
+  static addAutoWeaponTag() {
+    const tagsContainer = document.getElementById('tagInputs');
+    if (!tagsContainer) return;
+
+    // Check if weapon tag already exists (user-added or auto-added)
+    const existingWeaponTags = Array.from(tagsContainer.querySelectorAll('input')).filter(input => 
+      input.value.toLowerCase() === 'weapon'
+    );
+    
+    if (existingWeaponTags.length > 0) return; // Don't add if already exists
+
+    // Create hidden weapon tag input
+    const weaponTagGroup = document.createElement('div');
+    weaponTagGroup.className = 'tag-input-group auto-weapon-tag';
+    weaponTagGroup.style.display = 'none'; // Hidden from user
+    
+    const weaponInput = document.createElement('input');
+    weaponInput.type = 'text';
+    weaponInput.value = 'Weapon';
+    weaponInput.className = 'form-input';
+    weaponInput.setAttribute('data-auto-added', 'true');
+    
+    weaponTagGroup.appendChild(weaponInput);
+    tagsContainer.appendChild(weaponTagGroup);
+  }
+
+  /**
+   * Remove auto weapon tag from the tags container
+   */
+  static removeAutoWeaponTag() {
+    const tagsContainer = document.getElementById('tagInputs');
+    if (!tagsContainer) return;
+
+    // Remove only auto-added weapon tags
+    const autoWeaponTags = tagsContainer.querySelectorAll('.auto-weapon-tag');
+    autoWeaponTags.forEach(tag => tag.remove());
   }
 
   /**
@@ -1151,20 +1273,9 @@ static setupPassiveInputs() {
       }
     });
 
-    // Get dynamic inputs
+    // Get dynamic inputs (including auto-added weapon tag)
     const tagInputs = document.querySelectorAll('#tagInputs input');
-    let tags = Array.from(tagInputs).map(input => input.value.trim()).filter(val => val);
-
-    // Auto-add "Weapon" tag if damage is present and not zero
-    const damageValue = document.getElementById('damageScalingInput')?.value;
-    if (damageValue && damageValue.trim() !== '' && damageValue.trim() !== '0' && damageValue.trim().toLowerCase() !== 'n/a') {
-      // Only add "Weapon" tag if it's not already present
-      if (!tags.some(tag => tag.toLowerCase() === 'weapon')) {
-        tags.push('Weapon');
-      }
-    }
-
-    formData.tags = tags;
+    formData.tags = Array.from(tagInputs).map(input => input.value.trim()).filter(val => val);
 
     const onUseInputs = document.querySelectorAll('#onUseInputs input');
     formData.onUseEffects = Array.from(onUseInputs).map(input => input.value.trim()).filter(val => val);
