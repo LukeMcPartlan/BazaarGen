@@ -23,6 +23,11 @@ class Forms {
       this.setupDefaultImage(); // Add default image setup
       this.setupDefaultValues(); // Add default form values
       
+      // Update weapon tag indicator after defaults are set
+      setTimeout(() => {
+        this.updateWeaponTagIndicator();
+      }, 200);
+      
       // Ensure any existing dynamic inputs are properly initialized
       setTimeout(() => {
         this.reinitializeDynamicInputs();
@@ -182,6 +187,11 @@ class Forms {
     clearTimeout(element.changeTimeout);
     element.changeTimeout = setTimeout(() => {
       
+      // If damage input changed, show weapon tag indicator
+      if (element.id === 'damageScalingInput') {
+        this.updateWeaponTagIndicator();
+      }
+      
       // Determine if we're on cards or skills page
       if (window.location.pathname.includes('skills') || document.getElementById('skillNameInput')) {
         this.updateSkillPreview();
@@ -190,6 +200,29 @@ class Forms {
       }
       
     }, 300); // 300ms debounce
+  }
+
+  /**
+   * Update weapon tag indicator based on damage value
+   */
+  static updateWeaponTagIndicator() {
+    const damageInput = document.getElementById('damageScalingInput');
+    if (!damageInput) return;
+
+    // Remove existing indicator
+    const existingIndicator = damageInput.parentNode.querySelector('.weapon-tag-indicator');
+    if (existingIndicator) {
+      existingIndicator.remove();
+    }
+
+    const damageValue = damageInput.value;
+    if (damageValue && damageValue.trim() !== '' && damageValue.trim() !== '0' && damageValue.trim().toLowerCase() !== 'n/a') {
+      // Create indicator
+      const indicator = document.createElement('div');
+      indicator.className = 'weapon-tag-indicator';
+      indicator.innerHTML = '<small style="color: #4caf50; font-size: 12px; margin-top: 4px;">⚔️ "Weapon" tag will be auto-added</small>';
+      damageInput.parentNode.appendChild(indicator);
+    }
   }
 
   /**
@@ -511,7 +544,7 @@ static setupPassiveInputs() {
     input.type = "text";
     input.placeholder = "Enter on use effect description";
     input.className = "form-input";
-    input.value = "Deal 50 /d to the enemy"; // Default text
+    input.value = "Deal 50 /d  Damage"; // Default text
     
     // Add event listeners for preview updates
     input.addEventListener('input', (e) => {
@@ -613,7 +646,7 @@ static setupPassiveInputs() {
     input.type = "text";
     input.placeholder = "Enter passive effect description";
     input.className = "form-input";
-    input.value = "When you use an item, gain 1 /h for 3 seconds"; // Default text
+    input.value = "When you use an ajacent item, haste this for /h 1 second and this gains /d 20 damage for the fight"; // Default text
     
     // Add event listeners for preview updates
     input.addEventListener('input', (e) => {
@@ -936,6 +969,8 @@ static setupPassiveInputs() {
       if (onUseContainer && onUseContainer.children.length === 0) {
         this.addOnUseInputWithDefault();
       }
+      // Update weapon tag indicator
+      this.updateWeaponTagIndicator();
     }, 100);
   }
 
@@ -957,6 +992,11 @@ static setupPassiveInputs() {
     if (passiveInputs) {
       passiveInputs.innerHTML = '';
     }
+
+    // Clear weapon tag indicators
+    document.querySelectorAll('.weapon-tag-indicator').forEach(indicator => {
+      indicator.remove();
+    });
   }
 
   /**
