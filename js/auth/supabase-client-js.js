@@ -586,16 +586,11 @@ class SupabaseClient {
         throw new Error('Database not available');
       }
 
-      // Start with base query - get items with user info
-      let query = this.supabase
-        .from('items')
-        .select(`
-          *,
-          users!items_user_email_fkey (
-            alias
-          )
-        `)
-        .order('created_at', { ascending: false });
+     // Start with base query - get all items
+let query = this.supabase
+  .from('items')
+  .select('*')
+  .order('created_at', { ascending: false });
 
       // Apply hero filter
       if (options.hero) {
