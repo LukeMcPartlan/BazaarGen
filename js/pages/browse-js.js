@@ -1,10 +1,9 @@
-@@ -1,725 +1,43 @@
 /**
  * Browse Page Controller
  * Handles browsing community-created items and skills
  */
 class BrowsePageController {
-
+  
   static allItems = [];
   static displayedItems = [];
   static currentPage = 0;
@@ -54,7 +53,7 @@ class BrowsePageController {
     if (this.sortBy) this.sortBy.addEventListener('change', () => this.handleFilterChange());
     if (this.heroFilter) this.heroFilter.addEventListener('change', () => this.handleFilterChange());
     if (this.contestFilter) this.contestFilter.addEventListener('change', () => this.handleFilterChange());
-
+    
     // Debounced search
     if (this.searchInput) {
       let searchTimeout;
@@ -88,7 +87,7 @@ class BrowsePageController {
 
     const attemptInitialization = async () => {
       attempts++;
-
+      
       if (attempts > maxAttempts) {
         this.showError('Failed to load required libraries after multiple attempts. Please refresh the page.');
         return;
@@ -116,7 +115,7 @@ class BrowsePageController {
    */
   static async loadItems() {
     if (this.isLoading) return;
-
+    
     this.isLoading = true;
     this.showLoading(true);
     this.hideMessages();
@@ -124,22 +123,22 @@ class BrowsePageController {
     try {
       const filters = this.getFilters();
       const options = this.buildQueryOptions(filters);
-
+      
       const data = await SupabaseClient.loadItems(options);
-
+      
       this.allItems = data || [];
       this.displayedItems = [];
       this.currentPage = 0;
-
+      
       // Clear the grid before adding new items
       if (this.itemsGrid) {
         this.itemsGrid.innerHTML = '';
       }
-
+      
       this.updateStats();
       this.isLoading = false;
       this.showLoading(false);
-
+      
       // Force load initial items
       this.loadMoreItems();
 
@@ -215,7 +214,7 @@ static async loadMoreItems() {
 
   this.updateStats();
   this.updateLoadMoreButton();
-
+  
   // Force a check if we need to load more immediately
   if (this.displayedItems.length < 20 && this.displayedItems.length < this.allItems.length) {
     setTimeout(() => this.loadMoreItems(), 100);
@@ -365,7 +364,7 @@ static async createItemCard(item) {
     const itemData = item.item_data || {};
     const createdDate = new Date(item.created_at).toLocaleDateString();
     const createdBy = item.users?.alias || 'Unknown';
-
+    
     let details = `Item: ${itemData.name || 'Unnamed'}\n`;
     details += `Created by: ${createdBy}\n`;
     details += `Hero: ${itemData.hero || 'Unknown'}\n`;
@@ -373,24 +372,24 @@ static async createItemCard(item) {
     details += `Rarity: ${itemData.rarity || 'Unknown'}\n`;
     details += `Created: ${createdDate}\n`;
     details += `Contest: ${item.contest_number > 0 ? `Contest ${item.contest_number}` : 'General'}\n`;
-
+    
     if (itemData.cooldown) details += `Cooldown: ${itemData.cooldown}s\n`;
     if (itemData.ammo) details += `Ammo: ${itemData.ammo}\n`;
     if (itemData.crit) details += `Crit: ${itemData.crit}%\n`;
     if (itemData.multicast && parseInt(itemData.multicast) > 1) details += `Multicast: ${itemData.multicast}\n`;
-
+    
     if (itemData.passive_effect) {
       details += `\nPassive Effect:\n${itemData.passive_effect}\n`;
     }
-
+    
     if (itemData.on_use_effects?.length) {
       details += `\nOn Use Effects:\n${itemData.on_use_effects.map(effect => `• ${effect}`).join('\n')}\n`;
     }
-
+    
     if (itemData.tags?.length) {
       details += `\nTags: ${itemData.tags.join(', ')}\n`;
     }
-
+    
     if (itemData.scaling_values) {
       const scalings = Object.entries(itemData.scaling_values)
         .filter(([key, value]) => value && value.toString().trim())
@@ -582,14 +581,14 @@ static async createItemCard(item) {
    */
   static cycleSortFilter(direction) {
     if (!this.sortBy) return;
-
+    
     const options = Array.from(this.sortBy.options);
     const currentIndex = this.sortBy.selectedIndex;
     let newIndex = currentIndex + direction;
-
+    
     if (newIndex < 0) newIndex = options.length - 1;
     if (newIndex >= options.length) newIndex = 0;
-
+    
     this.sortBy.selectedIndex = newIndex;
     this.handleFilterChange();
   }
@@ -600,14 +599,14 @@ static async createItemCard(item) {
    */
   static cycleHeroFilter(direction) {
     if (!this.heroFilter) return;
-
+    
     const options = Array.from(this.heroFilter.options);
     const currentIndex = this.heroFilter.selectedIndex;
     let newIndex = currentIndex + direction;
-
+    
     if (newIndex < 0) newIndex = options.length - 1;
     if (newIndex >= options.length) newIndex = 0;
-
+    
     this.heroFilter.selectedIndex = newIndex;
     this.handleFilterChange();
   }
@@ -632,7 +631,7 @@ static async createItemCard(item) {
         const saved = localStorage.getItem('bazaargen_browse_filters');
         if (saved) {
           const filters = JSON.parse(saved);
-
+          
           if (this.sortBy && filters.sortBy) this.sortBy.value = filters.sortBy;
           if (this.heroFilter && filters.hero) this.heroFilter.value = filters.hero;
           if (this.searchInput && filters.search) this.searchInput.value = filters.search;
@@ -671,43 +670,56 @@ static async createItemCard(item) {
 static async createCommentsSection(itemId) {
   const commentsContainer = document.createElement('div');
   commentsContainer.className = 'comments-section';
-  // Use the same styling as defined in CSS instead of inline white background
-  
-  // Comments header with proper theming
-  const header = document.createElement('div');
-  header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;';
-  header.innerHTML = `
-    <h4 style="margin: 0; color: rgb(251, 225, 183); font-size: 18px; text-transform: uppercase; letter-spacing: 1px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">Comments</h4>
-    <button class="toggle-comments-btn">Show/Hide</button>
+  commentsContainer.style.cssText = `
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 0 0 8px 8px;
+    padding: 15px;
+    margin-top: -1px;
   `;
 
-  // Comments list with proper theming
+  // Comments header
+  const header = document.createElement('div');
+  header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;';
+  header.innerHTML = `
+    <h4 style="margin: 0; color: #333; font-size: 16px;">Comments</h4>
+    <button class="toggle-comments-btn" style="
+      background: none;
+      border: 1px solid #ddd;
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      color: #666;
+    ">Show/Hide</button>
+  `;
+
+  // Comments list
   const commentsList = document.createElement('div');
   commentsList.className = 'comments-list';
   commentsList.id = `comments-${itemId}`;
-  commentsList.style.display = 'none'; // Start hidden
+  commentsList.style.cssText = 'max-height: 300px; overflow-y: auto; margin-bottom: 10px;';
 
-  // Add comment form with proper theming
+  // Add comment form (only if user is signed in)
   const commentForm = document.createElement('div');
   commentForm.className = 'comment-form';
-  commentForm.style.display = 'none'; // Start hidden
   
   if (window.GoogleAuth && GoogleAuth.isSignedIn()) {
     commentForm.innerHTML = `
-      <div style="display: flex; gap: 10px; margin-top: 15px; border-top: 2px solid rgb(218, 165, 32); padding-top: 15px;">
+      <div style="display: flex; gap: 10px; margin-top: 10px;">
         <input type="text" 
                id="comment-input-${itemId}" 
                placeholder="Add a comment..." 
-               class="comment-form-input">
+               style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
         <button onclick="BrowsePageController.addComment('${itemId}')" 
-                class="comment-form-button">
+                style="padding: 8px 16px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">
           Post
         </button>
       </div>
     `;
   } else {
     commentForm.innerHTML = `
-      <div style="text-align: center; padding: 20px; color: rgb(251, 225, 183); font-style: italic; background: linear-gradient(135deg, rgba(74, 60, 46, 0.5) 0%, rgba(89, 72, 51, 0.4) 100%); border-radius: 8px; border: 2px dashed rgba(218, 165, 32, 0.5); text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);">
+      <div style="text-align: center; padding: 10px; color: #666; font-style: italic;">
         Sign in to comment
       </div>
     `;
@@ -716,20 +728,13 @@ static async createCommentsSection(itemId) {
   // Load comments
   await this.loadComments(itemId, commentsList);
 
-  // Toggle functionality with improved UX
+  // Toggle functionality
   const toggleBtn = header.querySelector('.toggle-comments-btn');
-  let isExpanded = false;
-  
   toggleBtn.addEventListener('click', () => {
-    isExpanded = !isExpanded;
-    commentsList.style.display = isExpanded ? 'block' : 'none';
-    commentForm.style.display = isExpanded ? 'block' : 'none';
-    toggleBtn.textContent = isExpanded ? 'Hide' : 'Show';
-    
-    // Update container width when expanded
-    if (isExpanded) {
-      commentsContainer.style.transition = 'width 0.3s ease';
-    }
+    const isHidden = commentsList.style.display === 'none';
+    commentsList.style.display = isHidden ? 'block' : 'none';
+    commentForm.style.display = isHidden ? 'block' : 'none';
+    toggleBtn.textContent = isHidden ? 'Hide' : 'Show';
   });
 
   commentsContainer.appendChild(header);
@@ -747,7 +752,7 @@ static async createCommentsSection(itemId) {
 static async loadComments(itemId, container) {
   try {
     const comments = await SupabaseClient.getComments(itemId);
-
+    
     if (comments.length === 0) {
       container.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No comments yet</div>';
       return;
@@ -776,7 +781,7 @@ static async loadComments(itemId, container) {
 static async addComment(itemId) {
   const input = document.getElementById(`comment-input-${itemId}`);
   const commentText = input.value.trim();
-
+  
   if (!commentText) {
     Messages.showError('Please enter a comment');
     return;
@@ -784,14 +789,14 @@ static async addComment(itemId) {
 
   try {
     await SupabaseClient.addComment(itemId, commentText);  // Removed 'card' parameter
-
+    
     // Clear input
     input.value = '';
-
+    
     // Reload comments
     const container = document.getElementById(`comments-${itemId}`);
     await this.loadComments(itemId, container);
-
+    
     Messages.showSuccess('Comment added!');
   } catch (error) {
     console.error('Error adding comment:', error);
@@ -803,14 +808,14 @@ static async addComment(itemId) {
 
 
 
-
+  
   /**
    * Show browse statistics
    */
   static async showBrowseStatistics() {
     try {
       const stats = await Database.getStatistics();
-
+      
       const statsModal = document.createElement('div');
       statsModal.style.cssText = `
         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
