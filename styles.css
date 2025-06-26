@@ -1145,7 +1145,10 @@ h1 {
 /* ===== COMMENTS SECTION STYLES ===== */
 .card-wrapper {
   margin-bottom: 30px;
-  width: 100%;
+  width: fit-content; /* Changed from 100% */
+  max-width: 100%; /* Ensure responsiveness */
+  position: relative;
+  z-index: 1;
 }
 
 .creator-info {
@@ -1340,7 +1343,19 @@ h1 {
   background: none !important;
 }
 
-
+.items-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 30px;
+  align-items: flex-start;
+  width: 100%;
+}
+.card {
+  width: fit-content !important;
+  max-width: 100%;
+}
 
 
 
