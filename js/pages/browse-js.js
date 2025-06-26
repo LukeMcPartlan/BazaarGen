@@ -271,7 +271,6 @@ static async createItemCard(item) {
     cardData.created_at = item.created_at;
     cardData.creator_alias = creatorAlias;
     cardData.database_id = item.id;
-    commentsList.style.display = 'none';
 
     const cardElement = await CardGenerator.createCard({
       data: cardData,
