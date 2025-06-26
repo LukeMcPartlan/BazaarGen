@@ -1696,6 +1696,19 @@ h1 {
   position: relative; /* Ensure hero-header maintains position context */
 }
 
+/* More specific positioning if needed */
+.card-wrapper .cooldown-section {
+  top: auto;
+  bottom: auto;
+  margin-top: 35px; /* Adjust this value to match index.html positioning */
+}
+
+.card-wrapper .ammo-section {
+  top: auto;
+  bottom: auto;
+  margin-top: 35px; /* Adjust this value to match index.html positioning */
+}
+
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 1200px) {
   .cards-grid {
