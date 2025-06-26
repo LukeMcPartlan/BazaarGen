@@ -668,52 +668,30 @@ static async createCard(options = {}) {
    * Apply card sizing and positioning
    */
   static applyCardSizing(cardElement, cardData) {
-  setTimeout(() => {
-    const imageContainer = cardElement.querySelector('.image-container');
-    const content = cardElement.querySelector('.card-content');
-    const onUseSection = cardElement.querySelector('.on-use-section');
+    setTimeout(() => {
+      const imageContainer = cardElement.querySelector('.image-container');
+      const content = cardElement.querySelector('.card-content');
+      const onUseSection = cardElement.querySelector('.on-use-section');
 
-    if (imageContainer) {
-      let widthRatio = 1.0;
-      if (cardData.itemSize === "Small") {
-        widthRatio = 0.5;
-      } else if (cardData.itemSize === "Large") {
-        widthRatio = 1.5;
+      if (imageContainer) {
+        let widthRatio = 1.0;
+        if (cardData.itemSize === "Small") {
+          widthRatio = 0.5;
+        } else if (cardData.itemSize === "Large") {
+          widthRatio = 1.5;
+        }
+
+        const containerWidth = 150 * widthRatio;
+        imageContainer.style.width = containerWidth + "px";
+
+        const img = imageContainer.querySelector('.uploaded-image');
+        if (img) {
+          img.style.height = "100%";
+          img.style.width = "auto";
+          img.style.objectFit = "cover";
+          img.style.objectPosition = "center";
+        }
       }
-
-      const containerWidth = 150 * widthRatio;
-      imageContainer.style.width = containerWidth + "px";
-
-      const img = imageContainer.querySelector('.uploaded-image');
-      if (img) {
-        img.style.height = "100%";
-        img.style.width = "auto";
-        img.style.objectFit = "cover";
-        img.style.objectPosition = "center";
-      }
-    }
-
-    // Enhanced positioning with multiple attempts and ResizeObserver
-    if (onUseSection && content) {
-      // Initial positioning
-      this.positionElementsRelativeToOnUse(content, onUseSection);
-      
-      // Retry positioning after 100ms in case of layout changes
-      setTimeout(() => {
-        this.positionElementsRelativeToOnUse(content, onUseSection);
-      }, 100);
-      
-      // Use ResizeObserver for dynamic repositioning if available
-      if (window.ResizeObserver) {
-        const resizeObserver = new ResizeObserver(() => {
-          this.positionElementsRelativeToOnUse(content, onUseSection);
-        });
-        resizeObserver.observe(content);
-        resizeObserver.observe(onUseSection);
-      }
-    }
-  }, 0);
-}
 
       // Position cooldown and ammo relative to on-use section
       if (onUseSection && content) {
@@ -726,16 +704,9 @@ static async createCard(options = {}) {
    * Position cooldown and ammo elements relative to on-use section
    */
   static positionElementsRelativeToOnUse(content, onUseSection) {
-  // Force layout calculation
-  content.offsetHeight;
-  onUseSection.offsetHeight;
-  
-  // Use requestAnimationFrame to ensure DOM is fully rendered
-  requestAnimationFrame(() => {
-    const onUseRect = onUseSection.getBoundingClientRect();
-    const contentRect = content.getBoundingClientRect();
+    content.offsetHeight;
+    onUseSection.offsetHeight;
     
-    // Calculate relative position within the content container
     const onUseRelativeTop = onUseSection.offsetTop;
     const onUseHeight = onUseSection.offsetHeight;
     const onUseCenterY = onUseRelativeTop + (onUseHeight / 2);
@@ -743,33 +714,15 @@ static async createCard(options = {}) {
     const cooldownSection = content.querySelector('.cooldown-section');
     const ammoSection = content.querySelector('.ammo-section');
     
-    console.log('🎯 Positioning elements - OnUse center Y:', onUseCenterY);
-    
     if (cooldownSection) {
-      const cooldownHeight = cooldownSection.offsetHeight || 50; // Default height
-      const cooldownCenterY = onUseCenterY - (cooldownHeight / 2);
-      
-      cooldownSection.style.position = 'absolute';
-      cooldownSection.style.top = `${cooldownCenterY}px`;
-      cooldownSection.style.left = '-30px';
-      cooldownSection.style.zIndex = '10';
-      
-      console.log('⏱️ Cooldown positioned at Y:', cooldownCenterY);
+      cooldownSection.style.top = `${onUseCenterY - 25}px`;
     }
     
     if (ammoSection) {
-      const ammoHeight = ammoSection.offsetHeight || 40; // Default height
-      const ammoCenterY = onUseCenterY - (ammoHeight / 2);
-      
-      ammoSection.style.position = 'absolute';
-      ammoSection.style.top = `${ammoCenterY}px`;
-      ammoSection.style.right = '-30px';
-      ammoSection.style.zIndex = '10';
-      
-      console.log('🔫 Ammo positioned at Y:', ammoCenterY);
+      const ammoHeight = ammoSection.offsetHeight;
+      ammoSection.style.top = `${onUseCenterY - (ammoHeight / 2)}px`;
     }
-  });
-}
+  }
 
   // Helper methods
   static getBorderColor(value) {
