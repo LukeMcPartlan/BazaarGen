@@ -704,9 +704,16 @@ static async createCard(options = {}) {
    * Position cooldown and ammo elements relative to on-use section
    */
   static positionElementsRelativeToOnUse(content, onUseSection) {
-    content.offsetHeight;
-    onUseSection.offsetHeight;
+  // Force layout calculation
+  content.offsetHeight;
+  onUseSection.offsetHeight;
+  
+  // Use requestAnimationFrame to ensure DOM is fully rendered
+  requestAnimationFrame(() => {
+    const onUseRect = onUseSection.getBoundingClientRect();
+    const contentRect = content.getBoundingClientRect();
     
+    // Calculate relative position within the content container
     const onUseRelativeTop = onUseSection.offsetTop;
     const onUseHeight = onUseSection.offsetHeight;
     const onUseCenterY = onUseRelativeTop + (onUseHeight / 2);
@@ -714,15 +721,33 @@ static async createCard(options = {}) {
     const cooldownSection = content.querySelector('.cooldown-section');
     const ammoSection = content.querySelector('.ammo-section');
     
+    console.log('🎯 Positioning elements - OnUse center Y:', onUseCenterY);
+    
     if (cooldownSection) {
-      cooldownSection.style.top = `${onUseCenterY - 25}px`;
+      const cooldownHeight = cooldownSection.offsetHeight || 50; // Default height
+      const cooldownCenterY = onUseCenterY - (cooldownHeight / 2);
+      
+      cooldownSection.style.position = 'absolute';
+      cooldownSection.style.top = `${cooldownCenterY}px`;
+      cooldownSection.style.left = '-30px';
+      cooldownSection.style.zIndex = '10';
+      
+      console.log('⏱️ Cooldown positioned at Y:', cooldownCenterY);
     }
     
     if (ammoSection) {
-      const ammoHeight = ammoSection.offsetHeight;
-      ammoSection.style.top = `${onUseCenterY - (ammoHeight / 2)}px`;
+      const ammoHeight = ammoSection.offsetHeight || 40; // Default height
+      const ammoCenterY = onUseCenterY - (ammoHeight / 2);
+      
+      ammoSection.style.position = 'absolute';
+      ammoSection.style.top = `${ammoCenterY}px`;
+      ammoSection.style.right = '-30px';
+      ammoSection.style.zIndex = '10';
+      
+      console.log('🔫 Ammo positioned at Y:', ammoCenterY);
     }
-  }
+  });
+}
 
   // Helper methods
   static getBorderColor(value) {
