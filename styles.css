@@ -1672,6 +1672,30 @@ h1 {
   margin-top: 10px;
 }
 
+/* Fix for cooldown and ammo positioning on browse page */
+.card-wrapper .card {
+  position: relative; /* Ensure card is the positioning context */
+}
+
+.card-wrapper .cooldown-section {
+  top: 50%; /* Add explicit top positioning */
+  transform: translateY(-50%); /* Center vertically */
+}
+
+.card-wrapper .ammo-section {
+  top: 50%; /* Add explicit top positioning */
+  transform: translateY(-50%); /* Center vertically */
+}
+
+/* Alternative: If the above doesn't work, try this more specific fix */
+.card-wrapper .text-section {
+  position: relative; /* Make text-section the positioning context */
+}
+
+.card-wrapper .hero-header {
+  position: relative; /* Ensure hero-header maintains position context */
+}
+
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 1200px) {
   .cards-grid {
@@ -1715,6 +1739,7 @@ h1 {
     padding: 20px;
   }
 }
+
 
 @media (max-width: 768px) {
   .nav-menu {
