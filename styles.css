@@ -1151,6 +1151,56 @@ h1 {
   z-index: 1;
 }
 
+/* Fix for cooldown and ammo positioning */
+.card-wrapper .text-section {
+  position: relative; /* This makes text-section the positioning context */
+}
+
+.card-wrapper .cooldown-section {
+  position: absolute;
+  left: -30px;
+  top: 50%; /* Center vertically on the text section */
+  transform: translateY(-50%); /* Perfect vertical centering */
+  border-radius: 50%;
+  border: 3px solid rgb(52, 45, 68);
+  width: 50px;
+  height: 50px;
+  padding: 0;
+  font-size: 1.2em;
+  line-height: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  background-color: #222;
+  z-index: 1;
+  overflow: visible;
+}
+
+.card-wrapper .ammo-section {
+  position: absolute;
+  right: -30px;
+  top: 50%; /* Center vertically on the text section */
+  transform: translateY(-50%); /* Perfect vertical centering */
+  border-radius: 10px;
+  border: 3px solid silver;
+  padding: 5px 10px;
+  font-size: 0.9em;
+  height: auto;
+  width: auto;
+  z-index: 1;
+  background-color: rgb(37, 26, 12);
+  color: rgb(254, 142, 0);
+  font-weight: bold;
+  font-family: Impact, 'Arial Black', 'Franklin Gothic Bold', Arial, sans-serif;
+  text-shadow: 1px 1px 2px black;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
 .creator-info {
   padding: 12px 20px;
   background: linear-gradient(135deg, rgba(74, 60, 46, 0.9) 0%, rgba(37, 26, 12, 0.8) 100%);
@@ -1162,7 +1212,18 @@ h1 {
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  min-width: 450px; /* Ensure minimum width */
+  min-width: 450px;
+}
+
+.creator-info span:first-child {
+  font-weight: 600;
+  color: rgb(251, 225, 183);
+}
+
+.creator-info span:first-child span {
+  color: rgb(218, 165, 32); /* Better contrast - gold color */
+  font-weight: normal;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .comments-section {
@@ -1172,14 +1233,13 @@ h1 {
   padding: 20px;
   margin-top: -2px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  min-width: 450px; /* Match creator info width */
-  transition: width 0.3s ease; /* Smooth width transition */
+  min-width: 450px;
+  transition: width 0.3s ease;
 }
 
-/* When comments are expanded, make them wider */
 .comments-section:has(.comments-list:not([style*="display: none"])) {
-  width: 600px; /* Wider when expanded */
-  max-width: 90vw; /* Responsive max width */
+  width: 600px;
+  max-width: 90vw;
 }
 
 .comments-section h4 {
@@ -1238,10 +1298,11 @@ h1 {
   border-radius: 4px;
 }
 
+/* Individual comment styling with brown background */
 .comments-list > div {
   padding: 12px;
   border-bottom: 1px solid rgba(218, 165, 32, 0.3);
-  background: rgba(74, 60, 46, 0.5);
+  background: linear-gradient(135deg, rgba(74, 60, 46, 0.7) 0%, rgba(89, 72, 51, 0.6) 100%) !important;
   margin-bottom: 8px;
   border-radius: 6px;
   transition: background 0.3s ease;
@@ -1249,7 +1310,7 @@ h1 {
 }
 
 .comments-list > div:hover {
-  background: rgba(74, 60, 46, 0.7);
+  background: linear-gradient(135deg, rgba(74, 60, 46, 0.9) 0%, rgba(89, 72, 51, 0.8) 100%) !important;
   border-color: rgba(218, 165, 32, 0.4);
 }
 
@@ -1258,18 +1319,22 @@ h1 {
   margin-bottom: 0;
 }
 
+/* Comment username - better contrast */
 .comments-list strong {
   color: rgb(251, 225, 183) !important;
   font-size: 14px;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
+/* Comment date - gold color for contrast */
 .comments-list span[style*="font-size: 12px"] {
   color: rgb(218, 165, 32) !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
+/* Comment text - light color for readability */
 .comments-list div[style*="color: #666"] {
-  color: rgb(201, 175, 133) !important;
+  color: rgb(251, 225, 183) !important;
   font-size: 14px !important;
   line-height: 1.5;
   margin-top: 5px;
@@ -1281,6 +1346,7 @@ h1 {
   margin-top: 15px;
 }
 
+/* Comment input box - brown background */
 .comment-form input {
   flex: 1;
   padding: 10px 15px !important;
@@ -1325,28 +1391,53 @@ h1 {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
+/* Sign in to comment message - brown background */
 .comment-form > div[style*="text-align: center"] {
   text-align: center;
   padding: 20px !important;
-  color: rgb(201, 175, 133) !important;
+  color: rgb(251, 225, 183) !important;
   font-style: italic !important;
-  background: rgba(37, 26, 12, 0.5);
+  background: linear-gradient(135deg, rgba(74, 60, 46, 0.5) 0%, rgba(89, 72, 51, 0.4) 100%) !important;
   border-radius: 8px;
   border: 2px dashed rgba(218, 165, 32, 0.5);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-/* No comments placeholder */
+/* No comments placeholder - with proper background */
 .comments-list > div[style*="text-align: center"] {
   padding: 30px !important;
   text-align: center !important;
   color: rgb(201, 175, 133) !important;
   font-style: italic !important;
-  background: none !important;
-  border: none !important;
+  background: rgba(37, 26, 12, 0.3) !important;
+  border: 2px dashed rgba(218, 165, 32, 0.3) !important;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .comments-list > div[style*="text-align: center"]:hover {
-  background: none !important;
+  background: rgba(37, 26, 12, 0.4) !important;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .creator-info,
+  .comments-section {
+    min-width: 100%;
+    width: 100%;
+  }
+  
+  .comments-section:has(.comments-list:not([style*="display: none"])) {
+    width: 100%;
+  }
+}
+
+/* Additional fix to ensure proper card structure */
+.card-wrapper .card {
+  position: relative;
+}
+
+.card-wrapper .card-content {
+  position: relative;
 }
 
 /* Mobile responsiveness */
@@ -1672,42 +1763,6 @@ h1 {
   margin-top: 10px;
 }
 
-/* Fix for cooldown and ammo positioning on browse page */
-.card-wrapper .card {
-  position: relative; /* Ensure card is the positioning context */
-}
-
-.card-wrapper .cooldown-section {
-  top: 50%; /* Add explicit top positioning */
-  transform: translateY(-50%); /* Center vertically */
-}
-
-.card-wrapper .ammo-section {
-  top: 50%; /* Add explicit top positioning */
-  transform: translateY(-50%); /* Center vertically */
-}
-
-/* Alternative: If the above doesn't work, try this more specific fix */
-.card-wrapper .text-section {
-  position: relative; /* Make text-section the positioning context */
-}
-
-.card-wrapper .hero-header {
-  position: relative; /* Ensure hero-header maintains position context */
-}
-
-/* More specific positioning if needed */
-.card-wrapper .cooldown-section {
-  top: auto;
-  bottom: auto;
-  margin-top: 35px; /* Adjust this value to match index.html positioning */
-}
-
-.card-wrapper .ammo-section {
-  top: auto;
-  bottom: auto;
-  margin-top: 35px; /* Adjust this value to match index.html positioning */
-}
 
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 1200px) {
