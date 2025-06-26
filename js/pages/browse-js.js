@@ -653,7 +653,15 @@ static async createItemCard(item) {
     // Restore filters on page load
     restoreFilters();
   }
-
+ /**
+   * Handle filter changes
+   */
+  static handleFilterChange() {
+    if (this.itemsGrid) {
+      this.itemsGrid.innerHTML = '';
+    }
+    this.loadItems();
+  }
 /**
  * Create comments section for an item
  * @param {string} itemId - Item ID
