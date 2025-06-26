@@ -19,6 +19,28 @@
     <script src="js/pages/browse-js.js"></script>
     
     <link rel="stylesheet" href="styles.css" />
+
+<div id="alias-modal" style="display: none;">
+    <div>
+        <h2 id="alias-modal-title">Welcome to BazaarGen!</h2>
+        <p id="alias-modal-description">Choose an alias to display on the site</p>
+        
+        <input type="text" id="alias-input" placeholder="Enter your alias">
+        
+        <div id="alias-error"></div>
+        
+        <div class="button-group">
+            <button id="alias-cancel-btn" onclick="cancelAliasCreation()">Cancel</button>
+            <button id="alias-save-btn" onclick="saveAlias()">Save Alias</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Google Sign-In -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="js/auth/google-auth-js.js"></script>
+
+    
 </head>
 <body>
     <!-- Navigation -->
@@ -31,6 +53,16 @@
                 <li><a href="#" class="nav-link active">Browse</a></li>
                 <li><a href="contests.html" class="nav-link">Contests</a></li>
             </ul>
+            <div class="nav-actions">
+    <!-- Google Sign-In Button (shown when not signed in) -->
+    <div id="google-signin-button"></div>
+
+    <!-- User Info (shown when signed in) -->
+    <div class="user-info" id="user-info" style="display: none;">
+        <span class="user-alias" id="user-alias" onclick="editAlias()" title="Click to edit alias"></span>
+        <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
+    </div>
+</div>
         </div>
     </nav>
 
