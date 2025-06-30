@@ -412,7 +412,21 @@ class GoogleAuth {
 
     if (userInfo && userAlias && this.userProfile) {
       this.debug('Setting alias display:', this.userProfile.alias);
-      userAlias.textContent = this.userProfile.alias;
+     userAlias.innerHTML = `
+  <a href="profile.html" style="
+    color: rgb(251, 225, 183);
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    padding: 5px 10px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  " onmouseover="this.style.color='rgb(218, 165, 32)'; this.style.background='rgba(218, 165, 32, 0.1)'" 
+     onmouseout="this.style.color='rgb(251, 225, 183)'; this.style.background='transparent'">
+    👤 ${this.userProfile.alias}
+  </a>
       userInfo.style.display = 'flex';
       
       if (signInButton) {
