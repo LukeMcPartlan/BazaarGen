@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Bazaar Generator</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    
+    <!-- Core Styles -->
+    <link rel="stylesheet" href="styles-light.css">
+    <link rel="stylesheet" href="card-styles.css">
+    <link rel="stylesheet" href="browse-styles.css">
+    
+    <!-- Profile-specific styles -->
+    <style>
+        .profile-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, rgb(101, 84, 63) 0%, rgb(89, 72, 51) 100%);
+            border: 2px solid rgb(218, 165, 32);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .profile-header h1 {
+            margin: 0 0 10px 0;
+            color: rgb(251, 225, 183);
+            font-size: 32px;
+        }
+
+        .profile-header p {
+            margin: 0;
+            color: rgb(201, 175, 133);
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: bold;
+            color: rgb(218, 165, 32);
+        }
+
+        .stat-label {
+            color: rgb(201, 175, 133);
+            font-size: 14px;
+        }
+
+        .content-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid rgb(218, 165, 32);
+            padding-bottom: 0;
+        }
+
+        .tab-button {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: rgb(201, 175, 133);
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button.active {
+            color: rgb(251, 225, 183);
+            border-bottom-color: rgb(218, 165, 32);
+        }
+
+        .tab-button:hover {
+            color: rgb(251, 225, 183);
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgb(201, 175, 133);
+            background: rgba(74, 60, 46, 0.2);
+            border: 2px dashed rgba(218, 165, 32, 0.3);
+            border-radius: 12px;
+        }
+
+        .empty-state h3 {
+            color: rgb(251, 225, 183);
+            margin-bottom: 15px;
+        }
+
+        .profile-card-wrapper {
+            position: relative;
+        }
+
+        .profile-delete-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%);
+            border: 2px solid rgb(183, 28, 28);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
+
+        .profile-delete-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+            color: rgb(218, 165, 32);
+            font-size: 24px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav>
+        <div class="nav-left">
+            <a href="index.html" class="nav-logo">⚔️ Bazaar Generator</a>
+        </div>
+        <div class="nav-center">
+            <a href="index.html">Item Generator</a>
+            <a href="skills.html">Skill Generator</a>
+            <a href="browse.html">Browse Items</a>
+            <a href="profile.html" class="active">My Profile</a>
+        </div>
+        <div class="nav-right">
+            <div id="signInDiv"></div>
+            <div id="userInfo" style="display: none;">
+                <span id="userEmail"></span>
+                <button onclick="GoogleAuth.handleSignOut()" class="sign-out-btn">Sign Out</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="profile-container">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <h1 id="profileName">Loading...</h1>
+            <p id="profileEmail">-</p>
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalCards">0</div>
+                    <div class="stat-label">Cards</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="totalSkills">0</div>
+                    <div class="stat-label">Skills</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="totalGalleries">0</div>
+                    <div class="stat-label">Galleries</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Tabs -->
+        <div class="content-tabs">
+            <button class="tab-button active" onclick="ProfileController.switchTab('cards')">
+                ⚔️ My Cards
+            </button>
+            <button class="tab-button" onclick="ProfileController.switchTab('skills')">
+                📜 My Skills
+            </button>
+            <button class="tab-button" onclick="ProfileController.switchTab('galleries')">
+                📦 My Galleries
+            </button>
+        </div>
+
+        <!-- Content Sections -->
+        <div id="cardsSection" class="content-section active">
+            <div id="cardsLoading" class="loading-spinner">Loading cards...</div>
+            <div id="cardsGrid" class="items-grid"></div>
+            <div id="cardsEmpty" class="empty-state" style="display: none;">
+                <h3>No Cards Yet</h3>
+                <p>Create your first card in the <a href="index.html" style="color: rgb(218, 165, 32);">Item Generator</a></p>
+            </div>
+        </div>
+
+        <div id="skillsSection" class="content-section">
+            <div id="skillsLoading" class="loading-spinner">Loading skills...</div>
+            <div id="skillsGrid" class="items-grid"></div>
+            <div id="skillsEmpty" class="empty-state" style="display: none;">
+                <h3>No Skills Yet</h3>
+                <p>Create your first skill in the <a href="skills.html" style="color: rgb(218, 165, 32);">Skill Generator</a></p>
+            </div>
+        </div>
+
+        <div id="galleriesSection" class="content-section">
+            <div id="galleriesLoading" class="loading-spinner">Loading galleries...</div>
+            <div id="galleriesGrid" class="items-grid"></div>
+            <div id="galleriesEmpty" class="empty-state" style="display: none;">
+                <h3>No Galleries Yet</h3>
+                <p>Create galleries by selecting multiple cards in the <a href="index.html" style="color: rgb(218, 165, 32);">Item Generator</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-client-js.js"></script>
+    <script src="auth-js.js"></script>
+    <script src="messages-js.js"></script>
+    <script src="validation-js.js"></script>
+    <script src="keyword-processor-js.js"></script>
+    <script src="card-generator-js.js"></script>
+    <script src="skill-generator-js.js"></script>
+    <script src="gallery-modal-js.js"></script>
+    <script src="profile-controller-js.js"></script>
+</body>
+</html>
