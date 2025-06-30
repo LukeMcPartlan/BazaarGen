@@ -243,99 +243,133 @@ class BrowsePageController {
   }
 
   /**
-   * Create item card element with gallery support
-   */
-  static async createItemCard(item) {
-    if (!item.item_data) {
-      console.warn(`Item ${item.id} has no item_data`);
-      return null;
-    }
-
-    try {
-      // Create a wrapper div for the entire card section
-      const cardWrapper = document.createElement('div');
-      cardWrapper.className = 'card-wrapper';
-      cardWrapper.style.cssText = 'margin-bottom: 30px;';
-
-      // Add collection indicator if item is part of a collection
-      if (item.collectionId) {
-        const collectionInfo = this.collections.get(item.collectionId);
-        const collectionHeader = this.createCollectionHeader(collectionInfo, item);
-        cardWrapper.appendChild(collectionHeader);
-      }
-
-      // Create creator info section
-      const creatorInfo = document.createElement('div');
-      creatorInfo.className = 'creator-info';
-      creatorInfo.style.cssText = `
-        padding: 12px 20px;
-        background: linear-gradient(135deg, rgba(74, 60, 46, 0.9) 0%, rgba(37, 26, 12, 0.8) 100%);
-        border: 2px solid rgb(218, 165, 32);
-        border-radius: 12px 12px 0 0;
-        font-size: 14px;
-        color: rgb(251, 225, 183);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        min-width: 450px;
-      `;
-
-      const creatorAlias = item.user_alias || 'Unknown Creator';
-      const createdDate = new Date(item.created_at).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-
-      creatorInfo.innerHTML = `
-        <span style="font-weight: 600; color: rgb(251, 225, 183);">
-          <span style="color: rgb(218, 165, 32);">Created by:</span> ${creatorAlias}
-        </span>
-        <span style="color: rgb(201, 175, 133); font-size: 12px;">${createdDate}</span>
-      `;
-
-      // Create the card
-      const cardData = item.item_data;
-      cardData.created_at = item.created_at;
-      cardData.creator_alias = creatorAlias;
-      cardData.database_id = item.id;
-
-      const cardElement = await CardGenerator.createCard({
-        data: cardData,
-        mode: 'browser',
-        includeControls: true
-      });
-
-      // Add gallery button if item is part of a collection
-      if (item.collectionId) {
-        const collection = this.collections.get(item.collectionId);
-        if (collection) {
-          GalleryModal.addGalleryButton(
-            cardElement, 
-            collection.items.map(i => i.item_data), 
-            item.collectionIndex
-          );
-        }
-      }
-
-      // Create comments section
-      const commentsSection = await this.createCommentsSection(item.id);
-
-      // Assemble the wrapper
-      if (item.collectionId) {
-        // Collection header already added above
-      }
-      cardWrapper.appendChild(creatorInfo);
-      cardWrapper.appendChild(cardElement);
-      cardWrapper.appendChild(commentsSection);
-
-      return cardWrapper;
-    } catch (error) {
-      console.error('Error creating item card:', error);
-      return null;
-    }
+ * Create item card element with gallery support
+ */
+static async createItemCard(item) {
+  if (!item.item_data) {
+    console.warn(`Item ${item.id} has no item_data`);
+    return null;
   }
+
+  try {
+    // Create a wrapper div for the entire card section
+    const cardWrapper = document.createElement('div');
+    cardWrapper.className = 'card-wrapper';
+    cardWrapper.style.cssText = 'margin-bottom: 30px;';
+
+    // Add collection indicator if item is part of a collection
+    if (item.collectionId) {
+      const collectionInfo = this.collections.get(item.collectionId);
+      const collectionHeader = this.createCollectionHeader(collectionInfo, item);
+      cardWrapper.appendChild(collectionHeader);
+    }
+
+    // Create creator info section
+    const creatorInfo = document.createElement('div');
+    creatorInfo.className = 'creator-info';
+    creatorInfo.style.cssText = `
+      padding: 12px 20px;
+      background: linear-gradient(135deg, rgba(74, 60, 46, 0.9) 0%, rgba(37, 26, 12, 0.8) 100%);
+      border: 2px solid rgb(218, 165, 32);
+      border-radius: 12px 12px 0 0;
+      font-size: 14px;
+      color: rgb(251, 225, 183);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      min-width: 450px;
+    `;
+
+    const creatorAlias = item.user_alias || 'Unknown Creator';
+    const createdDate = new Date(item.created_at).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+
+    creatorInfo.innerHTML = `
+      <span style="font-weight: 600; color: rgb(251, 225, 183);">
+        <span style="color: rgb(218, 165, 32);">Created by:</span> ${creatorAlias}
+      </span>
+      <span style="color: rgb(201, 175, 133); font-size: 12px;">${createdDate}</span>
+    `;
+
+    // Create the card
+    const cardData = item.item_data;
+    cardData.created_at = item.created_at;
+    cardData.creator_alias = creatorAlias;
+    cardData.database_id = item.id;
+
+    const cardElement = await CardGenerator.createCard({
+      data: cardData,
+      mode: 'browser',
+      includeControls: true
+    });
+
+    // GALLERY FEATURE ADDITIONS START HERE
+    
+    // Check if this is a saved gallery and add gallery button
+    if (item.item_data?.isGallery && item.item_data?.galleryItems) {
+      // This is a saved gallery - add gallery button to view it
+      GalleryModal.addGalleryButton(
+        cardElement,
+        item.item_data.galleryItems,
+        0
+      );
+      
+      // Optional: Style the card differently to show it's a gallery
+      const passiveSection = cardElement.querySelector('.passive-section');
+      if (passiveSection) {
+        passiveSection.style.background = 'linear-gradient(135deg, rgba(63, 81, 181, 0.2) 0%, rgba(48, 63, 159, 0.1) 100%)';
+        passiveSection.style.borderColor = 'rgb(63, 81, 181)';
+      }
+      
+      // Add gallery indicator to the creator info
+      const galleryIndicator = document.createElement('span');
+      galleryIndicator.style.cssText = `
+        background: rgb(63, 81, 181);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        margin-left: 10px;
+      `;
+      galleryIndicator.textContent = `📦 Gallery (${item.item_data.galleryItems.length} items)`;
+      creatorInfo.firstElementChild.appendChild(galleryIndicator);
+    }
+    
+    // Also check if item is part of a time-based collection
+    else if (item.collectionId) {
+      const collection = this.collections.get(item.collectionId);
+      if (collection) {
+        GalleryModal.addGalleryButton(
+          cardElement, 
+          collection.items.map(i => i.item_data), 
+          item.collectionIndex
+        );
+      }
+    }
+    
+    // GALLERY FEATURE ADDITIONS END HERE
+
+    // Create comments section
+    const commentsSection = await this.createCommentsSection(item.id);
+
+    // Assemble the wrapper
+    if (item.collectionId) {
+      // Collection header already added above
+    }
+    cardWrapper.appendChild(creatorInfo);
+    cardWrapper.appendChild(cardElement);
+    cardWrapper.appendChild(commentsSection);
+
+    return cardWrapper;
+  } catch (error) {
+    console.error('Error creating item card:', error);
+    return null;
+  }
+}
 
   /**
    * Create collection header for items that are part of collections
