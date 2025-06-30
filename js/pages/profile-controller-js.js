@@ -115,6 +115,7 @@ class ProfileController {
       const cardWrapper = document.createElement('div');
       cardWrapper.className = 'card-wrapper profile-card-wrapper';
       cardWrapper.style.cssText = 'margin-bottom: 30px; position: relative;';
+      cardWrapper.setAttribute('data-item-id', item.id); // Add unique identifier
 
       // Add delete button first (positioned absolutely)
       const deleteBtn = document.createElement('button');
@@ -289,6 +290,7 @@ class ProfileController {
       const wrapper = document.createElement('div');
       wrapper.className = 'profile-card-wrapper';
       wrapper.style.cssText = 'position: relative; margin-bottom: 30px;';
+      wrapper.setAttribute('data-item-id', skill.id); // Add unique identifier
       
       // Add delete button
       const deleteBtn = document.createElement('button');
@@ -427,15 +429,25 @@ class ProfileController {
     
     if (!confirmed) return;
 
+    // Find the card wrapper that contains this item
+    const cardWrapper = document.querySelector(`[data-item-id="${itemId}"]`);
+    
     // Show loading state
-    const deleteButtons = document.querySelectorAll(`[onclick*="${itemId}"]`);
-    deleteButtons.forEach(btn => {
-      btn.disabled = true;
-      btn.innerHTML = '⏳ Deleting...';
-      btn.style.opacity = '0.6';
-    });
+    const deleteButton = cardWrapper ? cardWrapper.querySelector('.profile-delete-btn') : null;
+    if (deleteButton) {
+      deleteButton.disabled = true;
+      deleteButton.innerHTML = '⏳ Deleting...';
+      deleteButton.style.opacity = '0.6';
+    }
+    
+    // Add visual feedback to the card
+    if (cardWrapper) {
+      cardWrapper.style.opacity = '0.6';
+      cardWrapper.style.pointerEvents = 'none';
+    }
     
     try {
+      console.log(`🗑️ Attempting to delete ${type} with ID: ${itemId}, Name: "${itemName}"`);
       Messages.showInfo(`Deleting ${type}...`);
       
       let result;
@@ -445,31 +457,77 @@ class ProfileController {
         result = await SupabaseClient.deleteItem(itemId);
       }
       
-      if (result?.success) {
+      console.log(`🗑️ Delete result:`, result);
+      
+      // Check for successful deletion
+      // In Supabase, success is indicated by error: null
+      if (result && (result.error === null || result.success === true)) {
         Messages.showSuccess(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted successfully`);
         
-        // Reload the appropriate content
+        // Remove the item from our local arrays
         if (type === 'skill') {
-          await this.loadUserSkills();
+          this.userSkills = this.userSkills.filter(skill => skill.id !== itemId);
         } else {
-          await this.loadUserCards();
+          // Remove from both userItems and userGalleries arrays
+          this.userItems = this.userItems.filter(item => item.id !== itemId);
+          this.userGalleries = this.userGalleries.filter(gallery => gallery.id !== itemId);
         }
         
+        // Remove the card wrapper from the DOM with animation
+        if (cardWrapper) {
+          cardWrapper.style.transition = 'all 0.3s ease';
+          cardWrapper.style.opacity = '0';
+          cardWrapper.style.transform = 'scale(0.8)';
+          
+          setTimeout(() => {
+            if (cardWrapper.parentNode) {
+              cardWrapper.remove();
+            }
+          }, 300);
+        }
+        
+        // Update statistics
         this.updateStatistics();
+        
+        console.log(`✅ ${type} deleted successfully from database, removing from UI...`);
+        
+        // Remove the card wrapper from the DOM with animation
+        if (cardWrapper) {
+          cardWrapper.style.transition = 'all 0.3s ease';
+          cardWrapper.style.opacity = '0';
+          cardWrapper.style.transform = 'scale(0.8)';
+          
+          setTimeout(() => {
+            if (cardWrapper.parentNode) {
+              cardWrapper.remove();
+              console.log(`🎯 Card wrapper removed from DOM for ${type} ID: ${itemId}`);
+            }
+          }, 300);
+        } else {
+          console.warn(`⚠️ Could not find card wrapper for ${type} ID: ${itemId}`);
+        }
+        
       } else {
-        throw new Error(result?.error || 'Delete operation failed');
+        // Handle deletion failure
+        const errorMessage = result?.error?.message || result?.error || 'Delete operation failed';
+        throw new Error(errorMessage);
       }
       
     } catch (error) {
       console.error('Error deleting item:', error);
       Messages.showError(`Failed to delete ${type}: ` + error.message);
       
-      // Re-enable buttons on error
-      deleteButtons.forEach(btn => {
-        btn.disabled = false;
-        btn.innerHTML = '🗑️ Delete';
-        btn.style.opacity = '1';
-      });
+      // Re-enable button and restore card on error
+      if (deleteButton) {
+        deleteButton.disabled = false;
+        deleteButton.innerHTML = '🗑️ Delete';
+        deleteButton.style.opacity = '1';
+      }
+      
+      if (cardWrapper) {
+        cardWrapper.style.opacity = '1';
+        cardWrapper.style.pointerEvents = 'auto';
+      }
     }
   }
 }
