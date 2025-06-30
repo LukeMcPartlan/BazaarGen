@@ -394,50 +394,53 @@ class GoogleAuth {
     }
   }
 
-  /**
-   * Update user display in navigation
-   */
-  static updateUserDisplay() {
-    this.debug('Updating user display...');
+ /**
+ * Update user display in navigation
+ */
+static updateUserDisplay() {
+  this.debug('Updating user display...');
+  
+  const userInfo = document.getElementById('user-info');
+  const userAlias = document.getElementById('user-alias');
+  const signInButton = document.getElementById('google-signin-button');
+
+  this.debug('DOM elements found:', {
+    userInfo: !!userInfo,
+    userAlias: !!userAlias,
+    signInButton: !!signInButton
+  });
+
+  if (userInfo && userAlias && this.userProfile) {
+    this.debug('Setting alias display:', this.userProfile.alias);
     
-    const userInfo = document.getElementById('user-info');
-    const userAlias = document.getElementById('user-alias');
-    const signInButton = document.getElementById('google-signin-button');
-
-    this.debug('DOM elements found:', {
-      userInfo: !!userInfo,
-      userAlias: !!userAlias,
-      signInButton: !!signInButton
-    });
-
-    if (userInfo && userAlias && this.userProfile) {
-      this.debug('Setting alias display:', this.userProfile.alias);
-     userAlias.innerHTML = `
-  <a href="profile.html" style="
-    color: rgb(251, 225, 183);
-    text-decoration: none;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    padding: 5px 10px;
-    border-radius: 4px;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-  " onmouseover="this.style.color='rgb(218, 165, 32)'; this.style.background='rgba(218, 165, 32, 0.1)'" 
-     onmouseout="this.style.color='rgb(251, 225, 183)'; this.style.background='transparent'">
-    👤 ${this.userProfile.alias}
-  </a>
-      userInfo.style.display = 'flex';
-      
-      if (signInButton) {
-        signInButton.style.display = 'none';
-      }
-
-      this.debug('User display updated successfully');
-    } else {
-      this.debug('Could not update user display - missing elements or profile');
+    userAlias.innerHTML = `
+      <a href="profile.html" style="
+        color: rgb(251, 225, 183);
+        text-decoration: none;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        padding: 5px 10px;
+        border-radius: 4px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+      " onmouseover="this.style.color='rgb(218, 165, 32)'; this.style.background='rgba(218, 165, 32, 0.1)'" 
+         onmouseout="this.style.color='rgb(251, 225, 183)'; this.style.background='transparent'">
+        👤 ${this.userProfile.alias}
+      </a>
+    `; // <-- THIS WAS MISSING! The closing backtick and semicolon
+    
+    userInfo.style.display = 'flex';
+    
+    if (signInButton) {
+      signInButton.style.display = 'none';
     }
+
+    this.debug('User display updated successfully with clickable profile link');
+  } else {
+    this.debug('Could not update user display - missing elements or profile');
   }
+}
 
   /**
    * Show user as signed in
