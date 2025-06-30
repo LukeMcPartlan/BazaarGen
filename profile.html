@@ -2,13 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>My Profile - Bazaar Generator</title>
     <link rel="icon" type="image/x-icon" href="favicon.ico">
     
+    <!-- External Libraries -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- Core Scripts (matching browse.html structure) -->
+    <script src="js/core/validation-js.js"></script>
+    <script src="js/core/keyword-processor-js.js"></script>
+    <script src="js/core/card-generator-js.js"></script>
+    <script src="js/ui/messages-js.js"></script>
+    
+    <!-- Auth Scripts -->
+    <script src="js/auth/google-auth-js.js"></script>
+    <script src="js/auth/supabase-client-js.js"></script>
+    
+    <!-- UI Scripts -->
+    <script src="js/ui/gallery-modal.js"></script>
+    <script src="js/ui/skill-generator-js.js"></script>
+    
+    <!-- Profile Functionality -->
+    <script src="js/pages/profile-controller-js.js"></script>
+    
     <!-- Core Styles -->
     <link rel="stylesheet" href="styles.css">
-    
     
     <!-- Profile-specific styles -->
     <style>
@@ -32,6 +52,7 @@
             margin: 0 0 10px 0;
             color: rgb(251, 225, 183);
             font-size: 32px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
 
         .profile-header p {
@@ -54,11 +75,14 @@
             font-size: 36px;
             font-weight: bold;
             color: rgb(218, 165, 32);
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
         }
 
         .stat-label {
             color: rgb(201, 175, 133);
             font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
         .content-tabs {
@@ -78,6 +102,9 @@
             font-size: 16px;
             cursor: pointer;
             transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
         }
 
         .tab-button.active {
@@ -87,6 +114,7 @@
 
         .tab-button:hover {
             color: rgb(251, 225, 183);
+            transform: translateY(-2px);
         }
 
         .content-section {
@@ -108,14 +136,28 @@
             text-align: center;
             padding: 60px 20px;
             color: rgb(201, 175, 133);
-            background: rgba(74, 60, 46, 0.2);
-            border: 2px dashed rgba(218, 165, 32, 0.3);
+            background: linear-gradient(135deg, rgba(74, 60, 46, 0.3) 0%, rgba(89, 72, 51, 0.2) 100%);
+            border: 2px dashed rgba(218, 165, 32, 0.4);
             border-radius: 12px;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.2);
         }
 
         .empty-state h3 {
             color: rgb(251, 225, 183);
             margin-bottom: 15px;
+            font-size: 24px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+        }
+
+        .empty-state a {
+            color: rgb(218, 165, 32);
+            text-decoration: none;
+            font-weight: bold;
+            transition: color 0.3s ease;
+        }
+
+        .empty-state a:hover {
+            color: rgb(251, 225, 183);
         }
 
         .profile-card-wrapper {
@@ -135,11 +177,15 @@
             font-weight: bold;
             z-index: 100;
             transition: all 0.3s ease;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
         }
 
         .profile-delete-btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
         }
 
         .loading-spinner {
@@ -148,31 +194,46 @@
             color: rgb(218, 165, 32);
             font-size: 24px;
         }
+
+        .loading-spinner::after {
+            content: "⚔️";
+            animation: spin 2s linear infinite;
+            display: inline-block;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav>
-        <div class="nav-left">
-            <a href="index.html" class="nav-logo">⚔️ Bazaar Generator</a>
-        </div>
-        <div class="nav-center">
-            <a href="index.html">Item Generator</a>
-            <a href="skills.html">Skill Generator</a>
-            <a href="browse.html">Browse Items</a>
-            <a href="profile.html" class="active">My Profile</a>
-        </div>
-        <div class="nav-right">
-            <div id="signInDiv"></div>
-            <div id="userInfo" style="display: none;">
-                <span id="userEmail"></span>
-                <button onclick="GoogleAuth.handleSignOut()" class="sign-out-btn">Sign Out</button>
+    <!-- Navigation (matching browse.html structure) -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">⚔️ BazaarGen</a>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Items</a></li>
+                <li><a href="skills.html" class="nav-link">Skills</a></li>
+                <li><a href="browse.html" class="nav-link">Browse</a></li>
+                <li><a href="contests.html" class="nav-link">Contests</a></li>
+                <li><a href="#" class="nav-link active">Profile</a></li>
+            </ul>
+            <div class="nav-actions">
+                <!-- Google Sign-In Button (shown when not signed in) -->
+                <div id="google-signin-button"></div>
+
+                <!-- User Info (shown when signed in) -->
+                <div class="user-info" id="user-info" style="display: none;">
+                    <span class="user-alias" id="user-alias" onclick="editAlias()" title="Click to edit alias"></span>
+                    <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
+                </div>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <div class="profile-container">
+    <div class="main-content">
         <!-- Profile Header -->
         <div class="profile-header">
             <h1 id="profileName">Loading...</h1>
@@ -212,7 +273,7 @@
             <div id="cardsGrid" class="items-grid"></div>
             <div id="cardsEmpty" class="empty-state" style="display: none;">
                 <h3>No Cards Yet</h3>
-                <p>Create your first card in the <a href="index.html" style="color: rgb(218, 165, 32);">Item Generator</a></p>
+                <p>Create your first card in the <a href="index.html">Item Generator</a></p>
             </div>
         </div>
 
@@ -221,7 +282,7 @@
             <div id="skillsGrid" class="items-grid"></div>
             <div id="skillsEmpty" class="empty-state" style="display: none;">
                 <h3>No Skills Yet</h3>
-                <p>Create your first skill in the <a href="skills.html" style="color: rgb(218, 165, 32);">Skill Generator</a></p>
+                <p>Create your first skill in the <a href="skills.html">Skill Generator</a></p>
             </div>
         </div>
 
@@ -230,21 +291,47 @@
             <div id="galleriesGrid" class="items-grid"></div>
             <div id="galleriesEmpty" class="empty-state" style="display: none;">
                 <h3>No Galleries Yet</h3>
-                <p>Create galleries by selecting multiple cards in the <a href="index.html" style="color: rgb(218, 165, 32);">Item Generator</a></p>
+                <p>Create galleries by selecting multiple cards in the <a href="index.html">Item Generator</a></p>
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-client-js.js"></script>
-    <script src="auth-js.js"></script>
-    <script src="messages-js.js"></script>
-    <script src="validation-js.js"></script>
-    <script src="keyword-processor-js.js"></script>
-    <script src="card-generator-js.js"></script>
-    <script src="skill-generator-js.js"></script>
-    <script src="gallery-modal-js.js"></script>
-    <script src="profile-controller-js.js"></script>
+    <!-- Footer (matching browse.html structure) -->
+    <footer style="background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(89, 72, 51) 100%); border-top: 3px solid rgb(251, 225, 183); margin-top: 40px; padding: 30px 0; text-align: center; box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.3);">
+        <div style="max-width: 800px; margin: 0 auto; padding: 0 20px;">
+            <div style="color: rgb(251, 225, 183); font-size: 1.5em; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">
+                ⚔️ BazaarGen Profile ⚔️
+            </div>
+            <div style="color: rgb(201, 175, 133); font-size: 1em; margin-bottom: 20px; line-height: 1.6;">
+                Manage your personal collection of cards, skills, and galleries
+            </div>
+            
+            <div style="height: 2px; background: linear-gradient(90deg, transparent 0%, rgb(218, 165, 32) 50%, transparent 100%); margin: 20px 0;"></div>
+            
+            <div style="color: rgb(150, 120, 90); font-size: 0.9em; font-style: italic;">
+                © 2025 BazaarGen Profile Manager
+            </div>
+            <div style="color: rgb(150, 120, 90); font-size: 0.9em; margin-top: 8px;">
+                Built for The Bazaar community
+            </div>
+        </div>
+    </footer>
+
+    <!-- Alias Creation Modal (matching browse.html structure) -->
+    <div id="alias-modal" style="display: none;">
+        <div>
+            <h2 id="alias-modal-title">Welcome to BazaarGen!</h2>
+            <p id="alias-modal-description">Choose an alias to display on the site</p>
+            
+            <input type="text" id="alias-input" placeholder="Enter your alias">
+            
+            <div id="alias-error"></div>
+            
+            <div class="button-group">
+                <button id="alias-cancel-btn" onclick="cancelAliasCreation()">Cancel</button>
+                <button id="alias-save-btn" onclick="saveAlias()">Save Alias</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
