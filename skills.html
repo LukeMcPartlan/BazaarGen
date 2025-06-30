@@ -44,29 +44,24 @@
 </head>
 <body>
   <!-- Top Navigation -->
-  <nav class="top-nav">
-    <div class="nav-container">
-      <a href="index.html" class="nav-logo">BazaarGen</a>
-      
-      <ul class="nav-menu" id="nav-menu">
-        <li class="nav-item">
-          <a href="index.html" class="nav-link" data-page="items">Items</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link active" data-page="skills">Skills</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-page="contests">Contests</a>
-        </li>
-      </ul>
-
-      <div class="nav-toggle" id="nav-toggle">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
+  <nav>
+    <div class="nav-left">
+        <a href="index.html" class="nav-logo">⚔️ Bazaar Generator</a>
     </div>
-  </nav>
+    <div class="nav-center">
+        <a href="index.html" class="active">Item Generator</a>
+        <a href="skills.html">Skill Generator</a>
+        <a href="browse.html">Browse Items</a>
+        <a href="profile.html">My Profile</a>
+    </div>
+    <div class="nav-right">
+        <div id="signInDiv"></div>
+        <div id="userInfo" style="display: none;">
+            <span id="userEmail"></span>
+            <button onclick="GoogleAuth.handleSignOut()" class="sign-out-btn">Sign Out</button>
+        </div>
+    </div>
+</nav>
 
   <div class="main-content">
     <!-- Page Header -->
