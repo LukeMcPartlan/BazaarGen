@@ -1,11 +1,12 @@
 /**
- * Browse Page Controller
- * Handles browsing community-created items and skills
+ * Enhanced Browse Page Controller with Gallery Support
+ * Handles browsing community-created items with collection/gallery functionality
  */
 class BrowsePageController {
   
   static allItems = [];
   static displayedItems = [];
+  static collections = new Map(); // Track collections for gallery functionality
   static currentPage = 0;
   static ITEMS_PER_LOAD = 5;
   static isLoading = false;
@@ -94,7 +95,6 @@ class BrowsePageController {
       }
 
       if (SupabaseClient.isReady()) {
-        // Test connection before proceeding
         const testResult = await SupabaseClient.testConnection();
         if (testResult.success) {
           this.loadItems();
@@ -102,7 +102,6 @@ class BrowsePageController {
           this.showError(`Database connection failed: ${testResult.error}`);
         }
       } else {
-        // Retry initialization
         setTimeout(attemptInitialization, checkInterval);
       }
     };
@@ -111,7 +110,7 @@ class BrowsePageController {
   }
 
   /**
-   * Load items from database
+   * Load items from database with collection detection
    */
   static async loadItems() {
     if (this.isLoading) return;
@@ -129,6 +128,9 @@ class BrowsePageController {
       this.allItems = data || [];
       this.displayedItems = [];
       this.currentPage = 0;
+      
+      // Detect and organize collections
+      this.detectCollections(this.allItems);
       
       // Clear the grid before adding new items
       if (this.itemsGrid) {
@@ -151,8 +153,265 @@ class BrowsePageController {
   }
 
   /**
+   * Detect collections based on timing and metadata
+   */
+  static detectCollections(items) {
+    console.log('🔍 Detecting collections from', items.length, 'items...');
+    
+    this.collections.clear();
+    
+    // Group items by creation time (within 2 minutes = likely same upload)
+    const timeGroups = new Map();
+    const TIME_THRESHOLD = 2 * 60 * 1000; // 2 minutes in milliseconds
+    
+    items.forEach((item, index) => {
+      const createdTime = new Date(item.created_at).getTime();
+      const userEmail = item.user_email;
+      const groupKey = `${userEmail}_${Math.floor(createdTime / TIME_THRESHOLD)}`;
+      
+      if (!timeGroups.has(groupKey)) {
+        timeGroups.set(groupKey, []);
+      }
+      
+      timeGroups.get(groupKey).push({
+        ...item,
+        originalIndex: index
+      });
+    });
+    
+    // Convert time groups to collections (only groups with 2+ items)
+    let collectionId = 0;
+    timeGroups.forEach((groupItems, groupKey) => {
+      if (groupItems.length > 1) {
+        const collection = {
+          id: `collection_${collectionId++}`,
+          name: `${groupItems[0].user_alias || 'Unknown'}'s Collection`,
+          description: `${groupItems.length} items uploaded together`,
+          items: groupItems,
+          createdBy: groupItems[0].user_alias || 'Unknown',
+          createdAt: groupItems[0].created_at,
+          userEmail: groupItems[0].user_email
+        };
+        
+        this.collections.set(collection.id, collection);
+        
+        // Mark each item with its collection info
+        groupItems.forEach((item, itemIndex) => {
+          item.collectionId = collection.id;
+          item.collectionIndex = itemIndex;
+          item.collectionTotal = groupItems.length;
+        });
+        
+        console.log(`📦 Detected collection: "${collection.name}" with ${groupItems.length} items`);
+      }
+    });
+    
+    console.log(`✅ Found ${this.collections.size} collections`);
+  }
+
+  /**
+   * Load more items for display with collection awareness
+   */
+  static async loadMoreItems() {
+    if (this.isLoading || this.displayedItems.length >= this.allItems.length) {
+      return;
+    }
+
+    const startIndex = this.displayedItems.length;
+    const endIndex = Math.min(startIndex + this.ITEMS_PER_LOAD, this.allItems.length);
+    const newItems = this.allItems.slice(startIndex, endIndex);
+
+    for (const item of newItems) {
+      try {
+        const itemCard = await this.createItemCard(item);
+        if (itemCard && this.itemsGrid) {
+          this.itemsGrid.appendChild(itemCard);
+          this.displayedItems.push(item);
+        }
+      } catch (error) {
+        console.error(`Failed to create card for item ${item.id}:`, error);
+      }
+    }
+
+    this.updateStats();
+    this.updateLoadMoreButton();
+    
+    // Force a check if we need to load more immediately
+    if (this.displayedItems.length < 20 && this.displayedItems.length < this.allItems.length) {
+      setTimeout(() => this.loadMoreItems(), 100);
+    }
+  }
+
+  /**
+   * Create item card element with gallery support
+   */
+  static async createItemCard(item) {
+    if (!item.item_data) {
+      console.warn(`Item ${item.id} has no item_data`);
+      return null;
+    }
+
+    try {
+      // Create a wrapper div for the entire card section
+      const cardWrapper = document.createElement('div');
+      cardWrapper.className = 'card-wrapper';
+      cardWrapper.style.cssText = 'margin-bottom: 30px;';
+
+      // Add collection indicator if item is part of a collection
+      if (item.collectionId) {
+        const collectionInfo = this.collections.get(item.collectionId);
+        const collectionHeader = this.createCollectionHeader(collectionInfo, item);
+        cardWrapper.appendChild(collectionHeader);
+      }
+
+      // Create creator info section
+      const creatorInfo = document.createElement('div');
+      creatorInfo.className = 'creator-info';
+      creatorInfo.style.cssText = `
+        padding: 12px 20px;
+        background: linear-gradient(135deg, rgba(74, 60, 46, 0.9) 0%, rgba(37, 26, 12, 0.8) 100%);
+        border: 2px solid rgb(218, 165, 32);
+        border-radius: 12px 12px 0 0;
+        font-size: 14px;
+        color: rgb(251, 225, 183);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        min-width: 450px;
+      `;
+
+      const creatorAlias = item.user_alias || 'Unknown Creator';
+      const createdDate = new Date(item.created_at).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+
+      creatorInfo.innerHTML = `
+        <span style="font-weight: 600; color: rgb(251, 225, 183);">
+          <span style="color: rgb(218, 165, 32);">Created by:</span> ${creatorAlias}
+        </span>
+        <span style="color: rgb(201, 175, 133); font-size: 12px;">${createdDate}</span>
+      `;
+
+      // Create the card
+      const cardData = item.item_data;
+      cardData.created_at = item.created_at;
+      cardData.creator_alias = creatorAlias;
+      cardData.database_id = item.id;
+
+      const cardElement = await CardGenerator.createCard({
+        data: cardData,
+        mode: 'browser',
+        includeControls: true
+      });
+
+      // Add gallery button if item is part of a collection
+      if (item.collectionId) {
+        const collection = this.collections.get(item.collectionId);
+        if (collection) {
+          GalleryModal.addGalleryButton(
+            cardElement, 
+            collection.items.map(i => i.item_data), 
+            item.collectionIndex
+          );
+        }
+      }
+
+      // Create comments section
+      const commentsSection = await this.createCommentsSection(item.id);
+
+      // Assemble the wrapper
+      if (item.collectionId) {
+        // Collection header already added above
+      }
+      cardWrapper.appendChild(creatorInfo);
+      cardWrapper.appendChild(cardElement);
+      cardWrapper.appendChild(commentsSection);
+
+      return cardWrapper;
+    } catch (error) {
+      console.error('Error creating item card:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create collection header for items that are part of collections
+   */
+  static createCollectionHeader(collection, currentItem) {
+    const header = document.createElement('div');
+    header.className = 'collection-header';
+    header.style.cssText = `
+      background: linear-gradient(135deg, rgb(63, 81, 181) 0%, rgb(48, 63, 159) 100%);
+      color: white;
+      padding: 10px 20px;
+      border-radius: 8px 8px 0 0;
+      margin-bottom: -2px;
+      border: 2px solid rgb(63, 81, 181);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      min-width: 450px;
+    `;
+
+    const collectionInfo = document.createElement('div');
+    collectionInfo.innerHTML = `
+      <div style="font-weight: bold; margin-bottom: 2px;">
+        📦 ${collection.name}
+      </div>
+      <div style="font-size: 12px; opacity: 0.9;">
+        Item ${currentItem.collectionIndex + 1} of ${currentItem.collectionTotal}
+      </div>
+    `;
+
+    const galleryBtn = document.createElement('button');
+    galleryBtn.style.cssText = `
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 15px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.3s ease;
+    `;
+    galleryBtn.innerHTML = `🖼️ View Collection`;
+    galleryBtn.title = `View all ${currentItem.collectionTotal} items in gallery`;
+
+    galleryBtn.onmouseenter = () => {
+      galleryBtn.style.background = 'rgba(255, 255, 255, 0.3)';
+    };
+
+    galleryBtn.onmouseleave = () => {
+      galleryBtn.style.background = 'rgba(255, 255, 255, 0.2)';
+    };
+
+    galleryBtn.onclick = () => {
+      GalleryModal.open(
+        collection.items.map(item => item.item_data), 
+        currentItem.collectionIndex,
+        {
+          name: collection.name,
+          description: collection.description,
+          itemCount: collection.items.length
+        }
+      );
+    };
+
+    header.appendChild(collectionInfo);
+    header.appendChild(galleryBtn);
+
+    return header;
+  }
+
+  // ... [Keep all the existing methods: updateStats, updateLoadMoreButton, showLoading, etc.] ...
+
+  /**
    * Get current filter values
-   * @returns {Object} Filter values
    */
   static getFilters() {
     return {
@@ -165,8 +424,6 @@ class BrowsePageController {
 
   /**
    * Build query options from filters
-   * @param {Object} filters - Filter values
-   * @returns {Object} Query options
    */
   static buildQueryOptions(filters) {
     const options = {
@@ -187,111 +444,6 @@ class BrowsePageController {
 
     return options;
   }
-
-  /**
-   * Load more items for display
-   */
-static async loadMoreItems() {
-  if (this.isLoading || this.displayedItems.length >= this.allItems.length) {
-    return;
-  }
-
-  const startIndex = this.displayedItems.length;
-  const endIndex = Math.min(startIndex + this.ITEMS_PER_LOAD, this.allItems.length);
-  const newItems = this.allItems.slice(startIndex, endIndex);
-
-  for (const item of newItems) {
-    try {
-      const itemCard = await this.createItemCard(item);
-      if (itemCard && this.itemsGrid) {
-        this.itemsGrid.appendChild(itemCard);
-        this.displayedItems.push(item);
-      }
-    } catch (error) {
-      console.error(`Failed to create card for item ${item.id}:`, error);
-    }
-  }
-
-  this.updateStats();
-  this.updateLoadMoreButton();
-  
-  // Force a check if we need to load more immediately
-  if (this.displayedItems.length < 20 && this.displayedItems.length < this.allItems.length) {
-    setTimeout(() => this.loadMoreItems(), 100);
-  }
-}
-
- /**
- * Create item card element
- * @param {Object} item - Item data from database
- * @returns {HTMLElement|null} Created card element
- */
-static async createItemCard(item) {
-  if (!item.item_data) {
-    console.warn(`Item ${item.id} has no item_data`);
-    return null;
-  }
-
-  try {
-    // Create a wrapper div for the entire card section
-    const cardWrapper = document.createElement('div');
-    cardWrapper.className = 'card-wrapper';
-    cardWrapper.style.cssText = 'margin-bottom: 30px;';
-
-    // Create creator info section
-    const creatorInfo = document.createElement('div');
-    creatorInfo.className = 'creator-info';
-    creatorInfo.style.cssText = `
-      padding: 10px 15px;
-      background: rgba(0,0,0,0.05);
-      border-radius: 8px 8px 0 0;
-      font-size: 14px;
-      color: #666;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    `;
-
-    const creatorAlias = item.user_alias || 'Unknown Creator';
-    const createdDate = new Date(item.created_at).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-
-    creatorInfo.innerHTML = `
-      <span style="font-weight: 600; color: #333;">
-        <span style="color: #888;">Created by:</span> ${creatorAlias}
-      </span>
-      <span style="color: #999; font-size: 12px;">${createdDate}</span>
-    `;
-
-    // Create the card
-    const cardData = item.item_data;
-    cardData.created_at = item.created_at;
-    cardData.creator_alias = creatorAlias;
-    cardData.database_id = item.id;
-
-    const cardElement = await CardGenerator.createCard({
-      data: cardData,
-      mode: 'browser',
-      includeControls: true
-    });
-
-    // Create comments section
-    const commentsSection = await this.createCommentsSection(item.id);
-
-    // Assemble the wrapper
-    cardWrapper.appendChild(creatorInfo);
-    cardWrapper.appendChild(cardElement);
-    cardWrapper.appendChild(commentsSection);
-
-    return cardWrapper;
-  } catch (error) {
-    console.error('Error creating item card:', error);
-    return null;
-  }
-}
 
   /**
    * Update statistics display
@@ -326,7 +478,6 @@ static async createItemCard(item) {
 
   /**
    * Show loading state
-   * @param {boolean} show - Whether to show loading
    */
   static showLoading(show) {
     if (this.loadingMessage) {
@@ -339,7 +490,6 @@ static async createItemCard(item) {
 
   /**
    * Show error message
-   * @param {string} message - Error message
    */
   static showError(message) {
     if (this.errorMessage) {
@@ -357,303 +507,6 @@ static async createItemCard(item) {
   }
 
   /**
-   * View item details
-   * @param {Object} item - Item data
-   */
-  static viewItemDetails(item) {
-    const itemData = item.item_data || {};
-    const createdDate = new Date(item.created_at).toLocaleDateString();
-    const createdBy = item.users?.alias || 'Unknown';
-    
-    let details = `Item: ${itemData.name || 'Unnamed'}\n`;
-    details += `Created by: ${createdBy}\n`;
-    details += `Hero: ${itemData.hero || 'Unknown'}\n`;
-    details += `Size: ${itemData.item_size || 'Unknown'}\n`;
-    details += `Rarity: ${itemData.rarity || 'Unknown'}\n`;
-    details += `Created: ${createdDate}\n`;
-    details += `Contest: ${item.contest_number > 0 ? `Contest ${item.contest_number}` : 'General'}\n`;
-    
-    if (itemData.cooldown) details += `Cooldown: ${itemData.cooldown}s\n`;
-    if (itemData.ammo) details += `Ammo: ${itemData.ammo}\n`;
-    if (itemData.crit) details += `Crit: ${itemData.crit}%\n`;
-    if (itemData.multicast && parseInt(itemData.multicast) > 1) details += `Multicast: ${itemData.multicast}\n`;
-    
-    if (itemData.passive_effect) {
-      details += `\nPassive Effect:\n${itemData.passive_effect}\n`;
-    }
-    
-    if (itemData.on_use_effects?.length) {
-      details += `\nOn Use Effects:\n${itemData.on_use_effects.map(effect => `• ${effect}`).join('\n')}\n`;
-    }
-    
-    if (itemData.tags?.length) {
-      details += `\nTags: ${itemData.tags.join(', ')}\n`;
-    }
-    
-    if (itemData.scaling_values) {
-      const scalings = Object.entries(itemData.scaling_values)
-        .filter(([key, value]) => value && value.toString().trim())
-        .map(([key, value]) => `${key}: ${value}`);
-      if (scalings.length > 0) {
-        details += `\nScaling Values:\n${scalings.join(', ')}\n`;
-      }
-    }
-
-    // Show in a better modal instead of alert
-    this.showItemModal(details.trim(), itemData);
-  }
-
-  /**
-   * Show item in a modal
-   * @param {string} details - Item details text
-   * @param {Object} itemData - Item data for potential actions
-   */
-  static showItemModal(details, itemData) {
-    const modal = document.createElement('div');
-    modal.style.cssText = `
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(0,0,0,0.5); z-index: 10000;
-      display: flex; align-items: center; justify-content: center;
-    `;
-
-    modal.innerHTML = `
-      <div style="
-        background: white; padding: 30px; border-radius: 8px; 
-        max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto;
-      ">
-        <h3>Item Details</h3>
-        <pre style="white-space: pre-wrap; font-family: inherit; margin: 20px 0;">${details}</pre>
-        <div style="display: flex; gap: 10px; justify-content: flex-end;">
-          <button onclick="this.closest('div[style*=\"position: fixed\"]').remove()" 
-                  style="padding: 8px 16px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;">
-            Close
-          </button>
-        </div>
-      </div>
-    `;
-
-    // Close on overlay click
-    modal.onclick = (e) => {
-      if (e.target === modal) {
-        modal.remove();
-      }
-    };
-
-    document.body.appendChild(modal);
-  }
-
-  /**
-   * Upvote an item (placeholder)
-   * @param {string} itemId - Item ID
-   */
-  static upvoteItem(itemId) {
-    Messages.showInfo('Upvote feature coming soon! Please sign in to vote on items.');
-  }
-
-  /**
-   * Setup search functionality
-   */
-  static setupSearch() {
-    if (this.searchInput) {
-      // Add search suggestions
-      this.searchInput.addEventListener('focus', () => {
-        this.showSearchSuggestions();
-      });
-
-      // Clear search
-      const clearButton = document.createElement('button');
-      clearButton.innerHTML = '×';
-      clearButton.style.cssText = `
-        position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-        border: none; background: none; cursor: pointer; color: #999;
-      `;
-      clearButton.onclick = () => {
-        this.searchInput.value = '';
-        this.handleFilterChange();
-      };
-
-      if (this.searchInput.parentNode) {
-        this.searchInput.parentNode.style.position = 'relative';
-        this.searchInput.parentNode.appendChild(clearButton);
-      }
-    }
-  }
-
-  /**
-   * Show search suggestions
-   */
-  static showSearchSuggestions() {
-    // Get popular item names for suggestions
-    const itemNames = this.allItems
-      .map(item => item.item_data?.name)
-      .filter(name => name)
-      .slice(0, 10);
-
-    if (itemNames.length === 0) return;
-
-    // Create suggestions dropdown
-    const suggestions = document.createElement('div');
-    suggestions.style.cssText = `
-      position: absolute; top: 100%; left: 0; right: 0; 
-      background: white; border: 1px solid #ddd; border-top: none;
-      max-height: 200px; overflow-y: auto; z-index: 1000;
-    `;
-
-    itemNames.forEach(name => {
-      const suggestion = document.createElement('div');
-      suggestion.textContent = name;
-      suggestion.style.cssText = `
-        padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee;
-      `;
-      suggestion.onmouseenter = () => suggestion.style.background = '#f5f5f5';
-      suggestion.onmouseleave = () => suggestion.style.background = 'white';
-      suggestion.onclick = () => {
-        this.searchInput.value = name;
-        this.handleFilterChange();
-        suggestions.remove();
-      };
-      suggestions.appendChild(suggestion);
-    });
-
-    // Remove existing suggestions
-    const existing = this.searchInput.parentNode.querySelector('.search-suggestions');
-    if (existing) existing.remove();
-
-    suggestions.className = 'search-suggestions';
-    this.searchInput.parentNode.appendChild(suggestions);
-
-    // Remove suggestions when clicking outside
-    setTimeout(() => {
-      document.addEventListener('click', function removeSuggestions(e) {
-        if (!suggestions.contains(e.target) && e.target !== this.searchInput) {
-          suggestions.remove();
-          document.removeEventListener('click', removeSuggestions);
-        }
-      }.bind(this), 100);
-    }, 100);
-  }
-
-  /**
-   * Setup keyboard shortcuts for browse page
-   */
-  static setupKeyboardShortcuts() {
-    document.addEventListener('keydown', (e) => {
-      // F5 or Ctrl+R to refresh items
-      if (e.key === 'F5' || (e.ctrlKey && e.key === 'r')) {
-        e.preventDefault();
-        this.loadItems();
-      }
-
-      // Escape to clear search
-      if (e.key === 'Escape' && this.searchInput && this.searchInput === document.activeElement) {
-        this.searchInput.value = '';
-        this.handleFilterChange();
-        this.searchInput.blur();
-      }
-
-      // Arrow keys for filter navigation
-      if (e.ctrlKey) {
-        switch (e.key) {
-          case 'ArrowUp':
-            e.preventDefault();
-            this.cycleSortFilter(-1);
-            break;
-          case 'ArrowDown':
-            e.preventDefault();
-            this.cycleSortFilter(1);
-            break;
-          case 'ArrowLeft':
-            e.preventDefault();
-            this.cycleHeroFilter(-1);
-            break;
-          case 'ArrowRight':
-            e.preventDefault();
-            this.cycleHeroFilter(1);
-            break;
-        }
-      }
-    });
-  }
-
-  /**
-   * Cycle through sort options
-   * @param {number} direction - 1 for next, -1 for previous
-   */
-  static cycleSortFilter(direction) {
-    if (!this.sortBy) return;
-    
-    const options = Array.from(this.sortBy.options);
-    const currentIndex = this.sortBy.selectedIndex;
-    let newIndex = currentIndex + direction;
-    
-    if (newIndex < 0) newIndex = options.length - 1;
-    if (newIndex >= options.length) newIndex = 0;
-    
-    this.sortBy.selectedIndex = newIndex;
-    this.handleFilterChange();
-  }
-
-  /**
-   * Cycle through hero options
-   * @param {number} direction - 1 for next, -1 for previous
-   */
-  static cycleHeroFilter(direction) {
-    if (!this.heroFilter) return;
-    
-    const options = Array.from(this.heroFilter.options);
-    const currentIndex = this.heroFilter.selectedIndex;
-    let newIndex = currentIndex + direction;
-    
-    if (newIndex < 0) newIndex = options.length - 1;
-    if (newIndex >= options.length) newIndex = 0;
-    
-    this.heroFilter.selectedIndex = newIndex;
-    this.handleFilterChange();
-  }
-
-  /**
-   * Setup filter persistence
-   */
-  static setupFilterPersistence() {
-    // Save filters to localStorage
-    const saveFilters = () => {
-      const filters = this.getFilters();
-      try {
-        localStorage.setItem('bazaargen_browse_filters', JSON.stringify(filters));
-      } catch (error) {
-        console.warn('Failed to save filters:', error);
-      }
-    };
-
-    // Restore filters from localStorage
-    const restoreFilters = () => {
-      try {
-        const saved = localStorage.getItem('bazaargen_browse_filters');
-        if (saved) {
-          const filters = JSON.parse(saved);
-          
-          if (this.sortBy && filters.sortBy) this.sortBy.value = filters.sortBy;
-          if (this.heroFilter && filters.hero) this.heroFilter.value = filters.hero;
-          if (this.searchInput && filters.search) this.searchInput.value = filters.search;
-          if (this.contestFilter && filters.contest) this.contestFilter.value = filters.contest;
-        }
-      } catch (error) {
-        console.warn('Failed to restore filters:', error);
-      }
-    };
-
-    // Save filters when they change
-    [this.sortBy, this.heroFilter, this.searchInput, this.contestFilter].forEach(element => {
-      if (element) {
-        element.addEventListener('change', saveFilters);
-        element.addEventListener('input', saveFilters);
-      }
-    });
-
-    // Restore filters on page load
-    restoreFilters();
-  }
- /**
    * Handle filter changes
    */
   static handleFilterChange() {
@@ -662,282 +515,163 @@ static async createItemCard(item) {
     }
     this.loadItems();
   }
-/**
- * Create comments section for an item
- * @param {string} itemId - Item ID
- * @returns {HTMLElement} Comments section element
- */
-static async createCommentsSection(itemId) {
-  const commentsContainer = document.createElement('div');
-  commentsContainer.className = 'comments-section';
-  commentsContainer.style.cssText = `
-    background: #f9f9f9;
-    border: 1px solid #ddd;
-    border-radius: 0 0 8px 8px;
-    padding: 15px;
-    margin-top: -1px;
-  `;
 
-  // Comments header
-  const header = document.createElement('div');
-  header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;';
-  header.innerHTML = `
-    <h4 style="margin: 0; color: #333; font-size: 16px;">Comments</h4>
-    <button class="toggle-comments-btn" style="
-      background: none;
-      border: 1px solid #ddd;
-      padding: 4px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      color: #666;
-    ">Show/Hide</button>
-  `;
-
-  // Comments list
-  const commentsList = document.createElement('div');
-  commentsList.className = 'comments-list';
-  commentsList.id = `comments-${itemId}`;
-  commentsList.style.cssText = 'max-height: 300px; overflow-y: auto; margin-bottom: 10px;';
-
-  // Add comment form (only if user is signed in)
-  const commentForm = document.createElement('div');
-  commentForm.className = 'comment-form';
-  
-  if (window.GoogleAuth && GoogleAuth.isSignedIn()) {
-    commentForm.innerHTML = `
-      <div style="display: flex; gap: 10px; margin-top: 10px;">
-        <input type="text" 
-               id="comment-input-${itemId}" 
-               placeholder="Add a comment..." 
-               style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
-        <button onclick="BrowsePageController.addComment('${itemId}')" 
-                style="padding: 8px 16px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer;">
-          Post
-        </button>
-      </div>
-    `;
-  } else {
-    commentForm.innerHTML = `
-      <div style="text-align: center; padding: 10px; color: #666; font-style: italic;">
-        Sign in to comment
-      </div>
-    `;
-  }
-
-  // Load comments
-  await this.loadComments(itemId, commentsList);
-
-  // Toggle functionality
-  const toggleBtn = header.querySelector('.toggle-comments-btn');
-  toggleBtn.addEventListener('click', () => {
-    const isHidden = commentsList.style.display === 'none';
-    commentsList.style.display = isHidden ? 'block' : 'none';
-    commentForm.style.display = isHidden ? 'block' : 'none';
-    toggleBtn.textContent = isHidden ? 'Hide' : 'Show';
-  });
-
-  commentsContainer.appendChild(header);
-  commentsContainer.appendChild(commentsList);
-  commentsContainer.appendChild(commentForm);
-
-  return commentsContainer;
-}
-
-/**
- * Load comments for an item
- * @param {string} itemId - Item ID
- * @param {HTMLElement} container - Container to display comments
- */
-static async loadComments(itemId, container) {
-  try {
-    const comments = await SupabaseClient.getComments(itemId);
-    
-    if (comments.length === 0) {
-      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">No comments yet</div>';
-      return;
-    }
-
-    container.innerHTML = comments.map(comment => `
-      <div style="padding: 10px; border-bottom: 1px solid #eee;">
-        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-          <strong style="color: #333;">${comment.user_alias}</strong>
-          <span style="font-size: 12px; color: #999;">
-            ${new Date(comment.created_at).toLocaleDateString()}
-          </span>
-        </div>
-        <div style="color: #666; font-size: 14px;">${comment.content}</div>
-      </div>
-    `).join('');
-  } catch (error) {
-    console.error('Error loading comments:', error);
-    container.innerHTML = '<div style="padding: 10px; color: #d32f2f;">Error loading comments</div>';
-  }
-}
-/**
- * Add a comment to an item
- * @param {string} itemId - Item ID
- */
-static async addComment(itemId) {
-  const input = document.getElementById(`comment-input-${itemId}`);
-  const commentText = input.value.trim();
-  
-  if (!commentText) {
-    Messages.showError('Please enter a comment');
-    return;
-  }
-
-  try {
-    await SupabaseClient.addComment(itemId, commentText);  // Removed 'card' parameter
-    
-    // Clear input
-    input.value = '';
-    
-    // Reload comments
-    const container = document.getElementById(`comments-${itemId}`);
-    await this.loadComments(itemId, container);
-    
-    Messages.showSuccess('Comment added!');
-  } catch (error) {
-    console.error('Error adding comment:', error);
-    Messages.showError('Failed to add comment');
-  }
-}
-
-
-
-
-
-  
   /**
-   * Show browse statistics
+   * Create comments section for an item
    */
-  static async showBrowseStatistics() {
-    try {
-      const stats = await Database.getStatistics();
-      
-      const statsModal = document.createElement('div');
-      statsModal.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-        background: rgba(0,0,0,0.5); z-index: 10000;
-        display: flex; align-items: center; justify-content: center;
-      `;
+  static async createCommentsSection(itemId) {
+    const commentsContainer = document.createElement('div');
+    commentsContainer.className = 'comments-section';
+    commentsContainer.style.cssText = `
+      background: linear-gradient(135deg, rgba(101, 84, 63, 0.95) 0%, rgba(89, 72, 51, 0.9) 100%);
+      border: 2px solid rgb(218, 165, 32);
+      border-radius: 0 0 12px 12px;
+      padding: 20px;
+      margin-top: -2px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      min-width: 450px;
+      transition: width 0.3s ease;
+    `;
 
-      statsModal.innerHTML = `
-        <div style="
-          background: white; padding: 30px; border-radius: 8px; 
-          max-width: 400px; width: 90%;
-        ">
-          <h3>Community Statistics</h3>
-          <div class="stats-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
-            <div style="text-align: center;">
-              <div style="font-size: 2em; font-weight: bold; color: #4caf50;">${stats.items || 0}</div>
-              <div>Total Items</div>
-            </div>
-            <div style="text-align: center;">
-              <div style="font-size: 2em; font-weight: bold; color: #2196f3;">${stats.skills || 0}</div>
-              <div>Total Skills</div>
-            </div>
-            <div style="text-align: center;">
-              <div style="font-size: 2em; font-weight: bold; color: #ff9800;">${stats.users || 0}</div>
-              <div>Total Users</div>
-            </div>
-            <div style="text-align: center;">
-              <div style="font-size: 2em; font-weight: bold; color: #9c27b0;">${this.allItems.length}</div>
-              <div>Shown Items</div>
-            </div>
-          </div>
-          <button onclick="this.closest('div[style*=\"position: fixed\"]').remove()" 
-                  style="width: 100%; padding: 10px; border: none; background: #4caf50; color: white; border-radius: 4px; cursor: pointer;">
-            Close
+    // Comments header
+    const header = document.createElement('div');
+    header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;';
+    header.innerHTML = `
+      <h4 style="margin: 0; color: rgb(251, 225, 183); font-size: 18px; text-transform: uppercase; letter-spacing: 1px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">Comments</h4>
+      <button class="toggle-comments-btn" style="
+        background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%) !important;
+        border: 2px solid rgb(37, 26, 12) !important;
+        padding: 6px 14px !important;
+        border-radius: 6px !important;
+        cursor: pointer;
+        font-size: 12px !important;
+        color: rgb(37, 26, 12) !important;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+      ">Show/Hide</button>
+    `;
+
+    // Comments list
+    const commentsList = document.createElement('div');
+    commentsList.className = 'comments-list';
+    commentsList.id = `comments-${itemId}`;
+    commentsList.style.cssText = `
+      max-height: 300px; 
+      overflow-y: auto; 
+      margin: 15px 0;
+      background: rgba(37, 26, 12, 0.7) !important;
+      border: 2px solid rgba(218, 165, 32, 0.3);
+      border-radius: 8px;
+      padding: 10px;
+      scrollbar-width: thin;
+      scrollbar-color: rgb(218, 165, 32) rgba(37, 26, 12, 0.5);
+    `;
+
+    // Add comment form
+    const commentForm = document.createElement('div');
+    commentForm.className = 'comment-form';
+    
+    if (window.GoogleAuth && GoogleAuth.isSignedIn()) {
+      commentForm.innerHTML = `
+        <div style="display: flex; gap: 10px; margin-top: 10px; border-top: 2px solid rgb(218, 165, 32); padding-top: 15px;">
+          <input type="text" 
+                 id="comment-input-${itemId}" 
+                 placeholder="Add a comment..." 
+                 style="flex: 1; padding: 10px 15px !important; border: 2px solid rgb(218, 165, 32) !important; border-radius: 6px !important; background-color: rgba(37, 26, 12, 0.8) !important; color: rgb(251, 225, 183) !important; font-size: 14px !important; transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);">
+          <button onclick="BrowsePageController.addComment('${itemId}')" 
+                  style="padding: 10px 20px !important; background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%) !important; color: rgb(37, 26, 12) !important; border: 2px solid rgb(37, 26, 12) !important; border-radius: 6px !important; cursor: pointer; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s ease; font-size: 14px !important; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);">
+            Post
           </button>
         </div>
       `;
+    } else {
+      commentForm.innerHTML = `
+        <div style="text-align: center !important; padding: 20px !important; color: rgb(251, 225, 183) !important; font-style: italic !important; background: linear-gradient(135deg, rgba(74, 60, 46, 0.5) 0%, rgba(89, 72, 51, 0.4) 100%) !important; border-radius: 8px !important; border: 2px dashed rgba(218, 165, 32, 0.5) !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important; border-top: 2px solid rgb(218, 165, 32); margin-top: 15px;">
+          Sign in to comment
+        </div>
+      `;
+    }
 
-      document.body.appendChild(statsModal);
+    // Load comments
+    await this.loadComments(itemId, commentsList);
 
-      // Close on overlay click
-      statsModal.onclick = (e) => {
-        if (e.target === statsModal) {
-          statsModal.remove();
-        }
-      };
+    // Toggle functionality
+    const toggleBtn = header.querySelector('.toggle-comments-btn');
+    toggleBtn.addEventListener('click', () => {
+      const isHidden = commentsList.style.display === 'none';
+      commentsList.style.display = isHidden ? 'block' : 'none';
+      commentForm.style.display = isHidden ? 'block' : 'none';
+      toggleBtn.textContent = isHidden ? 'Hide' : 'Show';
+    });
 
+    commentsContainer.appendChild(header);
+    commentsContainer.appendChild(commentsList);
+    commentsContainer.appendChild(commentForm);
+
+    return commentsContainer;
+  }
+
+  /**
+   * Load comments for an item
+   */
+  static async loadComments(itemId, container) {
+    try {
+      const comments = await SupabaseClient.getComments(itemId);
+      
+      if (comments.length === 0) {
+        container.innerHTML = '<div style="padding: 30px !important; text-align: center !important; color: rgb(201, 175, 133) !important; font-style: italic !important; background: rgba(37, 26, 12, 0.3) !important; border: 2px dashed rgba(218, 165, 32, 0.3) !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important;">No comments yet</div>';
+        return;
+      }
+
+      container.innerHTML = comments.map(comment => `
+        <div style="padding: 12px !important; border-bottom: 1px solid rgba(218, 165, 32, 0.3) !important; background: linear-gradient(135deg, rgba(74, 60, 46, 0.7) 0%, rgba(89, 72, 51, 0.6) 100%) !important; margin-bottom: 8px !important; border-radius: 6px !important; transition: background 0.3s ease !important; border: 1px solid rgba(218, 165, 32, 0.2) !important;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <strong style="color: rgb(251, 225, 183) !important; font-size: 14px !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important;">${comment.user_alias}</strong>
+            <span style="color: rgb(218, 165, 32) !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important; font-size: 12px;">
+              ${new Date(comment.created_at).toLocaleDateString()}
+            </span>
+          </div>
+          <div style="color: rgb(251, 225, 183) !important; font-size: 14px !important; line-height: 1.5 !important; margin-top: 5px !important;">${comment.content}</div>
+        </div>
+      `).join('');
     } catch (error) {
-      Messages.showError('Failed to load statistics: ' + error.message);
+      console.error('Error loading comments:', error);
+      container.innerHTML = '<div style="padding: 10px; color: #d32f2f;">Error loading comments</div>';
     }
   }
 
   /**
-   * Setup periodic refresh
+   * Add a comment to an item
    */
-  static setupPeriodicRefresh() {
-    // Refresh items every 5 minutes if page is visible
-    setInterval(() => {
-      if (!document.hidden && this.allItems.length > 0) {
-        console.log('Performing periodic refresh...');
-        this.loadItems();
-      }
-    }, 5 * 60 * 1000);
+  static async addComment(itemId) {
+    const input = document.getElementById(`comment-input-${itemId}`);
+    const commentText = input.value.trim();
+    
+    if (!commentText) {
+      Messages.showError('Please enter a comment');
+      return;
+    }
 
-    // Refresh when page becomes visible again
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && this.allItems.length > 0) {
-        // Small delay to avoid rapid refreshes
-        setTimeout(() => this.loadItems(), 1000);
-      }
-    });
-  }
-
-  /**
-   * Setup debug panel functionality
-   */
-  static setupDebugPanel() {
-    window.toggleDebugPanel = () => {
-      const debugPanel = document.getElementById('debugPanel');
-      if (debugPanel) {
-        debugPanel.classList.toggle('show');
-      }
-    };
-
-    // Add debug information
-    const updateDebugInfo = () => {
-      const debugContent = document.getElementById('debugContent');
-      if (debugContent) {
-        debugContent.innerHTML = `
-          <div><strong>Items Loaded:</strong> ${this.allItems.length}</div>
-          <div><strong>Items Displayed:</strong> ${this.displayedItems.length}</div>
-          <div><strong>Current Filters:</strong> ${JSON.stringify(this.getFilters())}</div>
-          <div><strong>Loading State:</strong> ${this.isLoading}</div>
-          <div><strong>Supabase Ready:</strong> ${SupabaseClient.isReady()}</div>
-          <div><strong>Last Update:</strong> ${new Date().toLocaleTimeString()}</div>
-        `;
-      }
-    };
-
-    // Update debug info every 5 seconds
-    setInterval(updateDebugInfo, 5000);
-    updateDebugInfo();
+    try {
+      await SupabaseClient.addComment(itemId, commentText);
+      
+      // Clear input
+      input.value = '';
+      
+      // Reload comments
+      const container = document.getElementById(`comments-${itemId}`);
+      await this.loadComments(itemId, container);
+      
+      Messages.showSuccess('Comment added!');
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      Messages.showError('Failed to add comment');
+    }
   }
 }
 
-// Setup global functions for HTML handlers
-window.viewItemDetails = (item) => {
-  BrowsePageController.viewItemDetails(item);
-};
-
-window.upvoteItem = (itemId) => {
-  BrowsePageController.upvoteItem(itemId);
-};
-
 // Auto-initialize
 BrowsePageController.init();
-
-// Setup additional features
-document.addEventListener('DOMContentLoaded', () => {
-  BrowsePageController.setupSearch();
-  BrowsePageController.setupKeyboardShortcuts();
-  BrowsePageController.setupFilterPersistence();
-  BrowsePageController.setupPeriodicRefresh();
-  BrowsePageController.setupDebugPanel();
-});
