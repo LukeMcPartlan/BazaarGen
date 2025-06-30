@@ -607,6 +607,317 @@ h1 {
   flex-wrap: wrap;
 }
 
+
+/* Profile Page Styles */
+
+.profile-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Profile Header */
+.profile-header {
+    background: linear-gradient(135deg, rgb(101, 84, 63) 0%, rgb(89, 72, 51) 100%);
+    border: 2px solid rgb(218, 165, 32);
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    animation: fadeIn 0.5s ease;
+}
+
+.profile-header h1 {
+    margin: 0 0 10px 0;
+    color: rgb(251, 225, 183);
+    font-size: 32px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.profile-header p {
+    margin: 0;
+    color: rgb(201, 175, 133);
+    font-size: 16px;
+}
+
+/* Profile Stats */
+.profile-stats {
+    display: flex;
+    justify-content: center;
+    gap: 50px;
+    margin-top: 20px;
+}
+
+.stat-item {
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.stat-item:hover {
+    transform: translateY(-5px);
+}
+
+.stat-number {
+    font-size: 36px;
+    font-weight: bold;
+    color: rgb(218, 165, 32);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.stat-label {
+    color: rgb(201, 175, 133);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Content Tabs */
+.content-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    border-bottom: 2px solid rgb(218, 165, 32);
+    padding-bottom: 0;
+}
+
+.tab-button {
+    padding: 12px 24px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: rgb(201, 175, 133);
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.tab-button:hover {
+    color: rgb(251, 225, 183);
+    background: rgba(218, 165, 32, 0.1);
+}
+
+.tab-button.active {
+    color: rgb(251, 225, 183);
+    border-bottom-color: rgb(218, 165, 32);
+}
+
+.tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: -3px;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgb(218, 165, 32);
+    animation: slideIn 0.3s ease;
+}
+
+/* Content Sections */
+.content-section {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.content-section.active {
+    display: block;
+}
+
+/* Items Grid */
+.items-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+    gap: 30px;
+    margin-top: 20px;
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: rgb(201, 175, 133);
+    background: linear-gradient(135deg, rgba(74, 60, 46, 0.2) 0%, rgba(89, 72, 51, 0.1) 100%);
+    border: 2px dashed rgba(218, 165, 32, 0.3);
+    border-radius: 12px;
+    animation: fadeIn 0.5s ease;
+}
+
+.empty-state h3 {
+    color: rgb(251, 225, 183);
+    margin-bottom: 15px;
+    font-size: 24px;
+}
+
+.empty-state a {
+    color: rgb(218, 165, 32);
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.empty-state a:hover {
+    color: rgb(251, 225, 183);
+    text-decoration: underline;
+}
+
+/* Profile Card Wrapper */
+.profile-card-wrapper {
+    position: relative;
+    transition: transform 0.3s ease;
+}
+
+.profile-card-wrapper:hover {
+    transform: translateY(-5px);
+}
+
+/* Delete Button */
+.profile-delete-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%);
+    border: 2px solid rgb(183, 28, 28);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    z-index: 100;
+    transition: all 0.3s ease;
+    opacity: 0.8;
+}
+
+.profile-card-wrapper:hover .profile-delete-btn {
+    opacity: 1;
+}
+
+.profile-delete-btn:hover {
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    text-align: center;
+    padding: 40px;
+    color: rgb(218, 165, 32);
+    font-size: 24px;
+}
+
+.loading-spinner::after {
+    content: '⚔️';
+    display: inline-block;
+    animation: spin 1s linear infinite;
+    margin-left: 10px;
+}
+
+/* Gallery Card Special Styling */
+.profile-card-wrapper.gallery-item {
+    background: linear-gradient(135deg, rgba(63, 81, 181, 0.1) 0%, rgba(48, 63, 159, 0.05) 100%);
+    border: 2px solid rgba(63, 81, 181, 0.3);
+    border-radius: 12px;
+    padding: 10px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideIn {
+    from {
+        transform: scaleX(0);
+    }
+    to {
+        transform: scaleX(1);
+    }
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Username Link Styling */
+#user-alias a {
+    color: rgb(251, 225, 183);
+    text-decoration: none;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    padding: 5px 10px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#user-alias a:hover {
+    color: rgb(218, 165, 32);
+    background: rgba(218, 165, 32, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .profile-header h1 {
+        font-size: 24px;
+    }
+    
+    .profile-stats {
+        gap: 30px;
+    }
+    
+    .stat-number {
+        font-size: 28px;
+    }
+    
+    .items-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .content-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .tab-button {
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .profile-container {
+        padding: 10px;
+    }
+    
+    .profile-header {
+        padding: 20px;
+    }
+    
+    .profile-stats {
+        gap: 20px;
+    }
+    
+    .stat-number {
+        font-size: 24px;
+    }
+    
+    .stat-label {
+        font-size: 12px;
+    }
+}
+
 /* ===== CARD STYLES ===== */
 .card, .skill-card {
   display: flex;
