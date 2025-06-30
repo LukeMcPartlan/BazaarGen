@@ -1,6 +1,6 @@
 /**
- * Profile Controller - Simple Implementation
- * Handles user profile page functionality
+ * Profile Controller - Enhanced Implementation with Image Loading
+ * Handles user profile page functionality with proper image loading
  */
 class ProfileController {
   static userItems = [];
@@ -55,7 +55,7 @@ class ProfileController {
   }
 
   /**
-   * Load user's cards
+   * Load user's cards with proper image handling
    */
   static async loadUserCards() {
     const loadingEl = document.getElementById('cardsLoading');
@@ -80,11 +80,16 @@ class ProfileController {
       if (this.userItems.length === 0) {
         emptyEl.style.display = 'block';
       } else {
-        // Display each card
+        // Display each card using the same method as browse page
         for (const item of this.userItems) {
-          const cardWrapper = await this.createProfileCard(item);
-          if (cardWrapper) {
-            gridEl.appendChild(cardWrapper);
+          try {
+            // Use the same card creation method as BrowsePageController
+            const cardWrapper = await this.createProfileItemCard(item);
+            if (cardWrapper) {
+              gridEl.appendChild(cardWrapper);
+            }
+          } catch (error) {
+            console.error(`Failed to create card for item ${item.id}:`, error);
           }
         }
       }
@@ -93,6 +98,147 @@ class ProfileController {
       console.error('Error loading cards:', error);
       loadingEl.style.display = 'none';
       emptyEl.style.display = 'block';
+    }
+  }
+
+  /**
+   * Create profile item card using same logic as browse page but with delete functionality
+   */
+  static async createProfileItemCard(item) {
+    if (!item.item_data) {
+      console.warn(`Item ${item.id} has no item_data`);
+      return null;
+    }
+
+    try {
+      // Create a wrapper div for the entire card section (same as browse page)
+      const cardWrapper = document.createElement('div');
+      cardWrapper.className = 'card-wrapper profile-card-wrapper';
+      cardWrapper.style.cssText = 'margin-bottom: 30px; position: relative;';
+
+      // Add delete button first (positioned absolutely)
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'profile-delete-btn';
+      deleteBtn.style.cssText = `
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%);
+        border: 2px solid rgb(183, 28, 28);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        z-index: 1000;
+        transition: all 0.3s ease;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      `;
+      deleteBtn.innerHTML = '🗑️ Delete';
+      deleteBtn.title = `Delete "${item.item_data?.itemName || 'this card'}"`;
+      
+      deleteBtn.onmouseenter = () => {
+        deleteBtn.style.transform = 'translateY(-2px)';
+        deleteBtn.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.4)';
+      };
+      
+      deleteBtn.onmouseleave = () => {
+        deleteBtn.style.transform = 'translateY(0)';
+        deleteBtn.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.3)';
+      };
+      
+      deleteBtn.onclick = (e) => {
+        e.stopPropagation();
+        this.deleteItem(item.id, 'card', item.item_data?.itemName || 'this card');
+      };
+
+      // Create creator info section (same as browse page but showing "Your Creation")
+      const creatorInfo = document.createElement('div');
+      creatorInfo.className = 'creator-info';
+      creatorInfo.style.cssText = `
+        padding: 12px 20px;
+        background: linear-gradient(135deg, rgba(74, 60, 46, 0.9) 0%, rgba(37, 26, 12, 0.8) 100%);
+        border: 2px solid rgb(218, 165, 32);
+        border-radius: 12px 12px 0 0;
+        font-size: 14px;
+        color: rgb(251, 225, 183);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        min-width: 450px;
+      `;
+
+      const creatorAlias = item.user_alias || 'Your Creation';
+      const createdDate = new Date(item.created_at).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+
+      creatorInfo.innerHTML = `
+        <span style="font-weight: 600; color: rgb(251, 225, 183);">
+          <span style="color: rgb(218, 165, 32);">Your Creation:</span> ${creatorAlias}
+        </span>
+        <span style="color: rgb(201, 175, 133); font-size: 12px;">${createdDate}</span>
+      `;
+
+      // Create the card using the same data structure as browse page
+      const cardData = item.item_data;
+      cardData.created_at = item.created_at;
+      cardData.creator_alias = creatorAlias;
+      cardData.database_id = item.id;
+
+      const cardElement = await CardGenerator.createCard({
+        data: cardData,
+        mode: 'browser',
+        includeControls: true // Include controls for full functionality
+      });
+
+      // Add gallery functionality if this is a saved gallery
+      if (item.item_data?.isGallery && item.item_data?.galleryItems) {
+        // Add gallery button to view it
+        if (typeof GalleryModal !== 'undefined') {
+          GalleryModal.addGalleryButton(
+            cardElement,
+            item.item_data.galleryItems,
+            0
+          );
+        }
+        
+        // Style the card differently to show it's a gallery
+        const passiveSection = cardElement.querySelector('.passive-section');
+        if (passiveSection) {
+          passiveSection.style.background = 'linear-gradient(135deg, rgba(63, 81, 181, 0.2) 0%, rgba(48, 63, 159, 0.1) 100%)';
+          passiveSection.style.borderColor = 'rgb(63, 81, 181)';
+        }
+        
+        // Add gallery indicator to the creator info
+        const galleryIndicator = document.createElement('span');
+        galleryIndicator.style.cssText = `
+          background: rgb(63, 81, 181);
+          color: white;
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 12px;
+          margin-left: 10px;
+        `;
+        galleryIndicator.textContent = `📦 Gallery (${item.item_data.galleryItems.length} items)`;
+        creatorInfo.firstElementChild.appendChild(galleryIndicator);
+      }
+
+      // Assemble the wrapper
+      cardWrapper.appendChild(deleteBtn);
+      cardWrapper.appendChild(creatorInfo);
+      cardWrapper.appendChild(cardElement);
+
+      return cardWrapper;
+    } catch (error) {
+      console.error('Error creating profile item card:', error);
+      return null;
     }
   }
 
@@ -136,61 +282,61 @@ class ProfileController {
   }
 
   /**
-   * Create a card element for profile display
-   */
-  static async createProfileCard(item) {
-    try {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'profile-card-wrapper';
-      
-      // Add delete button
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'profile-delete-btn';
-      deleteBtn.innerHTML = '🗑️ Delete';
-      deleteBtn.onclick = () => this.deleteItem(item.id, 'card', item.item_data?.itemName || 'this card');
-      
-      wrapper.appendChild(deleteBtn);
-      
-      // Create the card
-      const cardElement = await CardGenerator.createCard({
-        data: item.item_data,
-        mode: 'browser',
-        includeControls: false
-      });
-      
-      if (cardElement) {
-        wrapper.appendChild(cardElement);
-      }
-      
-      return wrapper;
-    } catch (error) {
-      console.error('Error creating profile card:', error);
-      return null;
-    }
-  }
-
-  /**
-   * Create a skill element for profile display
+   * Create a skill element for profile display with enhanced styling
    */
   static async createProfileSkill(skill) {
     try {
       const wrapper = document.createElement('div');
       wrapper.className = 'profile-card-wrapper';
+      wrapper.style.cssText = 'position: relative; margin-bottom: 30px;';
       
       // Add delete button
       const deleteBtn = document.createElement('button');
       deleteBtn.className = 'profile-delete-btn';
+      deleteBtn.style.cssText = `
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%);
+        border: 2px solid rgb(183, 28, 28);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: bold;
+        z-index: 1000;
+        transition: all 0.3s ease;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      `;
       deleteBtn.innerHTML = '🗑️ Delete';
-      deleteBtn.onclick = () => this.deleteItem(skill.id, 'skill', skill.skill_data?.skillName || 'this skill');
+      deleteBtn.title = `Delete "${skill.skill_data?.skillName || 'this skill'}"`;
+      
+      deleteBtn.onmouseenter = () => {
+        deleteBtn.style.transform = 'translateY(-2px)';
+        deleteBtn.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.4)';
+      };
+      
+      deleteBtn.onmouseleave = () => {
+        deleteBtn.style.transform = 'translateY(0)';
+        deleteBtn.style.boxShadow = '0 2px 6px rgba(0, 0, 0, 0.3)';
+      };
+      
+      deleteBtn.onclick = (e) => {
+        e.stopPropagation();
+        this.deleteItem(skill.id, 'skill', skill.skill_data?.skillName || 'this skill');
+      };
       
       wrapper.appendChild(deleteBtn);
       
-      // Create the skill
+      // Create the skill with enhanced styling
       if (typeof SkillGenerator !== 'undefined') {
         const skillElement = SkillGenerator.createSkill({
           data: skill.skill_data,
           mode: 'browser',
-          includeControls: false
+          includeControls: true
         });
         
         if (skillElement) {
@@ -206,7 +352,7 @@ class ProfileController {
   }
 
   /**
-   * Display galleries
+   * Display galleries with enhanced card creation
    */
   static async displayGalleries() {
     const loadingEl = document.getElementById('galleriesLoading');
@@ -221,57 +367,14 @@ class ProfileController {
       loadingEl.style.display = 'none';
       emptyEl.style.display = 'block';
     } else {
-      // Display each gallery
+      // Display each gallery using the enhanced card creation
       for (const gallery of this.userGalleries) {
-        const galleryCard = await this.createGalleryCard(gallery);
+        const galleryCard = await this.createProfileItemCard(gallery); // Use same method as regular cards
         if (galleryCard) {
           gridEl.appendChild(galleryCard);
         }
       }
       loadingEl.style.display = 'none';
-    }
-  }
-
-  /**
-   * Create a gallery card for display
-   */
-  static async createGalleryCard(gallery) {
-    try {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'profile-card-wrapper';
-      
-      // Add delete button
-      const deleteBtn = document.createElement('button');
-      deleteBtn.className = 'profile-delete-btn';
-      deleteBtn.innerHTML = '🗑️ Delete';
-      deleteBtn.onclick = () => this.deleteItem(gallery.id, 'gallery', gallery.item_data?.galleryInfo?.name || 'this gallery');
-      
-      wrapper.appendChild(deleteBtn);
-      
-      // Create gallery card with special styling
-      const galleryCard = await CardGenerator.createCard({
-        data: gallery.item_data,
-        mode: 'browser',
-        includeControls: false
-      });
-      
-      if (galleryCard) {
-        // Add gallery button to view the gallery
-        if (gallery.item_data.galleryItems && window.GalleryModal) {
-          GalleryModal.addGalleryButton(
-            galleryCard,
-            gallery.item_data.galleryItems,
-            0
-          );
-        }
-        
-        wrapper.appendChild(galleryCard);
-      }
-      
-      return wrapper;
-    } catch (error) {
-      console.error('Error creating gallery card:', error);
-      return null;
     }
   }
 
@@ -317,15 +420,23 @@ class ProfileController {
   }
 
   /**
-   * Delete an item with confirmation
+   * Delete an item with confirmation and proper cleanup
    */
   static async deleteItem(itemId, type, itemName) {
-    const confirmed = confirm(`Are you sure you want to delete "${itemName}"? This action cannot be undone.`);
+    const confirmed = confirm(`Are you sure you want to delete "${itemName}"?\n\nThis action cannot be undone and will permanently remove this ${type} from the database.`);
     
     if (!confirmed) return;
+
+    // Show loading state
+    const deleteButtons = document.querySelectorAll(`[onclick*="${itemId}"]`);
+    deleteButtons.forEach(btn => {
+      btn.disabled = true;
+      btn.innerHTML = '⏳ Deleting...';
+      btn.style.opacity = '0.6';
+    });
     
     try {
-      Messages.showInfo('Deleting...');
+      Messages.showInfo(`Deleting ${type}...`);
       
       let result;
       if (type === 'skill') {
@@ -335,7 +446,7 @@ class ProfileController {
       }
       
       if (result?.success) {
-        Messages.showSuccess(`${type} deleted successfully`);
+        Messages.showSuccess(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted successfully`);
         
         // Reload the appropriate content
         if (type === 'skill') {
@@ -345,11 +456,20 @@ class ProfileController {
         }
         
         this.updateStatistics();
+      } else {
+        throw new Error(result?.error || 'Delete operation failed');
       }
       
     } catch (error) {
       console.error('Error deleting item:', error);
-      Messages.showError('Failed to delete item: ' + error.message);
+      Messages.showError(`Failed to delete ${type}: ` + error.message);
+      
+      // Re-enable buttons on error
+      deleteButtons.forEach(btn => {
+        btn.disabled = false;
+        btn.innerHTML = '🗑️ Delete';
+        btn.style.opacity = '1';
+      });
     }
   }
 }
