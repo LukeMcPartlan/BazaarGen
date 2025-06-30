@@ -1,54 +1,122 @@
 /**
- * Profile Controller - Enhanced Implementation with Image Loading
- * Handles user profile page functionality with proper image loading
+ * Profile Controller - Enhanced Implementation with Comprehensive Debugging
+ * Handles user profile page functionality with proper image loading and detailed logging
  */
 class ProfileController {
   static userItems = [];
   static userSkills = [];
   static userGalleries = [];
   static currentTab = 'cards';
+  static debugMode = true; // Enable comprehensive debugging
+
+  /**
+   * Debug logging function
+   */
+  static debug(message, data = null) {
+    if (this.debugMode) {
+      console.log(`[ProfileController] ${message}`, data || '');
+    }
+  }
 
   /**
    * Initialize the profile page
    */
   static async init() {
-    console.log('Initializing ProfileController...');
+    this.debug('🚀 Initializing ProfileController...');
+    this.debug('Debug mode enabled:', this.debugMode);
     
-    // Check if user is signed in
-    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
-      console.log('User not signed in, redirecting...');
-      window.location.href = 'index.html';
-      return;
-    }
+    try {
+      // Check if user is signed in
+      this.debug('🔐 Checking authentication status...');
+      if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+        this.debug('❌ User not signed in, redirecting to index.html');
+        window.location.href = 'index.html';
+        return;
+      }
 
-    // Display user info
-    this.displayUserInfo();
-    
-    // Load user's content
-    await this.loadAllContent();
+      this.debug('✅ User is signed in');
+
+      // Check database connection
+      this.debug('🗄️ Checking database connection...');
+      if (!SupabaseClient || !SupabaseClient.isReady()) {
+        this.debug('❌ Database not ready');
+        throw new Error('Database not available');
+      }
+
+      this.debug('✅ Database is ready');
+
+      // Display user info
+      this.debug('👤 Displaying user information...');
+      this.displayUserInfo();
+
+      // Load user's content
+      this.debug('📥 Loading user content...');
+      await this.loadAllContent();
+
+      this.debug('🎉 ProfileController initialization complete');
+
+    } catch (error) {
+      this.debug('❌ Initialization failed:', error);
+      console.error('ProfileController initialization error:', error);
+    }
   }
 
   /**
    * Display user information
    */
   static displayUserInfo() {
+    this.debug('👤 Getting user profile information...');
+    
     const userProfile = GoogleAuth.getUserProfile();
     const userEmail = GoogleAuth.getUserEmail();
     const displayName = GoogleAuth.getUserDisplayName();
 
-    document.getElementById('profileName').textContent = userProfile?.alias || displayName || 'Unknown User';
-    document.getElementById('profileEmail').textContent = userEmail || '-';
+    this.debug('User profile data:', {
+      userProfile,
+      userEmail,
+      displayName,
+      alias: userProfile?.alias
+    });
+
+    const profileNameEl = document.getElementById('profileName');
+    const profileEmailEl = document.getElementById('profileEmail');
+
+    if (profileNameEl) {
+      const displayedName = userProfile?.alias || displayName || 'Unknown User';
+      profileNameEl.textContent = displayedName;
+      this.debug('✅ Profile name set to:', displayedName);
+    } else {
+      this.debug('❌ Profile name element not found');
+    }
+
+    if (profileEmailEl) {
+      const displayedEmail = userEmail || '-';
+      profileEmailEl.textContent = displayedEmail;
+      this.debug('✅ Profile email set to:', displayedEmail);
+    } else {
+      this.debug('❌ Profile email element not found');
+    }
   }
 
   /**
    * Load all user content
    */
   static async loadAllContent() {
+    this.debug('📥 Starting to load all user content...');
+    
     try {
+      this.debug('📊 Loading user cards...');
       await this.loadUserCards();
+      
+      this.debug('📜 Loading user skills...');
       await this.loadUserSkills();
+      
+      this.debug('📈 Updating statistics...');
       this.updateStatistics();
+      
+      this.debug('✅ All content loaded successfully');
     } catch (error) {
+      this.debug('❌ Error loading content:', error);
       console.error('Error loading content:', error);
       Messages.showError('Failed to load some content');
     }
@@ -58,46 +126,85 @@ class ProfileController {
    * Load user's cards with proper image handling
    */
   static async loadUserCards() {
+    this.debug('🎴 Starting to load user cards...');
+    
     const loadingEl = document.getElementById('cardsLoading');
     const gridEl = document.getElementById('cardsGrid');
     const emptyEl = document.getElementById('cardsEmpty');
     
+    this.debug('DOM elements found:', {
+      loadingEl: !!loadingEl,
+      gridEl: !!gridEl,
+      emptyEl: !!emptyEl
+    });
+
     try {
-      loadingEl.style.display = 'block';
-      gridEl.innerHTML = '';
-      emptyEl.style.display = 'none';
+      this.debug('⏳ Setting loading state...');
+      if (loadingEl) loadingEl.style.display = 'block';
+      if (gridEl) gridEl.innerHTML = '';
+      if (emptyEl) emptyEl.style.display = 'none';
       
       // Get user's items from database
+      this.debug('🗄️ Fetching items from database...');
       const items = await SupabaseClient.getUserItems();
-      console.log(`Loaded ${items.length} items`);
+      this.debug(`📦 Retrieved ${items.length} items from database`);
+      
+      // Log raw item data for debugging
+      this.debug('Raw items data preview:', items.slice(0, 2).map(item => ({
+        id: item.id,
+        user_email: item.user_email,
+        user_alias: item.user_alias,
+        itemName: item.item_data?.itemName,
+        isGallery: item.item_data?.isGallery,
+        created_at: item.created_at
+      })));
       
       // Separate regular cards and galleries
       this.userItems = items.filter(item => !item.item_data?.isGallery);
       this.userGalleries = items.filter(item => item.item_data?.isGallery);
       
-      loadingEl.style.display = 'none';
+      this.debug('📊 Items categorized:', {
+        totalItems: items.length,
+        regularCards: this.userItems.length,
+        galleries: this.userGalleries.length
+      });
+      
+      if (loadingEl) loadingEl.style.display = 'none';
       
       if (this.userItems.length === 0) {
-        emptyEl.style.display = 'block';
+        this.debug('📭 No cards found, showing empty state');
+        if (emptyEl) emptyEl.style.display = 'block';
       } else {
+        this.debug(`🎴 Creating ${this.userItems.length} card elements...`);
+        
         // Display each card using the same method as browse page
-        for (const item of this.userItems) {
+        for (let i = 0; i < this.userItems.length; i++) {
+          const item = this.userItems[i];
+          this.debug(`🎴 Creating card ${i + 1}/${this.userItems.length} - ID: ${item.id}, Name: "${item.item_data?.itemName}"`);
+          
           try {
             // Use the same card creation method as BrowsePageController
             const cardWrapper = await this.createProfileItemCard(item);
-            if (cardWrapper) {
+            if (cardWrapper && gridEl) {
               gridEl.appendChild(cardWrapper);
+              this.debug(`✅ Card ${item.id} added to grid`);
+            } else {
+              this.debug(`❌ Failed to create or append card ${item.id}`);
             }
           } catch (error) {
+            this.debug(`❌ Error creating card ${item.id}:`, error);
             console.error(`Failed to create card for item ${item.id}:`, error);
           }
         }
+        
+        this.debug('✅ All cards created and added to grid');
       }
       
     } catch (error) {
+      this.debug('❌ Error loading cards:', error);
       console.error('Error loading cards:', error);
-      loadingEl.style.display = 'none';
-      emptyEl.style.display = 'block';
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (emptyEl) emptyEl.style.display = 'block';
     }
   }
 
@@ -105,17 +212,31 @@ class ProfileController {
    * Create profile item card using same logic as browse page but with delete functionality
    */
   static async createProfileItemCard(item) {
+    this.debug(`🏗️ Creating profile item card for ID: ${item.id}`);
+    
     if (!item.item_data) {
+      this.debug(`❌ Item ${item.id} has no item_data`);
       console.warn(`Item ${item.id} has no item_data`);
       return null;
     }
 
     try {
+      this.debug(`🎴 Item data:`, {
+        id: item.id,
+        itemName: item.item_data.itemName,
+        hero: item.item_data.hero,
+        user_email: item.user_email,
+        user_alias: item.user_alias,
+        isGallery: item.item_data.isGallery
+      });
+
       // Create a wrapper div for the entire card section (same as browse page)
       const cardWrapper = document.createElement('div');
       cardWrapper.className = 'card-wrapper profile-card-wrapper';
       cardWrapper.style.cssText = 'margin-bottom: 30px; position: relative;';
       cardWrapper.setAttribute('data-item-id', item.id); // Add unique identifier
+      
+      this.debug(`🎯 Card wrapper created with data-item-id: ${item.id}`);
 
       // Add delete button first (positioned absolutely)
       const deleteBtn = document.createElement('button');
@@ -153,8 +274,11 @@ class ProfileController {
       
       deleteBtn.onclick = (e) => {
         e.stopPropagation();
+        this.debug(`🗑️ Delete button clicked for item ${item.id}`);
         this.deleteItem(item.id, 'card', item.item_data?.itemName || 'this card');
       };
+
+      this.debug('✅ Delete button created and configured');
 
       // Create creator info section (same as browse page but showing "Your Creation")
       const creatorInfo = document.createElement('div');
@@ -180,6 +304,8 @@ class ProfileController {
         day: 'numeric'
       });
 
+      this.debug('Creator info:', { creatorAlias, createdDate });
+
       creatorInfo.innerHTML = `
         <span style="font-weight: 600; color: rgb(251, 225, 183);">
           <span style="color: rgb(218, 165, 32);">Your Creation:</span> ${creatorAlias}
@@ -187,20 +313,33 @@ class ProfileController {
         <span style="color: rgb(201, 175, 133); font-size: 12px;">${createdDate}</span>
       `;
 
+      this.debug('✅ Creator info section created');
+
       // Create the card using the same data structure as browse page
+      this.debug('🎴 Preparing card data for CardGenerator...');
       const cardData = item.item_data;
       cardData.created_at = item.created_at;
       cardData.creator_alias = creatorAlias;
       cardData.database_id = item.id;
 
+      this.debug('🎴 Calling CardGenerator.createCard...');
       const cardElement = await CardGenerator.createCard({
         data: cardData,
         mode: 'browser',
         includeControls: true // Include controls for full functionality
       });
 
+      if (!cardElement) {
+        this.debug('❌ CardGenerator returned null/undefined');
+        throw new Error('CardGenerator failed to create card element');
+      }
+
+      this.debug('✅ Card element created successfully');
+
       // Add gallery functionality if this is a saved gallery
       if (item.item_data?.isGallery && item.item_data?.galleryItems) {
+        this.debug('🖼️ Adding gallery functionality...');
+        
         // Add gallery button to view it
         if (typeof GalleryModal !== 'undefined') {
           GalleryModal.addGalleryButton(
@@ -208,6 +347,9 @@ class ProfileController {
             item.item_data.galleryItems,
             0
           );
+          this.debug('✅ Gallery button added');
+        } else {
+          this.debug('❌ GalleryModal not available');
         }
         
         // Style the card differently to show it's a gallery
@@ -215,6 +357,7 @@ class ProfileController {
         if (passiveSection) {
           passiveSection.style.background = 'linear-gradient(135deg, rgba(63, 81, 181, 0.2) 0%, rgba(48, 63, 159, 0.1) 100%)';
           passiveSection.style.borderColor = 'rgb(63, 81, 181)';
+          this.debug('✅ Gallery styling applied');
         }
         
         // Add gallery indicator to the creator info
@@ -229,19 +372,25 @@ class ProfileController {
         `;
         galleryIndicator.textContent = `📦 Gallery (${item.item_data.galleryItems.length} items)`;
         creatorInfo.firstElementChild.appendChild(galleryIndicator);
+        this.debug('✅ Gallery indicator added');
       }
 
       // Create comments section (same as browse page)
+      this.debug('💬 Creating comments section...');
       const commentsSection = await this.createCommentsSection(item.id);
+      this.debug('✅ Comments section created');
 
       // Assemble the wrapper
+      this.debug('🔧 Assembling card wrapper...');
       cardWrapper.appendChild(deleteBtn);
       cardWrapper.appendChild(creatorInfo);
       cardWrapper.appendChild(cardElement);
       cardWrapper.appendChild(commentsSection); // Add comments section
 
+      this.debug(`✅ Profile item card completed for ID: ${item.id}`);
       return cardWrapper;
     } catch (error) {
+      this.debug(`❌ Error creating profile item card for ID: ${item.id}:`, error);
       console.error('Error creating profile item card:', error);
       return null;
     }
@@ -251,38 +400,69 @@ class ProfileController {
    * Load user's skills
    */
   static async loadUserSkills() {
+    this.debug('📜 Starting to load user skills...');
+    
     const loadingEl = document.getElementById('skillsLoading');
     const gridEl = document.getElementById('skillsGrid');
     const emptyEl = document.getElementById('skillsEmpty');
     
+    this.debug('DOM elements found:', {
+      loadingEl: !!loadingEl,
+      gridEl: !!gridEl,
+      emptyEl: !!emptyEl
+    });
+    
     try {
-      loadingEl.style.display = 'block';
-      gridEl.innerHTML = '';
-      emptyEl.style.display = 'none';
+      this.debug('⏳ Setting loading state...');
+      if (loadingEl) loadingEl.style.display = 'block';
+      if (gridEl) gridEl.innerHTML = '';
+      if (emptyEl) emptyEl.style.display = 'none';
       
       // Get user's skills from database
+      this.debug('🗄️ Fetching skills from database...');
       const skills = await SupabaseClient.getUserSkills();
       this.userSkills = skills;
-      console.log(`Loaded ${skills.length} skills`);
+      this.debug(`📜 Retrieved ${skills.length} skills from database`);
       
-      loadingEl.style.display = 'none';
+      // Log raw skill data for debugging
+      this.debug('Raw skills data preview:', skills.slice(0, 2).map(skill => ({
+        id: skill.id,
+        user_email: skill.user_email,
+        user_alias: skill.user_alias,
+        skillName: skill.skill_data?.skillName,
+        created_at: skill.created_at
+      })));
+      
+      if (loadingEl) loadingEl.style.display = 'none';
       
       if (skills.length === 0) {
-        emptyEl.style.display = 'block';
+        this.debug('📭 No skills found, showing empty state');
+        if (emptyEl) emptyEl.style.display = 'block';
       } else {
+        this.debug(`📜 Creating ${skills.length} skill elements...`);
+        
         // Display each skill
-        for (const skill of skills) {
+        for (let i = 0; i < skills.length; i++) {
+          const skill = skills[i];
+          this.debug(`📜 Creating skill ${i + 1}/${skills.length} - ID: ${skill.id}, Name: "${skill.skill_data?.skillName}"`);
+          
           const skillWrapper = await this.createProfileSkill(skill);
-          if (skillWrapper) {
+          if (skillWrapper && gridEl) {
             gridEl.appendChild(skillWrapper);
+            this.debug(`✅ Skill ${skill.id} added to grid`);
+          } else {
+            this.debug(`❌ Failed to create or append skill ${skill.id}`);
           }
         }
+        
+        this.debug('✅ All skills created and added to grid');
       }
       
     } catch (error) {
+      this.debug('❌ Error loading skills:', error);
       console.error('Error loading skills:', error);
-      loadingEl.style.display = 'none';
-      emptyEl.style.display = 'block';
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (emptyEl) emptyEl.style.display = 'block';
     }
   }
 
@@ -290,11 +470,22 @@ class ProfileController {
    * Create a skill element for profile display with enhanced styling
    */
   static async createProfileSkill(skill) {
+    this.debug(`🏗️ Creating profile skill for ID: ${skill.id}`);
+    
     try {
+      this.debug(`📜 Skill data:`, {
+        id: skill.id,
+        skillName: skill.skill_data?.skillName,
+        user_email: skill.user_email,
+        user_alias: skill.user_alias
+      });
+
       const wrapper = document.createElement('div');
       wrapper.className = 'profile-card-wrapper';
       wrapper.style.cssText = 'position: relative; margin-bottom: 30px;';
       wrapper.setAttribute('data-item-id', skill.id); // Add unique identifier
+      
+      this.debug(`🎯 Skill wrapper created with data-item-id: ${skill.id}`);
       
       // Add delete button
       const deleteBtn = document.createElement('button');
@@ -332,13 +523,17 @@ class ProfileController {
       
       deleteBtn.onclick = (e) => {
         e.stopPropagation();
+        this.debug(`🗑️ Delete button clicked for skill ${skill.id}`);
         this.deleteItem(skill.id, 'skill', skill.skill_data?.skillName || 'this skill');
       };
       
       wrapper.appendChild(deleteBtn);
+      this.debug('✅ Delete button created and added');
       
       // Create the skill with enhanced styling
+      this.debug('📜 Checking SkillGenerator availability...');
       if (typeof SkillGenerator !== 'undefined') {
+        this.debug('📜 Creating skill element with SkillGenerator...');
         const skillElement = SkillGenerator.createSkill({
           data: skill.skill_data,
           mode: 'browser',
@@ -347,15 +542,24 @@ class ProfileController {
         
         if (skillElement) {
           wrapper.appendChild(skillElement);
+          this.debug('✅ Skill element created and added');
+        } else {
+          this.debug('❌ SkillGenerator returned null/undefined');
         }
+      } else {
+        this.debug('❌ SkillGenerator not available');
       }
 
       // Create comments section for skills too
+      this.debug('💬 Creating comments section for skill...');
       const commentsSection = await this.createCommentsSection(skill.id);
       wrapper.appendChild(commentsSection);
+      this.debug('✅ Comments section added to skill');
       
+      this.debug(`✅ Profile skill completed for ID: ${skill.id}`);
       return wrapper;
     } catch (error) {
+      this.debug(`❌ Error creating profile skill for ID: ${skill.id}:`, error);
       console.error('Error creating profile skill:', error);
       return null;
     }
@@ -365,26 +569,47 @@ class ProfileController {
    * Display galleries with enhanced card creation
    */
   static async displayGalleries() {
+    this.debug('🖼️ Starting to display galleries...');
+    
     const loadingEl = document.getElementById('galleriesLoading');
     const gridEl = document.getElementById('galleriesGrid');
     const emptyEl = document.getElementById('galleriesEmpty');
     
-    loadingEl.style.display = 'block';
-    gridEl.innerHTML = '';
-    emptyEl.style.display = 'none';
+    this.debug('Gallery DOM elements found:', {
+      loadingEl: !!loadingEl,
+      gridEl: !!gridEl,
+      emptyEl: !!emptyEl
+    });
+    
+    this.debug(`📊 Gallery stats: ${this.userGalleries.length} galleries available`);
+    
+    if (loadingEl) loadingEl.style.display = 'block';
+    if (gridEl) gridEl.innerHTML = '';
+    if (emptyEl) emptyEl.style.display = 'none';
     
     if (this.userGalleries.length === 0) {
-      loadingEl.style.display = 'none';
-      emptyEl.style.display = 'block';
+      this.debug('📭 No galleries found, showing empty state');
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (emptyEl) emptyEl.style.display = 'block';
     } else {
+      this.debug(`🖼️ Creating ${this.userGalleries.length} gallery cards...`);
+      
       // Display each gallery using the enhanced card creation
-      for (const gallery of this.userGalleries) {
+      for (let i = 0; i < this.userGalleries.length; i++) {
+        const gallery = this.userGalleries[i];
+        this.debug(`🖼️ Creating gallery ${i + 1}/${this.userGalleries.length} - ID: ${gallery.id}`);
+        
         const galleryCard = await this.createProfileItemCard(gallery); // Use same method as regular cards
-        if (galleryCard) {
+        if (galleryCard && gridEl) {
           gridEl.appendChild(galleryCard);
+          this.debug(`✅ Gallery ${gallery.id} added to grid`);
+        } else {
+          this.debug(`❌ Failed to create or append gallery ${gallery.id}`);
         }
       }
-      loadingEl.style.display = 'none';
+      
+      if (loadingEl) loadingEl.style.display = 'none';
+      this.debug('✅ All galleries displayed');
     }
   }
 
@@ -392,31 +617,42 @@ class ProfileController {
    * Switch between tabs
    */
   static switchTab(tab) {
+    this.debug(`🔄 Switching to tab: ${tab} (from ${this.currentTab})`);
+    
     this.currentTab = tab;
     
     // Update tab buttons
+    this.debug('🔄 Updating tab button states...');
     document.querySelectorAll('.tab-button').forEach(btn => {
       btn.classList.remove('active');
     });
     event.target.classList.add('active');
     
     // Hide all sections
+    this.debug('🔄 Hiding all content sections...');
     document.querySelectorAll('.content-section').forEach(section => {
       section.classList.remove('active');
     });
     
     // Show selected section
+    this.debug(`🔄 Showing ${tab} section...`);
     switch(tab) {
       case 'cards':
         document.getElementById('cardsSection').classList.add('active');
+        this.debug('✅ Cards section activated');
         break;
       case 'skills':
         document.getElementById('skillsSection').classList.add('active');
+        this.debug('✅ Skills section activated');
         break;
       case 'galleries':
         document.getElementById('galleriesSection').classList.add('active');
+        this.debug('🖼️ Loading galleries...');
         this.displayGalleries();
+        this.debug('✅ Galleries section activated');
         break;
+      default:
+        this.debug(`❌ Unknown tab: ${tab}`);
     }
   }
 
@@ -424,9 +660,40 @@ class ProfileController {
    * Update statistics
    */
   static updateStatistics() {
-    document.getElementById('totalCards').textContent = this.userItems.length;
-    document.getElementById('totalSkills').textContent = this.userSkills.length;
-    document.getElementById('totalGalleries').textContent = this.userGalleries.length;
+    this.debug('📊 Updating statistics...');
+    
+    const stats = {
+      cards: this.userItems.length,
+      skills: this.userSkills.length,
+      galleries: this.userGalleries.length
+    };
+    
+    this.debug('📊 Current statistics:', stats);
+
+    const totalCardsEl = document.getElementById('totalCards');
+    const totalSkillsEl = document.getElementById('totalSkills');
+    const totalGalleriesEl = document.getElementById('totalGalleries');
+
+    if (totalCardsEl) {
+      totalCardsEl.textContent = stats.cards;
+      this.debug(`✅ Updated cards count: ${stats.cards}`);
+    } else {
+      this.debug('❌ totalCards element not found');
+    }
+
+    if (totalSkillsEl) {
+      totalSkillsEl.textContent = stats.skills;
+      this.debug(`✅ Updated skills count: ${stats.skills}`);
+    } else {
+      this.debug('❌ totalSkills element not found');
+    }
+
+    if (totalGalleriesEl) {
+      totalGalleriesEl.textContent = stats.galleries;
+      this.debug(`✅ Updated galleries count: ${stats.galleries}`);
+    } else {
+      this.debug('❌ totalGalleries element not found');
+    }
   }
 
   /**
