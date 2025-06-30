@@ -50,10 +50,10 @@ class IndexPageController {
    */
   static setupCardGeneration() {
     // Main create card function
-   window.createCard = async (isPreview = false) => {
+  window.createCard = async (isPreview = false) => {
   try {
     const cardElement = await CardGenerator.createCard({
-      formData: true,  // Let CardGenerator handle the form extraction
+      formData: true,
       isPreview: isPreview,
       container: isPreview ? document.getElementById('previewContainer') : document.getElementById('outputContainer'),
       includeControls: !isPreview,
@@ -61,9 +61,28 @@ class IndexPageController {
     });
 
     if (cardElement && !isPreview) {
-      // Dispatch custom event
+      // IMPORTANT: Get the card data that was just created
+      const cardData = await CardGenerator.extractFormData();
+      
+      // Initialize cardsData array if it doesn't exist
+      if (!window.cardsData) {
+        window.cardsData = [];
+      }
+      
+      // Add card data to the array
+      window.cardsData.push(cardData);
+      
+      // Also update IndexPageController's array if it exists
+      if (window.IndexPageController && IndexPageController.cardsData) {
+        IndexPageController.cardsData.push(cardData);
+      }
+      
+      // Dispatch event for gallery manager
       document.dispatchEvent(new CustomEvent('cardCreated', {
-        detail: { cardElement }
+        detail: { 
+          cardElement: cardElement,
+          cardData: cardData
+        }
       }));
     }
 
@@ -138,28 +157,26 @@ class IndexPageController {
   static setupCardManagement() {
     // Clear all cards
     window.clearAllCards = () => {
-      const outputContainer = document.getElementById("outputContainer");
-      const previewContainer = document.getElementById("previewContainer");
-      
-      if (outputContainer) outputContainer.innerHTML = '';
-      if (previewContainer) previewContainer.innerHTML = '';
-      
-      this.cardsData = [];
-      Messages.showSuccess('All cards cleared');
-    };
-
-    // Clear individual card
-    window.clearCard = (cardElement) => {
-      if (!cardElement) return;
-      
-      const cardIndex = Array.from(cardElement.parentNode.children).indexOf(cardElement);
-      if (cardIndex >= 0 && cardIndex < this.cardsData.length) {
-        this.cardsData.splice(cardIndex, 1);
-      }
-      
-      cardElement.remove();
-    };
-
+  const outputContainer = document.getElementById("outputContainer");
+  const previewContainer = document.getElementById("previewContainer");
+  
+  if (outputContainer) outputContainer.innerHTML = '';
+  if (previewContainer) previewContainer.innerHTML = '';
+  
+  // IMPORTANT: Clear the cards data array
+  window.cardsData = [];
+  
+  if (window.IndexPageController) {
+    IndexPageController.cardsData = [];
+  }
+  
+  // Exit gallery mode if active
+  if (window.GalleryManager && GalleryManager.isGalleryMode) {
+    GalleryManager.toggleGalleryMode();
+  }
+  
+  Messages.showSuccess('All cards cleared');
+};
     // Setup clear all button
     const clearAllButton = document.querySelector('button[onclick="clearAllCards()"]');
     if (clearAllButton) {
