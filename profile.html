@@ -206,6 +206,49 @@
             from { transform: rotate(0deg); }
             to { transform: rotate(360deg); }
         }
+
+        /* Comments section styling for profile page */
+        .profile-card-wrapper .comments-section {
+            border-top: none;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .profile-card-wrapper .comments-list {
+            max-height: 200px; /* Slightly smaller for profile page */
+        }
+
+        .profile-card-wrapper .comment-form input {
+            font-family: inherit;
+        }
+
+        .profile-card-wrapper .comment-form input:focus {
+            outline: none;
+            border-color: rgb(251, 225, 183) !important;
+            box-shadow: 0 0 0 2px rgba(251, 225, 183, 0.2);
+        }
+
+        .profile-card-wrapper .toggle-comments-btn:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+            transform: translateY(-1px);
+        }
+
+        .profile-card-wrapper .comments-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .profile-card-wrapper .comments-list::-webkit-scrollbar-track {
+            background: rgba(37, 26, 12, 0.5);
+            border-radius: 4px;
+        }
+
+        .profile-card-wrapper .comments-list::-webkit-scrollbar-thumb {
+            background: rgb(218, 165, 32);
+            border-radius: 4px;
+        }
+
+        .profile-card-wrapper .comments-list::-webkit-scrollbar-thumb:hover {
+            background: rgb(251, 225, 183);
+        }
     </style>
 </head>
 <body>
