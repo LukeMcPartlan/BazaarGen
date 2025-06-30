@@ -419,149 +419,98 @@ class SupabaseClient {
   }
 
 /**
-   * Delete item from database
-   */
-  static async deleteItem(itemId) {
-    try {
-      this.debug('Deleting item:', itemId);
-      this.debug('Item ID type:', typeof itemId);
-      
-      if (!this.isReady()) {
-        throw new Error('Database not available');
-      }
+ * Delete item using custom function (bypasses RLS)
+ */
+static async deleteItem(itemId) {
+  try {
+    this.debug('Deleting item with custom function:', itemId);
+    
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
 
-      if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
-        throw new Error('User not signed in');
-      }
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      throw new Error('User not signed in');
+    }
 
-      const userEmail = GoogleAuth.getUserEmail();
-      this.debug('Deleting item for user:', userEmail);
+    const userEmail = GoogleAuth.getUserEmail();
+    this.debug('Deleting item for user:', userEmail);
 
-      // Ensure itemId is the right type
-      const numericItemId = parseInt(itemId);
-      this.debug('Numeric item ID:', numericItemId);
+    // Use custom function instead of direct delete
+    const { data, error } = await this.supabase
+      .rpc('delete_user_item', {
+        item_id: parseInt(itemId),
+        user_email: userEmail
+      });
 
-      const { data, error, count } = await this.supabase
-        .from('items')
-        .delete()
-        .eq('id', numericItemId)
-        .eq('user_email', userEmail) // Ensure user can only delete their own items
-        .select(); // Add select to get info about what was deleted
+    this.debug('Item deletion result:', { data, error });
 
-      this.debug('Item deletion result:', { data, error, count, deletedRows: data?.length });
-
-      if (error) {
-        this.debug('Item deletion error:', error);
-        return { success: false, error: error.message };
-      }
-
-      // Check if any rows were actually deleted
-      if (!data || data.length === 0) {
-        this.debug('No item was deleted - possibly wrong ID or not owned by user');
-        return { success: false, error: 'Item not found or not owned by user' };
-      }
-
-      this.debug('Item deleted successfully, deleted rows:', data.length);
-      return { success: true, error: null, deletedItem: data[0] };
-    } catch (error) {
-      this.debug('Error deleting item:', error);
-      console.error('Error deleting item:', error);
+    if (error) {
+      this.debug('Item deletion error:', error);
       return { success: false, error: error.message };
     }
+
+    // Check if any rows were actually deleted
+    if (!data || data.length === 0) {
+      this.debug('No item was deleted - possibly wrong ID or not owned by user');
+      return { success: false, error: 'Item not found or not owned by user' };
+    }
+
+    this.debug('Item deleted successfully');
+    return { success: true, error: null, deletedItem: data[0] };
+  } catch (error) {
+    this.debug('Error deleting item:', error);
+    console.error('Error deleting item:', error);
+    return { success: false, error: error.message };
   }
+}
 
-  /**
-   * Delete skill from database
-   */
-  static async deleteSkill(skillId) {
-    try {
-      this.debug('Deleting skill:', skillId);
-      this.debug('Skill ID type:', typeof skillId);
-      
-      if (!this.isReady()) {
-        throw new Error('Database not available');
-      }
+/**
+ * Delete skill using custom function (bypasses RLS)
+ */
+static async deleteSkill(skillId) {
+  try {
+    this.debug('Deleting skill with custom function:', skillId);
+    
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
 
-      if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
-        throw new Error('User not signed in');
-      }
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      throw new Error('User not signed in');
+    }
 
-      const userEmail = GoogleAuth.getUserEmail();
-      this.debug('Deleting skill for user:', userEmail);
+    const userEmail = GoogleAuth.getUserEmail();
+    this.debug('Deleting skill for user:', userEmail);
 
-      // Ensure skillId is the right type
-      const numericSkillId = parseInt(skillId);
-      this.debug('Numeric skill ID:', numericSkillId);
+    // Use custom function instead of direct delete
+    const { data, error } = await this.supabase
+      .rpc('delete_user_skill', {
+        skill_id: parseInt(skillId),
+        user_email: userEmail
+      });
 
-      const { data, error, count } = await this.supabase
-        .from('skills')
-        .delete()
-        .eq('id', numericSkillId)
-        .eq('user_email', userEmail) // Ensure user can only delete their own skills
-        .select(); // Add select to get info about what was deleted
+    this.debug('Skill deletion result:', { data, error });
 
-      this.debug('Skill deletion result:', { data, error, count, deletedRows: data?.length });
-
-      if (error) {
-        this.debug('Skill deletion error:', error);
-        return { success: false, error: error.message };
-      }
-
-      // Check if any rows were actually deleted
-      if (!data || data.length === 0) {
-        this.debug('No skill was deleted - possibly wrong ID or not owned by user');
-        return { success: false, error: 'Skill not found or not owned by user' };
-      }
-
-      this.debug('Skill deleted successfully, deleted rows:', data.length);
-      return { success: true, error: null, deletedItem: data[0] };
-    } catch (error) {
-      this.debug('Error deleting skill:', error);
-      console.error('Error deleting skill:', error);
+    if (error) {
+      this.debug('Skill deletion error:', error);
       return { success: false, error: error.message };
     }
-  }
 
-  /**
-   * Delete skill from database
-   */
-  static async deleteSkill(skillId) {
-    try {
-      this.debug('Deleting skill:', skillId);
-      
-      if (!this.isReady()) {
-        throw new Error('Database not available');
-      }
-
-      if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
-        throw new Error('User not signed in');
-      }
-
-      const userEmail = GoogleAuth.getUserEmail();
-      this.debug('Deleting skill for user:', userEmail);
-
-      const { error } = await this.supabase
-        .from('skills')
-        .delete()
-        .eq('id', skillId)
-        .eq('user_email', userEmail); // Ensure user can only delete their own skills
-
-      this.debug('Skill deletion result:', { error });
-
-      if (error) {
-        this.debug('Skill deletion error:', error);
-        throw error;
-      }
-
-      this.debug('Skill deleted successfully');
-      return { success: true };
-    } catch (error) {
-      this.debug('Error deleting skill:', error);
-      console.error('Error deleting skill:', error);
-      throw error;
+    // Check if any rows were actually deleted
+    if (!data || data.length === 0) {
+      this.debug('No skill was deleted - possibly wrong ID or not owned by user');
+      return { success: false, error: 'Skill not found or not owned by user' };
     }
-  }
 
+    this.debug('Skill deleted successfully');
+    return { success: true, error: null, deletedItem: data[0] };
+  } catch (error) {
+    this.debug('Error deleting skill:', error);
+    console.error('Error deleting skill:', error);
+    return { success: false, error: error.message };
+  }
+}
   /**
    * Get database statistics
    */
