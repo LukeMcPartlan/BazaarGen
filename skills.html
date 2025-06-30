@@ -1,6 +1,36 @@
 <!DOCTYPE html> 
 <html lang="en">
 <head>
+  <script>
+      // Domain redirect
+      if (window.location.hostname === 'bazzargen.com' || 
+          window.location.hostname === 'www.bazzargen.com') {
+          
+          // Build the correct URL
+          var correctUrl = 'https://bazaargen.com' + window.location.pathname + window.location.search + window.location.hash;
+          
+          // Log for debugging
+          console.log('Redirecting from:', window.location.href);
+          console.log('Redirecting to:', correctUrl);
+          
+          // Try multiple redirect methods
+          try {
+              window.location.replace(correctUrl);
+          } catch(e) {
+              window.location.href = correctUrl;
+          }
+      }
+      
+      // Optional: Redirect www.bazaargen.com to bazaargen.com
+      if (window.location.hostname === 'www.bazaargen.com') {
+          var correctUrl = 'https://bazaargen.com' + window.location.pathname + window.location.search + window.location.hash;
+          try {
+              window.location.replace(correctUrl);
+          } catch(e) {
+              window.location.href = correctUrl;
+          }
+      }
+  </script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Skill Generator - Create Custom Skills | BazaarGen Tool</title>
@@ -42,138 +72,195 @@
   
   <!-- External Libraries -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- Core Scripts (in correct order) -->
-  <script src="js/core/validation-js.js"></script>
-  <script src="js/core/keyword-processor-js.js"></script>
-  <script src="js/core/skill-generator-js.js"></script>
-  <script src="js/ui/messages-js.js"></script>
-  <script src="js/ui/export-import-js.js"></script>
-  
-  <!-- Auth Scripts -->
-  <script src="js/auth/google-auth-js.js"></script>
-  <script src="js/auth/supabase-client-js.js"></script>
-  
-  <!-- Skills Page Controller -->
-  <script src="js/pages/skills-page-controller.js"></script>
-  
-  <!-- Styles -->
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <!-- Top Navigation -->
   <nav class="top-nav">
     <div class="nav-container">
-      <a href="index.html" class="nav-logo">⚔️ BazaarGen</a>
-      <ul class="nav-menu">
-        <li><a href="index.html" class="nav-link">Items</a></li>
-        <li><a href="skills.html" class="nav-link active">Skills</a></li>
-        <li><a href="browse.html" class="nav-link">Browse</a></li>
-        <li><a href="contests.html" class="nav-link">Contests</a></li>
-        <li><a href="profile.html" class="nav-link">Profile</a></li>
+      <a href="#" class="nav-logo">BazaarGen</a>
+      
+      <ul class="nav-menu" id="nav-menu">
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-page="items">Items</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link active" data-page="skills">Skills</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link" data-page="browse">browse</a>
+        </li>
       </ul>
+      
+      <!-- Google sign in stuff-->
       <div class="nav-actions">
         <!-- Google Sign-In Button (shown when not signed in) -->
         <div id="google-signin-button"></div>
-
+    
         <!-- User Info (shown when signed in) -->
-        <div class="user-info" id="user-info" style="display: none;">
-          <span class="user-alias" id="user-alias" onclick="editAlias()" title="Click to edit alias"></span>
-          <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
+        <div class="user-info" id="user-info" style="display: none; align-items: center; gap: 10px;">
+            <span class="user-alias" id="user-alias" style="font-weight: 500; color: #333; cursor: pointer;" onclick="editAlias()" title="Click to edit alias"></span>
+            <button class="sign-out-btn" onclick="signOut()" style="background: none; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: #666; font-size: 14px;">Sign Out</button>
         </div>
+      </div>
+      
+      <!-- Alias Creation Modal -->
+      <div id="alias-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+          <div style="background: white; padding: 30px; border-radius: 8px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+              <h2 id="alias-modal-title" style="margin: 0 0 10px 0; color: #333;">Welcome to BazaarGen!</h2>
+              <p id="alias-modal-description" style="color: #666; margin: 0 0 20px 0;">Choose an alias to display on the site</p>
+              
+              <input type="text" id="alias-input" placeholder="Enter your alias" 
+                     style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 16px; margin-bottom: 10px; box-sizing: border-box;">
+              
+              <div id="alias-error" style="color: #d32f2f; font-size: 14px; margin-bottom: 15px; min-height: 20px;"></div>
+              
+              <div style="display: flex; gap: 10px; justify-content: center;">
+                  <button id="alias-cancel-btn" onclick="cancelAliasCreation()" 
+                          style="padding: 10px 20px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; color: #666;">
+                      Cancel
+                  </button>
+                  <button id="alias-save-btn" onclick="saveAlias()" 
+                          style="padding: 10px 20px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer;">
+                      Save Alias
+                  </button>
+              </div>
+          </div>
+      </div>
+
+      <div class="nav-toggle" id="nav-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
       </div>
     </div>
   </nav>
 
-  <div class="main-content">
-    <!-- Page Header -->
-    <div class="page-header">
+  <!-- Page Header -->
+  <div class="page-header">
       <h1 class="page-title">Skill Generator</h1>
       <p class="page-subtitle">Create custom skills and abilities for The Bazaar</p>
-    </div>
-
-    <!-- Live Preview Container -->
-    <div id="previewContainer" class="preview-container"></div>
-
-    <div class="input-container">
-      <div class="form-grid">
-        <div class="form-group">
-          <label class="form-label" for="skillNameInput">Skill Name</label>
-          <input type="text" id="skillNameInput" class="form-input" placeholder="Enter skill name">
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="borderSelect">Border Color</label>
-          <select id="borderSelect" class="form-select">
-            <option value="bronze">Bronze</option>
-            <option value="silver">Silver</option>
-            <option value="gold" selected>Gold</option>
-            <option value="diamond">Diamond</option>
-            <option value="legendary">Legendary</option>
-          </select>
-        </div>
-
-        <div class="form-group full-width">
-          <label class="form-label" for="skillEffectInput">Skill Effect</label>
-          <textarea id="skillEffectInput" class="form-input" placeholder="Enter skill effect description" rows="4"></textarea>
-        </div>
-
-        <div class="form-group full-width">
-          <label class="form-label" for="imageInput">Upload Skill Image</label>
-          <input type="file" id="imageInput" class="form-input" accept="image/*">
-        </div>
-      </div>
-
-      <div class="shortcuts-help">
-        <h4>🎮 Keyword Shortcuts - Type these in text boxes:</h4>
-        <div class="shortcut-grid">
-          <div class="shortcut-item"><span class="shortcut-key">/s</span> <img src="images/KeyText/slow.png" alt="slow" class="keyword-preview"> <span style="color: rgb(203, 159, 110); font-weight: bold;" class="key-text">slow</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/h</span> <img src="images/KeyText/haste.png" alt="haste" class="keyword-preview"> <span style="color: rgb(0, 235, 195); font-weight: bold;" class="key-text">haste</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/he</span> <img src="images/KeyText/heal.png" alt="heal" class="keyword-preview"> <span style="color: rgb(143, 234, 49); font-weight: bold;" class="key-text">heal</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/r</span> <img src="images/KeyText/regen.png" alt="regen" class="keyword-preview"> <span style="color: rgb(143, 234, 49); font-weight: bold;" class="key-text">regen</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/p</span> <img src="images/KeyText/poison.png" alt="poison" class="keyword-preview"> <span style="color: rgb(13, 190, 79); font-weight: bold;" class="key-text">poison</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/b</span> <img src="images/KeyText/burn.png" alt="burn" class="keyword-preview"> <span style="color: rgb(253, 146, 63); font-weight: bold;" class="key-text">burn</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/c</span> <img src="images/KeyText/charge.png" alt="charge" class="keyword-preview"> <span style="color: rgb(0, 235, 195); font-weight: bold;" class="key-text">charge</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/cd</span> <img src="images/KeyText/cooldown.png" alt="cooldown" class="keyword-preview"> <span style="color: rgb(0, 235, 195); font-weight: bold;" class="key-text">cooldown</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/cr</span> <img src="images/KeyText/crit.png" alt="crit" class="keyword-preview"> <span style="color: rgb(244, 82, 60); font-weight: bold;" class="key-text">crit</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/d</span> <img src="images/KeyText/damage.png" alt="damage" class="keyword-preview"> <span style="color: rgb(244, 82, 60); font-weight: bold;" class="key-text">damage</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/de</span> <img src="images/KeyText/destroy.png" alt="destroy" class="keyword-preview"> <span style="color: rgb(198, 44, 66); font-weight: bold;" class="key-text">destroy</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/f</span> <img src="images/KeyText/freeze.png" alt="freeze" class="keyword-preview"> <span style="color: rgb(63, 200, 247); font-weight: bold;" class="key-text">freeze</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/l</span> <img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-preview"> <span style="color: rgb(181, 56, 115); font-weight: bold;" class="key-text">lifesteal</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/v</span> <img src="images/KeyText/value.png" alt="value" class="keyword-preview"> <span style="color: rgb(244, 208, 33); font-weight: bold;" class="key-text">value</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/t</span> <img src="images/KeyText/transform.png" alt="transform" class="keyword-preview"> <span style="color: rgb(90, 230, 233); font-weight: bold;" class="key-text">transform</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/sh</span> <img src="images/KeyText/sheild.png" alt="sheild" class="keyword-preview"> <span style="color: rgb(245, 208, 33); font-weight: bold;" class="key-text">sheild</span></div>
-          <div class="shortcut-item"><span class="shortcut-key">/mh</span> <img src="images/KeyText/maxhealth.png" alt="maxhealth" class="keyword-preview"> <span style="color: rgb(143, 234, 49); font-weight: bold;" class="key-text">maxhealth</span></div>
-        </div>
-      </div>
-
-      <div class="button-group">
-        <button class="form-button" onclick="createSkill()">Generate Skill</button>
-        <button class="form-button secondary" onclick="clearOutput()">Clear All</button>
-      </div>
-
-      <div class="export-import-section">
-        <h4>💾 Export & Import</h4>
-        <div class="export-import-buttons">
-          <button onclick="exportAllSkillsAsData()" class="form-button export">Export All as Data</button>
-          <button onclick="triggerImport()" class="form-button secondary">Import Skill Data</button>
-        </div>
-        <input type="file" id="importInput" accept=".json" class="hidden-input" onchange="importSkillData(event)" />
-      </div>
-    </div>
-
-    <!-- Messages Container -->
-    <div id="errorContainer"></div>
-    
-    <!-- Output Container -->
-    <div id="outputContainer"></div>
   </div>
+
+  <!-- Main Two-Column Container -->
+  <div class="main-container">
+      <!-- Left Column - Form -->
+      <div class="form-column">
+          <div class="form-grid">
+              <div class="form-group full-width">
+                  <label class="form-label">Skill Image</label>
+                  <input type="file" id="imageInput" accept="image/*" class="form-input" />
+                  <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">
+                      Upload an image for your skill
+                  </small>
+              </div>
+
+              <div class="form-group">
+                  <label class="form-label">Skill Name</label>
+                  <input type="text" id="skillNameInput" placeholder="Enter skill name" class="form-input" />
+              </div>
+
+              <div class="form-group">
+                  <label class="form-label">Border Color</label>
+                  <select id="borderSelect" class="form-select">
+                      <option value="bronze">Bronze</option>
+                      <option value="silver">Silver</option>
+                      <option value="gold" selected>Gold</option>
+                      <option value="diamond">Diamond</option>
+                      <option value="legendary">Legendary</option>
+                  </select>
+              </div>
+
+              <div class="form-group full-width">
+                  <label class="form-label">Skill Effect</label>
+                  <textarea id="skillEffectInput" class="form-input" placeholder="Enter skill effect description" rows="4"></textarea>
+                  <div class="character-counter" style="font-size: 12px; color: #666; margin-top: 5px;">0 characters</div>
+              </div>
+          </div>
+
+          <!-- Keyboard Shortcuts Help -->
+          <div class="shortcuts-help">
+              <h4>🎮 Keyword Shortcuts - Type these in text boxes:</h4>
+              <div class="shortcut-grid">
+                  <div class="shortcut-item"><span class="shortcut-key">/s</span> <img src="images/KeyText/slow.png" alt="slow" class="keyword-preview"> <span style="color: rgb(203, 159, 110); font-weight: bold;" class="key-text">slow</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/h</span> <img src="images/KeyText/haste.png" alt="haste" class="keyword-preview"> <span style="color: rgb(0, 235, 195); font-weight: bold;" class="key-text">haste</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/he</span> <img src="images/KeyText/heal.png" alt="heal" class="keyword-preview"> <span style="color: rgb(143, 234, 49); font-weight: bold;" class="key-text">heal</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/r</span> <img src="images/KeyText/regen.png" alt="regen" class="keyword-preview"> <span style="color: rgb(143, 234, 49); font-weight: bold;" class="key-text">regen</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/p</span> <img src="images/KeyText/poison.png" alt="poison" class="keyword-preview"> <span style="color: rgb(13, 190, 79); font-weight: bold;" class="key-text">poison</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/b</span> <img src="images/KeyText/burn.png" alt="burn" class="keyword-preview"> <span style="color: rgb(253, 146, 63); font-weight: bold;" class="key-text">burn</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/c</span> <img src="images/KeyText/charge.png" alt="charge" class="keyword-preview"> <span style="color: rgb(0, 235, 195); font-weight: bold;" class="key-text">charge</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/cd</span> <img src="images/KeyText/cooldown.png" alt="cooldown" class="keyword-preview"> <span style="color: rgb(0, 235, 195); font-weight: bold;" class="key-text">cooldown</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/cr</span> <img src="images/KeyText/crit.png" alt="crit" class="keyword-preview"> <span style="color: rgb(244, 82, 60); font-weight: bold;" class="key-text">crit</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/d</span> <img src="images/KeyText/damage.png" alt="damage" class="keyword-preview"> <span style="color: rgb(244, 82, 60); font-weight: bold;" class="key-text">damage</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/de</span> <img src="images/KeyText/destroy.png" alt="destroy" class="keyword-preview"> <span style="color: rgb(198, 44, 66); font-weight: bold;" class="key-text">destroy</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/f</span> <img src="images/KeyText/freeze.png" alt="freeze" class="keyword-preview"> <span style="color: rgb(63, 200, 247); font-weight: bold;" class="key-text">freeze</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/l</span> <img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-preview"> <span style="color: rgb(181, 56, 115); font-weight: bold;" class="key-text">lifesteal</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/v</span> <img src="images/KeyText/value.png" alt="value" class="keyword-preview"> <span style="color: rgb(244, 208, 33); font-weight: bold;" class="key-text">value</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/t</span> <img src="images/KeyText/transform.png" alt="transform" class="keyword-preview"> <span style="color: rgb(90, 230, 233); font-weight: bold;" class="key-text">transform</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/sh</span> <img src="images/KeyText/sheild.png" alt="sheild" class="keyword-preview"> <span style="color: rgb(245, 208, 33); font-weight: bold;" class="key-text">sheild</span></div>
+                  <div class="shortcut-item"><span class="shortcut-key">/mh</span> <img src="images/KeyText/maxhealth.png" alt="maxhealth" class="keyword-preview"> <span style="color: rgb(143, 234, 49); font-weight: bold;" class="key-text">maxhealth</span></div>
+              </div>
+          </div>
+      </div>
+
+      <!-- Right Column - Preview -->
+      <div class="preview-column">
+          <div class="preview-header">
+              ⚡ Live Preview
+          </div>
+          <div id="previewContainer">
+              <div class="preview-placeholder">
+                  <p>⚡ Your skill preview will appear here</p>
+                  <p style="margin-top: 10px; font-size: 0.9em;">Add a skill name, effect, and upload an image to see the magic happen!</p>
+              </div>
+          </div>
+          
+          <!-- Save Skill Button in Preview Column -->
+          <div class="preview-actions">
+              <button onclick="createSkill()" class="form-button save-card-btn">⚡ Save Skill ⚡</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- Full Width Sections Below -->
+  <div class="bottom-sections">
+      <!-- Management Actions -->
+      <div class="management-section">
+          <h3 class="section-title">🗂️ Skill Management</h3>
+          <div class="management-actions">
+              <button onclick="clearOutput()" class="form-button secondary clear-all-btn">🗑️ Clear All Skills</button>
+              
+              <div class="export-import-group">
+                  <button onclick="exportAllSkillsAsData()" class="form-button export">💾 Export as Data</button>
+                  <button onclick="triggerImport()" class="form-button secondary">📥 Import Data</button>
+              </div>
+          </div>
+      </div>
+
+      <!-- Saved Skills Display -->
+      <div class="saved-cards-section">
+          <h3 class="section-title">⚡ Your Created Skills</h3>
+          <div id="outputContainer" class="cards-grid">
+              <!-- Generated skills will appear here -->
+              <div class="cards-placeholder">
+                  <p>⚡ Your saved skills will appear here after you create them!</p>
+                  <p style="margin-top: 10px; font-size: 0.9em;">Each skill will have export and delete options.</p>
+              </div>
+          </div>
+      </div>
+  </div>
+
+  <!-- Hidden Elements -->
+  <div id="errorContainer"></div>
+  <input type="file" id="importInput" accept=".json" class="hidden-input" onchange="importSkillData(event)" />
 
   <!-- Footer -->
   <footer class="footer">
     <div class="footer-content">
-      <div class="footer-title">⚔️ Bazaar Skills Generator ⚔️</div>
+      <div class="footer-title">⚡ Bazaar Skill Generator ⚡</div>
       <div class="footer-description">
         Bring your ideas to life. Shoutout to Reynad for tearing this masterpiece from the void. 
       </div>
@@ -199,21 +286,27 @@
     </div>
   </footer>
 
-  <!-- Alias Creation Modal -->
-  <div id="alias-modal" style="display: none;">
-    <div>
-      <h2 id="alias-modal-title">Welcome to BazaarGen!</h2>
-      <p id="alias-modal-description">Choose an alias to display on the site</p>
-      
-      <input type="text" id="alias-input" placeholder="Enter your alias">
-      
-      <div id="alias-error"></div>
-      
-      <div class="button-group">
-        <button id="alias-cancel-btn" onclick="cancelAliasCreation()">Cancel</button>
-        <button id="alias-save-btn" onclick="saveAlias()">Save Alias</button>
-      </div>
-    </div>
-  </div>
+  <!-- Scripts -->
+  <!-- Core modules (load first) -->
+  <script src="js/core/validation-js.js"></script>
+  <script src="js/core/keyword-processor-js.js"></script>
+  <script src="js/core/skill-generator-js.js"></script>
+
+  <!-- UI modules -->
+  <script src="js/ui/messages-js.js"></script>
+  <script src="js/ui/forms-js.js"></script>
+  <script src="js/ui/navigation-js.js"></script>
+
+  <!-- Auth modules -->
+  <script src="js/auth/supabase-client-js.js"></script>
+  <script src="js/auth/google-auth-js.js"></script>
+
+  <!-- Data modules -->
+  <script src="js/data/export-import-js.js"></script>
+  <script src="js/data/database-js.js"></script>
+
+  <!-- Page-specific module (load last) -->
+  <script src="js/pages/skills-js.js"></script>
+    
 </body>
 </html>
