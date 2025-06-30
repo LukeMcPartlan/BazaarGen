@@ -40,34 +40,61 @@
   <meta name="theme-color" content="#8B7A65" />
   <link rel="canonical" href="https://Bazaargen.com/skills.html" />
   
- <link rel="stylesheet" href="styles.css" />
+  <!-- External Libraries -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Core Scripts (in correct order) -->
+  <script src="js/core/validation-js.js"></script>
+  <script src="js/core/keyword-processor-js.js"></script>
+  <script src="js/core/skill-generator-js.js"></script>
+  <script src="js/ui/messages-js.js"></script>
+  <script src="js/ui/export-import-js.js"></script>
+  
+  <!-- Auth Scripts -->
+  <script src="js/auth/google-auth-js.js"></script>
+  <script src="js/auth/supabase-client-js.js"></script>
+  
+  <!-- Skills Page Controller -->
+  <script src="js/pages/skills-page-controller.js"></script>
+  
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <!-- Top Navigation -->
-  <nav>
-    <div class="nav-left">
-        <a href="index.html" class="nav-logo">⚔️ Bazaar Generator</a>
-    </div>
-    <div class="nav-center">
-        <a href="index.html" >Item Generator</a>
-        <a href="skills.html" class="active">Skill Generator</a>
-        <a href="browse.html">Browse Items</a>
-        <a href="profile.html">My Profile</a>
-    </div>
-    <div class="nav-right">
-        <div id="signInDiv"></div>
-        <div id="userInfo" style="display: none;">
-            <span id="userEmail"></span>
-            <button onclick="GoogleAuth.handleSignOut()" class="sign-out-btn">Sign Out</button>
+  <nav class="top-nav">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">⚔️ BazaarGen</a>
+      <ul class="nav-menu">
+        <li><a href="index.html" class="nav-link">Items</a></li>
+        <li><a href="skills.html" class="nav-link active">Skills</a></li>
+        <li><a href="browse.html" class="nav-link">Browse</a></li>
+        <li><a href="contests.html" class="nav-link">Contests</a></li>
+        <li><a href="profile.html" class="nav-link">Profile</a></li>
+      </ul>
+      <div class="nav-actions">
+        <!-- Google Sign-In Button (shown when not signed in) -->
+        <div id="google-signin-button"></div>
+
+        <!-- User Info (shown when signed in) -->
+        <div class="user-info" id="user-info" style="display: none;">
+          <span class="user-alias" id="user-alias" onclick="editAlias()" title="Click to edit alias"></span>
+          <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
         </div>
+      </div>
     </div>
-</nav>
+  </nav>
 
   <div class="main-content">
     <!-- Page Header -->
     <div class="page-header">
       <h1 class="page-title">Skill Generator</h1>
+      <p class="page-subtitle">Create custom skills and abilities for The Bazaar</p>
     </div>
+
+    <!-- Live Preview Container -->
+    <div id="previewContainer" class="preview-container"></div>
 
     <div class="input-container">
       <div class="form-grid">
@@ -136,7 +163,10 @@
       </div>
     </div>
 
+    <!-- Messages Container -->
     <div id="errorContainer"></div>
+    
+    <!-- Output Container -->
     <div id="outputContainer"></div>
   </div>
 
@@ -169,502 +199,21 @@
     </div>
   </footer>
 
-  <script>
-    // Store all skills data for export/import
-    let skillsData = [];
-
-    // Navigation functionality
-    document.addEventListener('DOMContentLoaded', function() {
-      const navToggle = document.getElementById('nav-toggle');
-      const navMenu = document.getElementById('nav-menu');
-
-      // Toggle mobile menu
-      navToggle.addEventListener('click', function() {
-        navMenu.classList.toggle('active');
-      });
-
-      // Close mobile menu when clicking outside
-      document.addEventListener('click', function(e) {
-        if (!navToggle.contains(e.target) && !navMenu.contains(e.target)) {
-          navMenu.classList.remove('active');
-        }
-      });
-
-      // Close export menus when clicking outside
-      document.addEventListener('click', function(e) {
-        if (!e.target.closest('.skill-export-btn') && !e.target.closest('.export-menu')) {
-          document.querySelectorAll('.export-menu').forEach(menu => {
-            menu.classList.remove('show');
-          });
-        }
-      });
-    });
-
-    // Define keyword colors and styling rules (same as card generator)
-    const keywordRules = {
-      'slow': { color: 'rgb(203, 159, 110)' },
-      'haste': { color: 'rgb(0, 235, 195)' },
-      'charge': { color: 'rgb(0, 235, 195)' },
-      'cooldown': { color: 'rgb(0, 235, 195)' },
-      'heal': { color: 'rgb(143, 234, 49)' },
-      'regen': { color: 'rgb(143, 234, 49)' },
-      'poison': { color: 'rgb(13, 190, 79)' },
-      'burn': { color: 'rgb(253, 146, 63)' },
-      'crit': { color: 'rgb(244, 82, 60)' },
-      'damage': { color: 'rgb(244, 82, 60)' },
-      'freeze': { color: 'rgb(63, 200, 247)' },
-      'lifesteal': { color: 'rgb(181, 56, 115)' },
-      'value': { color: 'rgb(244, 208, 33)' },
-      'destroy': { color: 'rgb(198, 44, 66)' },
-      'transform': { color: 'rgb(90, 230, 233)' },
-      'sheild': { color: 'rgb(245, 208, 33)' },
-      'maxhealth': { color: 'rgb(143, 234, 49)' }
-    };
-
-    function processKeywordText(text) {
-      if (!text || typeof text !== 'string') return text;
+  <!-- Alias Creation Modal -->
+  <div id="alias-modal" style="display: none;">
+    <div>
+      <h2 id="alias-modal-title">Welcome to BazaarGen!</h2>
+      <p id="alias-modal-description">Choose an alias to display on the site</p>
       
-      let processedText = text;
+      <input type="text" id="alias-input" placeholder="Enter your alias">
       
-      // Process LONGER patterns FIRST to avoid conflicts
-      processedText = processedText.replace(/\/cd/g, '[COOLDOWN_ICON]');  // Process /cd before /c
-      processedText = processedText.replace(/\/cr/g, '[CRIT_ICON]');      // Process /cr before /c
-      processedText = processedText.replace(/\/he/g, '[HEAL_ICON]');      // Process /he before /h
-      processedText = processedText.replace(/\/sh/g, '[SHEILD_ICON]');    // Process /sh before /s
-      processedText = processedText.replace(/\/mh/g, '[MAXHEALTH_ICON]'); // Process /mh before /h
-      processedText = processedText.replace(/\/de/g, '[DESTROY_ICON]');   // Process /de before /d
+      <div id="alias-error"></div>
       
-      // Then process single-letter patterns
-      processedText = processedText.replace(/\/s/g, '[SLOW_ICON]');
-      processedText = processedText.replace(/\/h/g, '[HASTE_ICON]');
-      processedText = processedText.replace(/\/r/g, '[REGEN_ICON]');
-      processedText = processedText.replace(/\/p/g, '[POISON_ICON]');
-      processedText = processedText.replace(/\/b/g, '[BURN_ICON]');
-      processedText = processedText.replace(/\/c/g, '[CHARGE_ICON]');
-      processedText = processedText.replace(/\/d/g, '[DAMAGE_ICON]');
-      processedText = processedText.replace(/\/f/g, '[FREEZE_ICON]');
-      processedText = processedText.replace(/\/l/g, '[LIFESTEAL_ICON]');
-      processedText = processedText.replace(/\/v/g, '[VALUE_ICON]');
-      processedText = processedText.replace(/\/t/g, '[TRANSFORM_ICON]');
-      
-      // Create a regex pattern that matches all keywords (case insensitive)
-      const keywords = Object.keys(keywordRules);
-      const pattern = new RegExp(`\\b(${keywords.join('|')})\\b`, 'gi');
-      
-      // Replace each keyword with styled span
-      processedText = processedText.replace(pattern, (match) => {
-        const lowerMatch = match.toLowerCase();
-        const rule = keywordRules[lowerMatch];
-        if (rule) {
-          return `<span style="color: ${rule.color}; font-weight: bold;" class="key-text" data-keyword="${lowerMatch}">${match}</span>`;
-        }
-        return match;
-      });
-      
-      // Finally, replace all placeholders with actual images
-      processedText = processedText.replace(/\[SLOW_ICON\]/g, '<img src="images/KeyText/slow.png" alt="slow" class="keyword-icon">');
-      processedText = processedText.replace(/\[HASTE_ICON\]/g, '<img src="images/KeyText/haste.png" alt="haste" class="keyword-icon">');
-      processedText = processedText.replace(/\[HEAL_ICON\]/g, '<img src="images/KeyText/heal.png" alt="heal" class="keyword-icon">');
-      processedText = processedText.replace(/\[REGEN_ICON\]/g, '<img src="images/KeyText/regen.png" alt="regen" class="keyword-icon">');
-      processedText = processedText.replace(/\[POISON_ICON\]/g, '<img src="images/KeyText/poison.png" alt="poison" class="keyword-icon">');
-      processedText = processedText.replace(/\[BURN_ICON\]/g, '<img src="images/KeyText/burn.png" alt="burn" class="keyword-icon">');
-      processedText = processedText.replace(/\[CHARGE_ICON\]/g, '<img src="images/KeyText/charge.png" alt="charge" class="keyword-icon">');
-      processedText = processedText.replace(/\[COOLDOWN_ICON\]/g, '<img src="images/KeyText/cooldown.png" alt="cooldown" class="keyword-icon">');
-      processedText = processedText.replace(/\[CRIT_ICON\]/g, '<img src="images/KeyText/crit.png" alt="crit" class="keyword-icon">');
-      processedText = processedText.replace(/\[DAMAGE_ICON\]/g, '<img src="images/KeyText/damage.png" alt="damage" class="keyword-icon">');
-      processedText = processedText.replace(/\[DESTROY_ICON\]/g, '<img src="images/KeyText/destroy.png" alt="destroy" class="keyword-icon">');
-      processedText = processedText.replace(/\[FREEZE_ICON\]/g, '<img src="images/KeyText/freeze.png" alt="freeze" class="keyword-icon">');
-      processedText = processedText.replace(/\[LIFESTEAL_ICON\]/g, '<img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-icon">');
-      processedText = processedText.replace(/\[VALUE_ICON\]/g, '<img src="images/KeyText/value.png" alt="value" class="keyword-icon">');
-      processedText = processedText.replace(/\[TRANSFORM_ICON\]/g, '<img src="images/KeyText/transform.png" alt="transform" class="keyword-icon">');
-      processedText = processedText.replace(/\[SHEILD_ICON\]/g, '<img src="images/KeyText/sheild.png" alt="sheild" class="keyword-icon">');
-      processedText = processedText.replace(/\[MAXHEALTH_ICON\]/g, '<img src="images/KeyText/maxhealth.png" alt="maxhealth" class="keyword-icon">');
-      return processedText;
-    }
-
-    function getBorderColor(value) {
-      switch(value) {
-        case 'bronze': return 'rgb(205, 127, 50)';
-        case 'silver': return 'silver';
-        case 'gold': return 'gold';
-        case 'diamond': return 'rgb(185, 242, 255)';
-        case 'legendary': return 'red';
-        default: return 'gold';
-      }
-    }
-
-    function clearSkill(skillElement) {
-      const skillIndex = Array.from(skillElement.parentNode.children).indexOf(skillElement);
-      skillsData.splice(skillIndex, 1);
-      skillElement.remove();
-    }
-
-    function toggleExportMenu(button, skillData) {
-      // Close all other export menus
-      document.querySelectorAll('.export-menu').forEach(menu => {
-        if (menu.parentElement !== button.parentElement) {
-          menu.classList.remove('show');
-        }
-      });
-
-      let menu = button.parentElement.querySelector('.export-menu');
-      if (!menu) {
-        menu = document.createElement('div');
-        menu.className = 'export-menu';
-        
-        const dataOption = document.createElement('div');
-        dataOption.className = 'export-option';
-        dataOption.textContent = 'Export as Data';
-        dataOption.onclick = () => {
-          exportSingleSkillAsData(skillData);
-          menu.classList.remove('show');
-        };
-        
-        menu.appendChild(dataOption);
-        button.parentElement.appendChild(menu);
-      }
-
-      menu.classList.toggle('show');
-    }
-
-    function exportSingleSkillAsData(skillData) {
-      const dataToExport = {
-        version: "1.0",
-        timestamp: new Date().toISOString(),
-        skills: [skillData]
-      };
-
-      const dataStr = JSON.stringify(dataToExport, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(dataBlob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${skillData.skillName.replace(/\s+/g, '-')}-skill.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      showMessage('Skill exported successfully!', 'success');
-    }
-
-    function exportAllSkillsAsData() {
-      if (skillsData.length === 0) {
-        showMessage('No skills to export!', 'error');
-        return;
-      }
-
-      const dataToExport = {
-        version: "1.0",
-        timestamp: new Date().toISOString(),
-        skills: skillsData
-      };
-
-      const dataStr = JSON.stringify(dataToExport, null, 2);
-      const dataBlob = new Blob([dataStr], { type: 'application/json' });
-      const url = URL.createObjectURL(dataBlob);
-      
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `Bazaar-skills-${new Date().toISOString().split('T')[0]}.json`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      showMessage(`Exported ${skillsData.length} skills successfully!`, 'success');
-    }
-
-    function triggerImport() {
-      document.getElementById('importInput').click();
-    }
-
-    function importSkillData(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        try {
-          const importedData = JSON.parse(e.target.result);
-          
-          if (!importedData.skills || !Array.isArray(importedData.skills)) {
-            throw new Error('Invalid file format');
-          }
-
-          let importedCount = 0;
-          importedData.skills.forEach(skillData => {
-            try {
-              importSingleSkill(skillData);
-              importedCount++;
-            } catch (error) {
-              console.error('Error importing skill:', error);
-            }
-          });
-
-          if (importedCount > 0) {
-            showMessage(`Successfully imported ${importedCount} skills!`, 'success');
-          } else {
-            showMessage('No skills could be imported from this file.', 'error');
-          }
-
-        } catch (error) {
-          showMessage('Error reading file: ' + error.message, 'error');
-        }
-      };
-      reader.readAsText(file);
-      
-      // Clear the input
-      event.target.value = '';
-    }
-
-    function importSingleSkill(skillData) {
-      const outputContainer = document.getElementById("outputContainer");
-      const borderColor = getBorderColor(skillData.border);
-      
-      const skillCard = document.createElement("div");
-      skillCard.className = "skill-card";
-
-      // Add delete and export buttons for individual skill
-      const skillControls = document.createElement("div");
-      skillControls.className = "skill-controls";
-      
-      const exportBtn = document.createElement("button");
-      exportBtn.className = "skill-export-btn";
-      exportBtn.innerHTML = "💾";
-      exportBtn.title = "Export this skill";
-      exportBtn.onclick = function() {
-        toggleExportMenu(exportBtn, skillData);
-      };
-      
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "skill-delete-btn";
-      deleteBtn.innerHTML = "×";
-      deleteBtn.title = "Delete this skill";
-      deleteBtn.onclick = function() {
-        clearSkill(skillCard);
-      };
-      
-      skillControls.appendChild(exportBtn);
-      skillControls.appendChild(deleteBtn);
-      skillCard.appendChild(skillControls);
-
-      const imageContainer = document.createElement("div");
-      imageContainer.className = "skill-image-container";
-      imageContainer.style.border = `3px solid ${borderColor}`;
-
-      const img = document.createElement("img");
-      img.src = skillData.imageData;
-      imageContainer.appendChild(img);
-
-      // Create border overlay
-      const imageBorderOverlay = document.createElement("img");
-      imageBorderOverlay.className = "skill-border-overlay";
-      imageBorderOverlay.src = `images/${skillData.border}_skill_border.png`;
-      imageBorderOverlay.onerror = function() {
-        this.style.display = 'none';
-      };
-      imageBorderOverlay.alt = "";
-      imageContainer.appendChild(imageBorderOverlay);
-
-      const content = document.createElement("div");
-      content.className = "skill-content";
-      content.style.border = `3px solid ${borderColor}`;
-
-      const headerSection = document.createElement("div");
-      headerSection.className = "skill-header";
-      headerSection.style.borderTop = `2px solid ${borderColor}`;
-      headerSection.style.borderBottom = `2px solid ${borderColor}`;
-      
-      const skillTitle = document.createElement("div");
-      skillTitle.className = "skill-title";
-      skillTitle.textContent = skillData.skillName;
-      headerSection.appendChild(skillTitle);
-
-      const effectSection = document.createElement("div");
-      effectSection.className = "skill-effect";
-      effectSection.style.borderTop = `2px solid ${borderColor}`;
-      effectSection.style.borderBottom = `2px solid ${borderColor}`;
-      effectSection.innerHTML = processKeywordText(skillData.skillEffect);
-
-      content.appendChild(headerSection);
-      content.appendChild(effectSection);
-
-      skillCard.appendChild(imageContainer);
-      skillCard.appendChild(content);
-      outputContainer.appendChild(skillCard);
-
-      // Add to skills data
-      skillsData.push(skillData);
-    }
-
-    function showMessage(message, type) {
-      const errorContainer = document.getElementById("errorContainer");
-      const messageDiv = document.createElement("div");
-      messageDiv.className = type;
-      messageDiv.textContent = message;
-      
-      // Clear previous messages
-      errorContainer.innerHTML = '';
-      errorContainer.appendChild(messageDiv);
-      
-      // Auto-remove success messages after 3 seconds
-      if (type === 'success') {
-        setTimeout(() => {
-          if (messageDiv.parentElement) {
-            messageDiv.remove();
-          }
-        }, 3000);
-      }
-    }
-
-    function createSkill() {
-      const imageInput = document.getElementById("imageInput");
-      const skillName = document.getElementById("skillNameInput").value;
-      const skillEffect = document.getElementById("skillEffectInput").value;
-      const border = document.getElementById("borderSelect").value;
-      const outputContainer = document.getElementById("outputContainer");
-      const errorContainer = document.getElementById("errorContainer");
-
-      // Clear previous errors
-      errorContainer.innerHTML = '';
-
-      // Validate inputs
-      if (!skillName.trim()) {
-        const errorDiv = document.createElement("div");
-        errorDiv.className = "error";
-        errorDiv.textContent = "Please enter a skill name.";
-        errorContainer.appendChild(errorDiv);
-        return;
-      }
-
-      if (!skillEffect.trim()) {
-        const errorDiv = document.createElement("div");
-        errorDiv.className = "error";
-        errorDiv.textContent = "Please enter a skill effect.";
-        errorContainer.appendChild(errorDiv);
-        return;
-      }
-
-      if (!imageInput.files || !imageInput.files[0]) {
-        const errorDiv = document.createElement("div");
-        errorDiv.className = "error";
-        errorDiv.textContent = "Please upload an image.";
-        errorContainer.appendChild(errorDiv);
-        return;
-      }
-
-      const reader = new FileReader();
-
-      reader.onload = function (e) {
-        const imageData = e.target.result;
-        
-        // Create skill data object for export/import
-        const skillData = {
-          skillName: skillName,
-          skillEffect: skillEffect,
-          border: border,
-          imageData: imageData,
-          timestamp: new Date().toISOString()
-        };
-
-        // Store skill data
-        skillsData.push(skillData);
-
-        const borderColor = getBorderColor(border);
-        const skillCard = document.createElement("div");
-        skillCard.className = "skill-card";
-
-        // Add delete and export buttons for individual skill
-        const skillControls = document.createElement("div");
-        skillControls.className = "skill-controls";
-        
-        const exportBtn = document.createElement("button");
-        exportBtn.className = "skill-export-btn";
-        exportBtn.innerHTML = "💾";
-        exportBtn.title = "Export this skill";
-        exportBtn.onclick = function() {
-          toggleExportMenu(exportBtn, skillData);
-        };
-        
-        const deleteBtn = document.createElement("button");
-        deleteBtn.className = "skill-delete-btn";
-        deleteBtn.innerHTML = "×";
-        deleteBtn.title = "Delete this skill";
-        deleteBtn.onclick = function() {
-          clearSkill(skillCard);
-        };
-        
-        skillControls.appendChild(exportBtn);
-        skillControls.appendChild(deleteBtn);
-        skillCard.appendChild(skillControls);
-
-        const imageContainer = document.createElement("div");
-        imageContainer.className = "skill-image-container";
-        imageContainer.style.border = `3px solid ${borderColor}`;
-
-        const img = document.createElement("img");
-        img.src = imageData;
-        
-        imageContainer.appendChild(img);
-
-        // Create border overlay - positioned relative to image container, not skill card
-        const imageBorderOverlay = document.createElement("img");
-        imageBorderOverlay.className = "skill-border-overlay";
-        imageBorderOverlay.src = `images/${border}_skill_border.png`;
-        
-        // Hide broken image if it doesn't load
-        imageBorderOverlay.onerror = function() {
-          this.style.display = 'none';
-        };
-        
-        // No alt text since it's purely decorative
-        imageBorderOverlay.alt = "";
-
-        // Add border overlay to the image container so it moves with the image
-        imageContainer.appendChild(imageBorderOverlay);
-
-        const content = document.createElement("div");
-        content.className = "skill-content";
-        content.style.border = `3px solid ${borderColor}`;
-
-        const headerSection = document.createElement("div");
-        headerSection.className = "skill-header";
-        headerSection.style.borderTop = `2px solid ${borderColor}`;
-        headerSection.style.borderBottom = `2px solid ${borderColor}`;
-        
-        const skillTitle = document.createElement("div");
-        skillTitle.className = "skill-title";
-        skillTitle.textContent = skillName;
-        headerSection.appendChild(skillTitle);
-
-        const effectSection = document.createElement("div");
-        effectSection.className = "skill-effect";
-        effectSection.style.borderTop = `2px solid ${borderColor}`;
-        effectSection.style.borderBottom = `2px solid ${borderColor}`;
-        effectSection.innerHTML = processKeywordText(skillEffect);
-
-        content.appendChild(headerSection);
-        content.appendChild(effectSection);
-
-        skillCard.appendChild(imageContainer);
-        skillCard.appendChild(content);
-        outputContainer.appendChild(skillCard);
-      };
-
-      reader.readAsDataURL(imageInput.files[0]);
-    }
-
-    function clearOutput() {
-      document.getElementById("outputContainer").innerHTML = '';
-      document.getElementById("errorContainer").innerHTML = '';
-      document.getElementById("skillNameInput").value = '';
-      document.getElementById("skillEffectInput").value = '';
-      document.getElementById("imageInput").value = '';
-      document.getElementById("borderSelect").value = 'gold';
-      skillsData = [];
-    }
-  </script>
+      <div class="button-group">
+        <button id="alias-cancel-btn" onclick="cancelAliasCreation()">Cancel</button>
+        <button id="alias-save-btn" onclick="saveAlias()">Save Alias</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
