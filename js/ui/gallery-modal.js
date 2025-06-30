@@ -1,4 +1,4 @@
-@@ -1,520 +1 @@
+
 /**
  * Gallery Modal for Browse Page
  * Provides gallery functionality for viewing multiple cards from collections
