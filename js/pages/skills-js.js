@@ -1,11 +1,21 @@
 /**
- * Skills Page Controller
+ * Skills Page Controller - Fixed Version
  * Handles specific functionality for the skills generation page
  */
 class SkillsPageController {
   
   static skillsData = [];
   static isInitialized = false;
+  static debugMode = true;
+
+  /**
+   * Debug logging function
+   */
+  static debug(message, data = null) {
+    if (this.debugMode) {
+      console.log(`[SkillsPageController] ${message}`, data || '');
+    }
+  }
 
   /**
    * Initialize the skills page
@@ -14,11 +24,20 @@ class SkillsPageController {
     if (this.isInitialized) return;
 
     document.addEventListener('DOMContentLoaded', () => {
-      this.setupSkillGeneration();
-      this.setupFormEvents();
-      this.setupSkillManagement();
-      this.setupGlobalVariables();
-      this.isInitialized = true;
+      this.debug('Initializing Skills Page Controller...');
+      
+      // Wait a moment for other scripts to load
+      setTimeout(() => {
+        this.setupSkillGeneration();
+        this.setupFormEvents();
+        this.setupSkillManagement();
+        this.setupGlobalVariables();
+        this.setupKeyboardShortcuts();
+        this.setupAutoSave();
+        this.setupSkillFormEnhancements();
+        this.isInitialized = true;
+        this.debug('Skills Page Controller initialized successfully');
+      }, 100);
     });
   }
 
@@ -26,9 +45,13 @@ class SkillsPageController {
    * Setup skill generation functionality
    */
   static setupSkillGeneration() {
+    this.debug('Setting up skill generation...');
+    
     // Main create skill function
     window.createSkill = async (isPreview = false) => {
       try {
+        this.debug(`Creating skill (preview: ${isPreview})...`);
+        
         const skillData = await SkillGenerator.extractFormData();
         
         const skillElement = SkillGenerator.createSkill({
@@ -41,15 +64,19 @@ class SkillsPageController {
 
         if (skillElement && !isPreview) {
           this.skillsData.push(skillData);
+          window.skillsData = this.skillsData; // Keep global reference
           
           // Dispatch custom event
           document.dispatchEvent(new CustomEvent('skillCreated', {
             detail: { skillData, skillElement }
           }));
+          
+          this.debug('Skill created and added to data array');
         }
 
         return skillElement;
       } catch (error) {
+        this.debug('Error in createSkill:', error);
         console.error('Error in createSkill:', error);
         Messages.showError(error.message);
         return null;
@@ -60,6 +87,7 @@ class SkillsPageController {
     const generateButton = document.querySelector('button[onclick="createSkill()"]');
     if (generateButton) {
       generateButton.onclick = () => window.createSkill(false);
+      this.debug('Generate button setup complete');
     }
   }
 
@@ -67,8 +95,11 @@ class SkillsPageController {
    * Setup form event handlers
    */
   static setupFormEvents() {
+    this.debug('Setting up form events...');
+    
     // Live preview on form changes
-    document.querySelectorAll('input, select, textarea').forEach(element => {
+    const inputs = document.querySelectorAll('#skillNameInput, #skillEffectInput, #borderSelect');
+    inputs.forEach(element => {
       const eventType = element.tagName.toLowerCase() === 'select' ? 'change' : 'input';
       
       element.addEventListener(eventType, () => {
@@ -82,6 +113,7 @@ class SkillsPageController {
       imageInput.addEventListener('change', () => {
         this.handleFormChange();
       });
+      this.debug('Image input event listener added');
     }
   }
 
@@ -94,11 +126,12 @@ class SkillsPageController {
     this.previewTimeout = setTimeout(() => {
       try {
         // Check if we have minimum required data
-        const skillName = document.getElementById('skillNameInput')?.value;
-        const skillEffect = document.getElementById('skillEffectInput')?.value;
+        const skillName = document.getElementById('skillNameInput')?.value?.trim();
+        const skillEffect = document.getElementById('skillEffectInput')?.value?.trim();
         const imageInput = document.getElementById('imageInput');
         
         if (skillName && skillEffect && imageInput?.files?.[0]) {
+          this.debug('Form has sufficient data, creating preview...');
           window.createSkill(true); // Create preview
         } else {
           // Clear preview if insufficient data
@@ -109,7 +142,7 @@ class SkillsPageController {
         }
       } catch (error) {
         // Silently fail for preview updates
-        console.log('Preview update skipped:', error.message);
+        this.debug('Preview update skipped:', error.message);
       }
     }, 300);
   }
@@ -118,8 +151,12 @@ class SkillsPageController {
    * Setup skill management functions
    */
   static setupSkillManagement() {
+    this.debug('Setting up skill management...');
+    
     // Clear all skills
     window.clearOutput = () => {
+      this.debug('Clearing all output...');
+      
       const outputContainer = document.getElementById("outputContainer");
       const previewContainer = document.getElementById("previewContainer");
       const errorContainer = document.getElementById("errorContainer");
@@ -140,6 +177,7 @@ class SkillsPageController {
       if (borderSelect) borderSelect.value = 'gold';
       
       this.skillsData = [];
+      window.skillsData = this.skillsData;
       Messages.showSuccess('All skills cleared');
     };
 
@@ -147,9 +185,12 @@ class SkillsPageController {
     window.clearSkill = (skillElement) => {
       if (!skillElement) return;
       
+      this.debug('Clearing individual skill...');
+      
       const skillIndex = Array.from(skillElement.parentNode.children).indexOf(skillElement);
       if (skillIndex >= 0 && skillIndex < this.skillsData.length) {
         this.skillsData.splice(skillIndex, 1);
+        window.skillsData = this.skillsData;
       }
       
       skillElement.remove();
@@ -160,15 +201,23 @@ class SkillsPageController {
     if (clearAllButton) {
       clearAllButton.onclick = () => {
         if (this.skillsData.length > 0) {
-          Messages.showConfirmation(
-            'Are you sure you want to clear all skills? This action cannot be undone.',
-            () => window.clearOutput(),
-            () => {}
-          );
+          if (typeof Messages !== 'undefined' && Messages.showConfirmation) {
+            Messages.showConfirmation(
+              'Are you sure you want to clear all skills? This action cannot be undone.',
+              () => window.clearOutput(),
+              () => {}
+            );
+          } else {
+            // Fallback to native confirm
+            if (confirm('Are you sure you want to clear all skills?')) {
+              window.clearOutput();
+            }
+          }
         } else {
           Messages.showInfo('No skills to clear');
         }
       };
+      this.debug('Clear all button setup complete');
     }
   }
 
@@ -176,85 +225,163 @@ class SkillsPageController {
    * Setup global variables for backward compatibility
    */
   static setupGlobalVariables() {
+    this.debug('Setting up global variables...');
+    
     // Make skillsData available globally for export functions
     window.skillsData = this.skillsData;
 
     // Setup export functions
     window.exportAllSkillsAsData = () => {
-      ExportImport.exportAllSkillsAsData(this.skillsData);
+      this.debug('Exporting all skills as data...');
+      if (typeof ExportImport !== 'undefined') {
+        ExportImport.exportAllSkillsAsData(this.skillsData);
+      } else {
+        // Fallback export function
+        this.fallbackExportAllSkills();
+      }
     };
 
     window.importSkillData = (event) => {
-      ExportImport.importData(event, 'skills');
+      this.debug('Importing skill data...');
+      if (typeof ExportImport !== 'undefined') {
+        ExportImport.importData(event, 'skills');
+      } else {
+        // Fallback import function
+        this.fallbackImportSkills(event);
+      }
     };
 
     window.triggerImport = () => {
-      ExportImport.triggerFileInput('.json', window.importSkillData);
+      this.debug('Triggering import...');
+      const importInput = document.getElementById('importInput');
+      if (importInput) {
+        importInput.click();
+      }
     };
 
     // Setup export menu function
     window.toggleExportMenu = (button, skillData) => {
-      ExportImport.setupExportMenu(button, skillData, 'skill');
+      if (typeof ExportImport !== 'undefined') {
+        ExportImport.setupExportMenu(button, skillData, 'skill');
+      }
     };
 
     window.exportSingleSkillAsData = (skillData) => {
-      ExportImport.exportSingleSkillAsData(skillData);
+      if (typeof ExportImport !== 'undefined') {
+        ExportImport.exportSingleSkillAsData(skillData);
+      } else {
+        this.fallbackExportSingleSkill(skillData);
+      }
     };
   }
 
   /**
-   * Get current form data
-   * @returns {Object} Current form data
+   * Fallback export function if ExportImport is not available
    */
-  static getCurrentFormData() {
-    return {
-      skillName: document.getElementById("skillNameInput")?.value || '',
-      skillEffect: document.getElementById("skillEffectInput")?.value || '',
-      border: document.getElementById("borderSelect")?.value || 'gold'
+  static fallbackExportAllSkills() {
+    if (this.skillsData.length === 0) {
+      Messages.showError('No skills to export!');
+      return;
+    }
+
+    const dataToExport = {
+      version: "1.0",
+      timestamp: new Date().toISOString(),
+      type: "skills",
+      count: this.skillsData.length,
+      skills: this.skillsData
     };
-  }
 
-  /**
-   * Set form data
-   * @param {Object} data - Form data to set
-   */
-  static setFormData(data) {
-    if (data.skillName) {
-      const skillNameInput = document.getElementById("skillNameInput");
-      if (skillNameInput) skillNameInput.value = data.skillName;
-    }
+    const dataStr = JSON.stringify(dataToExport, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
     
-    if (data.skillEffect) {
-      const skillEffectInput = document.getElementById("skillEffectInput");
-      if (skillEffectInput) skillEffectInput.value = data.skillEffect;
-    }
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Bazaar-skills-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    Messages.showSuccess(`Exported ${this.skillsData.length} skills successfully!`);
+  }
+
+  /**
+   * Fallback import function if ExportImport is not available
+   */
+  static fallbackImportSkills(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const importedData = JSON.parse(e.target.result);
+        
+        if (!importedData.skills || !Array.isArray(importedData.skills)) {
+          throw new Error('Invalid file format');
+        }
+
+        let importedCount = 0;
+        importedData.skills.forEach(skillData => {
+          try {
+            this.addSkill(skillData);
+            importedCount++;
+          } catch (error) {
+            console.error('Error importing skill:', error);
+          }
+        });
+
+        if (importedCount > 0) {
+          Messages.showSuccess(`Successfully imported ${importedCount} skills!`);
+        } else {
+          Messages.showError('No skills could be imported from this file.');
+        }
+
+      } catch (error) {
+        Messages.showError('Error reading file: ' + error.message);
+      }
+    };
+    reader.readAsText(file);
     
-    if (data.border) {
-      const borderSelect = document.getElementById("borderSelect");
-      if (borderSelect) borderSelect.value = data.border;
-    }
+    // Clear the input
+    event.target.value = '';
   }
 
   /**
-   * Reset the form
+   * Fallback export single skill function
    */
-  static resetForm() {
-    window.clearOutput();
-  }
+  static fallbackExportSingleSkill(skillData) {
+    const dataToExport = {
+      version: "1.0",
+      timestamp: new Date().toISOString(),
+      type: "skills",
+      count: 1,
+      skills: [skillData]
+    };
 
-  /**
-   * Get all generated skills data
-   * @returns {Array} Array of skill data objects
-   */
-  static getAllSkills() {
-    return [...this.skillsData];
+    const dataStr = JSON.stringify(dataToExport, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${skillData.skillName.replace(/\s+/g, '-')}-skill.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    Messages.showSuccess('Skill exported successfully!');
   }
 
   /**
    * Add a skill from external source (like import)
-   * @param {Object} skillData - Skill data to add
    */
   static addSkill(skillData) {
+    this.debug('Adding skill from external source:', skillData.skillName);
+    
     const skillElement = SkillGenerator.createSkill({
       data: skillData,
       container: document.getElementById('outputContainer'),
@@ -270,93 +397,17 @@ class SkillsPageController {
   }
 
   /**
-   * Show skill generation statistics
-   */
-  static showStatistics() {
-    const stats = this.getStatistics();
-    
-    const statsHtml = `
-      <div class="generation-stats">
-        <h3>Skill Generation Statistics</h3>
-        <div class="stats-grid">
-          <div class="stat-item">
-            <div class="stat-number">${stats.totalSkills}</div>
-            <div class="stat-label">Total Skills</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-number">${stats.averageLength}</div>
-            <div class="stat-label">Avg Effect Length</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-number">${stats.keywordCount}</div>
-            <div class="stat-label">Keywords Used</div>
-          </div>
-        </div>
-        <div class="stats-breakdown">
-          <h4>Skills by Rarity:</h4>
-          ${Object.entries(stats.skillsByRarity)
-            .map(([rarity, count]) => `<div>${rarity}: ${count}</div>`)
-            .join('')}
-        </div>
-        <div class="stats-breakdown">
-          <h4>Most Used Keywords:</h4>
-          ${Object.entries(stats.keywordUsage)
-            .sort((a, b) => b[1] - a[1])
-            .slice(0, 5)
-            .map(([keyword, count]) => `<div>${keyword}: ${count}</div>`)
-            .join('')}
-        </div>
-      </div>
-    `;
-
-    console.log('Skill Statistics:', stats);
-    return statsHtml;
-  }
-
-  /**
-   * Get generation statistics
-   * @returns {Object} Statistics object
-   */
-  static getStatistics() {
-    const skillsByRarity = {};
-    const keywordUsage = {};
-    let totalLength = 0;
-
-    this.skillsData.forEach(skill => {
-      // Count by rarity
-      const rarity = skill.border || 'gold';
-      skillsByRarity[rarity] = (skillsByRarity[rarity] || 0) + 1;
-
-      // Count effect length
-      if (skill.skillEffect) {
-        totalLength += skill.skillEffect.length;
-        
-        // Count keyword usage
-        const keywords = Object.keys(KeywordProcessor.keywordRules);
-        keywords.forEach(keyword => {
-          const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
-          const matches = skill.skillEffect.match(regex);
-          if (matches) {
-            keywordUsage[keyword] = (keywordUsage[keyword] || 0) + matches.length;
-          }
-        });
-      }
-    });
-
-    return {
-      totalSkills: this.skillsData.length,
-      averageLength: this.skillsData.length > 0 ? Math.round(totalLength / this.skillsData.length) : 0,
-      keywordCount: Object.keys(keywordUsage).length,
-      skillsByRarity,
-      keywordUsage
-    };
-  }
-
-  /**
    * Setup keyboard shortcuts specific to skill generation
    */
   static setupKeyboardShortcuts() {
+    this.debug('Setting up keyboard shortcuts...');
+    
     document.addEventListener('keydown', (e) => {
+      // Only trigger if not typing in an input field
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return;
+      }
+
       // Ctrl+G to generate skill
       if (e.ctrlKey && e.key === 'g') {
         e.preventDefault();
@@ -370,11 +421,9 @@ class SkillsPageController {
       if (e.ctrlKey && e.shiftKey && e.key === 'C') {
         e.preventDefault();
         if (this.skillsData.length > 0) {
-          Messages.showConfirmation(
-            'Clear all skills?',
-            () => window.clearOutput(),
-            () => {}
-          );
+          if (confirm('Clear all skills?')) {
+            window.clearOutput();
+          }
         }
       }
 
@@ -387,60 +436,15 @@ class SkillsPageController {
           Messages.showInfo('No skills to export');
         }
       }
-
-      // Ctrl+K to insert keyword shortcuts help
-      if (e.ctrlKey && e.key === 'k') {
-        e.preventDefault();
-        this.showKeywordHelp();
-      }
     });
-  }
-
-  /**
-   * Show keyword shortcuts help
-   */
-  static showKeywordHelp() {
-    const shortcuts = KeywordProcessor.getShortcuts();
-    const helpHtml = `
-      <div class="keyword-help-modal">
-        <h3>Keyword Shortcuts</h3>
-        <p>Type these shortcuts in the skill effect box:</p>
-        <div class="shortcut-grid">
-          ${shortcuts.map(shortcut => `
-            <div class="shortcut-item">
-              <span class="shortcut-key">${shortcut.key}</span>
-              <img src="images/KeyText/${shortcut.icon}" alt="${shortcut.keyword}" class="keyword-preview">
-              <span style="color: ${shortcut.color}; font-weight: bold;">${shortcut.keyword}</span>
-            </div>
-          `).join('')}
-        </div>
-        <button onclick="this.closest('.keyword-help-modal').remove()">Close</button>
-      </div>
-    `;
-
-    // Create modal overlay
-    const overlay = document.createElement('div');
-    overlay.style.cssText = `
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-      background: rgba(0,0,0,0.5); z-index: 10000; 
-      display: flex; align-items: center; justify-content: center;
-    `;
-    overlay.innerHTML = helpHtml;
-    
-    // Close on overlay click
-    overlay.onclick = (e) => {
-      if (e.target === overlay) {
-        overlay.remove();
-      }
-    };
-
-    document.body.appendChild(overlay);
   }
 
   /**
    * Setup auto-save functionality
    */
   static setupAutoSave() {
+    this.debug('Setting up auto-save...');
+    
     // Auto-save skills data to localStorage every 30 seconds
     setInterval(() => {
       if (this.skillsData.length > 0) {
@@ -449,6 +453,7 @@ class SkillsPageController {
             timestamp: new Date().toISOString(),
             skills: this.skillsData
           }));
+          this.debug('Auto-saved skills data');
         } catch (error) {
           console.warn('Auto-save failed:', error);
         }
@@ -464,17 +469,19 @@ class SkillsPageController {
         const now = new Date();
         
         // Only restore if save is less than 1 hour old
-        if (now - saveTime < 60 * 60 * 1000) {
-          Messages.showConfirmation(
-            `Found auto-saved data from ${saveTime.toLocaleString()}. Restore ${parsed.skills.length} skills?`,
-            () => {
-              parsed.skills.forEach(skillData => this.addSkill(skillData));
-              Messages.showSuccess(`Restored ${parsed.skills.length} skills from auto-save`);
-            },
-            () => {
-              localStorage.removeItem('bazaargen_skills_autosave');
-            }
-          );
+        if (now - saveTime < 60 * 60 * 1000 && parsed.skills.length > 0) {
+          if (typeof Messages !== 'undefined' && Messages.showConfirmation) {
+            Messages.showConfirmation(
+              `Found auto-saved data from ${saveTime.toLocaleString()}. Restore ${parsed.skills.length} skills?`,
+              () => {
+                parsed.skills.forEach(skillData => this.addSkill(skillData));
+                Messages.showSuccess(`Restored ${parsed.skills.length} skills from auto-save`);
+              },
+              () => {
+                localStorage.removeItem('bazaargen_skills_autosave');
+              }
+            );
+          }
         }
       }
     } catch (error) {
@@ -486,6 +493,8 @@ class SkillsPageController {
    * Setup skill-specific form enhancements
    */
   static setupSkillFormEnhancements() {
+    this.debug('Setting up form enhancements...');
+    
     const skillEffectInput = document.getElementById('skillEffectInput');
     if (skillEffectInput) {
       // Add character counter
@@ -511,92 +520,58 @@ class SkillsPageController {
       skillEffectInput.addEventListener('input', updateCounter);
       updateCounter();
 
-      // Add keyword insertion helper
-      const keywordButton = document.createElement('button');
-      keywordButton.type = 'button';
-      keywordButton.textContent = 'Insert Keyword';
-      keywordButton.className = 'form-button secondary';
-      keywordButton.style.marginTop = '5px';
-      keywordButton.onclick = () => this.showKeywordInserter(skillEffectInput);
-      
-      skillEffectInput.parentNode.appendChild(keywordButton);
+      this.debug('Form enhancements setup complete');
     }
   }
 
   /**
-   * Show keyword inserter modal
-   * @param {HTMLTextAreaElement} targetInput - Input to insert keyword into
+   * Get all generated skills data
    */
-  static showKeywordInserter(targetInput) {
-    const shortcuts = KeywordProcessor.getShortcuts();
-    
-    const modalHtml = `
-      <div class="keyword-inserter-modal" style="background: white; padding: 20px; border-radius: 8px; max-width: 500px; max-height: 80vh; overflow-y: auto;">
-        <h3>Insert Keyword</h3>
-        <p>Click a keyword to insert it at cursor position:</p>
-        <div class="keyword-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin: 20px 0;">
-          ${shortcuts.map(shortcut => `
-            <button class="keyword-insert-btn" data-shortcut="${shortcut.key}" style="
-              display: flex; align-items: center; gap: 5px; padding: 8px; 
-              border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer;
-              font-size: 12px;
-            ">
-              <img src="images/KeyText/${shortcut.icon}" alt="${shortcut.keyword}" style="width: 16px; height: 16px;">
-              <span style="color: ${shortcut.color}; font-weight: bold;">${shortcut.keyword}</span>
-            </button>
-          `).join('')}
-        </div>
-        <button onclick="this.closest('.modal-overlay').remove()" style="margin-top: 10px;">Close</button>
-      </div>
-    `;
+  static getAllSkills() {
+    return [...this.skillsData];
+  }
 
-    // Create modal overlay
-    const overlay = document.createElement('div');
-    overlay.className = 'modal-overlay';
-    overlay.style.cssText = `
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-      background: rgba(0,0,0,0.5); z-index: 10000; 
-      display: flex; align-items: center; justify-content: center;
-    `;
-    overlay.innerHTML = modalHtml;
-
-    // Handle keyword insertion
-    overlay.querySelectorAll('.keyword-insert-btn').forEach(btn => {
-      btn.onclick = () => {
-        const shortcut = btn.getAttribute('data-shortcut');
-        const cursorPos = targetInput.selectionStart;
-        const textBefore = targetInput.value.substring(0, cursorPos);
-        const textAfter = targetInput.value.substring(cursorPos);
-        
-        targetInput.value = textBefore + shortcut + ' ' + textAfter;
-        targetInput.focus();
-        targetInput.setSelectionRange(cursorPos + shortcut.length + 1, cursorPos + shortcut.length + 1);
-        
-        // Trigger input event for live preview
-        targetInput.dispatchEvent(new Event('input'));
-        
-        overlay.remove();
-      };
-    });
-
-    // Close on overlay click
-    overlay.onclick = (e) => {
-      if (e.target === overlay) {
-        overlay.remove();
-      }
+  /**
+   * Get current form data
+   */
+  static getCurrentFormData() {
+    return {
+      skillName: document.getElementById("skillNameInput")?.value || '',
+      skillEffect: document.getElementById("skillEffectInput")?.value || '',
+      border: document.getElementById("borderSelect")?.value || 'gold'
     };
+  }
 
-    document.body.appendChild(overlay);
+  /**
+   * Set form data
+   */
+  static setFormData(data) {
+    if (data.skillName) {
+      const skillNameInput = document.getElementById("skillNameInput");
+      if (skillNameInput) skillNameInput.value = data.skillName;
+    }
+    
+    if (data.skillEffect) {
+      const skillEffectInput = document.getElementById("skillEffectInput");
+      if (skillEffectInput) skillEffectInput.value = data.skillEffect;
+    }
+    
+    if (data.border) {
+      const borderSelect = document.getElementById("borderSelect");
+      if (borderSelect) borderSelect.value = data.border;
+    }
+  }
+
+  /**
+   * Reset the form
+   */
+  static resetForm() {
+    window.clearOutput();
   }
 }
 
 // Auto-initialize
 SkillsPageController.init();
 
-// Setup additional features
-document.addEventListener('DOMContentLoaded', () => {
-  SkillsPageController.setupKeyboardShortcuts();
-  SkillsPageController.setupAutoSave();
-  SkillsPageController.setupSkillFormEnhancements();
-});
-  
+// Make available globally
+window.SkillsPageController = SkillsPageController;
