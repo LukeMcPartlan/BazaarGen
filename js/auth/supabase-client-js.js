@@ -109,67 +109,64 @@ class SupabaseClient {
    * @param {Object} cardData - Card data to save
    * @returns {Promise<Object>} Result object with success status
    */
-  static async saveCard(cardData) {
-    try {
-      if (!this.isReady()) {
-        throw new Error('Database not initialized');
-      }
-
-      // FIXED: Use the correct GoogleAuth method
-      const userEmail = GoogleAuth.getUserEmail();
-      if (!userEmail) {
-        throw new Error('User not authenticated');
-      }
-
-      this.debug('Saving card for user:', userEmail);
-
-      // Get user ID from email
-      const userId = await this.getUserId(userEmail);
-
-      // Prepare item data
-      const itemData = {
-        name: cardData.itemName,
-        hero: cardData.hero || 'Neutral',
-        item_size: cardData.itemSize || 'Medium',
-        rarity: cardData.border || 'gold',
-        passive_effects: cardData.passiveEffects || [],
-        on_use_effects: cardData.onUseEffects || [],
-        tags: cardData.tags || [],
-        scaling_values: cardData.scalingValues || {},
-        cooldown: cardData.cooldown || null,
-        ammo: cardData.ammo || null,
-        crit: cardData.crit || null,
-        multicast: cardData.multicast || null,
-        image_data: cardData.imageData || null,
-        user_id: userId
-      };
-
-      console.log('[SupabaseClient] Saving card:', itemData);
-
-      const { data, error } = await this.client
-        .from('items')
-        .insert([{ item_data: itemData, user_id: userId }])
-        .select(); // Return the inserted data with ID
-
-      if (error) {
-        console.error('[SupabaseClient] Error saving card:', error);
-        throw error;
-      }
-
-      console.log('[SupabaseClient] Card saved successfully:', data);
-      
-      // Return success with the saved data including ID
-      return { 
-        success: true, 
-        data: data[0] // Return the first (and only) inserted item
-      };
-
-    } catch (error) {
-      console.error('[SupabaseClient] Save card error:', error);
-      return { success: false, error: error.message };
+ static async saveCard(cardData) {
+  try {
+    if (!this.isReady()) {
+      throw new Error('Database not initialized');
     }
-  }
 
+    // FIXED: Use GoogleAuth.currentUser instead of GoogleAuth.getUser()
+    const user = GoogleAuth.currentUser;
+    if (!user || !user.email) {
+      throw new Error('User not authenticated');
+    }
+
+    // Get user ID from email
+    const userId = await this.getUserId(user.email);
+
+    // Prepare item data
+    const itemData = {
+      name: cardData.itemName,
+      hero: cardData.hero || 'Neutral',
+      item_size: cardData.itemSize || 'Medium',
+      rarity: cardData.border || 'gold',
+      passive_effects: cardData.passiveEffects || [],
+      on_use_effects: cardData.onUseEffects || [],
+      tags: cardData.tags || [],
+      scaling_values: cardData.scalingValues || {},
+      cooldown: cardData.cooldown || null,
+      ammo: cardData.ammo || null,
+      crit: cardData.crit || null,
+      multicast: cardData.multicast || null,
+      image_data: cardData.imageData || null,
+      user_id: userId
+    };
+
+    console.log('[SupabaseClient] Saving card:', itemData);
+
+    const { data, error } = await this.client
+      .from('items')
+      .insert([{ item_data: itemData, user_id: userId }])
+      .select(); // Return the inserted data with ID
+
+    if (error) {
+      console.error('[SupabaseClient] Error saving card:', error);
+      throw error;
+    }
+
+    console.log('[SupabaseClient] Card saved successfully:', data);
+    
+    // Return success with the saved data including ID
+    return { 
+      success: true, 
+      data: data[0] // Return the first (and only) inserted item
+    };
+
+  } catch (error) {
+    console.error('[SupabaseClient] Save card error:', error);
+    return { success: false, error: error.message };
+  }
+}
   /**
    * Save skill to database
    * @param {Object} skillData - Skill data to save
