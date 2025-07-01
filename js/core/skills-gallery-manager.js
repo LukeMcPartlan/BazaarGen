@@ -41,11 +41,14 @@ class SkillsGalleryManager {
       button.classList.add('active');
     }
 
-    // Add gallery controls
-    this.addGalleryControls(container);
+    // Add gallery controls to management section
+    this.addGalleryControlsToManagement();
 
     // Transform existing skills to gallery items
     this.transformSkillsToGallery(container);
+
+    // Hide placeholder if present
+    this.hidePlaceholder(container);
 
     // Update page title
     const pageTitle = document.querySelector('.page-title');
@@ -66,11 +69,8 @@ class SkillsGalleryManager {
       button.classList.remove('active');
     }
 
-    // Remove gallery controls
-    const galleryControls = container.querySelector('.gallery-controls');
-    if (galleryControls) {
-      galleryControls.remove();
-    }
+    // Remove gallery controls from management section
+    this.removeGalleryControlsFromManagement();
 
     // Restore normal skill view
     this.restoreNormalView(container);
@@ -86,52 +86,76 @@ class SkillsGalleryManager {
   }
 
   /**
-   * Add gallery controls
+   * Add gallery controls to the management section
    */
-  static addGalleryControls(container) {
-    const existingControls = container.querySelector('.gallery-controls');
-    if (existingControls) {
-      existingControls.remove();
+  static addGalleryControlsToManagement() {
+    // Remove any existing gallery controls
+    this.removeGalleryControlsFromManagement();
+    
+    const managementSection = document.querySelector('.management-section');
+    if (!managementSection) {
+      this.debug('Management section not found');
+      return;
     }
 
-    // Hide the placeholder when entering gallery mode
+    // Hide placeholder when entering gallery mode
+    const container = document.getElementById('outputContainer');
     this.hidePlaceholder(container);
 
-    // Create sticky gallery controls
-    const galleryControls = document.createElement('div');
-    galleryControls.className = 'gallery-controls sticky-gallery-controls';
-    galleryControls.innerHTML = `
-      <div class="gallery-header">
-        <h3>Skills Gallery</h3>
-        <div class="gallery-actions">
-          <button class="form-button secondary" onclick="SkillsGalleryManager.selectAllSkills()">
-            🔘 Select All
-          </button>
-          <button class="form-button secondary" onclick="SkillsGalleryManager.deselectAllSkills()">
-            ⭕ Deselect All
-          </button>
-          <button class="form-button export" onclick="SkillsGalleryManager.saveSelectedAsCollection()">
-            📦 Save as Collection
-          </button>
-          <button class="form-button secondary" onclick="SkillsGalleryManager.deleteSelected()">
-            🗑️ Delete Selected
-          </button>
+    // Create gallery controls section
+    const galleryControlsSection = document.createElement('div');
+    galleryControlsSection.className = 'gallery-controls-section';
+    galleryControlsSection.innerHTML = `
+      <h3 class="section-title">🖼️ Gallery Controls</h3>
+      <div class="gallery-controls">
+        <div class="gallery-actions-row">
+          <div class="gallery-selection-actions">
+            <button class="form-button secondary" onclick="SkillsGalleryManager.selectAllSkills()">
+              🔘 Select All
+            </button>
+            <button class="form-button secondary" onclick="SkillsGalleryManager.deselectAllSkills()">
+              ⭕ Deselect All
+            </button>
+            <span class="selected-count">0 skills selected</span>
+          </div>
+          <div class="gallery-main-actions">
+            <button class="form-button export" onclick="SkillsGalleryManager.saveSelectedAsCollection()">
+              📦 Save as Collection
+            </button>
+            <button class="form-button secondary" onclick="SkillsGalleryManager.deleteSelected()">
+              🗑️ Delete Selected
+            </button>
+          </div>
         </div>
-      </div>
-      <div class="collection-creator">
-        <input type="text" id="collection-name" placeholder="Collection name (optional)" 
-               style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-right: 10px;">
-        <textarea id="collection-description" placeholder="Collection description (optional)" 
-                  style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-right: 10px; resize: vertical;" 
-                  rows="2"></textarea>
-      </div>
-      <div class="gallery-stats">
-        <span class="selected-count">0 skills selected</span>
+        <div class="collection-creator">
+          <input type="text" id="collection-name" placeholder="Collection name (optional)" 
+                 class="collection-input">
+          <textarea id="collection-description" placeholder="Collection description (optional)" 
+                    class="collection-input collection-textarea" rows="2"></textarea>
+        </div>
       </div>
     `;
 
-    // Insert at the beginning of the container
-    container.insertBefore(galleryControls, container.firstChild);
+    // Insert after the existing management actions
+    const managementActions = managementSection.querySelector('.management-actions');
+    if (managementActions) {
+      managementActions.parentNode.insertBefore(galleryControlsSection, managementActions.nextSibling);
+    } else {
+      managementSection.appendChild(galleryControlsSection);
+    }
+    
+    this.debug('Gallery controls added to management section');
+  }
+
+  /**
+   * Remove gallery controls from the management section
+   */
+  static removeGalleryControlsFromManagement() {
+    const galleryControlsSection = document.querySelector('.gallery-controls-section');
+    if (galleryControlsSection) {
+      galleryControlsSection.remove();
+      this.debug('Gallery controls removed from management section');
+    }
   }
 
   /**
