@@ -743,6 +743,303 @@ let query = this.supabase
     }
   }
 
+/**
+ * SupabaseClient Skills Collection Extension
+ * Add these methods to your existing SupabaseClient class
+ */
+
+// Add these methods to your existing SupabaseClient class:
+
+/**
+ * Save skill collection to database
+ * @param {Object} collectionData - Collection data to save
+ * @returns {Promise<Object>} Save result
+ */
+static async saveSkillCollection(collectionData) {
+  try {
+    this.debug('Saving skill collection to database:', collectionData.name);
+    
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
+
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      throw new Error('User not signed in');
+    }
+
+    const userEmail = GoogleAuth.getUserEmail();
+    const userProfile = GoogleAuth.getUserProfile();
+
+    if (!userEmail) {
+      throw new Error('User email not available');
+    }
+
+    const collectionRecord = {
+      user_email: userEmail,
+      user_alias: userProfile?.alias || 'Unknown',
+      name: collectionData.name,
+      description: collectionData.description,
+      skill_count: collectionData.skill_count,
+      skills_data: collectionData.skills, // JSON array of skills
+      created_at: new Date().toISOString()
+    };
+
+    this.debug('Collection record to insert:', collectionRecord);
+
+    const { data, error } = await this.supabase
+      .from('skill_collections')
+      .insert([collectionRecord])
+      .select()
+      .single();
+
+    this.debug('Collection save result:', { data, error });
+
+    if (error) {
+      this.debug('Collection save error:', error);
+      throw error;
+    }
+
+    this.debug('Collection saved successfully:', data);
+    return { success: true, data };
+  } catch (error) {
+    this.debug('Error saving skill collection:', error);
+    console.error('Error saving skill collection:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get user's skill collections
+ * @returns {Promise<Array>} Array of user's skill collections
+ */
+static async getUserSkillCollections() {
+  try {
+    this.debug('Getting user skill collections...');
+    
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
+
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      throw new Error('User not signed in');
+    }
+
+    const userEmail = GoogleAuth.getUserEmail();
+    this.debug('Fetching skill collections for user:', userEmail);
+
+    const { data, error } = await this.supabase
+      .from('skill_collections')
+      .select('*')
+      .eq('user_email', userEmail)
+      .order('created_at', { ascending: false });
+
+    this.debug('User skill collections query result:', { data, error, count: data?.length });
+
+    if (error) {
+      this.debug('User skill collections query error:', error);
+      throw error;
+    }
+
+    this.debug('Retrieved user skill collections successfully:', data?.length || 0, 'collections');
+    return data || [];
+  } catch (error) {
+    this.debug('Error fetching user skill collections:', error);
+    console.error('Error fetching user skill collections:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get a specific skill collection by ID
+ * @param {string|number} collectionId - Collection ID
+ * @returns {Promise<Object>} Collection data
+ */
+static async getSkillCollection(collectionId) {
+  try {
+    this.debug('Getting skill collection by ID:', collectionId);
+    
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
+
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      throw new Error('User not signed in');
+    }
+
+    const userEmail = GoogleAuth.getUserEmail();
+
+    const { data, error } = await this.supabase
+      .from('skill_collections')
+      .select('*')
+      .eq('id', collectionId)
+      .eq('user_email', userEmail) // Ensure user owns this collection
+      .single();
+
+    this.debug('Skill collection query result:', { data, error });
+
+    if (error) {
+      this.debug('Skill collection query error:', error);
+      throw error;
+    }
+
+    // Transform the data to match expected format
+    const collection = {
+      id: data.id,
+      name: data.name,
+      description: data.description,
+      skill_count: data.skill_count,
+      skills: data.skills_data, // The JSON array of skills
+      created_at: data.created_at,
+      user_alias: data.user_alias
+    };
+
+    this.debug('Retrieved skill collection successfully:', collection);
+    return collection;
+  } catch (error) {
+    this.debug('Error fetching skill collection:', error);
+    console.error('Error fetching skill collection:', error);
+    throw error;
+  }
+}
+
+/**
+ * Delete skill collection using custom function (bypasses RLS)
+ * @param {string|number} collectionId - Collection ID
+ * @returns {Promise<Object>} Delete result
+ */
+static async deleteSkillCollection(collectionId) {
+  try {
+    this.debug('Deleting skill collection with custom function:', collectionId);
+    
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
+
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      throw new Error('User not signed in');
+    }
+
+    const userEmail = GoogleAuth.getUserEmail();
+    this.debug('Deleting skill collection for user:', userEmail);
+
+    // Use custom function instead of direct delete (you'll need to create this function in Supabase)
+    const { data, error } = await this.supabase
+      .rpc('delete_user_skill_collection', {
+        collection_id: parseInt(collectionId),
+        user_email: userEmail
+      });
+
+    this.debug('Skill collection deletion result:', { data, error });
+
+    if (error) {
+      this.debug('Skill collection deletion error:', error);
+      return { success: false, error: error.message };
+    }
+
+    // Check if any rows were actually deleted
+    if (!data || data.length === 0) {
+      this.debug('No collection was deleted - possibly wrong ID or not owned by user');
+      return { success: false, error: 'Collection not found or not owned by user' };
+    }
+
+    this.debug('Skill collection deleted successfully');
+    return { success: true, error: null, deletedCollection: data[0] };
+  } catch (error) {
+    this.debug('Error deleting skill collection:', error);
+    console.error('Error deleting skill collection:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Get public skill collections for browsing
+ * @param {number} limit - Number of collections to retrieve
+ * @returns {Promise<Array>} Array of public skill collections
+ */
+static async getPublicSkillCollections(limit = 50) {
+  try {
+    this.debug('Getting public skill collections...');
+    
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
+
+    const { data, error } = await this.supabase
+      .from('skill_collections')
+      .select('id, name, description, skill_count, user_alias, created_at')
+      .eq('is_public', true) // Assuming you have a public flag
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    this.debug('Public skill collections query result:', { data, error, count: data?.length });
+
+    if (error) {
+      this.debug('Public skill collections query error:', error);
+      throw error;
+    }
+
+    this.debug('Retrieved public skill collections successfully:', data?.length || 0, 'collections');
+    return data || [];
+  } catch (error) {
+    this.debug('Error fetching public skill collections:', error);
+    console.error('Error fetching public skill collections:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update skill collection
+ * @param {string|number} collectionId - Collection ID
+ * @param {Object} updateData - Data to update
+ * @returns {Promise<Object>} Update result
+ */
+static async updateSkillCollection(collectionId, updateData) {
+  try {
+    this.debug('Updating skill collection:', collectionId, updateData);
+    
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
+
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      throw new Error('User not signed in');
+    }
+
+    const userEmail = GoogleAuth.getUserEmail();
+
+    const { data, error } = await this.supabase
+      .from('skill_collections')
+      .update({
+        ...updateData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', collectionId)
+      .eq('user_email', userEmail) // Ensure user owns this collection
+      .select()
+      .single();
+
+    this.debug('Skill collection update result:', { data, error });
+
+    if (error) {
+      this.debug('Skill collection update error:', error);
+      throw error;
+    }
+
+    this.debug('Skill collection updated successfully:', data);
+    return { success: true, data };
+  } catch (error) {
+    this.debug('Error updating skill collection:', error);
+    console.error('Error updating skill collection:', error);
+    throw error;
+  }
+}
+
+
+
+  
+
+
+  
   /**
    * Setup real-time subscriptions
    */
