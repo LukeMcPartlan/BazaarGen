@@ -1,6 +1,6 @@
 /**
- * Skills Page Controller - Fixed Version
- * Handles specific functionality for the skills generation page
+ * Enhanced Skills Page Controller with Gallery Integration
+ * Handles specific functionality for the skills generation page with gallery support
  */
 class SkillsPageController {
   
@@ -35,6 +35,7 @@ class SkillsPageController {
         this.setupKeyboardShortcuts();
         this.setupAutoSave();
         this.setupSkillFormEnhancements();
+        this.setupGalleryIntegration(); // New gallery integration
         this.isInitialized = true;
         this.debug('Skills Page Controller initialized successfully');
       }, 100);
@@ -70,6 +71,11 @@ class SkillsPageController {
           document.dispatchEvent(new CustomEvent('skillCreated', {
             detail: { skillData, skillElement }
           }));
+          
+          // Update gallery if in gallery mode
+          if (SkillsGalleryManager?.isGalleryMode) {
+            this.updateGalleryAfterSkillCreation(skillElement);
+          }
           
           this.debug('Skill created and added to data array');
         }
@@ -178,6 +184,12 @@ class SkillsPageController {
       
       this.skillsData = [];
       window.skillsData = this.skillsData;
+      
+      // Exit gallery mode if active
+      if (SkillsGalleryManager?.isGalleryMode) {
+        SkillsGalleryManager.toggleGalleryMode();
+      }
+      
       Messages.showSuccess('All skills cleared');
     };
 
@@ -194,6 +206,12 @@ class SkillsPageController {
       }
       
       skillElement.remove();
+      
+      // Update gallery if in gallery mode
+      if (SkillsGalleryManager?.isGalleryMode) {
+        SkillsGalleryManager.updateSkillIndices();
+        SkillsGalleryManager.updateSelectionCount();
+      }
     };
 
     // Setup clear all button
@@ -276,6 +294,86 @@ class SkillsPageController {
   }
 
   /**
+   * Setup gallery integration
+   */
+  static setupGalleryIntegration() {
+    this.debug('Setting up gallery integration...');
+    
+    // Listen for skill creation events
+    document.addEventListener('skillCreated', (event) => {
+      if (SkillsGalleryManager?.isGalleryMode) {
+        this.updateGalleryAfterSkillCreation(event.detail.skillElement);
+      }
+    });
+
+    // Setup database save enhancement for collections
+    this.enhanceDatabaseSaveForCollections();
+    
+    this.debug('Gallery integration setup complete');
+  }
+
+  /**
+   * Update gallery after skill creation
+   */
+  static updateGalleryAfterSkillCreation(skillElement) {
+    if (!SkillsGalleryManager?.isGalleryMode || !skillElement) return;
+    
+    // Add gallery functionality to new skill
+    const skillIndex = this.skillsData.length - 1; // Last added skill
+    
+    // Add selection checkbox
+    const selector = document.createElement('div');
+    selector.className = 'gallery-selector';
+    selector.innerHTML = `
+      <input type="checkbox" class="skill-checkbox" data-skill-index="${skillIndex}" 
+             onchange="SkillsGalleryManager.updateSelectionCount()">
+      <label class="checkbox-label">Select</label>
+    `;
+    skillElement.appendChild(selector);
+    
+    // Add gallery item class
+    skillElement.classList.add('gallery-item');
+    
+    // Update selection count
+    SkillsGalleryManager.updateSelectionCount();
+  }
+
+  /**
+   * Enhance database save for collections
+   */
+  static enhanceDatabaseSaveForCollections() {
+    // Override the default save function to include collection options
+    const originalSaveSkill = window.Database?.saveSkill;
+    
+    if (originalSaveSkill) {
+      window.Database.saveSkill = async (skillData) => {
+        // Check if we're in gallery mode with selected skills
+        if (SkillsGalleryManager?.isGalleryMode) {
+          const selectedCount = document.querySelectorAll('.skill-checkbox:checked').length;
+          
+          if (selectedCount > 1) {
+            // Ask if user wants to save as collection instead
+            Messages.showConfirmation(
+              `You have ${selectedCount} skills selected. Would you like to save them as a collection instead of just this one skill?`,
+              () => {
+                SkillsGalleryManager.saveSelectedAsCollection();
+              },
+              () => {
+                // Save individual skill as normal
+                originalSaveSkill.call(window.Database, skillData);
+              }
+            );
+            return;
+          }
+        }
+        
+        // Save individual skill as normal
+        return originalSaveSkill.call(window.Database, skillData);
+      };
+    }
+  }
+
+  /**
    * Fallback export function if ExportImport is not available
    */
   static fallbackExportAllSkills() {
@@ -289,6 +387,11 @@ class SkillsPageController {
       timestamp: new Date().toISOString(),
       type: "skills",
       count: this.skillsData.length,
+      collection: {
+        name: `Skill Collection ${new Date().toLocaleDateString()}`,
+        description: `${this.skillsData.length} skills exported from BazaarGen`,
+        created_by: GoogleAuth?.getUserDisplayName() || 'Unknown'
+      },
       skills: this.skillsData
     };
 
@@ -335,6 +438,11 @@ class SkillsPageController {
 
         if (importedCount > 0) {
           Messages.showSuccess(`Successfully imported ${importedCount} skills!`);
+          
+          // Mark as collection if it was a collection export
+          if (importedData.collection && importedCount > 1) {
+            SkillsGalleryManager?.markAsCollection?.(importedData.collection, importedCount);
+          }
         } else {
           Messages.showError('No skills could be imported from this file.');
         }
@@ -377,7 +485,7 @@ class SkillsPageController {
   }
 
   /**
-   * Add a skill from external source (like import)
+   * Add a skill from external source (like import or collection)
    */
   static addSkill(skillData) {
     this.debug('Adding skill from external source:', skillData.skillName);
@@ -391,6 +499,11 @@ class SkillsPageController {
     if (skillElement) {
       this.skillsData.push(skillData);
       window.skillsData = this.skillsData;
+      
+      // Update gallery if in gallery mode
+      if (SkillsGalleryManager?.isGalleryMode) {
+        this.updateGalleryAfterSkillCreation(skillElement);
+      }
     }
 
     return skillElement;
@@ -434,6 +547,14 @@ class SkillsPageController {
           window.exportAllSkillsAsData();
         } else {
           Messages.showInfo('No skills to export');
+        }
+      }
+
+      // Ctrl+Shift+G to toggle gallery mode
+      if (e.ctrlKey && e.shiftKey && e.key === 'G') {
+        e.preventDefault();
+        if (SkillsGalleryManager) {
+          SkillsGalleryManager.toggleGalleryMode();
         }
       }
     });
@@ -497,28 +618,27 @@ class SkillsPageController {
     
     const skillEffectInput = document.getElementById('skillEffectInput');
     if (skillEffectInput) {
-      // Add character counter
-      const counterDiv = document.createElement('div');
-      counterDiv.className = 'character-counter';
-      counterDiv.style.cssText = 'font-size: 12px; color: #666; margin-top: 5px;';
-      skillEffectInput.parentNode.appendChild(counterDiv);
+      const counterDiv = document.querySelector('.character-counter') || 
+                        skillEffectInput.parentNode.querySelector('.character-counter');
+      
+      if (counterDiv) {
+        const updateCounter = () => {
+          const length = skillEffectInput.value.length;
+          counterDiv.textContent = `${length} characters`;
+          
+          // Color coding for length
+          if (length > 200) {
+            counterDiv.style.color = '#f44336';
+          } else if (length > 150) {
+            counterDiv.style.color = '#ff9800';
+          } else {
+            counterDiv.style.color = '#666';
+          }
+        };
 
-      const updateCounter = () => {
-        const length = skillEffectInput.value.length;
-        counterDiv.textContent = `${length} characters`;
-        
-        // Color coding for length
-        if (length > 200) {
-          counterDiv.style.color = '#f44336';
-        } else if (length > 150) {
-          counterDiv.style.color = '#ff9800';
-        } else {
-          counterDiv.style.color = '#666';
-        }
-      };
-
-      skillEffectInput.addEventListener('input', updateCounter);
-      updateCounter();
+        skillEffectInput.addEventListener('input', updateCounter);
+        updateCounter();
+      }
 
       this.debug('Form enhancements setup complete');
     }
@@ -567,6 +687,31 @@ class SkillsPageController {
    */
   static resetForm() {
     window.clearOutput();
+  }
+
+  /**
+   * Get skills statistics
+   */
+  static getStatistics() {
+    const skillsByRarity = {};
+    let totalEffectLength = 0;
+
+    this.skillsData.forEach(skill => {
+      // Count by rarity
+      const rarity = skill.border || 'gold';
+      skillsByRarity[rarity] = (skillsByRarity[rarity] || 0) + 1;
+
+      // Track effect length
+      if (skill.skillEffect) {
+        totalEffectLength += skill.skillEffect.length;
+      }
+    });
+
+    return {
+      totalSkills: this.skillsData.length,
+      averageEffectLength: this.skillsData.length > 0 ? Math.round(totalEffectLength / this.skillsData.length) : 0,
+      skillsByRarity
+    };
   }
 }
 
