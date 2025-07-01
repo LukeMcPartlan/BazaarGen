@@ -1278,7 +1278,193 @@ static async updateSkillCollection(collectionId, updateData) {
   }
 }
   
+// Add these methods to your existing SupabaseClient class:
 
+/**
+ * Debug authentication status
+ */
+static async debugAuthStatus() {
+  try {
+    this.debug('=== AUTHENTICATION DEBUG ===');
+    
+    // Check if Supabase is ready
+    this.debug('Supabase ready:', this.isReady());
+    
+    // Check Google Auth status
+    this.debug('Google Auth available:', typeof GoogleAuth !== 'undefined');
+    if (typeof GoogleAuth !== 'undefined') {
+      this.debug('Google Auth signed in:', GoogleAuth.isSignedIn());
+      this.debug('Google user email:', GoogleAuth.getUserEmail());
+      this.debug('Google user profile:', GoogleAuth.getUserProfile());
+    }
+    
+    // Check Supabase auth status
+    if (this.isReady()) {
+      const { data: { user }, error } = await this.supabase.auth.getUser();
+      this.debug('Supabase auth user:', user);
+      this.debug('Supabase auth error:', error);
+      
+      const { data: { session }, error: sessionError } = await this.supabase.auth.getSession();
+      this.debug('Supabase session:', session);
+      this.debug('Supabase session error:', sessionError);
+    }
+    
+    this.debug('=== END AUTHENTICATION DEBUG ===');
+    
+    return {
+      supabaseReady: this.isReady(),
+      googleAuthAvailable: typeof GoogleAuth !== 'undefined',
+      googleSignedIn: GoogleAuth?.isSignedIn() || false,
+      googleEmail: GoogleAuth?.getUserEmail() || null,
+      supabaseUser: this.isReady() ? (await this.supabase.auth.getUser()).data.user : null
+    };
+  } catch (error) {
+    this.debug('Auth debugging failed:', error);
+    return { error: error.message };
+  }
+}
+
+/**
+ * Enhanced save skill collection with better auth handling
+ */
+static async saveSkillCollectionFixed(collectionData) {
+  try {
+    this.debug('=== SAVING SKILL COLLECTION (FIXED) ===');
+    
+    // Debug auth status first
+    const authStatus = await this.debugAuthStatus();
+    this.debug('Auth status:', authStatus);
+    
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
+
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      throw new Error('User not signed in to Google');
+    }
+
+    const userEmail = GoogleAuth.getUserEmail();
+    const userProfile = GoogleAuth.getUserProfile();
+
+    if (!userEmail) {
+      throw new Error('User email not available from Google Auth');
+    }
+
+    this.debug('Using user email:', userEmail);
+    this.debug('Using user profile:', userProfile);
+
+    const collectionRecord = {
+      user_email: userEmail,
+      user_alias: userProfile?.alias || GoogleAuth.getUserDisplayName() || 'Unknown User',
+      name: collectionData.name,
+      description: collectionData.description,
+      skill_count: collectionData.skill_count,
+      skills_data: collectionData.skills, // JSON array of skills
+      is_public: false, // Default to private
+      created_at: new Date().toISOString()
+    };
+
+    this.debug('Collection record to insert:', collectionRecord);
+
+    // Try the insert with explicit error handling
+    const { data, error } = await this.supabase
+      .from('skill_collections')
+      .insert([collectionRecord])
+      .select()
+      .single();
+
+    this.debug('Collection save result:', { data, error });
+
+    if (error) {
+      this.debug('Detailed error information:', {
+        code: error.code,
+        message: error.message,
+        details: error.details,
+        hint: error.hint
+      });
+      
+      // Provide helpful error messages
+      if (error.code === '42501') {
+        throw new Error('Permission denied. RLS policies may be blocking access. Try running the RLS bypass SQL.');
+      } else if (error.code === '42P01') {
+        throw new Error('Table "skill_collections" does not exist. Please run the database setup SQL.');
+      } else if (error.code === '23505') {
+        throw new Error('A collection with this name already exists.');
+      } else {
+        throw new Error(`Database error (${error.code}): ${error.message}`);
+      }
+    }
+
+    this.debug('Collection saved successfully:', data);
+    return { success: true, data };
+    
+  } catch (error) {
+    this.debug('Error in saveSkillCollectionFixed:', error);
+    console.error('Error saving skill collection:', error);
+    throw error;
+  }
+}
+
+/**
+ * Test database connection and permissions
+ */
+static async testSkillCollectionsTable() {
+  try {
+    this.debug('Testing skill_collections table...');
+    
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
+
+    // Test if we can read from the table
+    const { data, error, count } = await this.supabase
+      .from('skill_collections')
+      .select('id', { count: 'exact', head: true });
+
+    this.debug('Table test result:', { data, error, count });
+
+    if (error) {
+      if (error.code === '42P01') {
+        return { 
+          success: false, 
+          error: 'Table does not exist', 
+          suggestion: 'Run the database setup SQL'
+        };
+      } else if (error.code === '42501') {
+        return { 
+          success: false, 
+          error: 'Permission denied', 
+          suggestion: 'Run the RLS bypass SQL'
+        };
+      } else {
+        return { 
+          success: false, 
+          error: error.message, 
+          code: error.code 
+        };
+      }
+    }
+
+    return { 
+      success: true, 
+      message: 'Table accessible', 
+      rowCount: count 
+    };
+    
+  } catch (error) {
+    this.debug('Table test failed:', error);
+    return { 
+      success: false, 
+      error: error.message 
+    };
+  }
+}
+
+// Override the original method temporarily
+static originalSaveSkillCollection = this.saveSkillCollection;
+
+// Replace with the fixed version
+static saveSkillCollection = this.saveSkillCollectionFixed;
 
   
   /**
