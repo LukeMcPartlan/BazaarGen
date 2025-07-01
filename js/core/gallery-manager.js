@@ -1,5 +1,5 @@
 /**
- * Gallery Manager - Simple Implementation
+ * Gallery Manager - Fixed Implementation with Database Support
  * Handles selecting multiple cards and saving as gallery
  */
 class GalleryManager {
@@ -26,7 +26,8 @@ class GalleryManager {
    */
   static addGalleryButton() {
     // Find the button container
-    const buttonContainer = document.querySelector('.btn-group') || 
+    const buttonContainer = document.querySelector('.management-actions') || 
+                           document.querySelector('.preview-actions') ||
                            document.querySelector('button[onclick="createCard()"]')?.parentElement;
     
     if (!buttonContainer) return;
@@ -34,16 +35,12 @@ class GalleryManager {
     // Create gallery mode button
     const galleryBtn = document.createElement('button');
     galleryBtn.id = 'galleryModeBtn';
+    galleryBtn.className = 'form-button secondary';
     galleryBtn.innerHTML = '📦 Gallery Mode';
     galleryBtn.style.cssText = `
-      padding: 10px 20px;
       background: linear-gradient(135deg, rgb(63, 81, 181) 0%, rgb(48, 63, 159) 100%);
       border: 2px solid rgb(63, 81, 181);
-      border-radius: 8px;
       color: white;
-      font-weight: bold;
-      cursor: pointer;
-      margin-left: 10px;
     `;
     galleryBtn.onclick = () => this.toggleGalleryMode();
     
@@ -236,6 +233,15 @@ class GalleryManager {
   }
 
   /**
+   * Create a composite image from selected cards
+   */
+  static async createCompositeImage(selectedCardData) {
+    // Use the first card's image as the gallery image
+    // You could enhance this to create a collage of images
+    return selectedCardData[0]?.imageData || '';
+  }
+
+  /**
    * Save selected cards as gallery
    */
   static async saveGallery() {
@@ -250,6 +256,9 @@ class GalleryManager {
       Messages.showError('Gallery name is required.');
       return;
     }
+
+    // Get gallery description (optional)
+    const galleryDescription = prompt('Enter a description for your gallery (optional):') || '';
 
     try {
       // Get selected card data
@@ -266,32 +275,51 @@ class GalleryManager {
         throw new Error('No card data found. Please make sure cards are properly created.');
       }
 
-      // Create gallery data structure
+      // First, save all individual cards to get their IDs
+      Messages.showInfo('Saving gallery items to database...');
+      const savedItemIds = [];
+      
+      for (const cardData of selectedCardData) {
+        try {
+          // Use a modified version of Database.saveCard that returns the ID
+          const result = await this.saveIndividualCard(cardData);
+          if (result && result.id) {
+            savedItemIds.push(result.id);
+          }
+        } catch (error) {
+          console.warn('Failed to save individual card:', error);
+        }
+      }
+
+      // Create gallery metadata as a special card
       const galleryData = {
         itemName: galleryName,
         hero: 'Neutral',
         itemSize: 'Large',
         border: 'legendary',
         tags: ['Gallery', `${selectedCardData.length} Items`],
-        passiveEffects: [`Contains ${selectedCardData.length} unique items`],
+        passiveEffects: [
+          `Gallery: ${selectedCardData.length} unique items`,
+          galleryDescription || `A collection of ${selectedCardData.length} carefully selected items`
+        ],
         onUseEffects: [],
         scalingValues: {},
-        imageData: selectedCardData[0]?.imageData || '', // Use first card's image
+        imageData: await this.createCompositeImage(selectedCardData),
         timestamp: new Date().toISOString(),
         
-        // Gallery-specific fields
-        isGallery: true,
-        galleryInfo: {
-          name: galleryName,
+        // Store gallery metadata in a format compatible with the database
+        // We'll store the item IDs and basic info in the passiveEffects as JSON
+        cooldown: JSON.stringify({
+          isGallery: true,
           itemCount: selectedCardData.length,
-          createdBy: GoogleAuth?.getUserDisplayName() || 'Unknown',
-          createdAt: new Date().toISOString()
-        },
-        galleryItems: selectedCardData
+          itemIds: savedItemIds,
+          itemNames: selectedCardData.map(item => item.itemName),
+          createdBy: GoogleAuth?.getUserDisplayName() || 'Unknown'
+        })
       };
 
-      // Save to database
-      Messages.showInfo('Saving gallery to database...');
+      // Save the gallery metadata
+      Messages.showInfo('Creating gallery record...');
       
       if (window.Database && Database.saveCard) {
         await Database.saveCard(galleryData);
@@ -300,7 +328,7 @@ class GalleryManager {
         this.clearSelection();
         this.toggleGalleryMode();
         
-        Messages.showSuccess(`Gallery "${galleryName}" saved successfully!`);
+        Messages.showSuccess(`Gallery "${galleryName}" saved successfully with ${selectedCardData.length} items!`);
       } else {
         throw new Error('Database not available. Please make sure you are signed in.');
       }
@@ -308,6 +336,66 @@ class GalleryManager {
     } catch (error) {
       console.error('Error saving gallery:', error);
       Messages.showError('Failed to save gallery: ' + error.message);
+    }
+  }
+
+  /**
+   * Save individual card and return its database ID
+   */
+  static async saveIndividualCard(cardData) {
+    return new Promise((resolve, reject) => {
+      if (!SupabaseClient || !SupabaseClient.isReady()) {
+        reject(new Error('Database not ready'));
+        return;
+      }
+
+      // Save card and get the result with ID
+      SupabaseClient.saveCard(cardData).then(result => {
+        if (result.success && result.data) {
+          resolve({ id: result.data.id });
+        } else {
+          resolve(null);
+        }
+      }).catch(error => {
+        console.warn('Failed to save card:', error);
+        resolve(null);
+      });
+    });
+  }
+
+  /**
+   * Load and display a gallery
+   */
+  static async loadGallery(galleryData) {
+    try {
+      // Parse gallery metadata from the cooldown field
+      const metadata = JSON.parse(galleryData.cooldown || '{}');
+      
+      if (!metadata.isGallery) {
+        console.warn('Not a gallery item');
+        return;
+      }
+
+      // Load individual items if we have their IDs
+      const items = [];
+      if (metadata.itemIds && metadata.itemIds.length > 0) {
+        // Load items from database using their IDs
+        // This would require a method to fetch items by IDs
+        console.log('Gallery contains items:', metadata.itemNames);
+      }
+
+      // Show gallery modal
+      if (window.GalleryModal) {
+        GalleryModal.open(items, 0, {
+          name: galleryData.itemName,
+          itemCount: metadata.itemCount,
+          createdBy: metadata.createdBy
+        });
+      }
+
+    } catch (error) {
+      console.error('Error loading gallery:', error);
+      Messages.showError('Failed to load gallery');
     }
   }
 }
