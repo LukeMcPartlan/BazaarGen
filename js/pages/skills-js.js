@@ -67,15 +67,15 @@ class SkillsPageController {
           this.skillsData.push(skillData);
           window.skillsData = this.skillsData; // Keep global reference
           
+          // Handle skill creation - hide placeholder and update gallery
+          if (SkillsGalleryManager) {
+            SkillsGalleryManager.handleSkillCreated(skillElement);
+          }
+          
           // Dispatch custom event
           document.dispatchEvent(new CustomEvent('skillCreated', {
             detail: { skillData, skillElement }
           }));
-          
-          // Update gallery if in gallery mode
-          if (SkillsGalleryManager?.isGalleryMode) {
-            this.updateGalleryAfterSkillCreation(skillElement);
-          }
           
           this.debug('Skill created and added to data array');
         }
@@ -188,6 +188,11 @@ class SkillsPageController {
       // Exit gallery mode if active
       if (SkillsGalleryManager?.isGalleryMode) {
         SkillsGalleryManager.toggleGalleryMode();
+      }
+      
+      // Show placeholder
+      if (SkillsGalleryManager) {
+        SkillsGalleryManager.showPlaceholder(outputContainer);
       }
       
       Messages.showSuccess('All skills cleared');
@@ -500,9 +505,9 @@ class SkillsPageController {
       this.skillsData.push(skillData);
       window.skillsData = this.skillsData;
       
-      // Update gallery if in gallery mode
-      if (SkillsGalleryManager?.isGalleryMode) {
-        this.updateGalleryAfterSkillCreation(skillElement);
+      // Handle skill creation - hide placeholder and update gallery
+      if (SkillsGalleryManager) {
+        SkillsGalleryManager.handleSkillCreated(skillElement);
       }
     }
 
