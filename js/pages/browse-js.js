@@ -1,19 +1,39 @@
 /**
- * Enhanced Browse Page Controller with Gallery Support
- * Handles browsing community-created items with collection/gallery functionality
+ * Comprehensive Browse Manager
+ * Handles browsing both items and skills with advanced filtering and collections
  */
-class BrowsePageController {
-  
+class BrowseManager {
+  static currentTab = 'items'; // 'items' or 'skills'
+  static currentContent = 'individual'; // 'individual' or 'collections'
   static allItems = [];
+  static allSkills = [];
+  static allItemCollections = [];
+  static allSkillCollections = [];
   static displayedItems = [];
-  static collections = new Map(); // Track collections for gallery functionality
-  static currentPage = 0;
-  static ITEMS_PER_LOAD = 5;
+  static collections = new Map();
   static isLoading = false;
   static isInitialized = false;
+  static searchTimeouts = {};
+  static activeFilters = {
+    items: {
+      search: '',
+      hero: '',
+      rarity: '',
+      sort: 'recent',
+      keywords: [],
+      tags: []
+    },
+    skills: {
+      search: '',
+      rarity: '',
+      sort: 'recent',
+      effectLength: '',
+      keywords: []
+    }
+  };
 
   /**
-   * Initialize the browse page
+   * Initialize the browse manager
    */
   static init() {
     if (this.isInitialized) return;
@@ -21,6 +41,7 @@ class BrowsePageController {
     document.addEventListener('DOMContentLoaded', () => {
       this.setupDOMElements();
       this.setupEventListeners();
+      this.initializeKeywordFilters();
       this.initializeSupabase();
       this.isInitialized = true;
     });
@@ -30,56 +51,96 @@ class BrowsePageController {
    * Setup DOM element references
    */
   static setupDOMElements() {
-    this.itemsGrid = document.getElementById('itemsGrid');
-    this.loadMoreBtn = document.getElementById('loadMoreBtn');
-    this.loadingMessage = document.getElementById('loadingMessage');
-    this.errorMessage = document.getElementById('errorMessage');
-    this.noResults = document.getElementById('noResults');
-    this.totalItemsSpan = document.getElementById('totalItems');
-    this.showingItemsSpan = document.getElementById('showingItems');
-    this.loadingText = document.getElementById('loadingText');
-    this.endMessage = document.getElementById('endMessage');
-
-    // Filter elements
-    this.sortBy = document.getElementById('sortBy');
-    this.heroFilter = document.getElementById('heroFilter');
-    this.searchInput = document.getElementById('searchInput');
-    this.contestFilter = document.getElementById('contestFilter');
+    // Tab elements
+    this.tabButtons = document.querySelectorAll('.tab-button');
+    this.tabContents = document.querySelectorAll('.tab-content');
+    
+    // Content elements
+    this.itemsContent = document.getElementById('items-content');
+    this.skillsContent = document.getElementById('skills-content');
+    this.itemsLoading = document.getElementById('items-loading');
+    this.skillsLoading = document.getElementById('skills-loading');
+    this.itemsNoResults = document.getElementById('items-no-results');
+    this.skillsNoResults = document.getElementById('skills-no-results');
+    
+    // Filter elements - Items
+    this.itemsSearch = document.getElementById('items-search');
+    this.itemsHeroFilter = document.getElementById('items-hero-filter');
+    this.itemsRarityFilter = document.getElementById('items-rarity-filter');
+    this.itemsSort = document.getElementById('items-sort');
+    this.itemsResultsCount = document.getElementById('items-results-count');
+    this.itemsKeywordToggles = document.getElementById('items-keyword-toggles');
+    this.itemsTagToggles = document.getElementById('items-tag-toggles');
+    
+    // Filter elements - Skills
+    this.skillsSearch = document.getElementById('skills-search');
+    this.skillsRarityFilter = document.getElementById('skills-rarity-filter');
+    this.skillsSort = document.getElementById('skills-sort');
+    this.skillsEffectLength = document.getElementById('skills-effect-length');
+    this.skillsResultsCount = document.getElementById('skills-results-count');
+    this.skillsKeywordToggles = document.getElementById('skills-keyword-toggles');
   }
 
   /**
    * Setup event listeners
    */
   static setupEventListeners() {
-    if (this.sortBy) this.sortBy.addEventListener('change', () => this.handleFilterChange());
-    if (this.heroFilter) this.heroFilter.addEventListener('change', () => this.handleFilterChange());
-    if (this.contestFilter) this.contestFilter.addEventListener('change', () => this.handleFilterChange());
-    
-    // Debounced search
-    if (this.searchInput) {
-      let searchTimeout;
-      this.searchInput.addEventListener('input', () => {
-        clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => this.handleFilterChange(), 500);
+    // Content navigation buttons
+    document.querySelectorAll('.content-nav-button').forEach(button => {
+      button.addEventListener('click', (e) => {
+        const content = e.target.dataset.content;
+        this.switchContent(this.currentTab, content);
       });
-    }
-
-    if (this.loadMoreBtn) {
-      this.loadMoreBtn.addEventListener('click', () => this.loadMoreItems());
-    }
-
-    // Infinite scroll
-    window.addEventListener('scroll', () => {
-      if (window.innerHeight + window.scrollY >= document.documentElement.offsetHeight - 200) {
-        if (!this.isLoading && this.displayedItems.length < this.allItems.length) {
-          this.loadMoreItems();
-        }
-      }
     });
   }
 
   /**
-   * Initialize Supabase connection with retries
+   * Initialize keyword filter buttons
+   */
+  static initializeKeywordFilters() {
+    const keywords = [
+      { key: 'slow', icon: 'images/KeyText/slow.png', text: 'slow' },
+      { key: 'haste', icon: 'images/KeyText/haste.png', text: 'haste' },
+      { key: 'heal', icon: 'images/KeyText/heal.png', text: 'heal' },
+      { key: 'regen', icon: 'images/KeyText/regen.png', text: 'regen' },
+      { key: 'poison', icon: 'images/KeyText/poison.png', text: 'poison' },
+      { key: 'burn', icon: 'images/KeyText/burn.png', text: 'burn' },
+      { key: 'charge', icon: 'images/KeyText/charge.png', text: 'charge' },
+      { key: 'cooldown', icon: 'images/KeyText/cooldown.png', text: 'cooldown' },
+      { key: 'crit', icon: 'images/KeyText/crit.png', text: 'crit' },
+      { key: 'damage', icon: 'images/KeyText/damage.png', text: 'damage' },
+      { key: 'destroy', icon: 'images/KeyText/destroy.png', text: 'destroy' },
+      { key: 'freeze', icon: 'images/KeyText/freeze.png', text: 'freeze' },
+      { key: 'lifesteal', icon: 'images/KeyText/lifesteal.png', text: 'lifesteal' },
+      { key: 'value', icon: 'images/KeyText/value.png', text: 'value' },
+      { key: 'transform', icon: 'images/KeyText/transform.png', text: 'transform' },
+      { key: 'shield', icon: 'images/KeyText/sheild.png', text: 'shield' },
+      { key: 'maxhealth', icon: 'images/KeyText/maxhealth.png', text: 'maxhealth' }
+    ];
+
+    // Create keyword buttons for items
+    if (this.itemsKeywordToggles) {
+      this.itemsKeywordToggles.innerHTML = keywords.map(keyword => `
+        <button class="keyword-toggle" data-keyword="${keyword.key}" onclick="BrowseManager.toggleKeyword('items', '${keyword.key}')">
+          <img src="${keyword.icon}" alt="${keyword.text}" class="keyword-icon" onerror="this.style.display='none'">
+          ${keyword.text}
+        </button>
+      `).join('');
+    }
+
+    // Create keyword buttons for skills
+    if (this.skillsKeywordToggles) {
+      this.skillsKeywordToggles.innerHTML = keywords.map(keyword => `
+        <button class="keyword-toggle" data-keyword="${keyword.key}" onclick="BrowseManager.toggleKeyword('skills', '${keyword.key}')">
+          <img src="${keyword.icon}" alt="${keyword.text}" class="keyword-icon" onerror="this.style.display='none'">
+          ${keyword.text}
+        </button>
+      `).join('');
+    }
+  }
+
+  /**
+   * Initialize Supabase connection
    */
   static async initializeSupabase() {
     let attempts = 0;
@@ -94,10 +155,11 @@ class BrowsePageController {
         return;
       }
 
-      if (SupabaseClient.isReady()) {
+      if (typeof SupabaseClient !== 'undefined' && SupabaseClient.isReady()) {
         const testResult = await SupabaseClient.testConnection();
         if (testResult.success) {
-          this.loadItems();
+          // Load initial content (items by default)
+          this.loadContent('items');
         } else {
           this.showError(`Database connection failed: ${testResult.error}`);
         }
@@ -110,59 +172,384 @@ class BrowsePageController {
   }
 
   /**
-   * Load items from database with collection detection
+   * Switch between main tabs (items/skills)
    */
-  static async loadItems() {
-    if (this.isLoading) return;
+  static switchTab(tab) {
+    console.log('🔄 Switching to tab:', tab);
     
-    this.isLoading = true;
-    this.showLoading(true);
-    this.hideMessages();
+    this.currentTab = tab;
+    this.currentContent = 'individual'; // Reset to individual when switching tabs
 
-    try {
-      const filters = this.getFilters();
-      const options = this.buildQueryOptions(filters);
-      
-      const data = await SupabaseClient.loadItems(options);
-      
-      this.allItems = data || [];
-      this.displayedItems = [];
-      this.currentPage = 0;
-      
-      // Detect and organize collections
-      this.detectCollections(this.allItems);
-      
-      // Clear the grid before adding new items
-      if (this.itemsGrid) {
-        this.itemsGrid.innerHTML = '';
-      }
-      
-      this.updateStats();
-      this.isLoading = false;
-      this.showLoading(false);
-      
-      // Force load initial items
-      this.loadMoreItems();
+    // Update tab buttons
+    this.tabButtons.forEach(button => {
+      button.classList.toggle('active', button.dataset.tab === tab);
+    });
 
-    } catch (error) {
-      console.error('Error loading items:', error);
-      this.showError('Failed to load items: ' + error.message);
-      this.isLoading = false;
-      this.showLoading(false);
+    // Update tab content
+    this.tabContents.forEach(content => {
+      content.classList.toggle('active', content.id === `${tab}-tab`);
+    });
+
+    // Update content navigation buttons
+    const activeTabContent = document.getElementById(`${tab}-tab`);
+    if (activeTabContent) {
+      const contentNavButtons = activeTabContent.querySelectorAll('.content-nav-button');
+      contentNavButtons.forEach(button => {
+        button.classList.toggle('active', button.dataset.content === 'individual');
+      });
+    }
+
+    // Load content for the new tab
+    this.loadContent(tab);
+  }
+
+  /**
+   * Switch between content types (individual/collections)
+   */
+  static switchContent(tab, content) {
+    console.log('🔄 Switching content:', tab, content);
+    
+    this.currentContent = content;
+
+    // Update content navigation buttons
+    const activeTabContent = document.getElementById(`${tab}-tab`);
+    if (activeTabContent) {
+      const contentNavButtons = activeTabContent.querySelectorAll('.content-nav-button');
+      contentNavButtons.forEach(button => {
+        button.classList.toggle('active', button.dataset.content === content);
+      });
+    }
+
+    // Load the appropriate content
+    if (content === 'collections') {
+      this.loadCollections(tab);
+    } else {
+      this.loadContent(tab);
     }
   }
 
   /**
-   * Detect collections based on timing and metadata
+   * Load content (items or skills)
    */
-  static detectCollections(items) {
-    console.log('🔍 Detecting collections from', items.length, 'items...');
+  static async loadContent(type) {
+    if (this.isLoading) return;
+    
+    console.log('📥 Loading content:', type);
+    this.isLoading = true;
+    this.showLoading(type, true);
+    this.hideMessages(type);
+
+    try {
+      if (type === 'items') {
+        await this.loadItems();
+      } else if (type === 'skills') {
+        await this.loadSkills();
+      }
+    } catch (error) {
+      console.error(`Error loading ${type}:`, error);
+      this.showError(`Failed to load ${type}: ${error.message}`);
+    } finally {
+      this.isLoading = false;
+      this.showLoading(type, false);
+    }
+  }
+
+  /**
+   * Load items from database
+   */
+  static async loadItems() {
+    try {
+      const filters = this.getFilters('items');
+      const options = this.buildQueryOptions(filters, 'items');
+      
+      const data = await SupabaseClient.loadItems(options);
+      this.allItems = data || [];
+      
+      // Detect and organize collections
+      this.detectCollections(this.allItems, 'items');
+      
+      // Apply client-side filters
+      const filteredItems = this.applyClientFilters(this.allItems, 'items');
+      
+      // Clear and populate the grid
+      if (this.itemsContent) {
+        this.itemsContent.innerHTML = '';
+        
+        for (const item of filteredItems) {
+          try {
+            const itemCard = await this.createItemCard(item);
+            if (itemCard) {
+              this.itemsContent.appendChild(itemCard);
+            }
+          } catch (error) {
+            console.error(`Failed to create card for item ${item.id}:`, error);
+          }
+        }
+      }
+      
+      this.updateResultsCount('items', filteredItems.length, this.allItems.length);
+      this.updateNoResults('items', filteredItems.length === 0);
+      
+    } catch (error) {
+      console.error('Error loading items:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Load skills from database
+   */
+  static async loadSkills() {
+    try {
+      // Use getUserSkills for now, can be extended to public skills later
+      const data = await SupabaseClient.getUserSkills();
+      this.allSkills = data || [];
+      
+      // Apply client-side filters
+      const filteredSkills = this.applyClientFilters(this.allSkills, 'skills');
+      
+      // Clear and populate the grid
+      if (this.skillsContent) {
+        this.skillsContent.innerHTML = '';
+        
+        for (const skill of filteredSkills) {
+          try {
+            const skillCard = await this.createSkillCard(skill);
+            if (skillCard) {
+              this.skillsContent.appendChild(skillCard);
+            }
+          } catch (error) {
+            console.error(`Failed to create card for skill ${skill.id}:`, error);
+          }
+        }
+      }
+      
+      this.updateResultsCount('skills', filteredSkills.length, this.allSkills.length);
+      this.updateNoResults('skills', filteredSkills.length === 0);
+      
+    } catch (error) {
+      console.error('Error loading skills:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Load collections (items or skills)
+   */
+  static async loadCollections(type) {
+    console.log('📦 Loading collections:', type);
+    
+    this.showLoading(type, true);
+    
+    try {
+      let collections = [];
+      
+      if (type === 'items') {
+        // Load item collections - this would need to be implemented in SupabaseClient
+        // For now, use detected collections from regular items
+        collections = Array.from(this.collections.values()).filter(c => c.type !== 'skills');
+      } else if (type === 'skills') {
+        // Load skill collections
+        collections = await SupabaseClient.getUserSkillCollections();
+      }
+
+      const contentElement = type === 'items' ? this.itemsContent : this.skillsContent;
+      if (contentElement) {
+        contentElement.innerHTML = '';
+        
+        for (const collection of collections) {
+          const collectionCard = this.createCollectionCard(collection, type);
+          if (collectionCard) {
+            contentElement.appendChild(collectionCard);
+          }
+        }
+      }
+      
+      this.updateResultsCount(type, collections.length, collections.length);
+      this.updateNoResults(type, collections.length === 0);
+      
+    } catch (error) {
+      console.error(`Error loading ${type} collections:`, error);
+      this.showError(`Failed to load ${type} collections: ${error.message}`);
+    } finally {
+      this.showLoading(type, false);
+    }
+  }
+
+  /**
+   * Create item card with enhanced features
+   */
+  static async createItemCard(item) {
+    if (!item.item_data) {
+      console.warn(`Item ${item.id} has no item_data`);
+      return null;
+    }
+
+    try {
+      // Create wrapper
+      const cardWrapper = document.createElement('div');
+      cardWrapper.className = 'card-wrapper';
+      cardWrapper.style.marginBottom = '30px';
+
+      // Collection header if applicable
+      if (item.collectionId) {
+        const collectionInfo = this.collections.get(item.collectionId);
+        const collectionHeader = this.createCollectionHeader(collectionInfo, item);
+        cardWrapper.appendChild(collectionHeader);
+      }
+
+      // Creator info
+      const creatorInfo = this.createCreatorInfo(item);
+      cardWrapper.appendChild(creatorInfo);
+
+      // Create the card
+      const cardData = item.item_data;
+      cardData.created_at = item.created_at;
+      cardData.creator_alias = item.user_alias;
+      cardData.database_id = item.id;
+
+      const cardElement = await CardGenerator.createCard({
+        data: cardData,
+        mode: 'browser',
+        includeControls: true
+      });
+
+      // Add gallery functionality if applicable
+      if (item.collectionId) {
+        const collection = this.collections.get(item.collectionId);
+        if (collection) {
+          GalleryModal.addGalleryButton(
+            cardElement, 
+            collection.items.map(i => i.item_data), 
+            item.collectionIndex
+          );
+        }
+      }
+
+      cardWrapper.appendChild(cardElement);
+
+      // Comments section
+      const commentsSection = await this.createCommentsSection(item.id);
+      cardWrapper.appendChild(commentsSection);
+
+      return cardWrapper;
+    } catch (error) {
+      console.error('Error creating item card:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create skill card
+   */
+  static async createSkillCard(skill) {
+    if (!skill.skill_data) {
+      console.warn(`Skill ${skill.id} has no skill_data`);
+      return null;
+    }
+
+    try {
+      // Create wrapper
+      const cardWrapper = document.createElement('div');
+      cardWrapper.className = 'skill-card-wrapper';
+      cardWrapper.style.marginBottom = '30px';
+
+      // Creator info
+      const creatorInfo = this.createCreatorInfo(skill);
+      cardWrapper.appendChild(creatorInfo);
+
+      // Create the skill card
+      const skillData = skill.skill_data;
+      skillData.created_at = skill.created_at;
+      skillData.creator_alias = skill.user_alias;
+      skillData.database_id = skill.id;
+
+      const skillElement = SkillGenerator.createSkill({
+        data: skillData,
+        mode: 'browser',
+        includeControls: true
+      });
+
+      cardWrapper.appendChild(skillElement);
+
+      // Comments section
+      const commentsSection = await this.createCommentsSection(skill.id);
+      cardWrapper.appendChild(commentsSection);
+
+      return cardWrapper;
+    } catch (error) {
+      console.error('Error creating skill card:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create collection card
+   */
+  static createCollectionCard(collection, type) {
+    const card = document.createElement('div');
+    card.className = 'browse-collection browse-item';
+    
+    const isSkillCollection = type === 'skills' || collection.skills_data;
+    const itemCount = isSkillCollection ? collection.skill_count : collection.items?.length || 0;
+    const items = isSkillCollection ? collection.skills_data : collection.items;
+
+    card.innerHTML = `
+      <div class="browse-item-header">
+        <h3 class="browse-item-title">${collection.name}</h3>
+        <span class="collection-count">${itemCount} ${type}</span>
+      </div>
+      <div class="browse-item-meta">
+        <span class="browse-item-creator">By: ${collection.user_alias || collection.createdBy || 'Unknown'}</span>
+        <span>${new Date(collection.created_at).toLocaleDateString()}</span>
+      </div>
+      <div class="browse-item-description">${collection.description}</div>
+      <div class="collection-preview-grid">
+        ${this.createCollectionPreview(items, type)}
+      </div>
+      <div class="browse-item-actions">
+        <button class="primary-action" onclick="BrowseManager.loadCollection('${collection.id}', '${type}')">
+          🖼️ View Collection
+        </button>
+        <button onclick="BrowseManager.downloadCollection('${collection.id}', '${type}')">
+          💾 Download
+        </button>
+      </div>
+    `;
+
+    return card;
+  }
+
+  /**
+   * Create collection preview
+   */
+  static createCollectionPreview(items, type) {
+    if (!items || !Array.isArray(items)) return '';
+    
+    return items.slice(0, 3).map(item => {
+      const icon = type === 'skills' ? '⚡' : '🃏';
+      const name = type === 'skills' ? 
+        (item.skillName || item.skill_name || 'Skill') : 
+        (item.itemName || item.name || 'Item');
+      
+      return `
+        <div class="collection-preview-item" title="${name}">
+          ${icon}
+        </div>
+      `;
+    }).join('');
+  }
+
+  /**
+   * Detect collections from items
+   */
+  static detectCollections(items, type) {
+    console.log(`🔍 Detecting ${type} collections from`, items.length, 'items...');
     
     this.collections.clear();
     
-    // Group items by creation time (within 2 minutes = likely same upload)
     const timeGroups = new Map();
-    const TIME_THRESHOLD = 2 * 60 * 1000; // 2 minutes in milliseconds
+    const TIME_THRESHOLD = 2 * 60 * 1000; // 2 minutes
     
     items.forEach((item, index) => {
       const createdTime = new Date(item.created_at).getTime();
@@ -179,92 +566,301 @@ class BrowsePageController {
       });
     });
     
-    // Convert time groups to collections (only groups with 2+ items)
     let collectionId = 0;
     timeGroups.forEach((groupItems, groupKey) => {
       if (groupItems.length > 1) {
         const collection = {
           id: `collection_${collectionId++}`,
-          name: `${groupItems[0].user_alias || 'Unknown'}'s Collection`,
-          description: `${groupItems.length} items uploaded together`,
+          name: `${groupItems[0].user_alias || 'Unknown'}'s ${type} Collection`,
+          description: `${groupItems.length} ${type} uploaded together`,
           items: groupItems,
           createdBy: groupItems[0].user_alias || 'Unknown',
-          createdAt: groupItems[0].created_at,
-          userEmail: groupItems[0].user_email
+          created_at: groupItems[0].created_at,
+          user_email: groupItems[0].user_email,
+          type: type
         };
         
         this.collections.set(collection.id, collection);
         
-        // Mark each item with its collection info
         groupItems.forEach((item, itemIndex) => {
           item.collectionId = collection.id;
           item.collectionIndex = itemIndex;
           item.collectionTotal = groupItems.length;
         });
         
-        console.log(`📦 Detected collection: "${collection.name}" with ${groupItems.length} items`);
+        console.log(`📦 Detected ${type} collection: "${collection.name}" with ${groupItems.length} items`);
       }
     });
     
-    console.log(`✅ Found ${this.collections.size} collections`);
+    console.log(`✅ Found ${this.collections.size} ${type} collections`);
   }
 
   /**
-   * Load more items for display with collection awareness
+   * Apply client-side filters
    */
-  static async loadMoreItems() {
-    if (this.isLoading || this.displayedItems.length >= this.allItems.length) {
-      return;
-    }
-
-    const startIndex = this.displayedItems.length;
-    const endIndex = Math.min(startIndex + this.ITEMS_PER_LOAD, this.allItems.length);
-    const newItems = this.allItems.slice(startIndex, endIndex);
-
-    for (const item of newItems) {
-      try {
-        const itemCard = await this.createItemCard(item);
-        if (itemCard && this.itemsGrid) {
-          this.itemsGrid.appendChild(itemCard);
-          this.displayedItems.push(item);
-        }
-      } catch (error) {
-        console.error(`Failed to create card for item ${item.id}:`, error);
-      }
-    }
-
-    this.updateStats();
-    this.updateLoadMoreButton();
+  static applyClientFilters(items, type) {
+    const filters = this.activeFilters[type];
     
-    // Force a check if we need to load more immediately
-    if (this.displayedItems.length < 20 && this.displayedItems.length < this.allItems.length) {
-      setTimeout(() => this.loadMoreItems(), 100);
+    let filtered = [...items];
+
+    // Search filter
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      filtered = filtered.filter(item => {
+        const data = type === 'items' ? item.item_data : item.skill_data;
+        const name = type === 'items' ? 
+          (data.itemName || data.name || '') : 
+          (data.skillName || data.name || '');
+        const description = type === 'items' ? 
+          (data.passiveEffects?.join(' ') || data.onUseEffects?.join(' ') || '') :
+          (data.skillEffect || '');
+        
+        return name.toLowerCase().includes(searchTerm) ||
+               description.toLowerCase().includes(searchTerm);
+      });
+    }
+
+    // Rarity filter
+    if (filters.rarity) {
+      filtered = filtered.filter(item => {
+        const data = type === 'items' ? item.item_data : item.skill_data;
+        return data.border === filters.rarity;
+      });
+    }
+
+    // Hero filter (items only)
+    if (type === 'items' && filters.hero) {
+      filtered = filtered.filter(item => {
+        return item.item_data.hero === filters.hero;
+      });
+    }
+
+    // Effect length filter (skills only)
+    if (type === 'skills' && filters.effectLength) {
+      filtered = filtered.filter(item => {
+        const effectLength = item.skill_data.skillEffect?.length || 0;
+        switch (filters.effectLength) {
+          case 'short': return effectLength < 50;
+          case 'medium': return effectLength >= 50 && effectLength <= 150;
+          case 'long': return effectLength > 150;
+          default: return true;
+        }
+      });
+    }
+
+    // Keyword filters
+    if (filters.keywords.length > 0) {
+      filtered = filtered.filter(item => {
+        const data = type === 'items' ? item.item_data : item.skill_data;
+        const text = type === 'items' ? 
+          (data.passiveEffects?.join(' ') + ' ' + data.onUseEffects?.join(' ') || '') :
+          (data.skillEffect || '');
+        
+        return filters.keywords.every(keyword => 
+          text.toLowerCase().includes(keyword.toLowerCase())
+        );
+      });
+    }
+
+    // Tag filters (items only)
+    if (type === 'items' && filters.tags.length > 0) {
+      filtered = filtered.filter(item => {
+        const data = item.item_data;
+        const itemSize = data.itemSize || data.item_size || '';
+        const tags = data.tags || [];
+        
+        return filters.tags.some(tag => 
+          itemSize === tag || tags.includes(tag)
+        );
+      });
+    }
+
+    // Sort
+    switch (filters.sort) {
+      case 'oldest':
+        filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        break;
+      case 'name':
+        filtered.sort((a, b) => {
+          const aData = type === 'items' ? a.item_data : a.skill_data;
+          const bData = type === 'items' ? b.item_data : b.skill_data;
+          const aName = type === 'items' ? 
+            (aData.itemName || aData.name || '') :
+            (aData.skillName || aData.name || '');
+          const bName = type === 'items' ? 
+            (bData.itemName || bData.name || '') :
+            (bData.skillName || bData.name || '');
+          return aName.localeCompare(bName);
+        });
+        break;
+      case 'recent':
+      default:
+        filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        break;
+    }
+
+    return filtered;
+  }
+
+  /**
+   * Get current filter values
+   */
+  static getFilters(type) {
+    if (type === 'items') {
+      return {
+        search: this.itemsSearch?.value?.trim() || '',
+        hero: this.itemsHeroFilter?.value || '',
+        rarity: this.itemsRarityFilter?.value || '',
+        sort: this.itemsSort?.value || 'recent'
+      };
+    } else {
+      return {
+        search: this.skillsSearch?.value?.trim() || '',
+        rarity: this.skillsRarityFilter?.value || '',
+        sort: this.skillsSort?.value || 'recent',
+        effectLength: this.skillsEffectLength?.value || ''
+      };
     }
   }
 
   /**
- * Create item card element with gallery support
- */
-static async createItemCard(item) {
-  if (!item.item_data) {
-    console.warn(`Item ${item.id} has no item_data`);
-    return null;
-  }
+   * Build query options for database
+   */
+  static buildQueryOptions(filters, type) {
+    const options = {
+      sortBy: filters.sort
+    };
 
-  try {
-    // Create a wrapper div for the entire card section
-    const cardWrapper = document.createElement('div');
-    cardWrapper.className = 'card-wrapper';
-    cardWrapper.style.cssText = 'margin-bottom: 30px;';
-
-    // Add collection indicator if item is part of a collection
-    if (item.collectionId) {
-      const collectionInfo = this.collections.get(item.collectionId);
-      const collectionHeader = this.createCollectionHeader(collectionInfo, item);
-      cardWrapper.appendChild(collectionHeader);
+    if (type === 'items' && filters.hero) {
+      options.hero = filters.hero;
     }
 
-    // Create creator info section
+    if (filters.search) {
+      options.search = filters.search;
+    }
+
+    return options;
+  }
+
+  /**
+   * Apply filters
+   */
+  static applyFilters(type) {
+    console.log('🔍 Applying filters for:', type);
+    
+    // Update active filters
+    this.activeFilters[type] = this.getFilters(type);
+    
+    // Reload content with filters
+    if (this.currentContent === 'collections') {
+      this.loadCollections(type);
+    } else {
+      this.loadContent(type);
+    }
+  }
+
+  /**
+   * Clear filters
+   */
+  static clearFilters(type) {
+    console.log('🧹 Clearing filters for:', type);
+    
+    if (type === 'items') {
+      if (this.itemsSearch) this.itemsSearch.value = '';
+      if (this.itemsHeroFilter) this.itemsHeroFilter.value = '';
+      if (this.itemsRarityFilter) this.itemsRarityFilter.value = '';
+      if (this.itemsSort) this.itemsSort.value = 'recent';
+      
+      // Clear keyword and tag toggles
+      this.itemsKeywordToggles?.querySelectorAll('.keyword-toggle.active').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      this.itemsTagToggles?.querySelectorAll('.tag-toggle.active').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      this.activeFilters.items = {
+        search: '', hero: '', rarity: '', sort: 'recent', keywords: [], tags: []
+      };
+    } else {
+      if (this.skillsSearch) this.skillsSearch.value = '';
+      if (this.skillsRarityFilter) this.skillsRarityFilter.value = '';
+      if (this.skillsSort) this.skillsSort.value = 'recent';
+      if (this.skillsEffectLength) this.skillsEffectLength.value = '';
+      
+      // Clear keyword toggles
+      this.skillsKeywordToggles?.querySelectorAll('.keyword-toggle.active').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      
+      this.activeFilters.skills = {
+        search: '', rarity: '', sort: 'recent', effectLength: '', keywords: []
+      };
+    }
+    
+    this.applyFilters(type);
+  }
+
+  /**
+   * Toggle keyword filter
+   */
+  static toggleKeyword(type, keyword) {
+    const button = document.querySelector(`#${type}-keyword-toggles .keyword-toggle[data-keyword="${keyword}"]`);
+    if (!button) return;
+    
+    button.classList.toggle('active');
+    
+    const isActive = button.classList.contains('active');
+    const keywords = this.activeFilters[type].keywords;
+    
+    if (isActive && !keywords.includes(keyword)) {
+      keywords.push(keyword);
+    } else if (!isActive && keywords.includes(keyword)) {
+      const index = keywords.indexOf(keyword);
+      keywords.splice(index, 1);
+    }
+    
+    this.applyFilters(type);
+  }
+
+  /**
+   * Toggle tag filter (items only)
+   */
+  static toggleTag(type, tag) {
+    if (type !== 'items') return;
+    
+    const button = document.querySelector(`#${type}-tag-toggles .tag-toggle[data-tag="${tag}"]`);
+    if (!button) return;
+    
+    button.classList.toggle('active');
+    
+    const isActive = button.classList.contains('active');
+    const tags = this.activeFilters[type].tags;
+    
+    if (isActive && !tags.includes(tag)) {
+      tags.push(tag);
+    } else if (!isActive && tags.includes(tag)) {
+      const index = tags.indexOf(tag);
+      tags.splice(index, 1);
+    }
+    
+    this.applyFilters(type);
+  }
+
+  /**
+   * Debounced filter for search inputs
+   */
+  static debounceFilter(type) {
+    clearTimeout(this.searchTimeouts[type]);
+    this.searchTimeouts[type] = setTimeout(() => {
+      this.applyFilters(type);
+    }, 500);
+  }
+
+  /**
+   * Create creator info section
+   */
+  static createCreatorInfo(item) {
     const creatorInfo = document.createElement('div');
     creatorInfo.className = 'creator-info';
     creatorInfo.style.cssText = `
@@ -295,84 +891,11 @@ static async createItemCard(item) {
       <span style="color: rgb(201, 175, 133); font-size: 12px;">${createdDate}</span>
     `;
 
-    // Create the card
-    const cardData = item.item_data;
-    cardData.created_at = item.created_at;
-    cardData.creator_alias = creatorAlias;
-    cardData.database_id = item.id;
-
-    const cardElement = await CardGenerator.createCard({
-      data: cardData,
-      mode: 'browser',
-      includeControls: true
-    });
-
-    // GALLERY FEATURE ADDITIONS START HERE
-    
-    // Check if this is a saved gallery and add gallery button
-    if (item.item_data?.isGallery && item.item_data?.galleryItems) {
-      // This is a saved gallery - add gallery button to view it
-      GalleryModal.addGalleryButton(
-        cardElement,
-        item.item_data.galleryItems,
-        0
-      );
-      
-      // Optional: Style the card differently to show it's a gallery
-      const passiveSection = cardElement.querySelector('.passive-section');
-      if (passiveSection) {
-        passiveSection.style.background = 'linear-gradient(135deg, rgba(63, 81, 181, 0.2) 0%, rgba(48, 63, 159, 0.1) 100%)';
-        passiveSection.style.borderColor = 'rgb(63, 81, 181)';
-      }
-      
-      // Add gallery indicator to the creator info
-      const galleryIndicator = document.createElement('span');
-      galleryIndicator.style.cssText = `
-        background: rgb(63, 81, 181);
-        color: white;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-size: 12px;
-        margin-left: 10px;
-      `;
-      galleryIndicator.textContent = `📦 Gallery (${item.item_data.galleryItems.length} items)`;
-      creatorInfo.firstElementChild.appendChild(galleryIndicator);
-    }
-    
-    // Also check if item is part of a time-based collection
-    else if (item.collectionId) {
-      const collection = this.collections.get(item.collectionId);
-      if (collection) {
-        GalleryModal.addGalleryButton(
-          cardElement, 
-          collection.items.map(i => i.item_data), 
-          item.collectionIndex
-        );
-      }
-    }
-    
-    // GALLERY FEATURE ADDITIONS END HERE
-
-    // Create comments section
-    const commentsSection = await this.createCommentsSection(item.id);
-
-    // Assemble the wrapper
-    if (item.collectionId) {
-      // Collection header already added above
-    }
-    cardWrapper.appendChild(creatorInfo);
-    cardWrapper.appendChild(cardElement);
-    cardWrapper.appendChild(commentsSection);
-
-    return cardWrapper;
-  } catch (error) {
-    console.error('Error creating item card:', error);
-    return null;
+    return creatorInfo;
   }
-}
 
   /**
-   * Create collection header for items that are part of collections
+   * Create collection header
    */
   static createCollectionHeader(collection, currentItem) {
     const header = document.createElement('div');
@@ -392,166 +915,34 @@ static async createItemCard(item) {
       min-width: 450px;
     `;
 
-    const collectionInfo = document.createElement('div');
-    collectionInfo.innerHTML = `
-      <div style="font-weight: bold; margin-bottom: 2px;">
-        📦 ${collection.name}
+    header.innerHTML = `
+      <div>
+        <div style="font-weight: bold; margin-bottom: 2px;">
+          📦 ${collection.name}
+        </div>
+        <div style="font-size: 12px; opacity: 0.9;">
+          Item ${currentItem.collectionIndex + 1} of ${currentItem.collectionTotal}
+        </div>
       </div>
-      <div style="font-size: 12px; opacity: 0.9;">
-        Item ${currentItem.collectionIndex + 1} of ${currentItem.collectionTotal}
-      </div>
+      <button style="
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 15px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.3s ease;
+      " onclick="BrowseManager.viewCollection('${collection.id}')">
+        🖼️ View Collection
+      </button>
     `;
-
-    const galleryBtn = document.createElement('button');
-    galleryBtn.style.cssText = `
-      background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: white;
-      padding: 6px 12px;
-      border-radius: 15px;
-      cursor: pointer;
-      font-size: 12px;
-      transition: all 0.3s ease;
-    `;
-    galleryBtn.innerHTML = `🖼️ View Collection`;
-    galleryBtn.title = `View all ${currentItem.collectionTotal} items in gallery`;
-
-    galleryBtn.onmouseenter = () => {
-      galleryBtn.style.background = 'rgba(255, 255, 255, 0.3)';
-    };
-
-    galleryBtn.onmouseleave = () => {
-      galleryBtn.style.background = 'rgba(255, 255, 255, 0.2)';
-    };
-
-    galleryBtn.onclick = () => {
-      GalleryModal.open(
-        collection.items.map(item => item.item_data), 
-        currentItem.collectionIndex,
-        {
-          name: collection.name,
-          description: collection.description,
-          itemCount: collection.items.length
-        }
-      );
-    };
-
-    header.appendChild(collectionInfo);
-    header.appendChild(galleryBtn);
 
     return header;
   }
 
-  // ... [Keep all the existing methods: updateStats, updateLoadMoreButton, showLoading, etc.] ...
-
   /**
-   * Get current filter values
-   */
-  static getFilters() {
-    return {
-      sortBy: this.sortBy?.value || 'recent',
-      hero: this.heroFilter?.value || '',
-      search: this.searchInput?.value?.trim() || '',
-      contest: this.contestFilter?.value || ''
-    };
-  }
-
-  /**
-   * Build query options from filters
-   */
-  static buildQueryOptions(filters) {
-    const options = {
-      sortBy: filters.sortBy
-    };
-
-    if (filters.hero) {
-      options.hero = filters.hero;
-    }
-
-    if (filters.contest !== '') {
-      options.contest = filters.contest;
-    }
-
-    if (filters.search) {
-      options.search = filters.search;
-    }
-
-    return options;
-  }
-
-  /**
-   * Update statistics display
-   */
-  static updateStats() {
-    if (this.totalItemsSpan) {
-      this.totalItemsSpan.textContent = this.allItems.length;
-    }
-    if (this.showingItemsSpan) {
-      this.showingItemsSpan.textContent = this.displayedItems.length;
-    }
-  }
-
-  /**
-   * Update load more button visibility
-   */
-  static updateLoadMoreButton() {
-    if (this.displayedItems.length >= this.allItems.length) {
-      if (this.loadMoreBtn) this.loadMoreBtn.style.display = 'none';
-      if (this.endMessage) this.endMessage.style.display = this.displayedItems.length > 0 ? 'block' : 'none';
-    } else {
-      if (this.loadMoreBtn) this.loadMoreBtn.style.display = this.displayedItems.length > 0 ? 'block' : 'none';
-      if (this.endMessage) this.endMessage.style.display = 'none';
-    }
-
-    if (this.allItems.length === 0) {
-      if (this.noResults) this.noResults.style.display = 'block';
-    } else {
-      if (this.noResults) this.noResults.style.display = 'none';
-    }
-  }
-
-  /**
-   * Show loading state
-   */
-  static showLoading(show) {
-    if (this.loadingMessage) {
-      this.loadingMessage.style.display = show ? 'block' : 'none';
-    }
-    if (this.loadingText) {
-      this.loadingText.style.display = show ? 'inline' : 'none';
-    }
-  }
-
-  /**
-   * Show error message
-   */
-  static showError(message) {
-    if (this.errorMessage) {
-      this.errorMessage.textContent = message;
-      this.errorMessage.style.display = 'block';
-    }
-  }
-
-  /**
-   * Hide messages
-   */
-  static hideMessages() {
-    if (this.errorMessage) this.errorMessage.style.display = 'none';
-    if (this.noResults) this.noResults.style.display = 'none';
-  }
-
-  /**
-   * Handle filter changes
-   */
-  static handleFilterChange() {
-    if (this.itemsGrid) {
-      this.itemsGrid.innerHTML = '';
-    }
-    this.loadItems();
-  }
-
-  /**
-   * Create comments section for an item
+   * Create comments section
    */
   static async createCommentsSection(itemId) {
     const commentsContainer = document.createElement('div');
@@ -564,27 +955,22 @@ static async createItemCard(item) {
       margin-top: -2px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
       min-width: 450px;
-      transition: width 0.3s ease;
     `;
 
     // Comments header
     const header = document.createElement('div');
     header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;';
     header.innerHTML = `
-      <h4 style="margin: 0; color: rgb(251, 225, 183); font-size: 18px; text-transform: uppercase; letter-spacing: 1px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">Comments</h4>
+      <h4 style="margin: 0; color: rgb(251, 225, 183); font-size: 18px;">Comments</h4>
       <button class="toggle-comments-btn" style="
-        background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%) !important;
-        border: 2px solid rgb(37, 26, 12) !important;
-        padding: 6px 14px !important;
-        border-radius: 6px !important;
+        background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%);
+        border: 2px solid rgb(37, 26, 12);
+        padding: 6px 14px;
+        border-radius: 6px;
         cursor: pointer;
-        font-size: 12px !important;
-        color: rgb(37, 26, 12) !important;
+        font-size: 12px;
+        color: rgb(37, 26, 12);
         font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
       ">Show/Hide</button>
     `;
 
@@ -596,34 +982,32 @@ static async createItemCard(item) {
       max-height: 300px; 
       overflow-y: auto; 
       margin: 15px 0;
-      background: rgba(37, 26, 12, 0.7) !important;
+      background: rgba(37, 26, 12, 0.7);
       border: 2px solid rgba(218, 165, 32, 0.3);
       border-radius: 8px;
       padding: 10px;
-      scrollbar-width: thin;
-      scrollbar-color: rgb(218, 165, 32) rgba(37, 26, 12, 0.5);
     `;
 
-    // Add comment form
+    // Comment form
     const commentForm = document.createElement('div');
     commentForm.className = 'comment-form';
     
-    if (window.GoogleAuth && GoogleAuth.isSignedIn()) {
+    if (typeof GoogleAuth !== 'undefined' && GoogleAuth.isSignedIn()) {
       commentForm.innerHTML = `
         <div style="display: flex; gap: 10px; margin-top: 10px; border-top: 2px solid rgb(218, 165, 32); padding-top: 15px;">
           <input type="text" 
                  id="comment-input-${itemId}" 
                  placeholder="Add a comment..." 
-                 style="flex: 1; padding: 10px 15px !important; border: 2px solid rgb(218, 165, 32) !important; border-radius: 6px !important; background-color: rgba(37, 26, 12, 0.8) !important; color: rgb(251, 225, 183) !important; font-size: 14px !important; transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);">
-          <button onclick="BrowsePageController.addComment('${itemId}')" 
-                  style="padding: 10px 20px !important; background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%) !important; color: rgb(37, 26, 12) !important; border: 2px solid rgb(37, 26, 12) !important; border-radius: 6px !important; cursor: pointer; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s ease; font-size: 14px !important; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);">
+                 style="flex: 1; padding: 10px 15px; border: 2px solid rgb(218, 165, 32); border-radius: 6px; background-color: rgba(37, 26, 12, 0.8); color: rgb(251, 225, 183); font-size: 14px;">
+          <button onclick="BrowseManager.addComment('${itemId}')" 
+                  style="padding: 10px 20px; background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%); color: rgb(37, 26, 12); border: 2px solid rgb(37, 26, 12); border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px;">
             Post
           </button>
         </div>
       `;
     } else {
       commentForm.innerHTML = `
-        <div style="text-align: center !important; padding: 20px !important; color: rgb(251, 225, 183) !important; font-style: italic !important; background: linear-gradient(135deg, rgba(74, 60, 46, 0.5) 0%, rgba(89, 72, 51, 0.4) 100%) !important; border-radius: 8px !important; border: 2px dashed rgba(218, 165, 32, 0.5) !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important; border-top: 2px solid rgb(218, 165, 32); margin-top: 15px;">
+        <div style="text-align: center; padding: 20px; color: rgb(251, 225, 183); font-style: italic; background: linear-gradient(135deg, rgba(74, 60, 46, 0.5) 0%, rgba(89, 72, 51, 0.4) 100%); border-radius: 8px; border: 2px dashed rgba(218, 165, 32, 0.5); border-top: 2px solid rgb(218, 165, 32); margin-top: 15px;">
           Sign in to comment
         </div>
       `;
@@ -638,7 +1022,6 @@ static async createItemCard(item) {
       const isHidden = commentsList.style.display === 'none';
       commentsList.style.display = isHidden ? 'block' : 'none';
       commentForm.style.display = isHidden ? 'block' : 'none';
-      toggleBtn.textContent = isHidden ? 'Hide' : 'Show';
     });
 
     commentsContainer.appendChild(header);
@@ -656,19 +1039,19 @@ static async createItemCard(item) {
       const comments = await SupabaseClient.getComments(itemId);
       
       if (comments.length === 0) {
-        container.innerHTML = '<div style="padding: 30px !important; text-align: center !important; color: rgb(201, 175, 133) !important; font-style: italic !important; background: rgba(37, 26, 12, 0.3) !important; border: 2px dashed rgba(218, 165, 32, 0.3) !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important;">No comments yet</div>';
+        container.innerHTML = '<div style="padding: 30px; text-align: center; color: rgb(201, 175, 133); font-style: italic;">No comments yet</div>';
         return;
       }
 
       container.innerHTML = comments.map(comment => `
-        <div style="padding: 12px !important; border-bottom: 1px solid rgba(218, 165, 32, 0.3) !important; background: linear-gradient(135deg, rgba(74, 60, 46, 0.7) 0%, rgba(89, 72, 51, 0.6) 100%) !important; margin-bottom: 8px !important; border-radius: 6px !important; transition: background 0.3s ease !important; border: 1px solid rgba(218, 165, 32, 0.2) !important;">
+        <div style="padding: 12px; border-bottom: 1px solid rgba(218, 165, 32, 0.3); background: linear-gradient(135deg, rgba(74, 60, 46, 0.7) 0%, rgba(89, 72, 51, 0.6) 100%); margin-bottom: 8px; border-radius: 6px; border: 1px solid rgba(218, 165, 32, 0.2);">
           <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-            <strong style="color: rgb(251, 225, 183) !important; font-size: 14px !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important;">${comment.user_alias}</strong>
-            <span style="color: rgb(218, 165, 32) !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important; font-size: 12px;">
+            <strong style="color: rgb(251, 225, 183); font-size: 14px;">${comment.user_alias}</strong>
+            <span style="color: rgb(218, 165, 32); font-size: 12px;">
               ${new Date(comment.created_at).toLocaleDateString()}
             </span>
           </div>
-          <div style="color: rgb(251, 225, 183) !important; font-size: 14px !important; line-height: 1.5 !important; margin-top: 5px !important;">${comment.content}</div>
+          <div style="color: rgb(251, 225, 183); font-size: 14px; line-height: 1.5;">${comment.content}</div>
         </div>
       `).join('');
     } catch (error) {
@@ -678,7 +1061,7 @@ static async createItemCard(item) {
   }
 
   /**
-   * Add a comment to an item
+   * Add a comment
    */
   static async addComment(itemId) {
     const input = document.getElementById(`comment-input-${itemId}`);
@@ -692,10 +1075,8 @@ static async createItemCard(item) {
     try {
       await SupabaseClient.addComment(itemId, commentText);
       
-      // Clear input
       input.value = '';
       
-      // Reload comments
       const container = document.getElementById(`comments-${itemId}`);
       await this.loadComments(itemId, container);
       
@@ -705,7 +1086,107 @@ static async createItemCard(item) {
       Messages.showError('Failed to add comment');
     }
   }
+
+  /**
+   * View collection in gallery
+   */
+  static viewCollection(collectionId) {
+    const collection = this.collections.get(collectionId);
+    if (!collection) return;
+    
+    const items = collection.items.map(item => 
+      collection.type === 'skills' ? item.skill_data : item.item_data
+    );
+    
+    GalleryModal.open(items, 0, {
+      name: collection.name,
+      description: collection.description,
+      itemCount: collection.items.length
+    });
+  }
+
+  /**
+   * Load collection (for skill collections from database)
+   */
+  static async loadCollection(collectionId, type) {
+    try {
+      if (type === 'skills') {
+        const collection = await SupabaseClient.getSkillCollection(collectionId);
+        if (collection && collection.skills) {
+          // Open gallery with skills
+          GalleryModal.open(collection.skills, 0, {
+            name: collection.name,
+            description: collection.description,
+            itemCount: collection.skills.length
+          });
+        }
+      }
+      // Add item collections support here when needed
+    } catch (error) {
+      console.error('Error loading collection:', error);
+      Messages.showError('Failed to load collection');
+    }
+  }
+
+  /**
+   * Download collection
+   */
+  static downloadCollection(collectionId, type) {
+    // Implementation for downloading collections
+    Messages.showInfo('Download feature coming soon!');
+  }
+
+  /**
+   * Update results count
+   */
+  static updateResultsCount(type, shown, total) {
+    const countElement = type === 'items' ? this.itemsResultsCount : this.skillsResultsCount;
+    if (countElement) {
+      countElement.textContent = `Showing ${shown} of ${total} ${type}`;
+    }
+  }
+
+  /**
+   * Update no results display
+   */
+  static updateNoResults(type, show) {
+    const noResultsElement = type === 'items' ? this.itemsNoResults : this.skillsNoResults;
+    if (noResultsElement) {
+      noResultsElement.style.display = show ? 'block' : 'none';
+    }
+  }
+
+  /**
+   * Show loading state
+   */
+  static showLoading(type, show) {
+    const loadingElement = type === 'items' ? this.itemsLoading : this.skillsLoading;
+    if (loadingElement) {
+      loadingElement.style.display = show ? 'block' : 'none';
+    }
+  }
+
+  /**
+   * Show error message
+   */
+  static showError(message) {
+    if (typeof Messages !== 'undefined') {
+      Messages.showError(message);
+    } else {
+      console.error('Browse Error:', message);
+    }
+  }
+
+  /**
+   * Hide messages
+   */
+  static hideMessages(type) {
+    this.updateNoResults(type, false);
+  }
 }
 
 // Auto-initialize
-BrowsePageController.init();
+BrowseManager.init();
+
+// Make available globally
+window.BrowseManager = BrowseManager;
