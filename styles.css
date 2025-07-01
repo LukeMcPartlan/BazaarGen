@@ -2245,6 +2245,16 @@ h1 {
   color: rgb(251, 225, 183);
 }
 
+/* Sticky Gallery Controls - stays visible when scrolling */
+.sticky-gallery-controls {
+  position: sticky;
+  top: 20px;
+  z-index: 100;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(10px);
+  background: linear-gradient(135deg, rgba(101, 84, 63, 0.95) 0%, rgba(89, 72, 51, 0.95) 100%);
+}
+
 .gallery-header {
   display: flex;
   justify-content: space-between;
