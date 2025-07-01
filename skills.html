@@ -237,6 +237,12 @@
                   <button onclick="exportAllSkillsAsData()" class="form-button export">💾 Export as Data</button>
                   <button onclick="triggerImport()" class="form-button secondary">📥 Import Data</button>
               </div>
+              
+              <!-- Gallery Actions -->
+              <div class="gallery-actions-group">
+                  <button onclick="SkillsGalleryManager.toggleGalleryMode()" class="form-button gallery-toggle-btn">🖼️ Gallery View</button>
+                  <button onclick="SkillsGalleryManager.showCollectionsBrowser()" class="form-button secondary">📦 My Collections</button>
+              </div>
           </div>
       </div>
 
@@ -291,6 +297,7 @@
   <script src="js/core/validation-js.js"></script>
   <script src="js/core/keyword-processor-js.js"></script>
   <script src="js/core/skill-generator-js.js"></script>
+  <script src="js/core/skills-gallery-manager.js"></script>
 
   <!-- UI modules -->
   <script src="js/ui/messages-js.js"></script>
