@@ -185,7 +185,7 @@ class SkillsPageController {
       this.skillsData = [];
       window.skillsData = this.skillsData;
       
-      // Exit gallery mode if active
+      // Exit gallery mode if active - this will clean up the management section too
       if (SkillsGalleryManager?.isGalleryMode) {
         SkillsGalleryManager.toggleGalleryMode();
       }
@@ -216,6 +216,12 @@ class SkillsPageController {
       if (SkillsGalleryManager?.isGalleryMode) {
         SkillsGalleryManager.updateSkillIndices();
         SkillsGalleryManager.updateSelectionCount();
+      }
+      
+      // Show placeholder if no skills left
+      const outputContainer = document.getElementById("outputContainer");
+      if (SkillsGalleryManager) {
+        SkillsGalleryManager.showPlaceholder(outputContainer);
       }
     };
 
@@ -306,41 +312,15 @@ class SkillsPageController {
     
     // Listen for skill creation events
     document.addEventListener('skillCreated', (event) => {
-      if (SkillsGalleryManager?.isGalleryMode) {
-        this.updateGalleryAfterSkillCreation(event.detail.skillElement);
-      }
+      // The handleSkillCreated method is now called directly in createSkill
+      // This event listener can be used for other integrations if needed
+      this.debug('Skill creation event received:', event.detail.skillData.skillName);
     });
 
     // Setup database save enhancement for collections
     this.enhanceDatabaseSaveForCollections();
     
     this.debug('Gallery integration setup complete');
-  }
-
-  /**
-   * Update gallery after skill creation
-   */
-  static updateGalleryAfterSkillCreation(skillElement) {
-    if (!SkillsGalleryManager?.isGalleryMode || !skillElement) return;
-    
-    // Add gallery functionality to new skill
-    const skillIndex = this.skillsData.length - 1; // Last added skill
-    
-    // Add selection checkbox
-    const selector = document.createElement('div');
-    selector.className = 'gallery-selector';
-    selector.innerHTML = `
-      <input type="checkbox" class="skill-checkbox" data-skill-index="${skillIndex}" 
-             onchange="SkillsGalleryManager.updateSelectionCount()">
-      <label class="checkbox-label">Select</label>
-    `;
-    skillElement.appendChild(selector);
-    
-    // Add gallery item class
-    skillElement.classList.add('gallery-item');
-    
-    // Update selection count
-    SkillsGalleryManager.updateSelectionCount();
   }
 
   /**
