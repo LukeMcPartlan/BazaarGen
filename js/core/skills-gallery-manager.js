@@ -75,6 +75,9 @@ class SkillsGalleryManager {
     // Restore normal skill view
     this.restoreNormalView(container);
 
+    // Show placeholder if no skills
+    this.showPlaceholder(container);
+
     // Update page title
     const pageTitle = document.querySelector('.page-title');
     if (pageTitle) {
@@ -91,8 +94,12 @@ class SkillsGalleryManager {
       existingControls.remove();
     }
 
+    // Hide the placeholder when entering gallery mode
+    this.hidePlaceholder(container);
+
+    // Create sticky gallery controls
     const galleryControls = document.createElement('div');
-    galleryControls.className = 'gallery-controls';
+    galleryControls.className = 'gallery-controls sticky-gallery-controls';
     galleryControls.innerHTML = `
       <div class="gallery-header">
         <h3>Skills Gallery</h3>
@@ -123,7 +130,30 @@ class SkillsGalleryManager {
       </div>
     `;
 
+    // Insert at the beginning of the container
     container.insertBefore(galleryControls, container.firstChild);
+  }
+
+  /**
+   * Hide placeholder when skills are present
+   */
+  static hidePlaceholder(container) {
+    const placeholder = container.querySelector('.cards-placeholder');
+    if (placeholder) {
+      placeholder.style.display = 'none';
+    }
+  }
+
+  /**
+   * Show placeholder when no skills are present
+   */
+  static showPlaceholder(container) {
+    const placeholder = container.querySelector('.cards-placeholder');
+    const skills = container.querySelectorAll('.skill-card');
+    
+    if (placeholder) {
+      placeholder.style.display = skills.length === 0 ? 'block' : 'none';
+    }
   }
 
   /**
@@ -329,6 +359,10 @@ class SkillsGalleryManager {
         // Update indices for remaining skills
         this.updateSkillIndices();
         
+        // Check if we should show placeholder
+        const container = document.getElementById('outputContainer');
+        this.showPlaceholder(container);
+        
         Messages.showSuccess(`Deleted ${selectedCount} skill${selectedCount !== 1 ? 's' : ''} successfully.`);
         this.updateSelectionCount();
       },
@@ -346,6 +380,39 @@ class SkillsGalleryManager {
     checkboxes.forEach((checkbox, index) => {
       checkbox.dataset.skillIndex = index;
     });
+  }
+
+  /**
+   * Handle skill creation - hide placeholder and update gallery if needed
+   */
+  static handleSkillCreated(skillElement) {
+    const container = document.getElementById('outputContainer');
+    if (container) {
+      this.hidePlaceholder(container);
+    }
+    
+    // If in gallery mode, update the skill
+    if (this.isGalleryMode && skillElement) {
+      const skillIndex = (window.skillsData?.length || 0) - 1;
+      
+      // Add selection checkbox
+      if (!skillElement.querySelector('.gallery-selector')) {
+        const selector = document.createElement('div');
+        selector.className = 'gallery-selector';
+        selector.innerHTML = `
+          <input type="checkbox" class="skill-checkbox" data-skill-index="${skillIndex}" 
+                 onchange="SkillsGalleryManager.updateSelectionCount()">
+          <label class="checkbox-label">Select</label>
+        `;
+        skillElement.appendChild(selector);
+      }
+      
+      // Add gallery item class
+      skillElement.classList.add('gallery-item');
+      
+      // Update selection count
+      this.updateSelectionCount();
+    }
   }
 
   /**
