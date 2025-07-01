@@ -104,270 +104,236 @@ class SupabaseClient {
     }
   }
 
- /**
-   * Save card to database
-   * @param {Object} cardData - Card data to save
-   * @returns {Promise<Object>} Result object with success status
-   */
- static async saveCard(cardData) {
-  try {
-    if (!this.isReady()) {
-      throw new Error('Database not initialized');
-    }
-
-    // FIXED: Use GoogleAuth.currentUser instead of GoogleAuth.getUser()
-    const user = GoogleAuth.currentUser;
-    if (!user || !user.email) {
-      throw new Error('User not authenticated');
-    }
-
-    // Get user ID from email
-    const userId = await this.getUserId(user.email);
-
-    // Prepare item data
-    const itemData = {
-      name: cardData.itemName,
-      hero: cardData.hero || 'Neutral',
-      item_size: cardData.itemSize || 'Medium',
-      rarity: cardData.border || 'gold',
-      passive_effects: cardData.passiveEffects || [],
-      on_use_effects: cardData.onUseEffects || [],
-      tags: cardData.tags || [],
-      scaling_values: cardData.scalingValues || {},
-      cooldown: cardData.cooldown || null,
-      ammo: cardData.ammo || null,
-      crit: cardData.crit || null,
-      multicast: cardData.multicast || null,
-      image_data: cardData.imageData || null,
-      user_id: userId
-    };
-
-    console.log('[SupabaseClient] Saving card:', itemData);
-
-    const { data, error } = await this.client
-      .from('items')
-      .insert([{ item_data: itemData, user_id: userId }])
-      .select(); // Return the inserted data with ID
-
-    if (error) {
-      console.error('[SupabaseClient] Error saving card:', error);
-      throw error;
-    }
-
-    console.log('[SupabaseClient] Card saved successfully:', data);
-    
-    // Return success with the saved data including ID
-    return { 
-      success: true, 
-      data: data[0] // Return the first (and only) inserted item
-    };
-
-  } catch (error) {
-    console.error('[SupabaseClient] Save card error:', error);
-    return { success: false, error: error.message };
-  }
-}
-  /**
-   * Save skill to database
-   * @param {Object} skillData - Skill data to save
-   * @returns {Promise<Object>} Result object with success status
-   */
-  static async saveSkill(skillData) {
-    try {
-      if (!this.isReady()) {
-        throw new Error('Database not initialized');
-      }
-
-      // FIXED: Use the correct GoogleAuth method
-      const userEmail = GoogleAuth.getUserEmail();
-      if (!userEmail) {
-        throw new Error('User not authenticated');
-      }
-
-      this.debug('Saving skill for user:', userEmail);
-
-      // Get user ID from email
-      const userId = await this.getUserId(userEmail);
-
-      // Prepare skill data
-      const skillDataToSave = {
-        name: skillData.skillName,
-        hero: skillData.hero || 'Neutral',
-        level: skillData.level || 1,
-        tier: skillData.tier || 'Bronze',
-        description: skillData.description || '',
-        effect: skillData.effect || '',
-        cooldown: skillData.cooldown || null,
-        uses_per_turn: skillData.usesPerTurn || null,
-        image_data: skillData.imageData || null,
-        user_id: userId
-      };
-
-      console.log('[SupabaseClient] Saving skill:', skillDataToSave);
-
-      const { data, error } = await this.client
-        .from('skills')
-        .insert([{ skill_data: skillDataToSave, user_id: userId }])
-        .select(); // Return the inserted data with ID
-
-      if (error) {
-        console.error('[SupabaseClient] Error saving skill:', error);
-        throw error;
-      }
-
-      console.log('[SupabaseClient] Skill saved successfully:', data);
-      
-      return { 
-        success: true, 
-        data: data[0] // Return the inserted skill with ID
-      };
-
-    } catch (error) {
-      console.error('[SupabaseClient] Save skill error:', error);
-      return { success: false, error: error.message };
-    }
-  }
-
   /**
    * Get or create user profile
-   * @param {string} email - User email
-   * @returns {Promise<Object>} User profile
    */
   static async getUserProfile(email) {
     try {
+      this.debug('Getting user profile for email:', email);
+      
       if (!this.isReady()) {
-        throw new Error('Database not initialized');
+        throw new Error('Database not available');
       }
 
-      this.debug('Getting user profile for:', email);
+      if (!email) {
+        throw new Error('Email is required');
+      }
 
-      // First try to get existing user
-      const { data: existingUser, error: fetchError } = await this.client
+      this.debug('Querying users table...');
+      const { data, error } = await this.supabase
         .from('users')
         .select('*')
         .eq('email', email)
         .single();
 
-      if (existingUser) {
-        this.debug('Found existing user:', existingUser);
-        return existingUser;
+      this.debug('User profile query result:', { data, error });
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        this.debug('User profile query error:', error);
+        throw error;
       }
 
-      // If no existing user, return null (let GoogleAuth handle creation)
-      this.debug('No existing user found');
-      return null;
+      if (data) {
+        this.debug('Found existing user profile:', data);
+      } else {
+        this.debug('No existing user profile found');
+      }
 
+      return data;
     } catch (error) {
-      console.error('[SupabaseClient] Error getting user profile:', error);
+      this.debug('Error fetching user profile:', error);
+      console.error('Error fetching user profile:', error);
       throw error;
     }
   }
 
   /**
-   * Save user profile
-   * @param {Object} profileData - User profile data
-   * @returns {Promise<Object>} Result object
+   * Save or update user profile
    */
   static async saveUserProfile(profileData) {
     try {
+      this.debug('Saving user profile:', profileData);
+      
       if (!this.isReady()) {
-        throw new Error('Database not initialized');
+        throw new Error('Database not available');
       }
 
-      const { email, alias, google_id } = profileData;
+      if (!profileData.email) {
+        throw new Error('Email is required for user profile');
+      }
 
-      this.debug('Saving user profile:', { email, alias });
+      if (!profileData.alias) {
+        throw new Error('Alias is required for user profile');
+      }
 
-      // Check if user exists
-      const { data: existingUser, error: fetchError } = await this.client
-        .from('users')
-        .select('*')
-        .eq('email', email)
-        .single();
-
-      let result;
+      // Check if user already exists
+      this.debug('Checking for existing user...');
+      const existingUser = await this.getUserProfile(profileData.email);
 
       if (existingUser) {
         // Update existing user
-        this.debug('Updating existing user');
-        const { data, error } = await this.client
+        this.debug('Updating existing user profile...');
+        const { data, error } = await this.supabase
           .from('users')
-          .update({ alias, google_id })
-          .eq('email', email)
+          .update({
+            alias: profileData.alias,
+            updated_at: new Date().toISOString()
+          })
+          .eq('email', profileData.email)
           .select()
           .single();
 
-        if (error) throw error;
-        result = data;
+        this.debug('User profile update result:', { data, error });
+
+        if (error) {
+          this.debug('User profile update error:', error);
+          throw error;
+        }
+
+        this.debug('User profile updated successfully:', data);
+        return data;
       } else {
         // Create new user
-        this.debug('Creating new user');
-        const { data, error } = await this.client
+        this.debug('Creating new user profile...');
+        const newUser = {
+          email: profileData.email,
+          alias: profileData.alias,
+          google_id: profileData.google_id || null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        };
+
+        this.debug('New user data:', newUser);
+
+        const { data, error } = await this.supabase
           .from('users')
-          .insert([{ email, alias, google_id }])
+          .insert([newUser])
           .select()
           .single();
 
-        if (error) throw error;
-        result = data;
+        this.debug('User profile creation result:', { data, error });
+
+        if (error) {
+          this.debug('User profile creation error:', error);
+          throw error;
+        }
+
+        this.debug('User profile created successfully:', data);
+        return data;
       }
-
-      this.debug('User profile saved successfully:', result);
-      return { success: true, data: result };
-
     } catch (error) {
-      console.error('[SupabaseClient] Error saving user profile:', error);
-      return { success: false, error: error.message };
+      this.debug('Error saving user profile:', error);
+      console.error('Error saving user profile:', error);
+      throw error;
     }
   }
 
   /**
-   * Get user ID from email
-   * @param {string} email - User email
-   * @returns {Promise<string>} User ID
+   * Save card to database
    */
-  static async getUserId(email) {
+  static async saveCard(cardData) {
     try {
-      this.debug('Getting user ID for email:', email);
+      this.debug('Saving card to database:', cardData);
+      
+      if (!this.isReady()) {
+        throw new Error('Database not available');
+      }
 
-      const { data, error } = await this.client
-        .from('users')
-        .select('id')
-        .eq('email', email)
+      if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+        throw new Error('User not signed in');
+      }
+
+      const userEmail = GoogleAuth.getUserEmail();
+      const userProfile = GoogleAuth.getUserProfile();
+
+      this.debug('User context:', { userEmail, userProfile });
+
+      if (!userEmail) {
+        throw new Error('User email not available');
+      }
+
+      const itemRecord = {
+        user_email: userEmail,
+        user_alias: userProfile?.alias || 'Unknown',
+        item_data: cardData,
+        created_at: new Date().toISOString()
+      };
+
+      this.debug('Item record to insert:', itemRecord);
+
+      const { data, error } = await this.supabase
+        .from('items')
+        .insert([itemRecord])
+        .select()
         .single();
 
-      if (error) {
-        // If user doesn't exist, create them
-        if (error.code === 'PGRST116') {
-          this.debug('User not found, creating new user');
-          
-          // Get display name from GoogleAuth
-          const displayName = GoogleAuth.getUserDisplayName();
-          const googleId = GoogleAuth.currentUser?.googleId || null;
-          
-          const { data: newUser, error: createError } = await this.client
-            .from('users')
-            .insert([{ 
-              email: email, 
-              alias: displayName,
-              google_id: googleId
-            }])
-            .select()
-            .single();
+      this.debug('Card save result:', { data, error });
 
-          if (createError) throw createError;
-          
-          this.debug('New user created:', newUser);
-          return newUser.id;
-        }
+      if (error) {
+        this.debug('Card save error:', error);
         throw error;
       }
 
-      this.debug('Found user ID:', data.id);
-      return data.id;
-
+      this.debug('Card saved successfully:', data);
+      return { success: true, data };
     } catch (error) {
-      console.error('[SupabaseClient] Error getting user ID:', error);
+      this.debug('Error saving card:', error);
+      console.error('Error saving card:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Save skill to database
+   */
+  static async saveSkill(skillData) {
+    try {
+      this.debug('Saving skill to database:', skillData);
+      
+      if (!this.isReady()) {
+        throw new Error('Database not available');
+      }
+
+      if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+        throw new Error('User not signed in');
+      }
+
+      const userEmail = GoogleAuth.getUserEmail();
+      const userProfile = GoogleAuth.getUserProfile();
+
+      this.debug('User context:', { userEmail, userProfile });
+
+      if (!userEmail) {
+        throw new Error('User email not available');
+      }
+
+      const skillRecord = {
+        user_email: userEmail,
+        user_alias: userProfile?.alias || 'Unknown',
+        skill_data: skillData,
+        created_at: new Date().toISOString()
+      };
+
+      this.debug('Skill record to insert:', skillRecord);
+
+      const { data, error } = await this.supabase
+        .from('skills')
+        .insert([skillRecord])
+        .select()
+        .single();
+
+      this.debug('Skill save result:', { data, error });
+
+      if (error) {
+        this.debug('Skill save error:', error);
+        throw error;
+      }
+
+      this.debug('Skill saved successfully:', data);
+      return { success: true, data };
+    } catch (error) {
+      this.debug('Error saving skill:', error);
+      console.error('Error saving skill:', error);
       throw error;
     }
   }
