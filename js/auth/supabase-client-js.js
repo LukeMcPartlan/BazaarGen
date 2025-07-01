@@ -231,58 +231,63 @@ class SupabaseClient {
   /**
    * Save card to database
    */
-  static async saveCard(cardData) {
-    try {
-      this.debug('Saving card to database:', cardData);
-      
-      if (!this.isReady()) {
-        throw new Error('Database not available');
-      }
+ static async saveCard(cardData) {
+  try {
+    if (!this.isReady()) {
+      throw new Error('Database not initialized');
+    }
 
-      if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
-        throw new Error('User not signed in');
-      }
+    const user = GoogleAuth.getUser();
+    if (!user || !user.email) {
+      throw new Error('User not authenticated');
+    }
 
-      const userEmail = GoogleAuth.getUserEmail();
-      const userProfile = GoogleAuth.getUserProfile();
+    // Get user ID from email
+    const userId = await this.getUserId(user.email);
 
-      this.debug('User context:', { userEmail, userProfile });
+    // Prepare item data
+    const itemData = {
+      name: cardData.itemName,
+      hero: cardData.hero || 'Neutral',
+      item_size: cardData.itemSize || 'Medium',
+      rarity: cardData.border || 'gold',
+      passive_effects: cardData.passiveEffects || [],
+      on_use_effects: cardData.onUseEffects || [],
+      tags: cardData.tags || [],
+      scaling_values: cardData.scalingValues || {},
+      cooldown: cardData.cooldown || null,
+      ammo: cardData.ammo || null,
+      crit: cardData.crit || null,
+      multicast: cardData.multicast || null,
+      image_data: cardData.imageData || null,
+      user_id: userId
+    };
 
-      if (!userEmail) {
-        throw new Error('User email not available');
-      }
+    console.log('[SupabaseClient] Saving card:', itemData);
 
-      const itemRecord = {
-        user_email: userEmail,
-        user_alias: userProfile?.alias || 'Unknown',
-        item_data: cardData,
-        created_at: new Date().toISOString()
-      };
+    const { data, error } = await this.client
+      .from('items')
+      .insert([{ item_data: itemData, user_id: userId }])
+      .select(); // Add .select() to return the inserted data
 
-      this.debug('Item record to insert:', itemRecord);
-
-      const { data, error } = await this.supabase
-        .from('items')
-        .insert([itemRecord])
-        .select()
-        .single();
-
-      this.debug('Card save result:', { data, error });
-
-      if (error) {
-        this.debug('Card save error:', error);
-        throw error;
-      }
-
-      this.debug('Card saved successfully:', data);
-      return { success: true, data };
-    } catch (error) {
-      this.debug('Error saving card:', error);
-      console.error('Error saving card:', error);
+    if (error) {
+      console.error('[SupabaseClient] Error saving card:', error);
       throw error;
     }
-  }
 
+    console.log('[SupabaseClient] Card saved successfully:', data);
+    
+    // Return success with the saved data including ID
+    return { 
+      success: true, 
+      data: data[0] // Return the first (and only) inserted item
+    };
+
+  } catch (error) {
+    console.error('[SupabaseClient] Save card error:', error);
+    return { success: false, error: error.message };
+  }
+}
   /**
    * Save skill to database
    */
