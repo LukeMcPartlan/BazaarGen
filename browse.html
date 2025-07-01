@@ -1,393 +1,173 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>
-      // Domain redirect
-      if (window.location.hostname === 'bazzargen.com' || 
-          window.location.hostname === 'www.bazzargen.com') {
-          
-          // Build the correct URL
-          var correctUrl = 'https://bazaargen.com' + window.location.pathname + window.location.search + window.location.hash;
-          
-          // Log for debugging
-          console.log('Redirecting from:', window.location.href);
-          console.log('Redirecting to:', correctUrl);
-          
-          // Try multiple redirect methods
-          try {
-              window.location.replace(correctUrl);
-          } catch(e) {
-              window.location.href = correctUrl;
-          }
-      }
-      
-      // Optional: Redirect www.bazaargen.com to bazaargen.com
-      if (window.location.hostname === 'www.bazaargen.com') {
-          var correctUrl = 'https://bazaargen.com' + window.location.pathname + window.location.search + window.location.hash;
-          try {
-              window.location.replace(correctUrl);
-          } catch(e) {
-              window.location.href = correctUrl;
-          }
-      }
-  </script>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Browse Community Content - BazaarGen</title>
-  
-  <!-- SEO Meta Tags -->
-  <meta name="description" content="Browse and discover amazing content created by the BazaarGen community. Find cards, skills, and collections." />
-  <meta name="keywords" content="Bazaar, BazaarGen, browse, community, cards, skills, collections, discover, gallery" />
-  <meta name="author" content="Luke Alvarez" />
-  <meta name="robots" content="index, follow" />
-  
-  <!-- Favicon and Icons -->
-  <link rel="icon" type="image/x-icon" href="images/favicon.ico" />
-  <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png" />
-  <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png" />
-  <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png" />
-  
-  <!-- External Libraries -->
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bazaar Items Browser - View Community Creations | BazaarGen</title>
+    
+    <!-- External Libraries -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <link rel="stylesheet" href="styles.css" />
+    <!-- Core scripts -->
+    <script src="js/core/validation-js.js"></script>
+    <script src="js/core/keyword-processor-js.js"></script>
+    <script src="js/core/card-generator-js.js"></script>
+    <script src="js/ui/messages-js.js"></script>
+    
+    <!-- Auth scripts -->
+    <script src="js/auth/google-auth-js.js"></script>
+    <script src="js/auth/supabase-client-js.js"></script>
+    
+    <!-- Browse functionality -->
+    <script src="js/pages/browse-js.js"></script>
+    <script src="js/ui/gallery-modal.js"></script>
+    
+    <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- Top Navigation -->
-  <nav class="top-nav">
-    <div class="nav-container">
-      <a href="#" class="nav-logo">BazaarGen</a>
-      
-      <ul class="nav-menu" id="nav-menu">
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-page="items">Items</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link" data-page="skills">Skills</a>
-        </li>
-        <li class="nav-item">
-          <a href="#" class="nav-link active" data-page="browse">Browse</a>
-        </li>
-      </ul>
-      
-      <!-- Google sign in stuff-->
-      <div class="nav-actions">
-        <!-- Google Sign-In Button (shown when not signed in) -->
-        <div id="google-signin-button"></div>
-    
-        <!-- User Info (shown when signed in) -->
-        <div class="user-info" id="user-info" style="display: none; align-items: center; gap: 10px;">
-            <span class="user-alias" id="user-alias" style="font-weight: 500; color: #333; cursor: pointer;" onclick="editAlias()" title="Click to edit alias"></span>
-            <button class="sign-out-btn" onclick="signOut()" style="background: none; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: #666; font-size: 14px;">Sign Out</button>
+    <!-- Navigation -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">⚔️ BazaarGen</a>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="nav-link">Items</a></li>
+                <li><a href="skills.html" class="nav-link">Skills</a></li>
+                <li><a href="#" class="nav-link active">Browse</a></li>
+                <li><a href="contests.html" class="nav-link">Contests</a></li>
+            </ul>
+            <div class="nav-actions">
+                <!-- Google Sign-In Button (shown when not signed in) -->
+                <div id="google-signin-button"></div>
+
+                <!-- User Info (shown when signed in) -->
+                <div class="user-info" id="user-info" style="display: none;">
+                    <span class="user-alias" id="user-alias" onclick="editAlias()" title="Click to edit alias"></span>
+                    <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
+                </div>
+            </div>
         </div>
-      </div>
-      
-      <!-- Alias Creation Modal -->
-      <div id="alias-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
-          <div style="background: white; padding: 30px; border-radius: 8px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
-              <h2 id="alias-modal-title" style="margin: 0 0 10px 0; color: #333;">Welcome to BazaarGen!</h2>
-              <p id="alias-modal-description" style="color: #666; margin: 0 0 20px 0;">Choose an alias to display on the site</p>
-              
-              <input type="text" id="alias-input" placeholder="Enter your alias" 
-                     style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 16px; margin-bottom: 10px; box-sizing: border-box;">
-              
-              <div id="alias-error" style="color: #d32f2f; font-size: 14px; margin-bottom: 15px; min-height: 20px;"></div>
-              
-              <div style="display: flex; gap: 10px; justify-content: center;">
-                  <button id="alias-cancel-btn" onclick="cancelAliasCreation()" 
-                          style="padding: 10px 20px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; color: #666;">
-                      Cancel
-                  </button>
-                  <button id="alias-save-btn" onclick="saveAlias()" 
-                          style="padding: 10px 20px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer;">
-                      Save Alias
-                  </button>
-              </div>
-          </div>
-      </div>
+    </nav>
 
-      <div class="nav-toggle" id="nav-toggle">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
-    </div>
-  </nav>
-
-  <!-- Page Header -->
-  <div class="page-header">
-      <h1 class="page-title">Browse Community Content</h1>
-      <p class="page-subtitle">Discover amazing creations from the BazaarGen community</p>
-  </div>
-
-  <!-- Main Container -->
-  <div class="main-content">
-    <!-- Tab Navigation -->
-    <div class="tab-navigation">
-      <button class="tab-button active" data-tab="items" onclick="BrowseManager.switchTab('items')">
-        🃏 Items & Collections
-      </button>
-      <button class="tab-button" data-tab="skills" onclick="BrowseManager.switchTab('skills')">
-        ⚡ Skills & Collections
-      </button>
-    </div>
-
-    <!-- Items Tab Content -->
-    <div id="items-tab" class="tab-content active">
-      <div class="browse-section">
-        <!-- Items Content Navigation -->
-        <div class="content-navigation">
-          <button class="content-nav-button active" data-content="individual" onclick="BrowseManager.switchContent('items', 'individual')">
-            🃏 Individual Items
-          </button>
-          <button class="content-nav-button" data-content="collections" onclick="BrowseManager.switchContent('items', 'collections')">
-            📦 Item Collections
-          </button>
+    <div class="main-content">
+        <!-- Header -->
+        <div class="page-header">
+            <h1 class="page-title">Community Items Browser</h1>
+            <p class="page-subtitle">Discover amazing creations from the BazaarGen community</p>
         </div>
 
-        <!-- Items Filters -->
-        <div class="filters-section">
-          <div class="filters-header">
-            <h4>🔍 Filter Items</h4>
-            <button onclick="BrowseManager.clearFilters('items')" class="clear-filters-btn">Clear All Filters</button>
-          </div>
-          
-          <div class="filters-grid">
-            <!-- Basic Filters Row -->
-            <div class="filter-row">
-              <div class="filter-group">
-                <label for="items-search">Search</label>
-                <input type="text" id="items-search" placeholder="Search by name or effect..." 
-                       oninput="BrowseManager.debounceFilter('items')" />
-              </div>
-              <div class="filter-group">
-                <label for="items-hero-filter">Hero</label>
-                <select id="items-hero-filter" onchange="BrowseManager.applyFilters('items')">
-                  <option value="">All Heroes</option>
-                  <option value="Neutral">Neutral</option>
-                  <option value="Mak">Mak</option>
-                  <option value="Vanessa">Vanessa</option>
-                  <option value="Pyg">Pyg</option>
-                  <option value="Dooly">Dooly</option>
-                  <option value="Stelle">Stelle</option>
-                  <option value="Jules">Jules</option>
-                  <option value="Vampire">Vampire</option>
-                </select>
-              </div>
-              <div class="filter-group">
-                <label for="items-rarity-filter">Rarity</label>
-                <select id="items-rarity-filter" onchange="BrowseManager.applyFilters('items')">
-                  <option value="">All Rarities</option>
-                  <option value="bronze">Bronze</option>
-                  <option value="silver">Silver</option>
-                  <option value="gold">Gold</option>
-                  <option value="diamond">Diamond</option>
-                  <option value="legendary">Legendary</option>
-                </select>
-              </div>
-              <div class="filter-group">
-                <label for="items-sort">Sort By</label>
-                <select id="items-sort" onchange="BrowseManager.applyFilters('items')">
-                  <option value="recent">Most Recent</option>
-                  <option value="oldest">Oldest First</option>
-                  <option value="name">Name A-Z</option>
-                </select>
-              </div>
-            </div>
+        <!-- Controls -->
+        <div class="controls-panel">
+            <div class="controls-grid">
+                <div class="control-group">
+                    <label class="control-label">Sort By</label>
+                    <select id="sortBy" class="control-select">
+                        <option value="recent">Most Recent</option>
+                        <option value="oldest">Oldest First</option>
+                    </select>
+                </div>
 
-            <!-- Keyword Filters -->
-            <div class="keyword-filters">
-              <label>Keywords (click to filter)</label>
-              <div class="keyword-toggles" id="items-keyword-toggles">
-                <!-- Keyword buttons will be generated here -->
-              </div>
-            </div>
+                <div class="control-group">
+                    <label class="control-label">Hero Filter</label>
+                    <select id="heroFilter" class="control-select">
+                        <option value="">All Heroes</option>
+                        <option value="Neutral">Neutral</option>
+                        <option value="Mak">Mak</option>
+                        <option value="Vanessa">Vanessa</option>
+                        <option value="Pyg">Pyg</option>
+                        <option value="Dooly">Dooly</option>
+                        <option value="Stelle">Stelle</option>
+                        <option value="Jules">Jules</option>
+                        <option value="Vampire">Vampire</option>
+                    </select>
+                </div>
 
-            <!-- Tag Filters -->
-            <div class="tag-filters">
-              <label>Item Size & Tags</label>
-              <div class="tag-toggles" id="items-tag-toggles">
-                <button class="tag-toggle" data-tag="Small" onclick="BrowseManager.toggleTag('items', 'Small')">Small</button>
-                <button class="tag-toggle" data-tag="Medium" onclick="BrowseManager.toggleTag('items', 'Medium')">Medium</button>
-                <button class="tag-toggle" data-tag="Large" onclick="BrowseManager.toggleTag('items', 'Large')">Large</button>
-              </div>
-            </div>
-          </div>
+                <div class="control-group">
+                    <label class="control-label">Search</label>
+                    <input type="text" id="searchInput" class="control-input" placeholder="Search items...">
+                </div>
 
-          <div class="filter-actions">
-            <button onclick="BrowseManager.loadContent('items')" class="form-button">
-              🔄 Refresh
-            </button>
-            <span class="results-count" id="items-results-count">Loading...</span>
-          </div>
+                <div class="control-group">
+                    <label class="control-label">Contest Filter</label>
+                    <select id="contestFilter" class="control-select">
+                        <option value="">All Items</option>
+                        <option value="0">General Items</option>
+                        <option value="1">Contest 1</option>
+                        <option value="2">Contest 2</option>
+                        <option value="3">Contest 3</option>
+                    </select>
+                </div>
+            </div>
         </div>
 
-        <!-- Items Content Area -->
-        <div class="content-area">
-          <div id="items-loading" class="loading-state" style="display: none;">
-            <div class="loading-spinner">🃏</div>
-            <p>Loading items...</p>
-          </div>
-          
-          <div id="items-content" class="browse-grid">
-            <!-- Items will be loaded here -->
-          </div>
-          
-          <div id="items-no-results" class="no-results" style="display: none;">
+        <!-- Stats -->
+        <div class="stats-bar">
+            <div class="stat-item">
+                Total Items: <span class="stat-value" id="totalItems">0</span>
+            </div>
+            <div class="stat-item">
+                Showing: <span class="stat-value" id="showingItems">0</span>
+            </div>
+            <div class="stat-item">
+                <span id="loadingText" style="display: none;">Loading...</span>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div id="errorMessage" class="error" style="display: none;"></div>
+        <div id="loadingMessage" class="loading" style="display: none;">Loading items...</div>
+        <div id="noResults" class="no-results" style="display: none;">
             No items found. Try adjusting your filters.
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Skills Tab Content -->
-    <div id="skills-tab" class="tab-content">
-      <div class="browse-section">
-        <!-- Skills Content Navigation -->
-        <div class="content-navigation">
-          <button class="content-nav-button active" data-content="individual" onclick="BrowseManager.switchContent('skills', 'individual')">
-            ⚡ Individual Skills
-          </button>
-          <button class="content-nav-button" data-content="collections" onclick="BrowseManager.switchContent('skills', 'collections')">
-            📦 Skill Collections
-          </button>
         </div>
 
-        <!-- Skills Filters -->
-        <div class="filters-section">
-          <div class="filters-header">
-            <h4>🔍 Filter Skills</h4>
-            <button onclick="BrowseManager.clearFilters('skills')" class="clear-filters-btn">Clear All Filters</button>
-          </div>
-          
-          <div class="filters-grid">
-            <!-- Basic Filters Row -->
-            <div class="filter-row">
-              <div class="filter-group">
-                <label for="skills-search">Search</label>
-                <input type="text" id="skills-search" placeholder="Search by name or effect..." 
-                       oninput="BrowseManager.debounceFilter('skills')" />
-              </div>
-              <div class="filter-group">
-                <label for="skills-rarity-filter">Rarity</label>
-                <select id="skills-rarity-filter" onchange="BrowseManager.applyFilters('skills')">
-                  <option value="">All Rarities</option>
-                  <option value="bronze">Bronze</option>
-                  <option value="silver">Silver</option>
-                  <option value="gold">Gold</option>
-                  <option value="diamond">Diamond</option>
-                  <option value="legendary">Legendary</option>
-                </select>
-              </div>
-              <div class="filter-group">
-                <label for="skills-sort">Sort By</label>
-                <select id="skills-sort" onchange="BrowseManager.applyFilters('skills')">
-                  <option value="recent">Most Recent</option>
-                  <option value="oldest">Oldest First</option>
-                  <option value="name">Name A-Z</option>
-                </select>
-              </div>
-              <div class="filter-group">
-                <label for="skills-effect-length">Effect Length</label>
-                <select id="skills-effect-length" onchange="BrowseManager.applyFilters('skills')">
-                  <option value="">Any Length</option>
-                  <option value="short">Short (< 50 chars)</option>
-                  <option value="medium">Medium (50-150 chars)</option>
-                  <option value="long">Long (> 150 chars)</option>
-                </select>
-              </div>
+        <!-- Items Grid -->
+        <div id="itemsGrid" class="items-grid"></div>
+
+        <!-- Load More -->
+        <div class="load-more-container">
+            <button id="loadMoreBtn" class="btn" style="display: none;">Load More Items</button>
+            <div id="endMessage" style="display: none; text-align: center; padding: 20px; color: rgb(201, 175, 133);">
+                You've seen all available items!
             </div>
+        </div>
+    </div>
 
-            <!-- Keyword Filters -->
-            <div class="keyword-filters">
-              <label>Keywords (click to filter)</label>
-              <div class="keyword-toggles" id="skills-keyword-toggles">
-                <!-- Keyword buttons will be generated here -->
-              </div>
+    <!-- Footer -->
+    <footer style="background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(89, 72, 51) 100%); border-top: 3px solid rgb(251, 225, 183); margin-top: 40px; padding: 30px 0; text-align: center; box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.3);">
+        <div style="max-width: 800px; margin: 0 auto; padding: 0 20px;">
+            <div style="color: rgb(251, 225, 183); font-size: 1.5em; font-weight: bold; margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">
+                ⚔️ BazaarGen Community Browser ⚔️
             </div>
-          </div>
-
-          <div class="filter-actions">
-            <button onclick="BrowseManager.loadContent('skills')" class="form-button">
-              🔄 Refresh
-            </button>
-            <span class="results-count" id="skills-results-count">Loading...</span>
-          </div>
+            <div style="color: rgb(201, 175, 133); font-size: 1em; margin-bottom: 20px; line-height: 1.6;">
+                Explore amazing creations from the BazaarGen community. Filter, search, and discover new items!
+            </div>
+            
+            <div style="height: 2px; background: linear-gradient(90deg, transparent 0%, rgb(218, 165, 32) 50%, transparent 100%); margin: 20px 0;"></div>
+            
+            <div style="color: rgb(150, 120, 90); font-size: 0.9em; font-style: italic;">
+                © 2025 BazaarGen Community Browser
+            </div>
+            <div style="color: rgb(150, 120, 90); font-size: 0.9em; margin-top: 8px;">
+                Built for The Bazaar community
+            </div>
         </div>
+    </footer>
 
-        <!-- Skills Content Area -->
-        <div class="content-area">
-          <div id="skills-loading" class="loading-state" style="display: none;">
-            <div class="loading-spinner">⚡</div>
-            <p>Loading skills...</p>
-          </div>
-          
-          <div id="skills-content" class="browse-grid">
-            <!-- Skills will be loaded here -->
-          </div>
-          
-          <div id="skills-no-results" class="no-results" style="display: none;">
-            No skills found. Try adjusting your filters.
-          </div>
+    <!-- Alias Creation Modal (moved to proper location) -->
+    <div id="alias-modal" style="display: none;">
+        <div>
+            <h2 id="alias-modal-title">Welcome to BazaarGen!</h2>
+            <p id="alias-modal-description">Choose an alias to display on the site</p>
+            
+            <input type="text" id="alias-input" placeholder="Enter your alias">
+            
+            <div id="alias-error"></div>
+            
+            <div class="button-group">
+                <button id="alias-cancel-btn" onclick="cancelAliasCreation()">Cancel</button>
+                <button id="alias-save-btn" onclick="saveAlias()">Save Alias</button>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
-
-  <!-- Hidden Elements -->
-  <div id="errorContainer"></div>
-
-  <!-- Footer -->
-  <footer class="footer">
-    <div class="footer-content">
-      <div class="footer-title">🌟 BazaarGen Community Browser 🌟</div>
-      <div class="footer-description">
-        Discover and share amazing creations with the community
-      </div>
-      
-      <div class="footer-links">
-        <a href="https://github.com/LukeMcPartlan/BazaarGen" class="footer-link">📜 Documentation</a>
-        <a href="updates.html" class="footer-link">🛡️ Updates</a>
-        <a href="index.html" class="footer-link">🃏 Create Items</a>
-        <a href="skills.html" class="footer-link">⚡ Create Skills</a>
-      </div>
-      
-      <div class="footer-divider"></div>
-      
-      <div class="footer-copyright">
-        © 2025 Luke Alvarez Bazaar Generator
-      </div>
-      <div class="footer-contact">
-        Report bugs to Lukemcp45@gmail.com . Zelle me a coffee at the same email!
-      </div>
-    </div>
-  </footer>
-
-  <!-- Scripts -->
-  <!-- Core modules (load first) -->
-  <script src="js/core/validation-js.js"></script>
-  <script src="js/core/keyword-processor-js.js"></script>
-  <script src="js/core/card-generator-js.js"></script>
-  <script src="js/core/skill-generator-js.js"></script>
-
-  <!-- UI modules -->
-  <script src="js/ui/messages-js.js"></script>
-  <script src="js/ui/forms-js.js"></script>
-  <script src="js/ui/navigation-js.js"></script>
-  <script src="js/ui/gallery-modal.js"></script>
-
-  <!-- Auth modules -->
-  <script src="js/auth/supabase-client-js.js"></script>
-  <script src="js/auth/google-auth-js.js"></script>
-
-  <!-- Data modules -->
-  <script src="js/data/export-import-js.js"></script>
-  <script src="js/data/database-js.js"></script>
-
-  <!-- Browse-specific module (replace your existing browse-js.js) -->
-  <script src="js/pages/browse-manager.js"></script>
-    
 </body>
 </html>
