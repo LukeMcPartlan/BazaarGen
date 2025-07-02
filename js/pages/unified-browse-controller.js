@@ -1,5 +1,5 @@
 /**
- * Unified Browse Page Controller
+ * Unified Browse Page Controller - FIXED VERSION
  * Simplified controller for browsing items and skills without collection complexity
  */
 class UnifiedBrowsePageController {
@@ -24,6 +24,15 @@ class UnifiedBrowsePageController {
 
     console.log('🚀 Initializing Unified Browse Page Controller...');
 
+    // Prevent multiple controllers from conflicting
+    if (window.BrowsePageController && window.BrowsePageController !== this) {
+      console.warn('⚠️ Replacing existing browse controller...');
+    }
+    if (window.EnhancedBrowsePageController) {
+      console.warn('⚠️ Enhanced browse controller detected - will be overridden');
+      window.EnhancedBrowsePageController = null;
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       this.setupTabSystem();
       this.setupDOMElements();
@@ -47,6 +56,12 @@ class UnifiedBrowsePageController {
     
     if (pageTitle) pageTitle.textContent = 'Community Browser';
     if (pageSubtitle) pageSubtitle.textContent = 'Discover amazing items and skills from the BazaarGen community';
+
+    // Remove existing tabs if any
+    const existingTabs = document.querySelector('.browse-tabs');
+    if (existingTabs) {
+      existingTabs.remove();
+    }
 
     // Create tab navigation
     const tabContainer = document.createElement('div');
@@ -425,7 +440,7 @@ class UnifiedBrowsePageController {
   }
 
   /**
-   * Load skills from database (includes both individual skills and collections)
+   * Load skills from database - FIXED VERSION
    */
   static async loadSkills() {
     if (this.isSkillsLoading) return;
@@ -435,16 +450,18 @@ class UnifiedBrowsePageController {
     this.hideMessages();
 
     try {
-      console.log('📚 Loading skills and collections...');
+      console.log('⚡ Loading skills...');
       const filters = this.getSkillFilters();
+      console.log('🔍 Skill filters:', filters);
       
+      // Use the unified SupabaseClient.loadSkills method
       const skills = await SupabaseClient.loadSkills(filters);
       
       this.allSkills = skills || [];
       this.displayedSkills = [];
       this.currentSkillPage = 0;
       
-      console.log(`📊 Loaded ${this.allSkills.length} skills (including collections)`);
+      console.log(`📊 Loaded ${this.allSkills.length} skills`);
       
       if (this.itemsGrid) {
         this.itemsGrid.innerHTML = '';
@@ -469,6 +486,7 @@ class UnifiedBrowsePageController {
    */
   static async loadMoreItems() {
     if (this.isLoading || this.displayedItems.length >= this.allItems.length) {
+      this.updateLoadMoreButton();
       return;
     }
 
@@ -495,10 +513,11 @@ class UnifiedBrowsePageController {
   }
 
   /**
-   * Load more skills for display
+   * Load more skills for display - FIXED VERSION
    */
   static async loadMoreSkills() {
     if (this.isSkillsLoading || this.displayedSkills.length >= this.allSkills.length) {
+      this.updateLoadMoreButton();
       return;
     }
 
@@ -601,7 +620,7 @@ class UnifiedBrowsePageController {
   }
 
   /**
-   * Create skill card element (handles both individual skills and collections)
+   * Create skill card element - SIMPLIFIED VERSION (no collections)
    */
   static async createSkillCard(skill) {
     if (!skill.skill_data) {
@@ -610,528 +629,90 @@ class UnifiedBrowsePageController {
     }
 
     try {
-      // Check if this is a collection
-      const isCollection = skill.skill_data.isCollection || skill.is_collection;
+      console.log('Creating skill card for:', skill.skill_data.skillName);
       
-      if (isCollection) {
-        return await this.createSkillCollectionCard(skill);
+      const cardWrapper = document.createElement('div');
+      cardWrapper.className = 'skill-card-wrapper';
+      cardWrapper.style.cssText = 'margin-bottom: 30px;';
+
+      // Create creator info section
+      const creatorInfo = document.createElement('div');
+      creatorInfo.className = 'creator-info';
+      creatorInfo.style.cssText = `
+        padding: 12px 20px;
+        background: linear-gradient(135deg, rgba(74, 60, 46, 0.9) 0%, rgba(37, 26, 12, 0.8) 100%);
+        border: 2px solid rgb(218, 165, 32);
+        border-radius: 12px 12px 0 0;
+        font-size: 14px;
+        color: rgb(251, 225, 183);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        min-width: 450px;
+      `;
+
+      const creatorAlias = skill.user_alias || 'Unknown Creator';
+      const createdDate = new Date(skill.created_at).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+
+      const skillEffect = skill.skill_data.skillEffect || '';
+      const rarityColor = this.getRarityColor(skill.skill_data.border || 'gold');
+
+      creatorInfo.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-weight: 600; color: rgb(251, 225, 183);">
+            <span style="color: rgb(218, 165, 32);">Created by:</span> ${creatorAlias}
+          </span>
+          <div style="display: flex; gap: 15px; font-size: 12px; color: rgb(201, 175, 133);">
+            <span>📅 ${createdDate}</span>
+            <span style="color: ${rarityColor};">💎 ${(skill.skill_data.border || 'gold').toUpperCase()}</span>
+            <span>📝 ${skillEffect.length} chars</span>
+          </div>
+        </div>
+      `;
+
+      // Create the skill using SkillGenerator
+      const skillData = {
+        ...skill.skill_data,
+        created_at: skill.created_at,
+        creator_alias: creatorAlias,
+        database_id: skill.id
+      };
+
+      let skillElement;
+      if (typeof SkillGenerator !== 'undefined' && SkillGenerator.createSkill) {
+        try {
+          skillElement = await SkillGenerator.createSkill({
+            data: skillData,
+            mode: 'browser',
+            includeControls: false, // Disable controls in browser mode
+            container: null
+          });
+          console.log('✅ Skill card created with SkillGenerator');
+        } catch (skillGenError) {
+          console.warn('SkillGenerator failed, using fallback:', skillGenError);
+          skillElement = this.createFallbackSkillCard(skillData);
+        }
       } else {
-        return await this.createIndividualSkillCard(skill);
+        console.warn('SkillGenerator not available, using fallback');
+        skillElement = this.createFallbackSkillCard(skillData);
       }
+
+      // Create comments section
+      const commentsSection = this.createSkillCommentsSection(skill.id);
+
+      cardWrapper.appendChild(creatorInfo);
+      cardWrapper.appendChild(skillElement);
+      cardWrapper.appendChild(commentsSection);
+
+      return cardWrapper;
     } catch (error) {
       console.error('Error creating skill card:', error);
       return null;
-    }
-  }
-
-  /**
-   * Create individual skill card element
-   */
-  static async createIndividualSkillCard(skill) {
-    const cardWrapper = document.createElement('div');
-    cardWrapper.className = 'skill-card-wrapper';
-    cardWrapper.style.cssText = 'margin-bottom: 30px;';
-
-    // Create creator info section
-    const creatorInfo = document.createElement('div');
-    creatorInfo.className = 'creator-info';
-    creatorInfo.style.cssText = `
-      padding: 12px 20px;
-      background: linear-gradient(135deg, rgba(74, 60, 46, 0.9) 0%, rgba(37, 26, 12, 0.8) 100%);
-      border: 2px solid rgb(218, 165, 32);
-      border-radius: 12px 12px 0 0;
-      font-size: 14px;
-      color: rgb(251, 225, 183);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-      min-width: 450px;
-    `;
-
-    const creatorAlias = skill.user_alias || 'Unknown Creator';
-    const createdDate = new Date(skill.created_at).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-
-    const skillEffect = skill.skill_data.skillEffect || '';
-    const rarityColor = this.getRarityColor(skill.skill_data.border || 'gold');
-
-    creatorInfo.innerHTML = `
-      <div style="display: flex; flex-direction: column; gap: 4px;">
-        <span style="font-weight: 600; color: rgb(251, 225, 183);">
-          <span style="color: rgb(218, 165, 32);">Created by:</span> ${creatorAlias}
-        </span>
-        <div style="display: flex; gap: 15px; font-size: 12px; color: rgb(201, 175, 133);">
-          <span>📅 ${createdDate}</span>
-          <span style="color: ${rarityColor};">💎 ${(skill.skill_data.border || 'gold').toUpperCase()}</span>
-          <span>📝 ${skillEffect.length} chars</span>
-        </div>
-      </div>
-    `;
-
-    // Create the skill
-    const skillData = {
-      ...skill.skill_data,
-      created_at: skill.created_at,
-      creator_alias: creatorAlias,
-      database_id: skill.id
-    };
-
-    let skillElement;
-    if (typeof SkillGenerator !== 'undefined' && SkillGenerator.createSkill) {
-      skillElement = await SkillGenerator.createSkill({
-        data: skillData,
-        mode: 'browser',
-        includeControls: true,
-        container: null
-      });
-    } else {
-      skillElement = this.createFallbackSkillCard(skillData);
-    }
-
-    // Create comments section
-    const commentsSection = this.createSkillCommentsSection(skill.id);
-
-    cardWrapper.appendChild(creatorInfo);
-    cardWrapper.appendChild(skillElement);
-    cardWrapper.appendChild(commentsSection);
-
-    return cardWrapper;
-  }
-
-  /**
-   * Create skill collection card element
-   */
-  static async createSkillCollectionCard(collection) {
-    const cardWrapper = document.createElement('div');
-    cardWrapper.className = 'skill-collection-card-wrapper';
-    cardWrapper.style.cssText = 'margin-bottom: 30px;';
-
-    // Create collection header
-    const collectionHeader = this.createCollectionMainHeader(collection);
-    cardWrapper.appendChild(collectionHeader);
-
-    // Create creator info section
-    const creatorInfo = document.createElement('div');
-    creatorInfo.className = 'collection-creator-info';
-    creatorInfo.style.cssText = `
-      padding: 12px 20px;
-      background: linear-gradient(135deg, rgba(74, 60, 46, 0.9) 0%, rgba(37, 26, 12, 0.8) 100%);
-      border: 2px solid rgb(138, 43, 226);
-      border-radius: 0;
-      border-top: none;
-      font-size: 14px;
-      color: rgb(251, 225, 183);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-      min-width: 450px;
-    `;
-
-    const creatorAlias = collection.user_alias || 'Unknown Creator';
-    const createdDate = new Date(collection.created_at).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-
-    const skillCount = collection.skill_data.skillCount || collection.skill_data.skills?.length || 0;
-    const skills = collection.skill_data.skills || [];
-
-    creatorInfo.innerHTML = `
-      <div style="display: flex; flex-direction: column; gap: 4px;">
-        <span style="font-weight: 600; color: rgb(251, 225, 183);">
-          <span style="color: rgb(138, 43, 226);">Created by:</span> ${creatorAlias}
-        </span>
-        <div style="display: flex; gap: 15px; font-size: 12px; color: rgb(201, 175, 133);">
-          <span>📅 ${createdDate}</span>
-          <span>⚡ ${skillCount} skills</span>
-          <span style="color: rgb(138, 43, 226);">📦 COLLECTION</span>
-        </div>
-      </div>
-    `;
-
-    cardWrapper.appendChild(creatorInfo);
-
-    // Create collection description if available
-    if (collection.skill_data.skillEffect && collection.skill_data.skillEffect !== collection.skill_data.skillName) {
-      const descriptionSection = document.createElement('div');
-      descriptionSection.style.cssText = `
-        padding: 15px 20px;
-        background: rgba(37, 26, 12, 0.7);
-        border: 2px solid rgb(138, 43, 226);
-        border-top: none;
-        color: rgb(251, 225, 183);
-        font-size: 14px;
-        line-height: 1.5;
-        font-style: italic;
-        min-width: 450px;
-      `;
-      descriptionSection.textContent = collection.skill_data.skillEffect;
-      cardWrapper.appendChild(descriptionSection);
-    }
-
-    // Create skills preview section
-    const previewSection = this.createCollectionSkillsPreview(collection, skills);
-    cardWrapper.appendChild(previewSection);
-
-    // Create action buttons section
-    const actionsSection = this.createCollectionActionsSection(collection, skills);
-    cardWrapper.appendChild(actionsSection);
-
-    // Create comments section for collections
-    const commentsSection = this.createCollectionCommentsSection(collection.id);
-    cardWrapper.appendChild(commentsSection);
-
-    return cardWrapper;
-  }
-
-  /**
-   * Create main collection header
-   */
-  static createCollectionMainHeader(collection) {
-    const header = document.createElement('div');
-    header.className = 'skill-collection-main-header';
-    header.style.cssText = `
-      background: linear-gradient(135deg, rgb(138, 43, 226) 0%, rgb(106, 13, 173) 100%);
-      color: white;
-      padding: 15px 20px;
-      border-radius: 12px 12px 0 0;
-      margin-bottom: 0;
-      border: 2px solid rgb(138, 43, 226);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 16px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-      min-width: 450px;
-    `;
-
-    const skillCount = collection.skill_data.skillCount || collection.skill_data.skills?.length || 0;
-    const collectionName = collection.skill_data.skillName || 'Unnamed Collection';
-
-    const headerInfo = document.createElement('div');
-    headerInfo.innerHTML = `
-      <div style="font-weight: bold; margin-bottom: 4px; font-size: 18px;">
-        📦 ${collectionName}
-      </div>
-      <div style="font-size: 14px; opacity: 0.9;">
-        Skill Collection • ${skillCount} skills
-      </div>
-    `;
-
-    const viewButton = document.createElement('button');
-    viewButton.style.cssText = `
-      background: rgba(255, 255, 255, 0.2);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: white;
-      padding: 8px 16px;
-      border-radius: 20px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: bold;
-      transition: all 0.3s ease;
-    `;
-    viewButton.innerHTML = `🖼️ View Collection`;
-    viewButton.title = `View all ${skillCount} skills in gallery`;
-
-    viewButton.onmouseenter = () => {
-      viewButton.style.background = 'rgba(255, 255, 255, 0.3)';
-    };
-
-    viewButton.onmouseleave = () => {
-      viewButton.style.background = 'rgba(255, 255, 255, 0.2)';
-    };
-
-    viewButton.onclick = () => {
-      this.openCollectionGallery(collection);
-    };
-
-    header.appendChild(headerInfo);
-    header.appendChild(viewButton);
-
-    return header;
-  }
-
-  /**
-   * Create skills preview section for collection
-   */
-  static createCollectionSkillsPreview(collection, skills) {
-    const previewSection = document.createElement('div');
-    previewSection.style.cssText = `
-      padding: 20px;
-      background: linear-gradient(135deg, rgba(74, 60, 46, 0.9) 0%, rgba(37, 26, 12, 0.8) 100%);
-      border: 2px solid rgb(138, 43, 226);
-      border-top: none;
-      min-width: 450px;
-    `;
-
-    const previewTitle = document.createElement('div');
-    previewTitle.style.cssText = `
-      font-weight: bold;
-      color: rgb(251, 225, 183);
-      margin-bottom: 15px;
-      font-size: 16px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    `;
-    previewTitle.textContent = '⚡ Skills Preview';
-
-    const skillsContainer = document.createElement('div');
-    skillsContainer.style.cssText = `
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 10px;
-      max-height: 300px;
-      overflow-y: auto;
-    `;
-
-    // Show first 6 skills as preview
-    const previewSkills = skills.slice(0, 6);
-    previewSkills.forEach((skill, index) => {
-      const skillPreview = document.createElement('div');
-      skillPreview.style.cssText = `
-        background: rgba(37, 26, 12, 0.7);
-        border: 1px solid rgba(218, 165, 32, 0.3);
-        border-radius: 6px;
-        padding: 12px;
-        transition: all 0.3s ease;
-        cursor: pointer;
-      `;
-
-      skillPreview.innerHTML = `
-        <div style="font-weight: bold; color: rgb(218, 165, 32); margin-bottom: 8px; font-size: 14px;">
-          ${skill.skillName || 'Unnamed Skill'}
-        </div>
-        <div style="color: ${this.getRarityColor(skill.border || 'gold')}; font-size: 12px; margin-bottom: 8px;">
-          ${(skill.border || 'gold').toUpperCase()}
-        </div>
-        <div style="color: rgb(201, 175, 133); font-size: 12px; line-height: 1.4; max-height: 60px; overflow: hidden;">
-          ${(skill.skillEffect || 'No description').substring(0, 100)}${skill.skillEffect?.length > 100 ? '...' : ''}
-        </div>
-      `;
-
-      skillPreview.onmouseenter = () => {
-        skillPreview.style.background = 'rgba(218, 165, 32, 0.1)';
-        skillPreview.style.borderColor = 'rgba(218, 165, 32, 0.6)';
-      };
-
-      skillPreview.onmouseleave = () => {
-        skillPreview.style.background = 'rgba(37, 26, 12, 0.7)';
-        skillPreview.style.borderColor = 'rgba(218, 165, 32, 0.3)';
-      };
-
-      skillPreview.onclick = () => {
-        this.openCollectionGallery(collection, index);
-      };
-
-      skillsContainer.appendChild(skillPreview);
-    });
-
-    // Show "and X more" if there are more skills
-    if (skills.length > 6) {
-      const moreIndicator = document.createElement('div');
-      moreIndicator.style.cssText = `
-        background: rgba(138, 43, 226, 0.3);
-        border: 2px dashed rgba(138, 43, 226, 0.6);
-        border-radius: 6px;
-        padding: 12px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        color: rgb(138, 43, 226);
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s ease;
-      `;
-
-      const remaining = skills.length - 6;
-      moreIndicator.innerHTML = `
-        <div>
-          <div style="font-size: 24px; margin-bottom: 4px;">+</div>
-          <div style="font-size: 12px;">${remaining} more skill${remaining !== 1 ? 's' : ''}</div>
-        </div>
-      `;
-
-      moreIndicator.onclick = () => {
-        this.openCollectionGallery(collection, 6);
-      };
-
-      moreIndicator.onmouseenter = () => {
-        moreIndicator.style.background = 'rgba(138, 43, 226, 0.5)';
-      };
-
-      moreIndicator.onmouseleave = () => {
-        moreIndicator.style.background = 'rgba(138, 43, 226, 0.3)';
-      };
-
-      skillsContainer.appendChild(moreIndicator);
-    }
-
-    previewSection.appendChild(previewTitle);
-    previewSection.appendChild(skillsContainer);
-
-    return previewSection;
-  }
-
-  /**
-   * Create collection actions section
-   */
-  static createCollectionActionsSection(collection, skills) {
-    const actionsSection = document.createElement('div');
-    actionsSection.style.cssText = `
-      padding: 15px 20px;
-      background: linear-gradient(135deg, rgba(101, 84, 63, 0.95) 0%, rgba(89, 72, 51, 0.9) 100%);
-      border: 2px solid rgb(138, 43, 226);
-      border-top: none;
-      display: flex;
-      gap: 15px;
-      justify-content: center;
-      align-items: center;
-      min-width: 450px;
-    `;
-
-    // View Gallery button
-    const viewGalleryBtn = document.createElement('button');
-    viewGalleryBtn.style.cssText = `
-      background: linear-gradient(135deg, rgb(138, 43, 226) 0%, rgb(106, 13, 173) 100%);
-      color: white;
-      border: 2px solid white;
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 14px;
-      transition: all 0.3s ease;
-    `;
-    viewGalleryBtn.textContent = '🖼️ View Gallery';
-    viewGalleryBtn.onclick = () => this.openCollectionGallery(collection);
-
-    // Export button
-    const exportBtn = document.createElement('button');
-    exportBtn.style.cssText = `
-      background: transparent;
-      color: rgb(251, 225, 183);
-      border: 2px solid rgb(251, 225, 183);
-      padding: 10px 20px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: bold;
-      font-size: 14px;
-      transition: all 0.3s ease;
-    `;
-    exportBtn.textContent = '📥 Export';
-    exportBtn.onclick = () => this.exportCollection(collection, skills);
-
-    actionsSection.appendChild(viewGalleryBtn);
-    actionsSection.appendChild(exportBtn);
-
-    return actionsSection;
-  }
-
-  /**
-   * Create comments section for collections
-   */
-  static createCollectionCommentsSection(collectionId) {
-    const commentsContainer = document.createElement('div');
-    commentsContainer.className = 'collection-comments-section';
-    commentsContainer.style.cssText = `
-      background: linear-gradient(135deg, rgba(101, 84, 63, 0.95) 0%, rgba(89, 72, 51, 0.9) 100%);
-      border: 2px solid rgb(138, 43, 226);
-      border-radius: 0 0 12px 12px;
-      border-top: none;
-      padding: 20px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-      min-width: 450px;
-    `;
-
-    commentsContainer.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h4 style="margin: 0; color: rgb(251, 225, 183); font-size: 18px;">📦 Collection Comments</h4>
-        <button class="toggle-comments-btn" style="
-          background: linear-gradient(135deg, rgb(138, 43, 226) 0%, rgb(106, 13, 173) 100%);
-          border: 2px solid white;
-          padding: 6px 14px;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 12px;
-          color: white;
-          font-weight: bold;
-        ">Show/Hide</button>
-      </div>
-      <div style="padding: 30px; text-align: center; color: rgb(201, 175, 133); font-style: italic;">
-        💬 Collection comments feature coming soon!
-      </div>
-    `;
-
-    return commentsContainer;
-  }
-
-  /**
-   * Open collection in gallery modal
-   */
-  static openCollectionGallery(collection, startIndex = 0) {
-    const skills = collection.skill_data.skills || [];
-    const collectionName = collection.skill_data.skillName || 'Unnamed Collection';
-    const collectionDesc = collection.skill_data.skillEffect || '';
-
-    if (typeof GalleryModal !== 'undefined') {
-      GalleryModal.open(
-        skills, 
-        startIndex,
-        {
-          name: collectionName,
-          description: collectionDesc,
-          itemCount: skills.length,
-          type: 'skills',
-          creator: collection.user_alias
-        }
-      );
-    } else {
-      // Fallback if GalleryModal not available
-      alert(`Collection: ${collectionName}\nBy: ${collection.user_alias}\n${skills.length} skills\nCreated: ${new Date(collection.created_at).toLocaleDateString()}\n\nGallery feature requires GalleryModal to be loaded.`);
-    }
-  }
-
-  /**
-   * Export collection as JSON
-   */
-  static exportCollection(collection, skills) {
-    const collectionName = collection.skill_data.skillName || 'Unnamed Collection';
-    
-    const exportData = {
-      version: "1.0",
-      timestamp: new Date().toISOString(),
-      type: "skill_collection",
-      collection: {
-        name: collectionName,
-        description: collection.skill_data.skillEffect || '',
-        skill_count: skills.length,
-        created_by: collection.user_alias,
-        created_at: collection.created_at
-      },
-      skills: skills
-    };
-
-    const dataStr = JSON.stringify(exportData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    const url = URL.createObjectURL(dataBlob);
-    
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `${collectionName.replace(/\s+/g, '-')}-collection.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-
-    if (typeof Messages !== 'undefined') {
-      Messages.showSuccess(`Exported collection "${collectionName}" successfully!`);
     }
   }
 
@@ -1168,35 +749,80 @@ class UnifiedBrowsePageController {
   }
 
   /**
-   * Create fallback skill card
+   * Create fallback skill card - IMPROVED VERSION
    */
   static createFallbackSkillCard(skillData) {
     const fallbackCard = document.createElement('div');
+    fallbackCard.className = 'skill-card-fallback';
     fallbackCard.style.cssText = `
       background: linear-gradient(135deg, rgba(74, 60, 46, 0.9) 0%, rgba(37, 26, 12, 0.8) 100%);
-      border: 2px solid rgb(218, 165, 32);
-      border-radius: 8px;
-      padding: 20px;
+      border: 2px solid ${this.getRarityColor(skillData.border || 'gold')};
+      border-radius: 12px;
+      padding: 0;
       color: rgb(251, 225, 183);
       min-width: 450px;
+      max-width: 500px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
     `;
 
-    fallbackCard.innerHTML = `
-      <div style="text-align: center; margin-bottom: 15px;">
-        <h3 style="color: rgb(218, 165, 32); margin: 0 0 10px 0;">⚡ ${skillData.skillName || 'Unnamed Skill'}</h3>
-        <div style="color: ${this.getRarityColor(skillData.border || 'gold')}; font-weight: bold; margin-bottom: 10px;">
-          ${(skillData.border || 'gold').toUpperCase()} RARITY
-        </div>
-      </div>
-      <div style="background: rgba(37, 26, 12, 0.7); padding: 15px; border-radius: 6px; border: 1px solid rgba(218, 165, 32, 0.3);">
-        <div style="font-size: 14px; line-height: 1.5;">
-          ${skillData.skillEffect || 'No effect description available.'}
-        </div>
-      </div>
-      <div style="text-align: center; margin-top: 15px; font-size: 12px; color: rgb(201, 175, 133);">
-        ⚠️ SkillGenerator not loaded - showing basic card
+    // Create header section
+    const headerSection = document.createElement('div');
+    headerSection.style.cssText = `
+      background: linear-gradient(135deg, ${this.getRarityColor(skillData.border || 'gold')} 0%, rgba(0, 0, 0, 0.2) 100%);
+      padding: 15px 20px;
+      text-align: center;
+      border-bottom: 2px solid ${this.getRarityColor(skillData.border || 'gold')};
+    `;
+    
+    headerSection.innerHTML = `
+      <h3 style="color: white; margin: 0 0 8px 0; font-size: 18px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);">
+        ⚡ ${skillData.skillName || 'Unnamed Skill'}
+      </h3>
+      <div style="color: rgba(255, 255, 255, 0.9); font-weight: bold; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">
+        ${(skillData.border || 'gold')} RARITY
       </div>
     `;
+
+    // Create effect section
+    const effectSection = document.createElement('div');
+    effectSection.style.cssText = `
+      padding: 20px;
+      background: rgba(37, 26, 12, 0.8);
+    `;
+
+    // Process keywords if KeywordProcessor is available
+    let processedEffect = skillData.skillEffect || 'No effect description available.';
+    if (typeof KeywordProcessor !== 'undefined' && KeywordProcessor.processKeywordText) {
+      try {
+        processedEffect = KeywordProcessor.processKeywordText(processedEffect);
+      } catch (error) {
+        console.warn('KeywordProcessor failed:', error);
+      }
+    }
+
+    effectSection.innerHTML = `
+      <div style="font-size: 14px; line-height: 1.6; color: rgb(251, 225, 183);">
+        ${processedEffect}
+      </div>
+    `;
+
+    // Create footer section
+    const footerSection = document.createElement('div');
+    footerSection.style.cssText = `
+      padding: 12px 20px;
+      background: rgba(0, 0, 0, 0.3);
+      text-align: center;
+      font-size: 12px;
+      color: rgb(201, 175, 133);
+      font-style: italic;
+      border-top: 1px solid rgba(218, 165, 32, 0.3);
+    `;
+    footerSection.textContent = '⚠️ SkillGenerator not loaded - showing enhanced fallback';
+
+    fallbackCard.appendChild(headerSection);
+    fallbackCard.appendChild(effectSection);
+    fallbackCard.appendChild(footerSection);
 
     return fallbackCard;
   }
@@ -1553,12 +1179,18 @@ class UnifiedBrowsePageController {
   }
 }
 
+// PREVENT CONFLICTS - Force override any existing controllers
+if (window.EnhancedBrowsePageController) {
+  console.warn('🔄 Overriding EnhancedBrowsePageController with UnifiedBrowsePageController');
+  window.EnhancedBrowsePageController = null;
+}
+
 // Auto-initialize and replace the original controller
-console.log('🚀 Unified Browse Page Controller loading...');
+console.log('🚀 Unified Browse Page Controller (FIXED) loading...');
 UnifiedBrowsePageController.init();
 
 // Make available globally
 window.BrowsePageController = UnifiedBrowsePageController;
 window.UnifiedBrowsePageController = UnifiedBrowsePageController;
 
-console.log('✅ Unified Browse Page Controller loaded successfully');
+console.log('✅ Unified Browse Page Controller (FIXED) loaded successfully');
