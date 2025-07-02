@@ -76,6 +76,192 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <link rel="stylesheet" href="styles.css" />
+
+  <style>
+    /* Enhanced collection management styles */
+    .collection-controls {
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .skill-selection-checkbox {
+      background: rgba(138, 43, 226, 0.9);
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 2px solid white;
+      transition: all 0.3s ease;
+    }
+
+    .skill-selection-checkbox:hover {
+      background: rgba(138, 43, 226, 1);
+      transform: scale(1.05);
+    }
+
+    .skill-selection-checkbox input[type="checkbox"] {
+      transform: scale(1.2);
+      accent-color: rgb(218, 165, 32);
+    }
+
+    .collection-controls h4 {
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    .collection-controls button {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .collection-controls button::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      transition: all 0.3s ease;
+      transform: translate(-50%, -50%);
+    }
+
+    .collection-controls button:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    #collectionActions {
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; height: 0; }
+      to { opacity: 1; height: auto; }
+    }
+
+    /* Enhanced form styling */
+    .form-input, .form-select {
+      transition: all 0.3s ease;
+    }
+
+    .form-input:focus, .form-select:focus {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 15px rgba(218, 165, 32, 0.3);
+    }
+
+    /* Management section enhancements */
+    .management-section {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .management-section::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(218, 165, 32, 0.1), transparent);
+      animation: shimmer 3s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    /* Preview column enhancements */
+    .preview-column {
+      position: relative;
+    }
+
+    .preview-placeholder {
+      border: 2px dashed rgba(218, 165, 32, 0.5);
+      background: linear-gradient(135deg, rgba(218, 165, 32, 0.1) 0%, rgba(184, 134, 11, 0.05) 100%);
+      transition: all 0.3s ease;
+    }
+
+    .preview-placeholder:hover {
+      border-color: rgba(218, 165, 32, 0.8);
+      background: linear-gradient(135deg, rgba(218, 165, 32, 0.15) 0%, rgba(184, 134, 11, 0.1) 100%);
+    }
+
+    /* Enhanced button styles */
+    .save-card-btn {
+      position: relative;
+      background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%);
+      transition: all 0.3s ease;
+    }
+
+    .save-card-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(218, 165, 32, 0.4);
+    }
+
+    .save-card-btn:active {
+      transform: translateY(-1px);
+    }
+
+    /* Collection status styling */
+    #selectionStatus {
+      padding: 8px 12px;
+      border-radius: 6px;
+      background: rgba(138, 43, 226, 0.1);
+      border: 1px solid rgba(138, 43, 226, 0.3);
+      transition: all 0.3s ease;
+    }
+
+    /* Responsive enhancements */
+    @media (max-width: 768px) {
+      .collection-controls {
+        padding: 15px;
+      }
+
+      .collection-controls div[style*="display: flex"] {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      #collectionNameInput,
+      #collectionDescInput {
+        min-width: unset !important;
+        width: 100%;
+      }
+    }
+
+    /* Loading states */
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(37, 26, 12, 0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      z-index: 1000;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid rgba(218, 165, 32, 0.3);
+      border-top: 4px solid rgb(218, 165, 32);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
 </head>
 <body>
   <!-- Top Navigation -->
@@ -91,7 +277,7 @@
           <a href="#" class="nav-link active" data-page="skills">Skills</a>
         </li>
         <li class="nav-item">
-          <a href="#" class="nav-link" data-page="browse">browse</a>
+          <a href="#" class="nav-link" data-page="browse">Browse</a>
         </li>
       </ul>
       
@@ -142,7 +328,7 @@
   <!-- Page Header -->
   <div class="page-header">
       <h1 class="page-title">Skill Generator</h1>
-      <p class="page-subtitle">Create custom skills and abilities for The Bazaar</p>
+      <p class="page-subtitle">Create custom skills and abilities for The Bazaar - save individually or as collections</p>
   </div>
 
   <!-- Main Two-Column Container -->
@@ -237,14 +423,42 @@
                   <button onclick="exportAllSkillsAsData()" class="form-button export">💾 Export as Data</button>
                   <button onclick="triggerImport()" class="form-button secondary">📥 Import Data</button>
               </div>
-              
-              <!-- Gallery Actions -->
-              <div class="gallery-actions-group">
-                  <button onclick="SkillsGalleryManager.toggleGalleryMode()" class="form-button gallery-toggle-btn">🖼️ Gallery View</button>
-                  <button onclick="SkillsGalleryManager.showCollectionsBrowser()" class="form-button secondary">📦 My Collections</button>
-              </div>
           </div>
-          <!-- Gallery controls will be inserted here when gallery mode is active -->
+
+          <!-- Collection Management (dynamically shown when multiple skills exist) -->
+          <div class="collection-controls" id="collectionControls" style="display: none;">
+            <h4 style="color: rgb(138, 43, 226); margin: 0 0 15px 0; font-size: 16px;">📦 Collection Management</h4>
+            
+            <div style="margin-bottom: 15px;">
+              <button onclick="UnifiedSkillsPageController.toggleSelectionMode()" class="form-button secondary" id="selectionModeBtn">
+                ✅ Enable Selection Mode
+              </button>
+              <span style="margin-left: 10px; color: rgb(201, 175, 133); font-size: 14px;" id="selectionStatus">
+                Select multiple skills to create a collection
+              </span>
+            </div>
+
+            <div id="collectionActions" style="display: none;">
+              <div style="display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap;">
+                <input type="text" id="collectionNameInput" placeholder="Collection Name" 
+                       style="flex: 1; min-width: 200px; padding: 10px; border: 2px solid rgb(138, 43, 226); border-radius: 6px; background: rgba(37, 26, 12, 0.8); color: rgb(251, 225, 183);">
+                <input type="text" id="collectionDescInput" placeholder="Description (optional)" 
+                       style="flex: 2; min-width: 300px; padding: 10px; border: 2px solid rgb(138, 43, 226); border-radius: 6px; background: rgba(37, 26, 12, 0.8); color: rgb(251, 225, 183);">
+              </div>
+              
+              <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                <button onclick="UnifiedSkillsPageController.saveSelectedAsCollection()" class="form-button" style="background: linear-gradient(135deg, rgb(138, 43, 226) 0%, rgb(106, 13, 173) 100%);">
+                  💾 Save as Collection
+                </button>
+                <button onclick="UnifiedSkillsPageController.saveSelectedIndividually()" class="form-button secondary">
+                  ⚡ Save Selected Individually
+                </button>
+                <button onclick="UnifiedSkillsPageController.clearSelection()" class="form-button secondary">
+                  🗑️ Clear Selection
+                </button>
+              </div>
+            </div>
+          </div>
       </div>
 
       <!-- Saved Skills Display -->
@@ -254,7 +468,10 @@
               <!-- Generated skills will appear here -->
               <div class="cards-placeholder">
                   <p>⚡ Your saved skills will appear here after you create them!</p>
-                  <p style="margin-top: 10px; font-size: 0.9em;">Each skill will have export and delete options.</p>
+                  <p style="margin-top: 10px; font-size: 0.9em;">Create multiple skills and save them individually or as collections.</p>
+                  <p style="margin-top: 10px; font-size: 0.85em; color: #888;">
+                    💡 <strong>Tip:</strong> Create 2+ skills to unlock collection management features!
+                  </p>
               </div>
           </div>
       </div>
@@ -269,13 +486,14 @@
     <div class="footer-content">
       <div class="footer-title">⚡ Bazaar Skill Generator ⚡</div>
       <div class="footer-description">
-        Bring your ideas to life. Shoutout to Reynad for tearing this masterpiece from the void. 
+        Create individual skills or organize them into collections. Export, share, and discover new abilities for The Bazaar. 
       </div>
       
       <div class="footer-links">
         <a href="https://github.com/LukeMcPartlan/BazaarGen" class="footer-link">📜 Documentation</a>
         <a href="updates.html" class="footer-link">🛡️ Updates</a>
         <a href="index.html" class="footer-link">🃏 Cards</a>
+        <a href="browse.html" class="footer-link">🔍 Browse</a>
         <a href="https://www.reddit.com/r/PlayTheBazaar/" class="footer-link">🏰 Community</a>
       </div>
       
@@ -288,7 +506,7 @@
         Report bugs to Lukemcp45@gmail.com . Zelle me a coffee at the same email!
       </div>
       <div class="footer-version">
-        Version 1.0 | Built for Bazaar fans by Bazaar fans
+        Version 2.0 | Now with Skill Collections | Built for Bazaar fans by Bazaar fans
       </div>
     </div>
   </footer>
@@ -298,12 +516,12 @@
   <script src="js/core/validation-js.js"></script>
   <script src="js/core/keyword-processor-js.js"></script>
   <script src="js/core/skill-generator-js.js"></script>
-  <script src="js/core/skills-gallery-manager.js"></script>
 
   <!-- UI modules -->
   <script src="js/ui/messages-js.js"></script>
   <script src="js/ui/forms-js.js"></script>
   <script src="js/ui/navigation-js.js"></script>
+  <script src="js/ui/gallery-modal.js"></script>
 
   <!-- Auth modules -->
   <script src="js/auth/supabase-client-js.js"></script>
@@ -314,7 +532,102 @@
   <script src="js/data/database-js.js"></script>
 
   <!-- Page-specific module (load last) -->
-  <script src="js/pages/skills-js.js"></script>
+  <script src="js/pages/unified-skills-js.js"></script>
+
+  <script>
+    // Enhanced page initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('🚀 Unified Skills Page Loading...');
+      
+      // Show loading indicator
+      const loadingIndicator = document.createElement('div');
+      loadingIndicator.id = 'skills-loading';
+      loadingIndicator.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, rgb(138, 43, 226) 0%, rgb(106, 13, 173) 100%);
+        color: white;
+        padding: 10px 15px;
+        border-radius: 6px;
+        font-size: 14px;
+        z-index: 1000;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      `;
+      loadingIndicator.innerHTML = '<div class="loading-spinner"></div>Loading Skills Page...';
+      document.body.appendChild(loadingIndicator);
+      
+      // Remove loading indicator after initialization
+      setTimeout(() => {
+        if (document.getElementById('skills-loading')) {
+          document.body.removeChild(loadingIndicator);
+        }
+      }, 3000);
+
+      // Add keyboard shortcut hints
+      setTimeout(() => {
+        if (window.UnifiedSkillsPageController) {
+          console.log('📋 Keyboard Shortcuts Available:');
+          console.log('  Ctrl+G: Generate Skill');
+          console.log('  Ctrl+E: Export Skills');
+          console.log('  Ctrl+S: Toggle Selection Mode');
+          console.log('  Ctrl+Shift+C: Clear All Skills');
+        }
+      }, 1000);
+    });
+
+    // Global helper functions
+    window.debugSkillsPage = () => {
+      console.log('=== Unified Skills Page Debug Info ===');
+      console.log('Controller available:', typeof UnifiedSkillsPageController !== 'undefined');
+      console.log('Skills created:', window.UnifiedSkillsPageController?.skillsData?.length || 0);
+      console.log('Collection controls visible:', document.getElementById('collectionControls')?.style.display !== 'none');
+      console.log('Selection mode active:', document.querySelectorAll('.skill-selection-checkbox').length > 0);
+      console.log('Dependencies:', {
+        SupabaseClient: typeof SupabaseClient !== 'undefined',
+        SkillGenerator: typeof SkillGenerator !== 'undefined',
+        Messages: typeof Messages !== 'undefined',
+        GoogleAuth: typeof GoogleAuth !== 'undefined'
+      });
+    };
+
+    // Collection helper functions
+    window.createCollection = (name, description) => {
+      if (window.UnifiedSkillsPageController) {
+        document.getElementById('collectionNameInput').value = name || '';
+        document.getElementById('collectionDescInput').value = description || '';
+        
+        // Select all skills
+        const checkboxes = document.querySelectorAll('.skill-checkbox');
+        checkboxes.forEach(cb => cb.checked = true);
+        
+        // Update status and save
+        window.UnifiedSkillsPageController.updateSelectionStatus();
+        window.UnifiedSkillsPageController.saveSelectedAsCollection();
+      }
+    };
+
+    window.saveAllIndividually = () => {
+      if (window.UnifiedSkillsPageController) {
+        // Select all skills
+        const checkboxes = document.querySelectorAll('.skill-checkbox');
+        checkboxes.forEach(cb => cb.checked = true);
+        
+        // Save individually
+        window.UnifiedSkillsPageController.saveSelectedIndividually();
+      }
+    };
+
+    // Error handling
+    window.addEventListener('error', (e) => {
+      console.error('🚨 Skills page error:', e.error);
+    });
+
+    console.log('🎉 Unified Skills Page with Collections loaded!');
+  </script>
     
 </body>
 </html>
