@@ -6,8 +6,8 @@
     <title>Community Browser - Browse Items & Skills | BazaarGen</title>
     
     <!-- SEO Meta Tags -->
-    <meta name="description" content="Browse amazing items and skills created by the BazaarGen community. Filter, search, and discover new creations!" />
-    <meta name="keywords" content="Bazaar, BazaarGen, community browser, items, skills, abilities, custom creations, The Bazaar game" />
+    <meta name="description" content="Browse amazing items, skills, and skill collections created by the BazaarGen community. Filter, search, and discover new creations!" />
+    <meta name="keywords" content="Bazaar, BazaarGen, community browser, items, skills, abilities, custom creations, skill collections, The Bazaar game" />
     <meta name="author" content="Luke Alvarez" />
     <meta name="robots" content="index, follow" />
     
@@ -19,7 +19,7 @@
     
     <!-- Open Graph Meta Tags -->
     <meta property="og:title" content="Community Browser - Browse Items & Skills" />
-    <meta property="og:description" content="Browse amazing items and skills created by the BazaarGen community. Filter, search, and discover new creations!" />
+    <meta property="og:description" content="Browse amazing items, skills, and skill collections created by the BazaarGen community. Filter, search, and discover new creations!" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://bazaargen.com/browse.html" />
     <meta property="og:image" content="https://bazaargen.com/images/site-preview.png" />
@@ -28,7 +28,7 @@
     <!-- Twitter Card Meta Tags -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Community Browser - Browse Items & Skills" />
-    <meta name="twitter:description" content="Browse amazing items and skills created by the BazaarGen community. Filter, search, and discover new creations!" />
+    <meta name="twitter:description" content="Browse amazing items, skills, and skill collections created by the BazaarGen community. Filter, search, and discover new creations!" />
     <meta name="twitter:image" content="https://bazaargen.com/images/site-preview.png" />
     
     <!-- External Libraries -->
@@ -130,6 +130,12 @@
             color: rgba(251, 225, 183, 0.6);
         }
         
+        /* Content type filter highlight */
+        #contentTypeFilter:focus {
+            border-color: rgb(138, 43, 226);
+            box-shadow: 0 0 10px rgba(138, 43, 226, 0.3);
+        }
+        
         /* Skill card specific styles */
         .skill-card-wrapper {
             margin-bottom: 30px;
@@ -159,6 +165,120 @@
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             min-width: 450px;
         }
+
+        /* Enhanced collection card styling */
+        .skill-collection-card-wrapper {
+            margin-bottom: 30px;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .skill-collection-card-wrapper:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Collection header gradient animation */
+        .skill-collection-main-header {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill-collection-main-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255, 255, 255, 0.1) 50%, transparent 70%);
+            animation: shimmer 3s infinite;
+            pointer-events: none;
+        }
+
+        @keyframes shimmer {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Collection skills preview grid enhancements */
+        .collection-skills-preview {
+            position: relative;
+        }
+
+        .collection-skills-preview::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 0%, rgba(138, 43, 226, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        /* Skill preview cards hover effects */
+        .skill-preview-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .skill-preview-card::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(218, 165, 32, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .skill-preview-card:hover::after {
+            left: 100%;
+        }
+
+        /* Collection type indicator */
+        .collection-type-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(138, 43, 226, 0.9);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 10;
+        }
+
+        /* Collection actions button styling */
+        .collection-action-btn {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .collection-action-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            transform: translate(-50%, -50%);
+        }
+
+        .collection-action-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
         
         /* Stats bar enhancements */
         .stats-bar {
@@ -171,6 +291,25 @@
             border-radius: 8px;
             color: rgb(251, 225, 183);
             font-weight: bold;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stats-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(218, 165, 32, 0.1), transparent);
+            animation: statsShimmer 4s infinite;
+        }
+
+        @keyframes statsShimmer {
+            0% { left: -100%; }
+            50% { left: 100%; }
+            100% { left: 100%; }
         }
         
         .stat-item {
@@ -255,43 +394,25 @@
             gap: 20px;
             margin: 20px 0;
         }
-        
-        /* Keyboard shortcuts help */
-        .keyboard-shortcuts {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(37, 26, 12, 0.95);
-            border: 2px solid rgb(218, 165, 32);
-            border-radius: 8px;
-            padding: 15px;
-            color: rgb(251, 225, 183);
-            font-size: 12px;
-            max-width: 200px;
-            z-index: 1000;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-            opacity: 0.7;
+
+        /* Loading state for collections */
+        .collection-loading {
+            background: linear-gradient(90deg, 
+                rgba(138, 43, 226, 0.1) 0%, 
+                rgba(138, 43, 226, 0.3) 50%, 
+                rgba(138, 43, 226, 0.1) 100%);
+            animation: collectionPulse 1.5s ease-in-out infinite;
         }
-        
-        .keyboard-shortcuts:hover {
-            opacity: 1;
+
+        @keyframes collectionPulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
         }
-        
-        .keyboard-shortcuts h4 {
-            margin: 0 0 10px 0;
-            color: rgb(218, 165, 32);
-            font-size: 14px;
-        }
-        
-        .shortcut-key {
-            background: rgb(218, 165, 32);
-            color: rgb(37, 26, 12);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: bold;
-            margin-right: 8px;
-        }
+
+        /* Collection size indicator colors */
+        .collection-size-small { color: #4CAF50; }
+        .collection-size-medium { color: #FF9800; }
+        .collection-size-large { color: #F44336; }
         
         /* Responsive design */
         @media (max-width: 768px) {
@@ -316,9 +437,27 @@
                 gap: 15px;
                 text-align: center;
             }
+
+            .skill-collection-card-wrapper {
+                margin-bottom: 20px;
+            }
             
-            .keyboard-shortcuts {
-                display: none;
+            .skill-collection-main-header {
+                padding: 12px 15px;
+                font-size: 14px;
+            }
+            
+            .collection-skills-preview {
+                padding: 15px;
+            }
+            
+            .collection-actions-section {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .collection-action-btn {
+                width: 100%;
             }
         }
         
@@ -420,7 +559,7 @@
         <!-- Header -->
         <div class="page-header">
             <h1 class="page-title">Community Browser</h1>
-            <p class="page-subtitle">Discover amazing items and skills from the BazaarGen community</p>
+            <p class="page-subtitle">Discover amazing items, skills, and skill collections from the BazaarGen community</p>
         </div>
 
         <!-- Tab Navigation (will be inserted by JavaScript) -->
@@ -462,7 +601,7 @@
 
         <!-- Content Grid -->
         <div id="itemsGrid" class="items-grid">
-            <!-- Generated items/skills will appear here -->
+            <!-- Generated items/skills/collections will appear here -->
         </div>
 
         <!-- Load More Section -->
@@ -477,15 +616,6 @@
         </div>
     </div>
 
-    <!-- Keyboard Shortcuts Help -->
-    <div class="keyboard-shortcuts">
-        <h4>⌨️ Shortcuts</h4>
-        <div><span class="shortcut-key">1</span> Items</div>
-        <div><span class="shortcut-key">2</span> Skills</div>
-        <div><span class="shortcut-key">R</span> Refresh</div>
-        <div><span class="shortcut-key">Ctrl+E</span> Export</div>
-    </div>
-
     <!-- Footer -->
     <footer style="background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(89, 72, 51) 100%); border-top: 3px solid rgb(251, 225, 183); margin-top: 40px; padding: 30px 0; text-align: center; box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.3);">
         <div style="max-width: 800px; margin: 0 auto; padding: 0 20px;">
@@ -493,7 +623,7 @@
                 ⚔️ BazaarGen Community Browser ⚔️
             </div>
             <div style="color: rgb(201, 175, 133); font-size: 1em; margin-bottom: 20px; line-height: 1.6;">
-                Explore amazing items and skills from the BazaarGen community. Filter, search, and discover new creations!
+                Explore amazing items, skills, and skill collections from the BazaarGen community. Filter, search, and discover new creations!
             </div>
             
             <div style="display: flex; justify-content: center; gap: 20px; margin: 20px 0; flex-wrap: wrap;">
@@ -504,6 +634,10 @@
                 <div style="background: rgba(138, 43, 226, 0.1); padding: 10px 15px; border-radius: 6px; border: 1px solid rgba(138, 43, 226, 0.3);">
                     <div style="color: rgb(138, 43, 226); font-weight: bold;">⚡ Skills</div>
                     <div style="color: rgb(201, 175, 133); font-size: 0.9em;">Abilities & spells</div>
+                </div>
+                <div style="background: rgba(106, 13, 173, 0.1); padding: 10px 15px; border-radius: 6px; border: 1px solid rgba(106, 13, 173, 0.3);">
+                    <div style="color: rgb(106, 13, 173); font-weight: bold;">📦 Collections</div>
+                    <div style="color: rgb(201, 175, 133); font-size: 0.9em;">Curated skill sets</div>
                 </div>
             </div>
             
@@ -587,7 +721,46 @@
             if (window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1')) {
                 enableDebugMode();
             }
+
+            // Content type filter handler
+            const contentTypeFilter = document.getElementById('contentTypeFilter');
+            if (contentTypeFilter) {
+                contentTypeFilter.addEventListener('change', (e) => {
+                    const filterValue = e.target.value;
+                    
+                    // Update the Enhanced Browse Controller with content type filtering
+                    if (window.EnhancedBrowsePageController) {
+                        window.EnhancedBrowsePageController.contentTypeFilter = filterValue;
+                        window.EnhancedBrowsePageController.handleFilterChange();
+                    }
+                    
+                    // Update UI to show what type of content is being displayed
+                    updateContentTypeIndicator(filterValue);
+                });
+            }
         });
+
+        function updateContentTypeIndicator(filterValue) {
+            const statsBar = document.querySelector('.stats-bar');
+            if (!statsBar) return;
+            
+            // Remove existing indicator
+            const existingIndicator = statsBar.querySelector('.content-type-indicator');
+            if (existingIndicator) {
+                existingIndicator.remove();
+            }
+            
+            // Add new indicator if filter is active
+            if (filterValue) {
+                const indicator = document.createElement('div');
+                indicator.className = 'stat-item content-type-indicator';
+                indicator.innerHTML = `
+                    <span style="color: rgb(138, 43, 226);">📋 Showing:</span> 
+                    <span class="stat-value">${filterValue === 'skills' ? 'Skills Only' : 'Collections Only'}</span>
+                `;
+                statsBar.appendChild(indicator);
+            }
+        }
 
         // Debug functions
         function enableDebugMode() {
@@ -611,8 +784,9 @@
             const info = {
                 'Controller': typeof EnhancedBrowsePageController !== 'undefined' ? '✅' : '❌',
                 'SupabaseClient': typeof SupabaseClient !== 'undefined' ? '✅' : '❌',
-                'Active Tab': window.BrowsePageHelpers?.getCurrentTab() || 'unknown',
-                'Current Stats': window.BrowsePageHelpers?.getCurrentStats() || {},
+                'Active Tab': window.EnhancedBrowsePageController?.activeTab || 'unknown',
+                'Skills': window.EnhancedBrowsePageController?.allSkills?.length || 0,
+                'Collections': window.EnhancedBrowsePageController?.allSkillCollections?.length || 0,
                 'Database Ready': SupabaseClient?.isReady() || false
             };
             
@@ -632,9 +806,9 @@
         window.debugBrowsePage = () => {
             console.log('=== Enhanced Browse Page Debug Info ===');
             console.log('Controller available:', typeof EnhancedBrowsePageController !== 'undefined');
-            console.log('Active tab:', window.BrowsePageHelpers?.getCurrentTab());
-            console.log('Current filters:', window.BrowsePageHelpers?.getCurrentFilters());
-            console.log('Current stats:', window.BrowsePageHelpers?.getCurrentStats());
+            console.log('Active tab:', window.EnhancedBrowsePageController?.activeTab);
+            console.log('Skills loaded:', window.EnhancedBrowsePageController?.allSkills?.length);
+            console.log('Collections loaded:', window.EnhancedBrowsePageController?.allSkillCollections?.length);
             console.log('Dependencies:', {
                 SupabaseClient: typeof SupabaseClient !== 'undefined',
                 GoogleAuth: typeof GoogleAuth !== 'undefined',
@@ -645,32 +819,20 @@
             });
         };
 
-        // Quick access functions for browser console
-        window.switchToItems = () => window.BrowsePageHelpers?.switchToTab('items');
-        window.switchToSkills = () => window.BrowsePageHelpers?.switchToTab('skills');
-        window.refreshBrowse = () => window.BrowsePageHelpers?.refreshCurrentTab();
-        window.exportBrowse = () => window.BrowsePageHelpers?.exportCurrentView();
+        // Collection export helper
+        window.exportCollection = function(collection) {
+            if (window.EnhancedBrowsePageController?.exportCollection) {
+                window.EnhancedBrowsePageController.exportCollection(collection);
+            }
+        };
 
-        // Add some keyboard shortcuts for development
-        document.addEventListener('keydown', (e) => {
-            // Only in development mode
-            if (window.location.hostname !== 'localhost' && !window.location.hostname.includes('127.0.0.1')) {
-                return;
+        // Collection gallery helper
+        window.viewCollectionGallery = function(collection, startIndex = 0) {
+            if (window.EnhancedBrowsePageController?.openCollectionGallery) {
+                window.EnhancedBrowsePageController.openCollectionGallery(collection, startIndex);
             }
-            
-            // Alt+D to toggle debug panel
-            if (e.altKey && e.key === 'd') {
-                e.preventDefault();
-                toggleDebugPanel();
-            }
-            
-            // Alt+R to reload page
-            if (e.altKey && e.key === 'r') {
-                e.preventDefault();
-                window.location.reload();
-            }
-        });
-
+        };
+        
         // Performance monitoring
         if (typeof performance !== 'undefined') {
             window.addEventListener('load', () => {
@@ -703,6 +865,8 @@
             console.error('🚨 Unhandled promise rejection:', e.reason);
             e.preventDefault(); // Prevent the default browser behavior
         });
+
+        console.log('🎉 Enhanced Browse Page with Skill Collections loaded!');
     </script>
 </body>
 </html>
