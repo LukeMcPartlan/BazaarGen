@@ -1,14 +1,16 @@
 /**
- * Enhanced Browse Page Controller with Skills Tab Support
- * Complete implementation for browsing both community items and skills
+ * Enhanced Browse Page Controller with Skills Tab Support and Skill Collections
+ * Complete implementation for browsing both community items, skills, and skill collections
  * Save as: js/pages/enhanced-browse-js.js
  */
 class EnhancedBrowsePageController {
   
   static allItems = [];
   static allSkills = [];
+  static allSkillCollections = [];
   static displayedItems = [];
   static displayedSkills = [];
+  static displayedSkillCollections = [];
   static collections = new Map();
   static skillCollections = new Map();
   static currentPage = 0;
@@ -16,8 +18,10 @@ class EnhancedBrowsePageController {
   static ITEMS_PER_LOAD = 5;
   static isLoading = false;
   static isSkillsLoading = false;
+  static isLoadingCollections = false;
   static isInitialized = false;
   static activeTab = 'items'; // 'items' or 'skills'
+  static contentTypeFilter = '';
 
   /**
    * Initialize the enhanced browse page
@@ -49,7 +53,7 @@ class EnhancedBrowsePageController {
     const pageSubtitle = pageHeader.querySelector('.page-subtitle');
     
     if (pageTitle) pageTitle.textContent = 'Community Browser';
-    if (pageSubtitle) pageSubtitle.textContent = 'Discover amazing items and skills from the BazaarGen community';
+    if (pageSubtitle) pageSubtitle.textContent = 'Discover amazing items, skills, and skill collections from the BazaarGen community';
 
     // Create tab navigation
     const tabContainer = document.createElement('div');
@@ -223,6 +227,15 @@ class EnhancedBrowsePageController {
       </div>
 
       <div class="control-group">
+        <label class="control-label">Content Type</label>
+        <select id="contentTypeFilter" class="control-select">
+          <option value="">All Content</option>
+          <option value="skills">Individual Skills Only</option>
+          <option value="collections">Collections Only</option>
+        </select>
+      </div>
+
+      <div class="control-group">
         <label class="control-label">Rarity Filter</label>
         <select id="rarityFilter" class="control-select">
           <option value="">All Rarities</option>
@@ -235,8 +248,8 @@ class EnhancedBrowsePageController {
       </div>
 
       <div class="control-group">
-        <label class="control-label">Search Skills</label>
-        <input type="text" id="skillSearchInput" class="control-input" placeholder="Search skill names...">
+        <label class="control-label">Search Content</label>
+        <input type="text" id="skillSearchInput" class="control-input" placeholder="Search skills/collections...">
       </div>
 
       <div class="control-group">
@@ -250,12 +263,12 @@ class EnhancedBrowsePageController {
       </div>
 
       <div class="control-group">
-        <label class="control-label">Effect Length</label>
+        <label class="control-label">Collection Size</label>
         <select id="lengthFilter" class="control-select">
-          <option value="">Any Length</option>
-          <option value="short">Short (< 100 chars)</option>
-          <option value="medium">Medium (100-200 chars)</option>
-          <option value="long">Long (> 200 chars)</option>
+          <option value="">Any Size</option>
+          <option value="short">Small (≤3 skills)</option>
+          <option value="medium">Medium (4-8 skills)</option>
+          <option value="long">Large (9+ skills)</option>
         </select>
       </div>
     `;
@@ -286,7 +299,7 @@ class EnhancedBrowsePageController {
     const existingElements = [
       'sortBy', 'heroFilter', 'searchInput', 'contestFilter',
       'skillSortBy', 'rarityFilter', 'skillSearchInput', 'keywordFilter', 
-      'creatorFilter', 'lengthFilter'
+      'creatorFilter', 'lengthFilter', 'contentTypeFilter'
     ];
 
     existingElements.forEach(id => {
@@ -306,6 +319,7 @@ class EnhancedBrowsePageController {
     this.addEventListenerIfExists('rarityFilter', 'change', () => this.handleFilterChange());
     this.addEventListenerIfExists('creatorFilter', 'input', () => this.handleFilterChange());
     this.addEventListenerIfExists('lengthFilter', 'change', () => this.handleFilterChange());
+    this.addEventListenerIfExists('contentTypeFilter', 'change', () => this.handleFilterChange());
 
     // Debounced search inputs
     let searchTimeout, skillSearchTimeout, keywordTimeout;
@@ -335,8 +349,23 @@ class EnhancedBrowsePageController {
       if (window.innerHeight + window.scrollY >= document.documentElement.offsetHeight - 200) {
         if (this.activeTab === 'items' && !this.isLoading && this.displayedItems.length < this.allItems.length) {
           this.loadMoreItems();
-        } else if (this.activeTab === 'skills' && !this.isSkillsLoading && this.displayedSkills.length < this.allSkills.length) {
-          this.loadMoreSkills();
+        } else if (this.activeTab === 'skills' && !this.isSkillsLoading) {
+          const filters = this.getSkillFilters();
+          const contentType = filters.contentType;
+          
+          let hasMoreContent = false;
+          if (contentType === 'skills') {
+            hasMoreContent = this.displayedSkills.length < this.allSkills.length;
+          } else if (contentType === 'collections') {
+            hasMoreContent = this.displayedSkillCollections.length < this.allSkillCollections.length;
+          } else {
+            hasMoreContent = this.displayedSkills.length < this.allSkills.length || 
+                            this.displayedSkillCollections.length < this.allSkillCollections.length;
+          }
+          
+          if (hasMoreContent) {
+            this.loadMoreSkills();
+          }
         }
       }
     });
@@ -390,7 +419,7 @@ class EnhancedBrowsePageController {
   }
 
   /**
-   * Load skills from database with enhanced filtering
+   * Load skills and collections from database with enhanced filtering
    */
   static async loadSkills() {
     if (this.isSkillsLoading) return;
@@ -400,19 +429,25 @@ class EnhancedBrowsePageController {
     this.hideMessages();
 
     try {
-      console.log('📚 Loading skills...');
+      console.log('📚 Loading skills and collections...');
       const filters = this.getSkillFilters();
       console.log('🔍 Skill filters:', filters);
       
-      const skills = await SupabaseClient.loadSkills(filters);
+      // Load both individual skills and collections in parallel
+      const [skills, collections] = await Promise.all([
+        SupabaseClient.loadSkills(filters),
+        SupabaseClient.loadSkillCollections(filters)
+      ]);
       
       this.allSkills = skills || [];
+      this.allSkillCollections = collections || [];
       this.displayedSkills = [];
+      this.displayedSkillCollections = [];
       this.currentSkillPage = 0;
       
-      console.log(`📊 Loaded ${this.allSkills.length} skills`);
+      console.log(`📊 Loaded ${this.allSkills.length} skills and ${this.allSkillCollections.length} collections`);
       
-      // Detect and organize skill collections
+      // Detect and organize skill collections from individual skills
       this.detectSkillCollections(this.allSkills);
       
       // Clear the grid before adding new items
@@ -424,12 +459,12 @@ class EnhancedBrowsePageController {
       this.isSkillsLoading = false;
       this.showLoading(false);
       
-      // Force load initial skills
+      // Force load initial content
       this.loadMoreSkills();
 
     } catch (error) {
-      console.error('❌ Error loading skills:', error);
-      this.showError('Failed to load skills: ' + error.message);
+      console.error('❌ Error loading skills and collections:', error);
+      this.showError('Failed to load skills and collections: ' + error.message);
       this.isSkillsLoading = false;
       this.showLoading(false);
     }
@@ -493,28 +528,84 @@ class EnhancedBrowsePageController {
   }
 
   /**
-   * Load more skills for display
+   * Load more skills and collections for display
    */
   static async loadMoreSkills() {
-    if (this.isSkillsLoading || this.displayedSkills.length >= this.allSkills.length) {
+    if (this.isSkillsLoading) return;
+
+    const filters = this.getSkillFilters();
+    const contentTypeFilter = filters.contentType;
+
+    // Calculate remaining items based on content type filter
+    let remainingSkills = 0;
+    let remainingCollections = 0;
+    
+    if (contentTypeFilter === 'skills') {
+      remainingSkills = this.allSkills.length - this.displayedSkills.length;
+    } else if (contentTypeFilter === 'collections') {
+      remainingCollections = this.allSkillCollections.length - this.displayedSkillCollections.length;
+    } else {
+      // Show both
+      remainingSkills = this.allSkills.length - this.displayedSkills.length;
+      remainingCollections = this.allSkillCollections.length - this.displayedSkillCollections.length;
+    }
+    
+    if (remainingSkills === 0 && remainingCollections === 0) {
       return;
     }
 
-    const startIndex = this.displayedSkills.length;
-    const endIndex = Math.min(startIndex + this.ITEMS_PER_LOAD, this.allSkills.length);
-    const newSkills = this.allSkills.slice(startIndex, endIndex);
+    console.log(`🔄 Loading more content (filter: ${contentTypeFilter || 'all'}): ${remainingSkills} skills, ${remainingCollections} collections remaining`);
 
-    console.log(`🔄 Loading skills ${startIndex + 1}-${endIndex} of ${this.allSkills.length}`);
+    let skillsToLoad = 0;
+    let collectionsToLoad = 0;
 
-    for (const skill of newSkills) {
-      try {
-        const skillCard = await this.createSkillCard(skill);
-        if (skillCard && this.itemsGrid) {
-          this.itemsGrid.appendChild(skillCard);
-          this.displayedSkills.push(skill);
+    if (contentTypeFilter === 'skills') {
+      // Load only skills
+      skillsToLoad = Math.min(this.ITEMS_PER_LOAD, remainingSkills);
+    } else if (contentTypeFilter === 'collections') {
+      // Load only collections
+      collectionsToLoad = Math.min(this.ITEMS_PER_LOAD, remainingCollections);
+    } else {
+      // Load both (interleaved) - Collections first as they're more interesting
+      collectionsToLoad = Math.min(Math.floor(this.ITEMS_PER_LOAD * 0.3), remainingCollections);
+      skillsToLoad = Math.min(Math.ceil(this.ITEMS_PER_LOAD * 0.7), remainingSkills);
+    }
+
+    // Load collections if allowed
+    if (collectionsToLoad > 0) {
+      const startIndex = this.displayedSkillCollections.length;
+      const endIndex = startIndex + collectionsToLoad;
+      const newCollections = this.allSkillCollections.slice(startIndex, endIndex);
+
+      for (const collection of newCollections) {
+        try {
+          const collectionCard = await this.createSkillCollectionCard(collection);
+          if (collectionCard && this.itemsGrid) {
+            this.itemsGrid.appendChild(collectionCard);
+            this.displayedSkillCollections.push(collection);
+          }
+        } catch (error) {
+          console.error(`Failed to create collection card for ${collection.name}:`, error);
         }
-      } catch (error) {
-        console.error(`Failed to create skill card for skill ${skill.id}:`, error);
+      }
+    }
+
+    // Load skills if allowed
+    if (skillsToLoad > 0) {
+      const startIndex = this.displayedSkills.length;
+      const endIndex = startIndex + skillsToLoad;
+      const newSkills = this.allSkills.slice(startIndex, endIndex);
+
+      for (const skill of newSkills) {
+        try {
+          const skillCard = await this.createSkillCard(skill);
+          if (skillCard && this.itemsGrid) {
+            this.itemsGrid.appendChild(skillCard);
+            this.displayedSkills.push(skill);
+          }
+        } catch (error) {
+          console.error(`Failed to create skill card for skill ${skill.id}:`, error);
+        }
       }
     }
 
@@ -522,9 +613,522 @@ class EnhancedBrowsePageController {
     this.updateLoadMoreButton();
     
     // Force a check if we need to load more immediately
-    if (this.displayedSkills.length < 20 && this.displayedSkills.length < this.allSkills.length) {
+    const totalDisplayed = this.displayedSkills.length + this.displayedSkillCollections.length;
+    const totalAvailable = this.allSkills.length + this.allSkillCollections.length;
+    
+    if (totalDisplayed < 20 && totalDisplayed < totalAvailable) {
       setTimeout(() => this.loadMoreSkills(), 100);
     }
+  }
+
+  /**
+   * Create skill collection card element
+   */
+  static async createSkillCollectionCard(collection) {
+    if (!collection.skills_data || !Array.isArray(collection.skills_data)) {
+      console.warn(`Collection ${collection.id} has no skills_data`);
+      return null;
+    }
+
+    try {
+      // Create a wrapper div for the entire collection card section
+      const cardWrapper = document.createElement('div');
+      cardWrapper.className = 'skill-collection-card-wrapper';
+      cardWrapper.style.cssText = 'margin-bottom: 30px;';
+
+      // Create collection header
+      const collectionHeader = this.createCollectionMainHeader(collection);
+      cardWrapper.appendChild(collectionHeader);
+
+      // Create creator info section
+      const creatorInfo = document.createElement('div');
+      creatorInfo.className = 'collection-creator-info';
+      creatorInfo.style.cssText = `
+        padding: 12px 20px;
+        background: linear-gradient(135deg, rgba(74, 60, 46, 0.9) 0%, rgba(37, 26, 12, 0.8) 100%);
+        border: 2px solid rgb(138, 43, 226);
+        border-radius: 0;
+        border-top: none;
+        font-size: 14px;
+        color: rgb(251, 225, 183);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        min-width: 450px;
+      `;
+
+      const creatorAlias = collection.user_alias || 'Unknown Creator';
+      const createdDate = new Date(collection.created_at).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+
+      // Calculate collection stats
+      const rarityStats = this.calculateCollectionRarityStats(collection.skills_data);
+      const avgEffectLength = this.calculateAverageEffectLength(collection.skills_data);
+
+      creatorInfo.innerHTML = `
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-weight: 600; color: rgb(251, 225, 183);">
+            <span style="color: rgb(138, 43, 226);">Created by:</span> ${creatorAlias}
+          </span>
+          <div style="display: flex; gap: 15px; font-size: 12px; color: rgb(201, 175, 133);">
+            <span>📅 ${createdDate}</span>
+            <span>⚡ ${collection.skill_count} skills</span>
+            <span>📝 ~${avgEffectLength} chars avg</span>
+            <span style="color: ${this.getRarityColor(rarityStats.dominant)};">💎 ${rarityStats.dominant.toUpperCase()}</span>
+          </div>
+        </div>
+      `;
+
+      // Create collection description if available
+      if (collection.description) {
+        const descriptionSection = document.createElement('div');
+        descriptionSection.style.cssText = `
+          padding: 15px 20px;
+          background: rgba(37, 26, 12, 0.7);
+          border: 2px solid rgb(138, 43, 226);
+          border-top: none;
+          color: rgb(251, 225, 183);
+          font-size: 14px;
+          line-height: 1.5;
+          font-style: italic;
+          min-width: 450px;
+        `;
+        descriptionSection.textContent = collection.description;
+        cardWrapper.appendChild(descriptionSection);
+      }
+
+      // Create skills preview section
+      const previewSection = this.createCollectionSkillsPreview(collection);
+      cardWrapper.appendChild(previewSection);
+
+      // Create action buttons section
+      const actionsSection = this.createCollectionActionsSection(collection);
+      cardWrapper.appendChild(actionsSection);
+
+      // Create comments section for collections (placeholder)
+      const commentsSection = this.createCollectionCommentsSection(collection.id);
+      cardWrapper.appendChild(commentsSection);
+
+      // Assemble the wrapper
+      cardWrapper.appendChild(creatorInfo);
+
+      return cardWrapper;
+    } catch (error) {
+      console.error('Error creating skill collection card:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create main collection header
+   */
+  static createCollectionMainHeader(collection) {
+    const header = document.createElement('div');
+    header.className = 'skill-collection-main-header';
+    header.style.cssText = `
+      background: linear-gradient(135deg, rgb(138, 43, 226) 0%, rgb(106, 13, 173) 100%);
+      color: white;
+      padding: 15px 20px;
+      border-radius: 12px 12px 0 0;
+      margin-bottom: 0;
+      border: 2px solid rgb(138, 43, 226);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 16px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      min-width: 450px;
+    `;
+
+    const headerInfo = document.createElement('div');
+    headerInfo.innerHTML = `
+      <div style="font-weight: bold; margin-bottom: 4px; font-size: 18px;">
+        📦 ${collection.name}
+      </div>
+      <div style="font-size: 14px; opacity: 0.9;">
+        Skill Collection • ${collection.skill_count} skills
+      </div>
+    `;
+
+    const viewButton = document.createElement('button');
+    viewButton.style.cssText = `
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: white;
+      padding: 8px 16px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    `;
+    viewButton.innerHTML = `🖼️ View Collection`;
+    viewButton.title = `View all ${collection.skill_count} skills in gallery`;
+
+    viewButton.onmouseenter = () => {
+      viewButton.style.background = 'rgba(255, 255, 255, 0.3)';
+    };
+
+    viewButton.onmouseleave = () => {
+      viewButton.style.background = 'rgba(255, 255, 255, 0.2)';
+    };
+
+    viewButton.onclick = () => {
+      this.openCollectionGallery(collection);
+    };
+
+    header.appendChild(headerInfo);
+    header.appendChild(viewButton);
+
+    return header;
+  }
+
+  /**
+   * Create skills preview section for collection
+   */
+  static createCollectionSkillsPreview(collection) {
+    const previewSection = document.createElement('div');
+    previewSection.style.cssText = `
+      padding: 20px;
+      background: linear-gradient(135deg, rgba(74, 60, 46, 0.9) 0%, rgba(37, 26, 12, 0.8) 100%);
+      border: 2px solid rgb(138, 43, 226);
+      border-top: none;
+      min-width: 450px;
+    `;
+
+    const previewTitle = document.createElement('div');
+    previewTitle.style.cssText = `
+      font-weight: bold;
+      color: rgb(251, 225, 183);
+      margin-bottom: 15px;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    `;
+    previewTitle.textContent = '⚡ Skills Preview';
+
+    const skillsContainer = document.createElement('div');
+    skillsContainer.style.cssText = `
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 10px;
+      max-height: 300px;
+      overflow-y: auto;
+    `;
+
+    // Show first 6 skills as preview
+    const previewSkills = collection.skills_data.slice(0, 6);
+    previewSkills.forEach(skill => {
+      const skillPreview = document.createElement('div');
+      skillPreview.style.cssText = `
+        background: rgba(37, 26, 12, 0.7);
+        border: 1px solid rgba(218, 165, 32, 0.3);
+        border-radius: 6px;
+        padding: 12px;
+        transition: all 0.3s ease;
+        cursor: pointer;
+      `;
+
+      skillPreview.innerHTML = `
+        <div style="font-weight: bold; color: rgb(218, 165, 32); margin-bottom: 8px; font-size: 14px;">
+          ${skill.skillName || 'Unnamed Skill'}
+        </div>
+        <div style="color: ${this.getRarityColor(skill.border || 'gold')}; font-size: 12px; margin-bottom: 8px;">
+          ${(skill.border || 'gold').toUpperCase()}
+        </div>
+        <div style="color: rgb(201, 175, 133); font-size: 12px; line-height: 1.4; max-height: 60px; overflow: hidden;">
+          ${(skill.skillEffect || 'No description').substring(0, 100)}${skill.skillEffect?.length > 100 ? '...' : ''}
+        </div>
+      `;
+
+      skillPreview.onmouseenter = () => {
+        skillPreview.style.background = 'rgba(218, 165, 32, 0.1)';
+        skillPreview.style.borderColor = 'rgba(218, 165, 32, 0.6)';
+      };
+
+      skillPreview.onmouseleave = () => {
+        skillPreview.style.background = 'rgba(37, 26, 12, 0.7)';
+        skillPreview.style.borderColor = 'rgba(218, 165, 32, 0.3)';
+      };
+
+      skillPreview.onclick = () => {
+        this.openCollectionGallery(collection, previewSkills.indexOf(skill));
+      };
+
+      skillsContainer.appendChild(skillPreview);
+    });
+
+    // Show "and X more" if there are more skills
+    if (collection.skills_data.length > 6) {
+      const moreIndicator = document.createElement('div');
+      moreIndicator.style.cssText = `
+        background: rgba(138, 43, 226, 0.3);
+        border: 2px dashed rgba(138, 43, 226, 0.6);
+        border-radius: 6px;
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        color: rgb(138, 43, 226);
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      `;
+
+      const remaining = collection.skills_data.length - 6;
+      moreIndicator.innerHTML = `
+        <div>
+          <div style="font-size: 24px; margin-bottom: 4px;">+</div>
+          <div style="font-size: 12px;">${remaining} more skill${remaining !== 1 ? 's' : ''}</div>
+        </div>
+      `;
+
+      moreIndicator.onclick = () => {
+        this.openCollectionGallery(collection, 6);
+      };
+
+      moreIndicator.onmouseenter = () => {
+        moreIndicator.style.background = 'rgba(138, 43, 226, 0.5)';
+      };
+
+      moreIndicator.onmouseleave = () => {
+        moreIndicator.style.background = 'rgba(138, 43, 226, 0.3)';
+      };
+
+      skillsContainer.appendChild(moreIndicator);
+    }
+
+    previewSection.appendChild(previewTitle);
+    previewSection.appendChild(skillsContainer);
+
+    return previewSection;
+  }
+
+  /**
+   * Create collection actions section
+   */
+  static createCollectionActionsSection(collection) {
+    const actionsSection = document.createElement('div');
+    actionsSection.style.cssText = `
+      padding: 15px 20px;
+      background: linear-gradient(135deg, rgba(101, 84, 63, 0.95) 0%, rgba(89, 72, 51, 0.9) 100%);
+      border: 2px solid rgb(138, 43, 226);
+      border-top: none;
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      align-items: center;
+      min-width: 450px;
+    `;
+
+    // View Gallery button
+    const viewGalleryBtn = document.createElement('button');
+    viewGalleryBtn.style.cssText = `
+      background: linear-gradient(135deg, rgb(138, 43, 226) 0%, rgb(106, 13, 173) 100%);
+      color: white;
+      border: 2px solid white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    `;
+    viewGalleryBtn.textContent = '🖼️ View Gallery';
+    viewGalleryBtn.onclick = () => this.openCollectionGallery(collection);
+
+    // Like/Save button (placeholder)
+    const saveBtn = document.createElement('button');
+    saveBtn.style.cssText = `
+      background: transparent;
+      color: rgb(251, 225, 183);
+      border: 2px solid rgb(218, 165, 32);
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    `;
+    saveBtn.textContent = '⭐ Save Collection';
+    saveBtn.onclick = () => {
+      Messages.showInfo('Collection saving feature coming soon!');
+    };
+
+    // Download/Export button
+    const exportBtn = document.createElement('button');
+    exportBtn.style.cssText = `
+      background: transparent;
+      color: rgb(251, 225, 183);
+      border: 2px solid rgb(251, 225, 183);
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    `;
+    exportBtn.textContent = '📥 Export';
+    exportBtn.onclick = () => this.exportCollection(collection);
+
+    actionsSection.appendChild(viewGalleryBtn);
+    actionsSection.appendChild(saveBtn);
+    actionsSection.appendChild(exportBtn);
+
+    return actionsSection;
+  }
+
+  /**
+   * Create comments section for collections (placeholder)
+   */
+  static createCollectionCommentsSection(collectionId) {
+    const commentsContainer = document.createElement('div');
+    commentsContainer.className = 'collection-comments-section';
+    commentsContainer.style.cssText = `
+      background: linear-gradient(135deg, rgba(101, 84, 63, 0.95) 0%, rgba(89, 72, 51, 0.9) 100%);
+      border: 2px solid rgb(138, 43, 226);
+      border-radius: 0 0 12px 12px;
+      border-top: none;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      min-width: 450px;
+    `;
+
+    // Comments header
+    const header = document.createElement('div');
+    header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;';
+    header.innerHTML = `
+      <h4 style="margin: 0; color: rgb(251, 225, 183); font-size: 18px; text-transform: uppercase; letter-spacing: 1px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">📦 Collection Comments</h4>
+      <button class="toggle-comments-btn" style="
+        background: linear-gradient(135deg, rgb(138, 43, 226) 0%, rgb(106, 13, 173) 100%) !important;
+        border: 2px solid white !important;
+        padding: 6px 14px !important;
+        border-radius: 6px !important;
+        cursor: pointer;
+        font-size: 12px !important;
+        color: white !important;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+      ">Show/Hide</button>
+    `;
+
+    // Comments placeholder
+    const commentsList = document.createElement('div');
+    commentsList.innerHTML = `
+      <div style="padding: 30px !important; text-align: center !important; color: rgb(201, 175, 133) !important; font-style: italic !important; background: rgba(37, 26, 12, 0.3) !important; border: 2px dashed rgba(138, 43, 226, 0.3) !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important;">
+        💬 Collection comments feature coming soon!
+      </div>
+    `;
+
+    // Toggle functionality
+    const toggleBtn = header.querySelector('.toggle-comments-btn');
+    toggleBtn.addEventListener('click', () => {
+      const isHidden = commentsList.style.display === 'none';
+      commentsList.style.display = isHidden ? 'block' : 'none';
+      toggleBtn.textContent = isHidden ? 'Hide' : 'Show';
+    });
+
+    commentsContainer.appendChild(header);
+    commentsContainer.appendChild(commentsList);
+
+    return commentsContainer;
+  }
+
+  /**
+   * Open collection in gallery modal
+   */
+  static openCollectionGallery(collection, startIndex = 0) {
+    if (typeof GalleryModal !== 'undefined') {
+      GalleryModal.open(
+        collection.skills_data, 
+        startIndex,
+        {
+          name: collection.name,
+          description: collection.description,
+          itemCount: collection.skills_data.length,
+          type: 'skills',
+          creator: collection.user_alias
+        }
+      );
+    } else {
+      // Fallback if GalleryModal not available
+      alert(`Collection: ${collection.name}\nBy: ${collection.user_alias}\n${collection.skills_data.length} skills\nCreated: ${new Date(collection.created_at).toLocaleDateString()}\n\nGallery feature requires GalleryModal to be loaded.`);
+    }
+  }
+
+  /**
+   * Export collection as JSON
+   */
+  static exportCollection(collection) {
+    const exportData = {
+      version: "1.0",
+      timestamp: new Date().toISOString(),
+      type: "skill_collection",
+      collection: {
+        name: collection.name,
+        description: collection.description,
+        skill_count: collection.skill_count,
+        created_by: collection.user_alias,
+        created_at: collection.created_at
+      },
+      skills: collection.skills_data
+    };
+
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${collection.name.replace(/\s+/g, '-')}-collection.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    Messages.showSuccess(`Exported collection "${collection.name}" successfully!`);
+  }
+
+  /**
+   * Calculate collection rarity statistics
+   */
+  static calculateCollectionRarityStats(skills) {
+    const rarityCounts = {};
+    skills.forEach(skill => {
+      const rarity = skill.border || 'gold';
+      rarityCounts[rarity] = (rarityCounts[rarity] || 0) + 1;
+    });
+
+    // Find the most common rarity
+    let dominant = 'gold';
+    let maxCount = 0;
+    Object.entries(rarityCounts).forEach(([rarity, count]) => {
+      if (count > maxCount) {
+        maxCount = count;
+        dominant = rarity;
+      }
+    });
+
+    return { counts: rarityCounts, dominant };
+  }
+
+  /**
+   * Calculate average effect length in collection
+   */
+  static calculateAverageEffectLength(skills) {
+    let totalLength = 0;
+    skills.forEach(skill => {
+      totalLength += skill.skillEffect?.length || 0;
+    });
+    return Math.round(totalLength / skills.length);
   }
 
   /**
@@ -844,7 +1448,7 @@ class EnhancedBrowsePageController {
   }
 
   /**
-   * Get skill filter values
+   * Get skill filter values including content type
    */
   static getSkillFilters() {
     return {
@@ -853,7 +1457,8 @@ class EnhancedBrowsePageController {
       search: document.getElementById('skillSearchInput')?.value?.trim() || '',
       keywords: document.getElementById('keywordFilter')?.value?.trim() || '',
       creator: document.getElementById('creatorFilter')?.value?.trim() || '',
-      length: document.getElementById('lengthFilter')?.value || ''
+      length: document.getElementById('lengthFilter')?.value || '',
+      contentType: document.getElementById('contentTypeFilter')?.value || ''
     };
   }
 
@@ -870,7 +1475,7 @@ class EnhancedBrowsePageController {
   }
 
   /**
-   * Update statistics display
+   * Update statistics display with content type awareness
    */
   static updateStats() {
     if (this.activeTab === 'items') {
@@ -881,34 +1486,90 @@ class EnhancedBrowsePageController {
         this.showingItemsSpan.textContent = this.displayedItems.length;
       }
     } else if (this.activeTab === 'skills') {
+      const filters = this.getSkillFilters();
+      const contentType = filters.contentType;
+      
+      let totalCount, displayedCount, description;
+      
+      if (contentType === 'skills') {
+        totalCount = this.allSkills.length;
+        displayedCount = this.displayedSkills.length;
+        description = 'skills';
+      } else if (contentType === 'collections') {
+        totalCount = this.allSkillCollections.length;
+        displayedCount = this.displayedSkillCollections.length;
+        description = 'collections';
+      } else {
+        const totalSkills = this.allSkills.length;
+        const totalCollections = this.allSkillCollections.length;
+        const displayedSkills = this.displayedSkills.length;
+        const displayedCollections = this.displayedSkillCollections.length;
+        
+        totalCount = totalSkills + totalCollections;
+        displayedCount = displayedSkills + displayedCollections;
+        description = `(${displayedSkills}/${totalSkills} skills, ${displayedCollections}/${totalCollections} collections)`;
+      }
+      
       if (this.totalItemsSpan) {
-        this.totalItemsSpan.textContent = this.allSkills.length;
+        this.totalItemsSpan.textContent = contentType ? `${totalCount} ${description}` : `${totalCount} ${description}`;
       }
       if (this.showingItemsSpan) {
-        this.showingItemsSpan.textContent = this.displayedSkills.length;
+        this.showingItemsSpan.textContent = contentType ? `${displayedCount}` : `${displayedCount}`;
       }
     }
   }
 
   /**
-   * Update load more button visibility
+   * Update load more button visibility with content type awareness
    */
   static updateLoadMoreButton() {
-    const totalCount = this.activeTab === 'items' ? this.allItems.length : this.allSkills.length;
-    const displayedCount = this.activeTab === 'items' ? this.displayedItems.length : this.displayedSkills.length;
+    if (this.activeTab === 'items') {
+      const totalCount = this.allItems.length;
+      const displayedCount = this.displayedItems.length;
 
-    if (displayedCount >= totalCount) {
-      if (this.loadMoreBtn) this.loadMoreBtn.style.display = 'none';
-      if (this.endMessage) this.endMessage.style.display = displayedCount > 0 ? 'block' : 'none';
-    } else {
-      if (this.loadMoreBtn) this.loadMoreBtn.style.display = displayedCount > 0 ? 'block' : 'none';
-      if (this.endMessage) this.endMessage.style.display = 'none';
-    }
+      if (displayedCount >= totalCount) {
+        if (this.loadMoreBtn) this.loadMoreBtn.style.display = 'none';
+        if (this.endMessage) this.endMessage.style.display = displayedCount > 0 ? 'block' : 'none';
+      } else {
+        if (this.loadMoreBtn) this.loadMoreBtn.style.display = displayedCount > 0 ? 'block' : 'none';
+        if (this.endMessage) this.endMessage.style.display = 'none';
+      }
 
-    if (totalCount === 0) {
-      if (this.noResults) this.noResults.style.display = 'block';
-    } else {
-      if (this.noResults) this.noResults.style.display = 'none';
+      if (totalCount === 0) {
+        if (this.noResults) this.noResults.style.display = 'block';
+      } else {
+        if (this.noResults) this.noResults.style.display = 'none';
+      }
+    } else if (this.activeTab === 'skills') {
+      const filters = this.getSkillFilters();
+      const contentType = filters.contentType;
+      
+      let totalCount, displayedCount;
+      
+      if (contentType === 'skills') {
+        totalCount = this.allSkills.length;
+        displayedCount = this.displayedSkills.length;
+      } else if (contentType === 'collections') {
+        totalCount = this.allSkillCollections.length;
+        displayedCount = this.displayedSkillCollections.length;
+      } else {
+        totalCount = this.allSkills.length + this.allSkillCollections.length;
+        displayedCount = this.displayedSkills.length + this.displayedSkillCollections.length;
+      }
+
+      if (displayedCount >= totalCount) {
+        if (this.loadMoreBtn) this.loadMoreBtn.style.display = 'none';
+        if (this.endMessage) this.endMessage.style.display = displayedCount > 0 ? 'block' : 'none';
+      } else {
+        if (this.loadMoreBtn) this.loadMoreBtn.style.display = displayedCount > 0 ? 'block' : 'none';
+        if (this.endMessage) this.endMessage.style.display = 'none';
+      }
+
+      if (totalCount === 0) {
+        if (this.noResults) this.noResults.style.display = 'block';
+      } else {
+        if (this.noResults) this.noResults.style.display = 'none';
+      }
     }
   }
 
@@ -1519,10 +2180,4 @@ class EnhancedBrowsePageController {
 
 // Auto-initialize and replace the original BrowsePageController
 console.log('🚀 Enhanced Browse Page Controller loading...');
-EnhancedBrowsePageController.init();
-
-// Make available globally
-window.BrowsePageController = EnhancedBrowsePageController;
-window.EnhancedBrowsePageController = EnhancedBrowsePageController;
-
-console.log('✅ Enhanced Browse Page Controller loaded successfully');
+EnhancedBrowsePage
