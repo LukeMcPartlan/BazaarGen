@@ -1,6 +1,6 @@
 /**
  * Supabase Database Client with Skills Support and Debugging
- * Handles all database operations for cards, skills, and user profiles
+ * Handles all database operations for cards, skills, skill collections, and user profiles
  */
 class SupabaseClient {
   static supabase = null;
@@ -838,6 +838,116 @@ class SupabaseClient {
   }
 
   /**
+   * Load skill collections with filters for browse page
+   * @param {Object} options - Query options
+   * @returns {Promise<Array>} Array of skill collections
+   */
+  static async loadSkillCollections(options = {}) {
+    try {
+      this.debug('Loading skill collections from database with options:', options);
+      
+      if (!this.isReady()) {
+        throw new Error('Database not available');
+      }
+
+      // Start with base query - get all public skill collections
+      let query = this.supabase
+        .from('skill_collections')
+        .select('*')
+        .eq('is_public', true); // Only show public collections in browse
+
+      // Apply creator filter
+      if (options.creator) {
+        this.debug('Filtering collections by creator:', options.creator);
+        query = query.filter('user_alias', 'ilike', `%${options.creator}%`);
+      }
+
+      // Apply search filter (collection name or description)
+      if (options.search) {
+        this.debug('Searching collections for:', options.search);
+        query = query.or(`name.ilike.%${options.search}%,description.ilike.%${options.search}%`);
+      }
+
+      // Apply sorting
+      switch (options.sortBy) {
+        case 'oldest':
+          query = query.order('created_at', { ascending: true });
+          break;
+        case 'name':
+          query = query.order('name', { ascending: true });
+          break;
+        case 'name_desc':
+          query = query.order('name', { ascending: false });
+          break;
+        case 'recent':
+        default:
+          query = query.order('created_at', { ascending: false });
+          break;
+      }
+
+      const { data, error } = await query;
+
+      this.debug('Skill collections query result:', { data, error, count: data?.length });
+
+      if (error) {
+        this.debug('Skill collections query error:', error);
+        throw error;
+      }
+
+      let filteredCollections = data || [];
+
+      // Apply client-side filters for complex operations
+      if (options.keywords) {
+        const keywordLower = options.keywords.toLowerCase();
+        filteredCollections = filteredCollections.filter(collection => {
+          // Search in collection name, description, and within the skills data
+          const nameMatch = collection.name?.toLowerCase().includes(keywordLower);
+          const descMatch = collection.description?.toLowerCase().includes(keywordLower);
+          
+          // Search within skills in the collection
+          const skillsMatch = collection.skills_data?.some(skill => 
+            skill.skillEffect?.toLowerCase().includes(keywordLower) ||
+            skill.skillName?.toLowerCase().includes(keywordLower)
+          );
+          
+          return nameMatch || descMatch || skillsMatch;
+        });
+        this.debug('Applied keyword filter to collections:', options.keywords, 'Results:', filteredCollections.length);
+      }
+
+      if (options.rarity) {
+        filteredCollections = filteredCollections.filter(collection => {
+          // Check if any skill in the collection has the specified rarity
+          return collection.skills_data?.some(skill => 
+            skill.border === options.rarity
+          );
+        });
+        this.debug('Applied rarity filter to collections:', options.rarity, 'Results:', filteredCollections.length);
+      }
+
+      if (options.length) {
+        filteredCollections = filteredCollections.filter(collection => {
+          const skillCount = collection.skill_count || 0;
+          switch (options.length) {
+            case 'short': return skillCount <= 3;
+            case 'medium': return skillCount > 3 && skillCount <= 8;
+            case 'long': return skillCount > 8;
+            default: return true;
+          }
+        });
+        this.debug('Applied length filter to collections:', options.length, 'Results:', filteredCollections.length);
+      }
+
+      this.debug('Retrieved skill collections successfully:', filteredCollections.length, 'collections');
+      return filteredCollections;
+    } catch (error) {
+      this.debug('Error loading skill collections:', error);
+      console.error('Error loading skill collections:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Get skill statistics
    * @returns {Promise<Object>} Statistics about skills
    */
@@ -915,6 +1025,92 @@ class SupabaseClient {
         byRarity: { bronze: 0, silver: 0, gold: 0, diamond: 0, legendary: 0 },
         averageEffectLength: 0,
         byLengthCategory: { short: 0, medium: 0, long: 0 },
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Get skill collection statistics
+   * @returns {Promise<Object>} Statistics about skill collections
+   */
+  static async getSkillCollectionStatistics() {
+    try {
+      this.debug('Getting skill collection statistics...');
+      
+      if (!this.isReady()) {
+        throw new Error('Database not available');
+      }
+
+      // Get all public collections
+      const { data, error, count } = await this.supabase
+        .from('skill_collections')
+        .select('skill_count, skills_data', { count: 'exact' })
+        .eq('is_public', true);
+
+      if (error) {
+        this.debug('Skill collection statistics query error:', error);
+        throw error;
+      }
+
+      // Calculate statistics
+      const stats = {
+        totalCollections: count || 0,
+        totalSkillsInCollections: 0,
+        averageCollectionSize: 0,
+        bySizeCategory: {
+          small: 0,    // 1-3 skills
+          medium: 0,   // 4-8 skills  
+          large: 0     // 9+ skills
+        },
+        byRarity: {
+          bronze: 0,
+          silver: 0,
+          gold: 0,
+          diamond: 0,
+          legendary: 0
+        }
+      };
+
+      if (data && data.length > 0) {
+        data.forEach(collection => {
+          const skillCount = collection.skill_count || 0;
+          stats.totalSkillsInCollections += skillCount;
+
+          // Size categories
+          if (skillCount <= 3) {
+            stats.bySizeCategory.small++;
+          } else if (skillCount <= 8) {
+            stats.bySizeCategory.medium++;
+          } else {
+            stats.bySizeCategory.large++;
+          }
+
+          // Count rarities in collection skills
+          if (collection.skills_data && Array.isArray(collection.skills_data)) {
+            collection.skills_data.forEach(skill => {
+              const rarity = skill.border || 'gold';
+              if (stats.byRarity.hasOwnProperty(rarity)) {
+                stats.byRarity[rarity]++;
+              }
+            });
+          }
+        });
+
+        stats.averageCollectionSize = Math.round(stats.totalSkillsInCollections / data.length);
+      }
+
+      this.debug('Skill collection statistics:', stats);
+      return stats;
+    } catch (error) {
+      this.debug('Error getting skill collection statistics:', error);
+      console.error('Error getting skill collection statistics:', error);
+      return {
+        totalCollections: 0,
+        totalSkillsInCollections: 0,
+        averageCollectionSize: 0,
+        bySizeCategory: { small: 0, medium: 0, large: 0 },
+        byRarity: { bronze: 0, silver: 0, gold: 0, diamond: 0, legendary: 0 },
         error: error.message
       };
     }
@@ -1021,6 +1217,162 @@ class SupabaseClient {
     } catch (error) {
       this.debug('Error getting popular keywords:', error);
       console.error('Error getting popular keywords:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get a specific skill collection by ID
+   * @param {number} collectionId - Collection ID
+   * @returns {Promise<Object>} Collection data
+   */
+  static async getSkillCollection(collectionId) {
+    try {
+      this.debug('Getting skill collection:', collectionId);
+      
+      if (!this.isReady()) {
+        throw new Error('Database not available');
+      }
+
+      const { data, error } = await this.supabase
+        .from('skill_collections')
+        .select('*')
+        .eq('id', collectionId)
+        .eq('is_public', true)
+        .single();
+
+      if (error) {
+        this.debug('Skill collection query error:', error);
+        throw error;
+      }
+
+      this.debug('Retrieved skill collection:', data);
+      return data;
+    } catch (error) {
+      this.debug('Error getting skill collection:', error);
+      console.error('Error getting skill collection:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Search skill collections by keyword
+   * @param {string} keyword - Keyword to search for
+   * @param {number} limit - Maximum number of results
+   * @returns {Promise<Array>} Array of matching collections
+   */
+  static async searchSkillCollectionsByKeyword(keyword, limit = 50) {
+    try {
+      this.debug('Searching skill collections by keyword:', keyword);
+      
+      if (!this.isReady()) {
+        throw new Error('Database not available');
+      }
+
+      if (!keyword || keyword.trim().length === 0) {
+        return [];
+      }
+
+      // Get all public collections for client-side filtering
+      const { data, error } = await this.supabase
+        .from('skill_collections')
+        .select('*')
+        .eq('is_public', true)
+        .order('created_at', { ascending: false })
+        .limit(500); // Reasonable limit for client-side filtering
+
+      if (error) {
+        this.debug('Collections search query error:', error);
+        throw error;
+      }
+
+      const keywordLower = keyword.toLowerCase();
+      const matchingCollections = (data || [])
+        .filter(collection => {
+          const nameMatch = collection.name?.toLowerCase().includes(keywordLower);
+          const descMatch = collection.description?.toLowerCase().includes(keywordLower);
+          
+          // Search within skills in the collection
+          const skillsMatch = collection.skills_data?.some(skill => 
+            skill.skillEffect?.toLowerCase().includes(keywordLower) ||
+            skill.skillName?.toLowerCase().includes(keywordLower)
+          );
+          
+          return nameMatch || descMatch || skillsMatch;
+        })
+        .slice(0, limit);
+
+      this.debug('Collection keyword search results:', matchingCollections.length, 'collections found');
+      return matchingCollections;
+    } catch (error) {
+      this.debug('Error searching skill collections by keyword:', error);
+      console.error('Error searching skill collections by keyword:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get popular collection keywords
+   * @param {number} limit - Number of keywords to return
+   * @returns {Promise<Array>} Array of popular keywords with counts
+   */
+  static async getPopularCollectionKeywords(limit = 15) {
+    try {
+      this.debug('Getting popular collection keywords...');
+      
+      if (!this.isReady()) {
+        throw new Error('Database not available');
+      }
+
+      // Get all public collections
+      const { data, error } = await this.supabase
+        .from('skill_collections')
+        .select('name, description, skills_data')
+        .eq('is_public', true)
+        .limit(500);
+
+      if (error) {
+        this.debug('Popular collection keywords query error:', error);
+        throw error;
+      }
+
+      // Extract and count keywords
+      const keywordCounts = new Map();
+      const commonWords = new Set(['the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'this', 'that', 'these', 'those', 'collection', 'skill', 'skills']);
+
+      (data || []).forEach(collection => {
+        // Extract words from collection name and description
+        let text = `${collection.name || ''} ${collection.description || ''}`;
+        
+        // Also extract from skill names and effects in the collection
+        if (collection.skills_data && Array.isArray(collection.skills_data)) {
+          collection.skills_data.forEach(skill => {
+            text += ` ${skill.skillName || ''} ${skill.skillEffect || ''}`;
+          });
+        }
+        
+        const words = text
+          .toLowerCase()
+          .replace(/[^\w\s]/g, ' ') // Replace punctuation with spaces
+          .split(/\s+/)
+          .filter(word => word.length > 2 && !commonWords.has(word)); // Filter out short words and common words
+
+        words.forEach(word => {
+          keywordCounts.set(word, (keywordCounts.get(word) || 0) + 1);
+        });
+      });
+
+      // Sort by count and return top keywords
+      const popularKeywords = Array.from(keywordCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, limit)
+        .map(([keyword, count]) => ({ keyword, count }));
+
+      this.debug('Popular collection keywords:', popularKeywords);
+      return popularKeywords;
+    } catch (error) {
+      this.debug('Error getting popular collection keywords:', error);
+      console.error('Error getting popular collection keywords:', error);
       return [];
     }
   }
