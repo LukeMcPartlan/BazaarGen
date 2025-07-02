@@ -2180,4 +2180,10 @@ class EnhancedBrowsePageController {
 
 // Auto-initialize and replace the original BrowsePageController
 console.log('🚀 Enhanced Browse Page Controller loading...');
-EnhancedBrowsePage
+EnhancedBrowsePageController.init();
+
+// Make available globally
+window.BrowsePageController = EnhancedBrowsePageController;
+window.EnhancedBrowsePageController = EnhancedBrowsePageController;
+
+console.log('✅ Enhanced Browse Page Controller loaded successfully');
