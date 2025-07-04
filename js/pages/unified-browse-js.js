@@ -544,81 +544,141 @@ class UnifiedBrowsePageController {
   }
 
   /**
-   * Create item card element
-   */
-  static async createItemCard(item) {
-    if (!item.item_data) {
-      console.warn(`Item ${item.id} has no item_data`);
-      return null;
-    }
-
-    try {
-      const cardWrapper = document.createElement('div');
-      cardWrapper.className = 'card-wrapper';
-      cardWrapper.style.cssText = 'margin-bottom: 30px;';
-
-      // Create creator info section
-      const creatorInfo = document.createElement('div');
-      creatorInfo.className = 'creator-info';
-      creatorInfo.style.cssText = `
-        padding: 12px 20px;
-        background: linear-gradient(135deg, rgba(74, 60, 46, 0.9) 0%, rgba(37, 26, 12, 0.8) 100%);
-        border: 2px solid rgb(218, 165, 32);
-        border-radius: 12px 12px 0 0;
-        font-size: 14px;
-        color: rgb(251, 225, 183);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-        min-width: 450px;
-      `;
-
-      const creatorAlias = item.user_alias || 'Unknown Creator';
-      const createdDate = new Date(item.created_at).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      });
-
-      creatorInfo.innerHTML = `
-        <span style="font-weight: 600; color: rgb(251, 225, 183);">
-          <span style="color: rgb(218, 165, 32);">Created by:</span> ${creatorAlias}
-        </span>
-        <span style="color: rgb(201, 175, 133); font-size: 12px;">${createdDate}</span>
-      `;
-
-      // Create the card
-      const cardData = item.item_data;
-      cardData.created_at = item.created_at;
-      cardData.creator_alias = creatorAlias;
-      cardData.database_id = item.id;
-
-      let cardElement;
-      if (typeof CardGenerator !== 'undefined' && CardGenerator.createCard) {
-        cardElement = await CardGenerator.createCard({
-          data: cardData,
-          mode: 'browser',
-          includeControls: true
-        });
-      } else {
-        cardElement = this.createFallbackItemCard(cardData);
-      }
-
-      // Create comments section
-      const commentsSection = await this.createCommentsSection(item.id);
-
-      cardWrapper.appendChild(creatorInfo);
-      cardWrapper.appendChild(cardElement);
-      cardWrapper.appendChild(commentsSection);
-
-      return cardWrapper;
-    } catch (error) {
-      console.error('Error creating item card:', error);
-      return null;
-    }
+ * Complete createItemCard method with gallery functionality
+ * Replace the existing createItemCard method in UnifiedBrowsePageController with this one
+ */
+static async createItemCard(item) {
+  if (!item.item_data) {
+    console.warn(`Item ${item.id} has no item_data`);
+    return null;
   }
 
+  try {
+    const cardWrapper = document.createElement('div');
+    cardWrapper.className = 'card-wrapper';
+    cardWrapper.style.cssText = 'margin-bottom: 30px;';
+
+    // Create creator info section
+    const creatorInfo = document.createElement('div');
+    creatorInfo.className = 'creator-info';
+    creatorInfo.style.cssText = `
+      padding: 12px 20px;
+      background: linear-gradient(135deg, rgba(74, 60, 46, 0.9) 0%, rgba(37, 26, 12, 0.8) 100%);
+      border: 2px solid rgb(218, 165, 32);
+      border-radius: 12px 12px 0 0;
+      font-size: 14px;
+      color: rgb(251, 225, 183);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      min-width: 450px;
+    `;
+
+    const creatorAlias = item.user_alias || 'Unknown Creator';
+    const createdDate = new Date(item.created_at).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+
+    creatorInfo.innerHTML = `
+      <span style="font-weight: 600; color: rgb(251, 225, 183);">
+        <span style="color: rgb(218, 165, 32);">Created by:</span> ${creatorAlias}
+      </span>
+      <span style="color: rgb(201, 175, 133); font-size: 12px;">${createdDate}</span>
+    `;
+
+    // Create the card
+    const cardData = item.item_data;
+    cardData.created_at = item.created_at;
+    cardData.creator_alias = creatorAlias;
+    cardData.database_id = item.id;
+
+    let cardElement;
+    if (typeof CardGenerator !== 'undefined' && CardGenerator.createCard) {
+      cardElement = await CardGenerator.createCard({
+        data: cardData,
+        mode: 'browser',
+        includeControls: true
+      });
+    } else {
+      cardElement = this.createFallbackItemCard(cardData);
+    }
+
+    // *** GALLERY FUNCTIONALITY - ADDED FROM PROFILE CONTROLLER ***
+    if (item.item_data?.isGallery && item.item_data?.galleryItems) {
+      console.log('🖼️ Adding gallery functionality for item:', item.id);
+      console.log('Gallery items count:', item.item_data.galleryItems.length);
+      
+      // Add gallery button to view it
+      if (typeof GalleryModal !== 'undefined') {
+        try {
+          GalleryModal.addGalleryButton(
+            cardElement,
+            item.item_data.galleryItems,
+            0
+          );
+          console.log('✅ Gallery button added successfully');
+        } catch (galleryError) {
+          console.error('❌ Error adding gallery button:', galleryError);
+        }
+      } else {
+        console.log('❌ GalleryModal not available');
+      }
+      
+      // Style the card differently to show it's a gallery
+      const passiveSection = cardElement.querySelector('.passive-section');
+      if (passiveSection) {
+        passiveSection.style.background = 'linear-gradient(135deg, rgba(63, 81, 181, 0.2) 0%, rgba(48, 63, 159, 0.1) 100%)';
+        passiveSection.style.borderColor = 'rgb(63, 81, 181)';
+        console.log('✅ Gallery styling applied to passive section');
+      }
+      
+      // Add gallery indicator to the creator info
+      const galleryIndicator = document.createElement('span');
+      galleryIndicator.style.cssText = `
+        background: rgb(63, 81, 181);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 12px;
+        margin-left: 10px;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      `;
+      galleryIndicator.textContent = `📦 Gallery (${item.item_data.galleryItems.length} items)`;
+      
+      // Add the gallery indicator to the creator info
+      const creatorSpan = creatorInfo.querySelector('span');
+      if (creatorSpan) {
+        creatorSpan.appendChild(galleryIndicator);
+        console.log('✅ Gallery indicator added to creator info');
+      }
+      
+      // Also add gallery styling to the main card wrapper for extra distinction
+      cardWrapper.style.border = '2px solid rgb(63, 81, 181)';
+      cardWrapper.style.boxShadow = '0 4px 15px rgba(63, 81, 181, 0.3)';
+      cardWrapper.style.borderRadius = '12px';
+      cardWrapper.style.overflow = 'hidden';
+      
+      console.log('✅ Gallery card styling completed');
+    }
+
+    // Create comments section
+    const commentsSection = await this.createCommentsSection(item.id);
+
+    // Assemble the card wrapper
+    cardWrapper.appendChild(creatorInfo);
+    cardWrapper.appendChild(cardElement);
+    cardWrapper.appendChild(commentsSection);
+
+    return cardWrapper;
+  } catch (error) {
+    console.error('Error creating item card:', error);
+    return null;
+  }
+}
   /**
    * Create skill card element - SIMPLIFIED VERSION (no collections)
    */
