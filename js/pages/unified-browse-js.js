@@ -761,17 +761,20 @@ static async createItemCard(item) {
         console.warn('SkillGenerator not available, using fallback');
         skillElement = this.createFallbackSkillCard(skillData);
       }
-      // *** SKILL GALLERY FUNCTIONALITY - ADDED FOR SKILL GALLERIES ***
-if (skill.skill_data?.isGallery && skill.skill_data?.galleryItems) {
-  console.log('🎭 Adding gallery functionality for skill:', skill.id);
-  console.log('Gallery skills count:', skill.skill_data.galleryItems.length);
+// Add this code right after creating skillElement and before creating commentsSection
+
+// *** SKILL GALLERY FUNCTIONALITY - CORRECTED FOR YOUR DATA STRUCTURE ***
+if (skill.skill_data?.skills && Array.isArray(skill.skill_data.skills) && skill.skill_data.skills.length > 1) {
+  console.log('🎭 Adding gallery functionality for skill collection:', skill.id);
+  console.log('Gallery skills count:', skill.skill_data.skills.length);
+  console.log('Collection skills:', skill.skill_data.skills.map(s => s.skillName));
   
   // Add gallery button to view the full collection
   if (typeof GalleryModal !== 'undefined') {
     try {
       GalleryModal.addGalleryButton(
         skillElement,
-        skill.skill_data.galleryItems,
+        skill.skill_data.skills,
         0
       );
       console.log('✅ Gallery button added to skill successfully');
@@ -810,7 +813,7 @@ if (skill.skill_data?.isGallery && skill.skill_data?.galleryItems) {
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   `;
-  galleryIndicator.textContent = `🎭 Gallery (${skill.skill_data.galleryItems.length} skills)`;
+  galleryIndicator.textContent = `🎭 Collection (${skill.skill_data.skills.length} skills)`;
   
   // Add the gallery indicator to the creator info
   const creatorSpan = creatorInfo.querySelector('span');
