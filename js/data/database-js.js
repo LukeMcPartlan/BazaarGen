@@ -60,7 +60,7 @@ class Database {
 
       // Save to database
       this.debug('Calling SupabaseClient.saveCard...');
-      const result = await SupabaseClient.saveCard(cardData);
+      const result = await SupabaseClient.saveItem(cardData);
       this.debug('Database save result:', result);
 
       if (result.success) {
