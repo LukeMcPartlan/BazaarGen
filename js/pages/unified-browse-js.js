@@ -761,6 +761,72 @@ static async createItemCard(item) {
         console.warn('SkillGenerator not available, using fallback');
         skillElement = this.createFallbackSkillCard(skillData);
       }
+      // *** SKILL GALLERY FUNCTIONALITY - ADDED FOR SKILL GALLERIES ***
+if (skill.skill_data?.isGallery && skill.skill_data?.galleryItems) {
+  console.log('🎭 Adding gallery functionality for skill:', skill.id);
+  console.log('Gallery skills count:', skill.skill_data.galleryItems.length);
+  
+  // Add gallery button to view the full collection
+  if (typeof GalleryModal !== 'undefined') {
+    try {
+      GalleryModal.addGalleryButton(
+        skillElement,
+        skill.skill_data.galleryItems,
+        0
+      );
+      console.log('✅ Gallery button added to skill successfully');
+    } catch (galleryError) {
+      console.error('❌ Error adding gallery button to skill:', galleryError);
+    }
+  } else {
+    console.log('❌ GalleryModal not available for skill');
+  }
+  
+  // Style the skill card differently to show it's a gallery
+  const skillHeader = skillElement.querySelector('.skill-header');
+  if (skillHeader) {
+    skillHeader.style.background = 'linear-gradient(135deg, rgba(138, 43, 226, 0.3) 0%, rgba(106, 13, 173, 0.2) 100%)';
+    skillHeader.style.borderColor = 'rgb(138, 43, 226)';
+    console.log('✅ Gallery styling applied to skill header');
+  }
+  
+  // Also style the effect section for galleries
+  const skillEffect = skillElement.querySelector('.skill-effect');
+  if (skillEffect) {
+    skillEffect.style.background = 'linear-gradient(135deg, rgba(138, 43, 226, 0.2) 0%, rgba(106, 13, 173, 0.1) 100%)';
+    skillEffect.style.borderColor = 'rgb(138, 43, 226)';
+    console.log('✅ Gallery styling applied to skill effect');
+  }
+  
+  // Add gallery indicator to the creator info
+  const galleryIndicator = document.createElement('span');
+  galleryIndicator.style.cssText = `
+    background: rgb(138, 43, 226);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-left: 10px;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  `;
+  galleryIndicator.textContent = `🎭 Gallery (${skill.skill_data.galleryItems.length} skills)`;
+  
+  // Add the gallery indicator to the creator info
+  const creatorSpan = creatorInfo.querySelector('span');
+  if (creatorSpan) {
+    creatorSpan.appendChild(galleryIndicator);
+    console.log('✅ Gallery indicator added to creator info');
+  }
+  
+  // Also add gallery styling to the main card wrapper for extra distinction
+  cardWrapper.style.border = '2px solid rgb(138, 43, 226)';
+  cardWrapper.style.boxShadow = '0 4px 15px rgba(138, 43, 226, 0.3)';
+  cardWrapper.style.borderRadius = '12px';
+  cardWrapper.style.overflow = 'hidden';
+  
+  console.log('✅ Skill gallery card styling completed');
+}
 
       // Create comments section
       const commentsSection = this.createSkillCommentsSection(skill.id);
