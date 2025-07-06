@@ -1236,9 +1236,7 @@ h1 {
   color: rgb(251, 225, 183);
   font-family: Impact, 'Arial Black', 'Franklin Gothic Bold', Arial, sans-serif;
   
-  /* ADD THESE EFFECTS: */
-  -webkit-text-stroke: 1px black;  /* Thick black outline */
-  text-stroke: 1px black;          /* Fallback for other browsers */
+ 
   text-shadow: 
     1px 1px 0 black,               /* Main shadow */
     -1px -1px 0 black,             /* Top-left outline */
