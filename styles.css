@@ -1235,6 +1235,19 @@ h1 {
   padding: 10px;
   color: rgb(251, 225, 183);
   font-family: Impact, 'Arial Black', 'Franklin Gothic Bold', Arial, sans-serif;
+  
+  /* ADD THESE EFFECTS: */
+  -webkit-text-stroke: 2px black;  /* Thick black outline */
+  text-stroke: 2px black;          /* Fallback for other browsers */
+  text-shadow: 
+    2px 2px 0 black,               /* Main shadow */
+    -2px -2px 0 black,             /* Top-left outline */
+    2px -2px 0 black,              /* Top-right outline */
+    -2px 2px 0 black,              /* Bottom-left outline */
+    0 0 8px rgba(0, 0, 0, 0.8);    /* Subtle glow */
+  
+  font-weight: 900;                /* Make it extra bold */
+  letter-spacing: 0.5px;           /* Slight letter spacing */
 }
 
 .skill-header, .skill-effect {
@@ -1257,6 +1270,18 @@ h1 {
 .item-title, .skill-title {
   font-size: 2em;
   margin: 0;
+  
+  /* ADD THESE: */
+  -webkit-text-stroke: 2px black;
+  text-stroke: 2px black;
+  text-shadow: 
+    2px 2px 0 black,
+    -2px -2px 0 black,
+    2px -2px 0 black,
+    -2px 2px 0 black,
+    0 0 8px rgba(0, 0, 0, 0.8);
+  font-weight: 900;
+  letter-spacing: 0.5px;
 }
 
 .hero-header img {
