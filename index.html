@@ -144,11 +144,12 @@
       <h1 class="page-title">Bazaar Card Generator</h1>
   </div>
 
-  <!-- Main Two-Column Container -->
+  <!-- REORGANIZED: Main Two-Column Container -->
   <div class="main-container">
-      <!-- Left Column - Form -->
+      <!-- REORGANIZED: Left Column - All Form Inputs -->
       <div class="form-column">
           <div class="form-grid">
+              <!-- Basic Card Info -->
               <div class="form-group full-width">
                   <label class="form-label">Card Image</label>
                   <input type="file" id="imageInput" accept="image/*" class="form-input" data-default-image="images/default.png" />
@@ -206,17 +207,19 @@
                   </select>
               </div>
 
-          <!-- Passive Effects Section - Now Dynamic -->
-<div class="form-group full-width">
-    <label class="form-label">Passive Effects</label>
-    <div id="passiveInputs">
-        <!-- Initial passive effect input will be added automatically by JavaScript -->
-    </div>
-    <button type="button" onclick="addPassiveInput()" class="form-button secondary" style="margin-top: 10px;">Add Passive Effect</button>
-</div>
+              <!-- REORGANIZED: Passive Effects Section -->
+              <div class="form-group full-width">
+                  <label class="form-label">Passive Effects</label>
+                  <div id="passiveInputs">
+                      <!-- Initial passive effect input will be added automatically by JavaScript -->
+                  </div>
+                  <button type="button" onclick="addPassiveInput()" class="form-button secondary" style="margin-top: 10px;">Add Passive Effect</button>
+              </div>
+          </div>
 
-          <!-- Scaling Values Section -->
+          <!-- REORGANIZED: Scaling Values Section -->
           <div class="tag-effects">
+              <label class="form-label">Scaling Values</label>
               <div class="form-grid">
                   <div class="form-group">
                       <label class="form-label">Heal</label>
@@ -245,14 +248,14 @@
               </div>
           </div>
 
-          <!-- Tags Section -->
+          <!-- REORGANIZED: Tags Section -->
           <div class="tag-effects">
               <label class="form-label">Additional Tags</label>
               <div id="tagInputs"></div>
               <button type="button" onclick="addTagInput()" class="form-button secondary" style="margin-top: 10px;">Add Tag</button>
           </div>
 
-          <!-- On Use Effects Section -->
+          <!-- REORGANIZED: On Use Effects Section -->
           <div class="on-use-effects">
               <label class="form-label">On Use Effects</label>
               
@@ -272,7 +275,7 @@
               <button type="button" onclick="addOnUseInput()" class="form-button secondary" style="margin-top: 10px;">Add On Use Effect</button>
           </div>
 
-          <!-- Keyboard Shortcuts Help -->
+          <!-- REORGANIZED: Keyboard Shortcuts Help -->
           <div class="shortcuts-help">
               <h4>🎮 Keyword Shortcuts - Type these in text boxes:</h4>
               <div class="shortcut-grid">
@@ -297,9 +300,7 @@
           </div>
       </div>
 
-    
-  </div>
-  <!-- Right Column - Preview -->
+      <!-- REORGANIZED: Right Column - Preview (stays exactly the same) -->
       <div class="preview-column">
           <div class="preview-header">
               🔮 Live Preview
@@ -316,10 +317,9 @@
               <button onclick="createCard()" class="form-button save-card-btn">⚔️ Save Card ⚔️</button>
           </div>
       </div>
+  </div>
 
-    
-
-  <!-- Full Width Sections Below -->
+  <!-- REORGANIZED: Full Width Sections Below (stays exactly the same) -->
   <div class="bottom-sections">
       <!-- Management Actions -->
       <div class="management-section">
