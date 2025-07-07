@@ -413,168 +413,128 @@ class UnifiedBrowsePageController {
     attemptInitialization();
   }
 
- /**
- * Load items with filters - CORRECTED VERSION
- */
-static async loadItems(options = {}, requestOptions = {}) {
-  try {
-    if (!this.isReady()) {
-      throw new Error('Database not available');
+  /**
+   * Load items from database
+   */
+  static async loadItems() {
+    if (this.isLoading) return;
+    
+    // Cancel any existing items request
+    if (this.currentItemsController) {
+      this.currentItemsController.abort();
     }
+    
+    // Create new controller for this request
+    this.currentItemsController = new AbortController();
+    
+    this.isLoading = true;
+    this.showLoading(true);
+    this.hideMessages();
 
-    let query = this.supabase
-      .from('items')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    // Apply hero filter
-    if (options.hero) {
-      query = query.filter('item_data->hero', 'eq', `"${options.hero}"`);
-    }
-
-    // Apply contest filter
-    if (options.contest !== undefined && options.contest !== '') {
-      query = query.eq('contest_number', parseInt(options.contest));
-    }
-
-    // Apply search filter
-    if (options.search) {
-      query = query.filter('item_data->itemName', 'ilike', `%${options.search}%`);
-    }
-
-    // Apply sorting
-    switch (options.sortBy) {
-      case 'oldest':
-        query = query.order('created_at', { ascending: true });
-        break;
-      case 'recent':
-      default:
-        query = query.order('created_at', { ascending: false });
-        break;
-    }
-
-    // *** CORRECTED ABORT SIGNAL SUPPORT ***
-    let queryPromise;
-    if (requestOptions.signal) {
-      // Wrap the query in a Promise.race with abort signal
-      queryPromise = Promise.race([
-        query,
-        new Promise((_, reject) => {
-          requestOptions.signal.addEventListener('abort', () => {
-            reject(new DOMException('Query was aborted', 'AbortError'));
-          });
-        })
-      ]);
-    } else {
-      queryPromise = query;
-    }
-
-    const { data, error } = await queryPromise;
-
-    if (error) throw error;
-
-    this.debug('Retrieved items successfully:', data?.length || 0);
-    return data || [];
-  } catch (error) {
-    this.debug('Error loading items:', error);
-    throw error;
-  }
-}
-
-/**
- * Load skills with filters - CORRECTED VERSION
- */
-static async loadSkills(options = {}, requestOptions = {}) {
-  try {
-    if (!this.isReady()) {
-      throw new Error('Database not available');
-    }
-
-    let query = this.supabase
-      .from('skills')
-      .select('*');
-
-    // Apply rarity filter
-    if (options.rarity) {
-      query = query.filter('skill_data->border', 'eq', `"${options.rarity}"`);
-    }
-
-    // Apply search filter
-    if (options.search) {
-      query = query.filter('skill_data->skillName', 'ilike', `%${options.search}%`);
-    }
-
-    // Apply creator filter
-    if (options.creator) {
-      query = query.filter('user_alias', 'ilike', `%${options.creator}%`);
-    }
-
-    // Apply sorting
-    switch (options.sortBy) {
-      case 'oldest':
-        query = query.order('created_at', { ascending: true });
-        break;
-      case 'name':
-        query = query.order('skill_data->skillName', { ascending: true });
-        break;
-      case 'name_desc':
-        query = query.order('skill_data->skillName', { ascending: false });
-        break;
-      case 'recent':
-      default:
-        query = query.order('created_at', { ascending: false });
-        break;
-    }
-
-    // *** CORRECTED ABORT SIGNAL SUPPORT ***
-    let queryPromise;
-    if (requestOptions.signal) {
-      // Wrap the query in a Promise.race with abort signal
-      queryPromise = Promise.race([
-        query,
-        new Promise((_, reject) => {
-          requestOptions.signal.addEventListener('abort', () => {
-            reject(new DOMException('Query was aborted', 'AbortError'));
-          });
-        })
-      ]);
-    } else {
-      queryPromise = query;
-    }
-
-    const { data, error } = await queryPromise;
-
-    if (error) throw error;
-
-    let filteredSkills = data || [];
-
-    // Apply client-side filters for complex operations
-    if (options.keywords) {
-      const keywordLower = options.keywords.toLowerCase();
-      filteredSkills = filteredSkills.filter(skill => 
-        skill.skill_data?.skillEffect?.toLowerCase().includes(keywordLower)
-      );
-    }
-
-    if (options.length) {
-      filteredSkills = filteredSkills.filter(skill => {
-        const effectLength = skill.skill_data?.skillEffect?.length || 0;
-        switch (options.length) {
-          case 'short': return effectLength < 100;
-          case 'medium': return effectLength >= 100 && effectLength <= 200;
-          case 'long': return effectLength > 200;
-          default: return true;
-        }
+    try {
+      console.log('🃏 Loading items...');
+      const filters = this.getFilters();
+      const options = this.buildQueryOptions(filters);
+      
+      // Add signal to the SupabaseClient call if it supports it
+      const data = await SupabaseClient.loadItems(options, { 
+        signal: this.currentItemsController.signal 
       });
-    }
+      
+      // Check if request was cancelled
+      if (this.currentItemsController.signal.aborted) {
+        console.log('Items request was cancelled');
+        return;
+      }
+      
+      this.allItems = data || [];
+      this.displayedItems = [];
+      this.currentPage = 0;
+      
+      console.log(`📊 Loaded ${this.allItems.length} items`);
+      
+      if (this.itemsGrid) {
+        this.itemsGrid.innerHTML = '';
+      }
+      
+      this.updateStats();
+      this.loadMoreItems();
 
-    this.debug('Retrieved skills successfully:', filteredSkills.length);
-    return filteredSkills;
-  } catch (error) {
-    this.debug('Error loading skills:', error);
-    throw error;
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        console.log('Items request cancelled');
+        return;
+      }
+      console.error('❌ Error loading items:', error);
+      this.showError('Failed to load items: ' + error.message);
+    } finally {
+      this.isLoading = false;
+      this.showLoading(false);
+      this.currentItemsController = null;
+    }
   }
-}
+
+  /**
+   * Load skills from database - FIXED VERSION
+   */
+  static async loadSkills() {
+    if (this.isSkillsLoading) return;
+    
+    // Cancel any existing skills request
+    if (this.currentSkillsController) {
+      this.currentSkillsController.abort();
+    }
+    
+    // Create new controller for this request
+    this.currentSkillsController = new AbortController();
+    
+    this.isSkillsLoading = true;
+    this.showLoading(true);
+    this.hideMessages();
+
+    try {
+      console.log('⚡ Loading skills...');
+      const filters = this.getSkillFilters();
+      console.log('🔍 Skill filters:', filters);
+      
+      // Add signal to the SupabaseClient call if it supports it
+      const skills = await SupabaseClient.loadSkills(filters, {
+        signal: this.currentSkillsController.signal
+      });
+      
+      // Check if request was cancelled
+      if (this.currentSkillsController.signal.aborted) {
+        console.log('Skills request was cancelled');
+        return;
+      }
+      
+      this.allSkills = skills || [];
+      this.displayedSkills = [];
+      this.currentSkillPage = 0;
+      
+      console.log(`📊 Loaded ${this.allSkills.length} skills`);
+      
+      if (this.itemsGrid) {
+        this.itemsGrid.innerHTML = '';
+      }
+      
+      this.updateStats();
+      this.loadMoreSkills();
+
+    } catch (error) {
+      if (error.name === 'AbortError') {
+        console.log('Skills request cancelled');
+        return;
+      }
+      console.error('❌ Error loading skills:', error);
+      this.showError('Failed to load skills: ' + error.message);
+    } finally {
+      this.isSkillsLoading = false;
+      this.showLoading(false);
+      this.currentSkillsController = null;
+    }
+  }
+
   /**
    * Load more items for display
    */
