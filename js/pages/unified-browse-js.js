@@ -458,6 +458,10 @@ class UnifiedBrowsePageController {
       }
       
       this.updateStats();
+
+      this.isLoading = false;
+      this.showLoading(false);
+      
       this.loadMoreItems();
 
     } catch (error) {
@@ -468,8 +472,7 @@ class UnifiedBrowsePageController {
       console.error('❌ Error loading items:', error);
       this.showError('Failed to load items: ' + error.message);
     } finally {
-      this.isLoading = false;
-      this.showLoading(false);
+    
       this.currentItemsController = null;
     }
   }
@@ -519,6 +522,10 @@ class UnifiedBrowsePageController {
       }
       
       this.updateStats();
+
+      this.isSkillsLoading = false;
+      this.showLoading(false);
+      
       this.loadMoreSkills();
 
     } catch (error) {
@@ -529,8 +536,7 @@ class UnifiedBrowsePageController {
       console.error('❌ Error loading skills:', error);
       this.showError('Failed to load skills: ' + error.message);
     } finally {
-      this.isSkillsLoading = false;
-      this.showLoading(false);
+      
       this.currentSkillsController = null;
     }
   }
