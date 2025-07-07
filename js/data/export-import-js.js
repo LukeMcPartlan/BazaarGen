@@ -121,7 +121,7 @@ class ExportImport {
   }
 
   /**
-   * Export all cards as PNG images
+   * Export all cards as PNG images (with gradient removal)
    */
   static async exportAllCardsAsPNG(cardElements) {
     if (!cardElements || cardElements.length === 0) {
@@ -138,23 +138,151 @@ class ExportImport {
       return;
     }
 
+    console.log(`🖼️ Starting bulk export of ${cardElements.length} cards...`);
+
     for (let i = 0; i < cardElements.length; i++) {
       try {
-        await this.exportCardAsPNG(cardElements[i], `card-${i + 1}`);
-        // Small delay between exports
-        await this.delay(200);
+        // Get card name for filename
+        const cardNameElement = cardElements[i].querySelector('.card-name, .item-name, h3, h2');
+        const cardName = cardNameElement ? cardNameElement.textContent.trim().replace(/[^a-zA-Z0-9]/g, '_') : `card-${i + 1}`;
+        
+        await this.exportCardAsPNG(cardElements[i], `${cardName}-${this.getDateString()}.png`);
+        
+        // Small delay between exports to prevent overwhelming the browser
+        await this.delay(300);
+        
+        console.log(`✅ Exported card ${i + 1}/${cardElements.length}: ${cardName}`);
       } catch (error) {
-        console.error(`Failed to export card ${i + 1}:`, error);
+        console.error(`❌ Failed to export card ${i + 1}:`, error);
       }
     }
 
     if (typeof Messages !== 'undefined') {
       Messages.showSuccess(`Exported ${cardElements.length} cards as PNG!`);
     }
+    
+    console.log(`🎉 Bulk export completed: ${cardElements.length} cards`);
   }
 
   /**
-   * Export single card as PNG using html2canvas
+   * Export all skills as PNG images (with gradient removal)
+   */
+  static async exportAllSkillsAsPNG(skillElements) {
+    if (!skillElements || skillElements.length === 0) {
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('No skills to export as PNG!');
+      }
+      return;
+    }
+
+    if (typeof html2canvas === 'undefined') {
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('html2canvas library not loaded!');
+      }
+      return;
+    }
+
+    console.log(`🖼️ Starting bulk export of ${skillElements.length} skills...`);
+
+    for (let i = 0; i < skillElements.length; i++) {
+      try {
+        // Get skill name for filename
+        const skillNameElement = skillElements[i].querySelector('.skill-name, .skill-title, h3, h2');
+        const skillName = skillNameElement ? skillNameElement.textContent.trim().replace(/[^a-zA-Z0-9]/g, '_') : `skill-${i + 1}`;
+        
+        await this.exportSkillAsPNG(skillElements[i], `${skillName}-${this.getDateString()}.png`);
+        
+        // Small delay between exports to prevent overwhelming the browser
+        await this.delay(300);
+        
+        console.log(`✅ Exported skill ${i + 1}/${skillElements.length}: ${skillName}`);
+      } catch (error) {
+        console.error(`❌ Failed to export skill ${i + 1}:`, error);
+      }
+    }
+
+    if (typeof Messages !== 'undefined') {
+      Messages.showSuccess(`Exported ${skillElements.length} skills as PNG!`);
+    }
+    
+    console.log(`🎉 Bulk skill export completed: ${skillElements.length} skills`);
+  }
+
+  /**
+   * Temporarily remove gradients from element and children for html2canvas
+   */
+  static prepareElementForExport(element) {
+    const originalStyles = [];
+    
+    // Find all elements with gradient backgrounds
+    const elementsWithGradients = [element, ...element.querySelectorAll('*')];
+    
+    elementsWithGradients.forEach((el, index) => {
+      const computedStyle = window.getComputedStyle(el);
+      const backgroundImage = computedStyle.backgroundImage;
+      
+      // Check if element has a gradient
+      if (backgroundImage && (backgroundImage.includes('gradient') || backgroundImage.includes('linear-gradient') || backgroundImage.includes('radial-gradient'))) {
+        // Store original style
+        originalStyles.push({
+          element: el,
+          index: index,
+          originalBackgroundImage: el.style.backgroundImage || '',
+          originalBackground: el.style.background || '',
+          computedBackgroundImage: backgroundImage
+        });
+        
+        // Replace gradient with solid color
+        // Try to extract a representative color from the gradient or use a default
+        let solidColor = '#f0f0f0'; // Default fallback
+        
+        // Try to extract first color from gradient
+        const gradientMatch = backgroundImage.match(/rgba?\([^)]+\)|#[a-fA-F0-9]{6}|#[a-fA-F0-9]{3}|\b\w+\b/);
+        if (gradientMatch) {
+          solidColor = gradientMatch[0];
+          // Convert common color names to hex
+          if (solidColor === 'white') solidColor = '#ffffff';
+          if (solidColor === 'black') solidColor = '#000000';
+          if (solidColor === 'transparent') solidColor = 'rgba(255,255,255,0.1)';
+        }
+        
+        // Apply solid background
+        el.style.backgroundImage = 'none';
+        el.style.background = solidColor;
+        
+        console.log(`🎨 Temporarily removed gradient from element ${index}, using: ${solidColor}`);
+      }
+    });
+    
+    return originalStyles;
+  }
+
+  /**
+   * Restore original gradients after export
+   */
+  static restoreElementAfterExport(originalStyles) {
+    originalStyles.forEach(styleData => {
+      const { element, originalBackgroundImage, originalBackground } = styleData;
+      
+      // Restore original styles
+      if (originalBackgroundImage) {
+        element.style.backgroundImage = originalBackgroundImage;
+      } else {
+        element.style.removeProperty('background-image');
+      }
+      
+      if (originalBackground) {
+        element.style.background = originalBackground;
+      } else {
+        element.style.removeProperty('background');
+      }
+    });
+    
+    console.log(`🔄 Restored ${originalStyles.length} gradient backgrounds`);
+  }
+
+  /**
+   * Export single card as PNG using html2canvas (with gradient removal)
    */
   static async exportCardAsPNG(cardElement, filename = null) {
     if (!cardElement) {
@@ -174,13 +302,21 @@ class ExportImport {
       return;
     }
 
+    let originalStyles = [];
+    
     try {
-      console.log('🖼️ Starting PNG export with html2canvas...');
+      console.log('🖼️ Starting PNG export with gradient removal...');
       
       // Get card name for filename
       const cardNameElement = cardElement.querySelector('.card-name, .item-name, h3, h2');
-      const cardName = cardNameElement ? cardNameElement.textContent.trim() : 'card';
+      const cardName = cardNameElement ? cardNameElement.textContent.trim().replace(/[^a-zA-Z0-9]/g, '_') : 'card';
       const finalFilename = filename || `${cardName}-${this.getDateString()}.png`;
+      
+      // Temporarily remove gradients
+      originalStyles = this.prepareElementForExport(cardElement);
+      
+      // Force reflow to ensure styles are applied
+      cardElement.offsetHeight;
       
       // Configure html2canvas options
       const canvas = await html2canvas(cardElement, {
@@ -192,7 +328,12 @@ class ExportImport {
         width: cardElement.offsetWidth,
         height: cardElement.offsetHeight,
         scrollX: 0,
-        scrollY: 0
+        scrollY: 0,
+        ignoreElements: (element) => {
+          // Skip any problematic elements
+          return element.classList.contains('export-button') || 
+                 element.classList.contains('export-menu');
+        }
       });
 
       console.log('✅ Canvas created successfully');
@@ -230,11 +371,19 @@ class ExportImport {
       } else {
         alert(errorMsg);
       }
+    } finally {
+      // Always restore original styles
+      if (originalStyles.length > 0) {
+        // Small delay to ensure canvas is processed before restoring
+        setTimeout(() => {
+          this.restoreElementAfterExport(originalStyles);
+        }, 100);
+      }
     }
   }
 
   /**
-   * Export single skill as PNG using html2canvas
+   * Export single skill as PNG using html2canvas (with gradient removal)
    */
   static async exportSkillAsPNG(skillElement, filename = null) {
     if (!skillElement) {
@@ -254,13 +403,21 @@ class ExportImport {
       return;
     }
 
+    let originalStyles = [];
+
     try {
-      console.log('🖼️ Starting skill PNG export with html2canvas...');
+      console.log('🖼️ Starting skill PNG export with gradient removal...');
       
       // Get skill name for filename
       const skillNameElement = skillElement.querySelector('.skill-name, .skill-title, h3, h2');
-      const skillName = skillNameElement ? skillNameElement.textContent.trim() : 'skill';
+      const skillName = skillNameElement ? skillNameElement.textContent.trim().replace(/[^a-zA-Z0-9]/g, '_') : 'skill';
       const finalFilename = filename || `${skillName}-${this.getDateString()}.png`;
+      
+      // Temporarily remove gradients
+      originalStyles = this.prepareElementForExport(skillElement);
+      
+      // Force reflow to ensure styles are applied
+      skillElement.offsetHeight;
       
       // Configure html2canvas options
       const canvas = await html2canvas(skillElement, {
@@ -272,7 +429,12 @@ class ExportImport {
         width: skillElement.offsetWidth,
         height: skillElement.offsetHeight,
         scrollX: 0,
-        scrollY: 0
+        scrollY: 0,
+        ignoreElements: (element) => {
+          // Skip any problematic elements
+          return element.classList.contains('export-button') || 
+                 element.classList.contains('export-menu');
+        }
       });
 
       console.log('✅ Skill canvas created successfully');
@@ -309,6 +471,14 @@ class ExportImport {
         Messages.showError(errorMsg);
       } else {
         alert(errorMsg);
+      }
+    } finally {
+      // Always restore original styles
+      if (originalStyles.length > 0) {
+        // Small delay to ensure canvas is processed before restoring
+        setTimeout(() => {
+          this.restoreElementAfterExport(originalStyles);
+        }, 100);
       }
     }
   }
