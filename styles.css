@@ -2261,15 +2261,20 @@ h1 {
 /* Hide comments by default on profile and browse pages */
 .comments-list,
 .comment-form {
-  display: none !important;
+  display: none;
 }
 
-/* Show comments when explicitly toggled */
+/* Comments are visible when they have the show class OR inline display style */
 .comments-list.show,
 .comment-form.show {
-  display: block !important;
+  display: block;
 }
 
+/* Allow JavaScript inline styles to override when needed */
+.comments-list[style*="display: block"],
+.comment-form[style*="display: block"] {
+  display: block;
+}
 
 
 /* Skills Gallery Styles */
