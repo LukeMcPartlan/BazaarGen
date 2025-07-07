@@ -733,7 +733,7 @@ static async addSkillComment(skillId, commentText) {
   }
 
 /**
- * Check if user has already voted on an item
+ * Check if user has already voted on an item - FIXED VERSION
  */
 static async hasUserVoted(itemId, voteType = 'upvote') {
   try {
@@ -747,19 +747,20 @@ static async hasUserVoted(itemId, voteType = 'upvote') {
 
     const userEmail = GoogleAuth.getUserEmail();
 
+    // *** FIX: Use .maybeSingle() instead of .single() ***
     const { data, error } = await this.supabase
       .from('votes')
       .select('id')
       .eq('item_id', itemId)
       .eq('user_email', userEmail)
       .eq('vote_type', voteType)
-      .single();
+      .maybeSingle(); // ← This allows 0 or 1 rows without error
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) {
       throw error;
     }
 
-    return !!data;
+    return !!data; // Returns true if vote exists, false if not
   } catch (error) {
     this.debug('Error checking user vote:', error);
     return false;
@@ -767,7 +768,7 @@ static async hasUserVoted(itemId, voteType = 'upvote') {
 }
 
 /**
- * Check if user has already voted on a skill
+ * Check if user has already voted on a skill - FIXED VERSION
  */
 static async hasUserVotedSkill(skillId, voteType = 'upvote') {
   try {
@@ -781,15 +782,16 @@ static async hasUserVotedSkill(skillId, voteType = 'upvote') {
 
     const userEmail = GoogleAuth.getUserEmail();
 
+    // *** FIX: Use .maybeSingle() instead of .single() ***
     const { data, error } = await this.supabase
       .from('votes')
       .select('id')
       .eq('skill_id', skillId)
       .eq('user_email', userEmail)
       .eq('vote_type', voteType)
-      .single();
+      .maybeSingle(); // ← This allows 0 or 1 rows without error
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) {
       throw error;
     }
 
@@ -801,7 +803,7 @@ static async hasUserVotedSkill(skillId, voteType = 'upvote') {
 }
 
 /**
- * Vote on an item
+ * Vote on an item - SIMPLIFIED VERSION
  */
 static async voteItem(itemId, voteType = 'upvote') {
   try {
@@ -814,7 +816,6 @@ static async voteItem(itemId, voteType = 'upvote') {
     }
 
     const userEmail = GoogleAuth.getUserEmail();
-    const userProfile = GoogleAuth.getUserProfile();
 
     // Check if user has already voted
     const alreadyVoted = await this.hasUserVoted(itemId, voteType);
@@ -838,24 +839,28 @@ static async voteItem(itemId, voteType = 'upvote') {
 
     if (voteError) throw voteError;
 
-    // Update item upvote count
-    const { data: updatedItem, error: updateError } = await this.supabase
+    // *** SIMPLIFIED: Just increment the existing count ***
+    const newCount = await this.getItemUpvoteCount(itemId);
+    
+    // Update item upvote count - FIXED VERSION
+    const { error: updateError } = await this.supabase
       .from('items')
       .update({ 
-        upvotes: await this.getItemUpvoteCount(itemId),
+        upvotes: newCount,
         updated_at: new Date().toISOString()
       })
-      .eq('id', itemId)
-      .select()
-      .single();
+      .eq('id', itemId);
 
-    if (updateError) throw updateError;
+    if (updateError) {
+      this.debug('Warning: Could not update item upvote count:', updateError);
+      // Don't throw error - the vote was still recorded
+    }
 
     this.debug('Vote added successfully for item:', itemId);
     return { 
       success: true, 
       vote: voteRecord, 
-      newCount: updatedItem.upvotes 
+      newCount: newCount 
     };
 
   } catch (error) {
@@ -865,7 +870,7 @@ static async voteItem(itemId, voteType = 'upvote') {
 }
 
 /**
- * Vote on a skill
+ * Vote on a skill - SIMPLIFIED VERSION  
  */
 static async voteSkill(skillId, voteType = 'upvote') {
   try {
@@ -901,24 +906,28 @@ static async voteSkill(skillId, voteType = 'upvote') {
 
     if (voteError) throw voteError;
 
-    // Update skill upvote count
-    const { data: updatedSkill, error: updateError } = await this.supabase
-      .from('skills')
-      .update({ 
-        upvotes: await this.getSkillUpvoteCount(skillId),
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', skillId)
-      .select()
-      .single();
+    // *** SIMPLIFIED: Just get the count without updating skills table ***
+    const newCount = await this.getSkillUpvoteCount(skillId);
 
-    if (updateError) throw updateError;
+    // Try to update skill upvote count (this might fail if column doesn't exist)
+    try {
+      await this.supabase
+        .from('skills')
+        .update({ 
+          upvotes: newCount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', skillId);
+    } catch (updateError) {
+      this.debug('Warning: Could not update skill upvote count (column may not exist):', updateError);
+      // Don't throw error - the vote was still recorded
+    }
 
     this.debug('Vote added successfully for skill:', skillId);
     return { 
       success: true, 
       vote: voteRecord, 
-      newCount: updatedSkill.upvotes 
+      newCount: newCount 
     };
 
   } catch (error) {
@@ -928,7 +937,7 @@ static async voteSkill(skillId, voteType = 'upvote') {
 }
 
 /**
- * Get upvote count for an item
+ * Get upvote count for an item - SAFE VERSION
  */
 static async getItemUpvoteCount(itemId) {
   try {
@@ -938,7 +947,11 @@ static async getItemUpvoteCount(itemId) {
       .eq('item_id', itemId)
       .eq('vote_type', 'upvote');
 
-    if (error) throw error;
+    if (error) {
+      this.debug('Error getting item upvote count:', error);
+      return 0;
+    }
+    
     return count || 0;
   } catch (error) {
     this.debug('Error getting item upvote count:', error);
@@ -947,7 +960,7 @@ static async getItemUpvoteCount(itemId) {
 }
 
 /**
- * Get upvote count for a skill
+ * Get upvote count for a skill - SAFE VERSION
  */
 static async getSkillUpvoteCount(skillId) {
   try {
@@ -957,7 +970,11 @@ static async getSkillUpvoteCount(skillId) {
       .eq('skill_id', skillId)
       .eq('vote_type', 'upvote');
 
-    if (error) throw error;
+    if (error) {
+      this.debug('Error getting skill upvote count:', error);
+      return 0;
+    }
+    
     return count || 0;
   } catch (error) {
     this.debug('Error getting skill upvote count:', error);
