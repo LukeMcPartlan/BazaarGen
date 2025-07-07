@@ -461,7 +461,7 @@ static async createCard(options = {}) {
     }
 
     // Ammo
-    if (cardData.ammo && cardData.ammo.trim()) {
+    if (cardData.ammo && cardData.ammo.trim() && onUseSection) {
       const ammoDiv = this.createAmmoSection(cardData, borderColor);
       content.appendChild(ammoDiv);
     }
