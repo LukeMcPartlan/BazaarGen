@@ -667,38 +667,51 @@ static async createCard(options = {}) {
   /**
    * Apply card sizing and positioning
    */
-  static applyCardSizing(cardElement, cardData) {
-    setTimeout(() => {
-      const imageContainer = cardElement.querySelector('.image-container');
-      const content = cardElement.querySelector('.card-content');
-      const onUseSection = cardElement.querySelector('.on-use-section');
+ static applyCardSizing(cardElement, cardData) {
+  const doPositioning = (attempt = 0) => {
+    const imageContainer = cardElement.querySelector('.image-container');
+    const content = cardElement.querySelector('.card-content');
+    const onUseSection = cardElement.querySelector('.on-use-section');
 
-      if (imageContainer) {
-        let widthRatio = 1.0;
-        if (cardData.itemSize === "Small") {
-          widthRatio = 0.5;
-        } else if (cardData.itemSize === "Large") {
-          widthRatio = 1.5;
-        }
-
-        const containerWidth = 150 * widthRatio;
-        imageContainer.style.width = containerWidth + "px";
-
-        const img = imageContainer.querySelector('.uploaded-image');
-        if (img) {
-          img.style.height = "100%";
-          img.style.width = "auto";
-          img.style.objectFit = "cover";
-          img.style.objectPosition = "center";
-        }
+    if (imageContainer) {
+      let widthRatio = 1.0;
+      if (cardData.itemSize === "Small") {
+        widthRatio = 0.5;
+      } else if (cardData.itemSize === "Large") {
+        widthRatio = 1.5;
       }
 
-      // Position cooldown and ammo relative to on-use section
-      if (onUseSection && content) {
+      const containerWidth = 150 * widthRatio;
+      imageContainer.style.width = containerWidth + "px";
+
+      const img = imageContainer.querySelector('.uploaded-image');
+      if (img) {
+        img.style.height = "100%";
+        img.style.width = "auto";
+        img.style.objectFit = "cover";
+        img.style.objectPosition = "center";
+      }
+    }
+
+    // Position cooldown and ammo relative to on-use section
+    if (onUseSection && content) {
+      // Check if elements have proper dimensions
+      const onUseHeight = onUseSection.offsetHeight;
+      const contentHeight = content.offsetHeight;
+      
+      if (onUseHeight > 0 && contentHeight > 0) {
+        // Elements are properly laid out, do positioning
         this.positionElementsRelativeToOnUse(content, onUseSection);
+      } else if (attempt < 3) {
+        // Retry after a longer delay
+        setTimeout(() => doPositioning(attempt + 1), 50 * (attempt + 1));
       }
-    }, 0);
-  }
+    }
+  };
+
+  // Start positioning after initial delay
+  setTimeout(doPositioning, 100);
+}
 
   /**
    * Position cooldown and ammo elements relative to on-use section
