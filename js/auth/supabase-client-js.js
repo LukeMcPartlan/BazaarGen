@@ -253,132 +253,141 @@ class SupabaseClient {
   /**
    * Load items with filters
    */
-  static async loadItems(options = {}) {
-    try {
-      if (!this.isReady()) {
-        throw new Error('Database not available');
-      }
-
-      let query = this.supabase
-        .from('items')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      // Apply hero filter
-      if (options.hero) {
-        query = query.filter('item_data->hero', 'eq', `"${options.hero}"`);
-      }
-
-      // Apply contest filter
-      if (options.contest !== undefined && options.contest !== '') {
-        query = query.eq('contest_number', parseInt(options.contest));
-      }
-
-      // Apply search filter
-      if (options.search) {
-        query = query.filter('item_data->itemName', 'ilike', `%${options.search}%`);
-      }
-
-      // Apply sorting
-      switch (options.sortBy) {
-        case 'oldest':
-          query = query.order('created_at', { ascending: true });
-          break;
-        case 'recent':
-        default:
-          query = query.order('created_at', { ascending: false });
-          break;
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      this.debug('Retrieved items successfully:', data?.length || 0);
-      return data || [];
-    } catch (error) {
-      this.debug('Error loading items:', error);
-      throw error;
+ static async loadItems(options = {}, requestOptions = {}) {
+  try {
+    if (!this.isReady()) {
+      throw new Error('Database not available');
     }
+
+    let query = this.supabase
+      .from('items')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    // Apply hero filter
+    if (options.hero) {
+      query = query.filter('item_data->hero', 'eq', `"${options.hero}"`);
+    }
+
+    // Apply contest filter
+    if (options.contest !== undefined && options.contest !== '') {
+      query = query.eq('contest_number', parseInt(options.contest));
+    }
+
+    // Apply search filter
+    if (options.search) {
+      query = query.filter('item_data->itemName', 'ilike', `%${options.search}%`);
+    }
+
+    // Apply sorting
+    switch (options.sortBy) {
+      case 'oldest':
+        query = query.order('created_at', { ascending: true });
+        break;
+      case 'recent':
+      default:
+        query = query.order('created_at', { ascending: false });
+        break;
+    }
+
+    // *** ADD ABORT SIGNAL SUPPORT ***
+    if (requestOptions.signal) {
+      query = query.abortSignal(requestOptions.signal);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    this.debug('Retrieved items successfully:', data?.length || 0);
+    return data || [];
+  } catch (error) {
+    this.debug('Error loading items:', error);
+    throw error;
   }
+}
 
   /**
    * Load skills with filters
    */
-  static async loadSkills(options = {}) {
-    try {
-      if (!this.isReady()) {
-        throw new Error('Database not available');
-      }
-
-      let query = this.supabase
-        .from('skills')
-        .select('*');
-
-      // Apply rarity filter
-      if (options.rarity) {
-        query = query.filter('skill_data->border', 'eq', `"${options.rarity}"`);
-      }
-
-      // Apply search filter
-      if (options.search) {
-        query = query.filter('skill_data->skillName', 'ilike', `%${options.search}%`);
-      }
-
-      // Apply creator filter
-      if (options.creator) {
-        query = query.filter('user_alias', 'ilike', `%${options.creator}%`);
-      }
-
-      // Apply sorting
-      switch (options.sortBy) {
-        case 'oldest':
-          query = query.order('created_at', { ascending: true });
-          break;
-        case 'name':
-          query = query.order('skill_data->skillName', { ascending: true });
-          break;
-        case 'name_desc':
-          query = query.order('skill_data->skillName', { ascending: false });
-          break;
-        case 'recent':
-        default:
-          query = query.order('created_at', { ascending: false });
-          break;
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      let filteredSkills = data || [];
-
-      // Apply client-side filters for complex operations
-      if (options.keywords) {
-        const keywordLower = options.keywords.toLowerCase();
-        filteredSkills = filteredSkills.filter(skill => 
-          skill.skill_data?.skillEffect?.toLowerCase().includes(keywordLower)
-        );
-      }
-
-      if (options.length) {
-        filteredSkills = filteredSkills.filter(skill => {
-          const effectLength = skill.skill_data?.skillEffect?.length || 0;
-          switch (options.length) {
-            case 'short': return effectLength < 100;
-            case 'medium': return effectLength >= 100 && effectLength <= 200;
-            case 'long': return effectLength > 200;
-            default: return true;
-          }
-        });
-      }
-
-      this.debug('Retrieved skills successfully:', filteredSkills.length);
-      return filteredSkills;
-    } catch (error) {
-      this.debug('Error loading skills:', error);
-      throw error;
+  static async loadSkills(options = {}, requestOptions = {}) {
+  try {
+    if (!this.isReady()) {
+      throw new Error('Database not available');
     }
+
+    let query = this.supabase
+      .from('skills')
+      .select('*');
+
+    // Apply rarity filter
+    if (options.rarity) {
+      query = query.filter('skill_data->border', 'eq', `"${options.rarity}"`);
+    }
+
+    // Apply search filter
+    if (options.search) {
+      query = query.filter('skill_data->skillName', 'ilike', `%${options.search}%`);
+    }
+
+    // Apply creator filter
+    if (options.creator) {
+      query = query.filter('user_alias', 'ilike', `%${options.creator}%`);
+    }
+
+    // Apply sorting
+    switch (options.sortBy) {
+      case 'oldest':
+        query = query.order('created_at', { ascending: true });
+        break;
+      case 'name':
+        query = query.order('skill_data->skillName', { ascending: true });
+        break;
+      case 'name_desc':
+        query = query.order('skill_data->skillName', { ascending: false });
+        break;
+      case 'recent':
+      default:
+        query = query.order('created_at', { ascending: false });
+        break;
+    }
+
+    // *** ADD ABORT SIGNAL SUPPORT ***
+    if (requestOptions.signal) {
+      query = query.abortSignal(requestOptions.signal);
+    }
+
+    const { data, error } = await query;
+
+    if (error) throw error;
+
+    let filteredSkills = data || [];
+
+    // Apply client-side filters for complex operations
+    if (options.keywords) {
+      const keywordLower = options.keywords.toLowerCase();
+      filteredSkills = filteredSkills.filter(skill => 
+        skill.skill_data?.skillEffect?.toLowerCase().includes(keywordLower)
+      );
+    }
+
+    if (options.length) {
+      filteredSkills = filteredSkills.filter(skill => {
+        const effectLength = skill.skill_data?.skillEffect?.length || 0;
+        switch (options.length) {
+          case 'short': return effectLength < 100;
+          case 'medium': return effectLength >= 100 && effectLength <= 200;
+          case 'long': return effectLength > 200;
+          default: return true;
+        }
+      });
+    }
+
+    this.debug('Retrieved skills successfully:', filteredSkills.length);
+    return filteredSkills;
+  } catch (error) {
+    this.debug('Error loading skills:', error);
+    throw error;
   }
 
   /**
