@@ -389,6 +389,7 @@ class SupabaseClient {
     this.debug('Error loading skills:', error);
     throw error;
   }
+  }
 
   /**
    * Get user's saved items
