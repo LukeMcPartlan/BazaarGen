@@ -726,13 +726,120 @@ h1 {
     display: block;
 }
 
-/* Items Grid */
 .items-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
-    gap: 30px;
-    margin-top: 20px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 30px;
+  justify-content: flex-start;
+  align-items: flex-start;
+  margin-top: 20px;
+  width: 100%;
 }
+
+/* Card wrappers should fit their content */
+.card-wrapper, 
+.skill-card-wrapper, 
+.profile-card-wrapper {
+  flex: 0 0 auto; /* Don't grow or shrink, stay natural size */
+  width: fit-content;
+  min-width: 450px; /* Minimum readable width */
+  max-width: 600px; /* Maximum to prevent too-wide cards */
+}
+
+/* Ensure cards themselves fit content */
+.card, 
+.skill-card {
+  width: fit-content;
+  max-width: none;
+  flex-shrink: 0;
+}
+
+/* Fix skill card content to fit properly */
+.skill-card {
+  display: flex;
+  align-items: flex-start;
+  width: fit-content; /* This fixes the 100% width issue */
+  min-width: 450px; /* Ensure readability */
+  max-width: 600px; /* Prevent too wide */
+}
+
+/* Profile-specific grid layout */
+.profile-container .items-grid {
+  justify-content: flex-start;
+  align-content: flex-start;
+}
+/* SKILL-SPECIFIC WIDTH FIXES */
+.skill-content {
+  min-width: 450px;
+  max-width: 600px;
+  width: fit-content; /* Key fix for skill width */
+  flex-shrink: 0;
+}
+
+.skill-card-wrapper {
+  width: fit-content !important; /* Override any inherited width */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Fix skill fallback cards */
+.skill-card-fallback {
+  width: fit-content !important;
+  min-width: 450px !important;
+  max-width: 600px !important;
+}
+
+/* Ensure skill headers and sections fit content */
+.skill-header,
+.skill-effect {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+
+/* RESPONSIVE GRID BEHAVIOR */
+@media (max-width: 1400px) {
+  .items-grid {
+    justify-content: center; /* Center when less space */
+  }
+}
+
+@media (max-width: 768px) {
+  .items-grid {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .card-wrapper, 
+  .skill-card-wrapper, 
+  .profile-card-wrapper {
+    width: 100%;
+    max-width: 100%;
+    min-width: 300px;
+  }
+  
+  .skill-card,
+  .card {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+/* COMMENTS WIDTH MATCHING */
+.creator-info,
+.comments-section {
+  width: 100%;
+  min-width: 450px;
+  box-sizing: border-box;
+}
+
+/* Profile page specific adjustments */
+.profile-card-wrapper .creator-info,
+.profile-card-wrapper .comments-section {
+  width: 100%;
+}
+
+
 
 /* Empty State */
 .empty-state {
