@@ -539,6 +539,18 @@ class UnifiedBrowsePageController {
    * Load more items for display
    */
   static async loadMoreItems() {
+       console.log('🔄 loadMoreItems called!');
+        console.log('🔄 isLoading:', this.isLoading);
+        console.log('🔄 displayedItems.length:', this.displayedItems.length);
+        console.log('🔄 allItems.length:', this.allItems.length);
+        console.log('🔄 itemsGrid element:', this.itemsGrid);
+        
+        if (this.isLoading || this.displayedItems.length >= this.allItems.length) {
+          console.log('🔄 Early return - isLoading or all items displayed');
+          this.updateLoadMoreButton();
+          return;
+        }
+
     if (this.isLoading || this.displayedItems.length >= this.allItems.length) {
       this.updateLoadMoreButton();
       return;
@@ -563,6 +575,11 @@ class UnifiedBrowsePageController {
     }
 
     this.updateStats();
+    console.log('🎯 About to call loadMoreItems');
+    console.log('🎯 this.allItems.length:', this.allItems.length);
+    console.log('🎯 this.displayedItems.length:', this.displayedItems.length);
+    console.log('🎯 this.itemsGrid exists:', !!this.itemsGrid);
+    console.log('🎯 loadMoreItems method exists:', typeof this.loadMoreItems);
     this.updateLoadMoreButton();
   }
 
