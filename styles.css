@@ -1504,21 +1504,21 @@ h1 {
 
 /* Reset cooldown and ammo to their original positioning */
 .card-wrapper .cooldown-section {
-  /* Use the exact same positioning as index.html */
+ 
   left: -30px;
-  top: auto; /* Reset any top positioning */
+  
   bottom: auto;
   transform: none; /* Remove any transforms */
-  /* The cooldown should position itself naturally relative to text-section */
+
 }
 
 .card-wrapper .ammo-section {
-  /* Use the exact same positioning as index.html */
+
   right: -30px;
-  top: auto ; /* Reset any top positioning */
+ 
   bottom: auto ;
   transform: none; /* Remove any transforms */
-  /* The ammo should position itself naturally relative to text-section */
+ 
 }
 
 .creator-info {
