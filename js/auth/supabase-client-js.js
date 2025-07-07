@@ -250,9 +250,9 @@ class SupabaseClient {
     }
   }
 
-  /**
-   * Load items with filters
-   */
+ /**
+ * Load items with filters - CORRECTED VERSION
+ */
 static async loadItems(options = {}, requestOptions = {}) {
   try {
     if (!this.isReady()) {
@@ -290,12 +290,23 @@ static async loadItems(options = {}, requestOptions = {}) {
         break;
     }
 
-    // *** ADD ABORT SIGNAL SUPPORT ***
+    // *** CORRECTED ABORT SIGNAL SUPPORT ***
+    let queryPromise;
     if (requestOptions.signal) {
-      query = query.abortSignal(requestOptions.signal);
+      // Wrap the query in a Promise.race with abort signal
+      queryPromise = Promise.race([
+        query,
+        new Promise((_, reject) => {
+          requestOptions.signal.addEventListener('abort', () => {
+            reject(new DOMException('Query was aborted', 'AbortError'));
+          });
+        })
+      ]);
+    } else {
+      queryPromise = query;
     }
 
-    const { data, error } = await query;
+    const { data, error } = await queryPromise;
 
     if (error) throw error;
 
@@ -306,10 +317,11 @@ static async loadItems(options = {}, requestOptions = {}) {
     throw error;
   }
 }
-  /**
-   * Load skills with filters
-   */
-  static async loadSkills(options = {}, requestOptions = {}) {
+
+/**
+ * Load skills with filters - CORRECTED VERSION
+ */
+static async loadSkills(options = {}, requestOptions = {}) {
   try {
     if (!this.isReady()) {
       throw new Error('Database not available');
@@ -351,12 +363,23 @@ static async loadItems(options = {}, requestOptions = {}) {
         break;
     }
 
-    // *** ADD ABORT SIGNAL SUPPORT ***
+    // *** CORRECTED ABORT SIGNAL SUPPORT ***
+    let queryPromise;
     if (requestOptions.signal) {
-      query = query.abortSignal(requestOptions.signal);
+      // Wrap the query in a Promise.race with abort signal
+      queryPromise = Promise.race([
+        query,
+        new Promise((_, reject) => {
+          requestOptions.signal.addEventListener('abort', () => {
+            reject(new DOMException('Query was aborted', 'AbortError'));
+          });
+        })
+      ]);
+    } else {
+      queryPromise = query;
     }
 
-    const { data, error } = await query;
+    const { data, error } = await queryPromise;
 
     if (error) throw error;
 
@@ -389,7 +412,6 @@ static async loadItems(options = {}, requestOptions = {}) {
     throw error;
   }
 }
-
   /**
    * Get user's saved items
    */
