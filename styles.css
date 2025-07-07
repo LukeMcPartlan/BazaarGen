@@ -7,6 +7,8 @@
   box-sizing: border-box;
 }
 
+
+
 body {
   font-family: Arial, sans-serif;
   background-color: rgb(139, 122, 101);
@@ -2254,6 +2256,22 @@ h1 {
   background: linear-gradient(135deg, rgb(92, 107, 192) 0%, rgb(63, 81, 181) 100%) !important;
   transform: scale(1.1);
 }
+
+
+/* Hide comments by default on profile and browse pages */
+.comments-list,
+.comment-form {
+  display: none !important;
+}
+
+/* Show comments when explicitly toggled */
+.comments-list.show,
+.comment-form.show {
+  display: block !important;
+}
+
+
+
 /* Skills Gallery Styles */
 
 /* Gallery Controls */
