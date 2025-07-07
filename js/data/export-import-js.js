@@ -210,6 +210,7 @@ class ExportImport {
 
   /**
    * Temporarily remove gradients from element and children for html2canvas
+   * Replaces gradients with solid colors extracted from the gradient
    */
   static prepareElementForExport(element) {
     const originalStyles = [];
@@ -220,6 +221,7 @@ class ExportImport {
     elementsWithGradients.forEach((el, index) => {
       const computedStyle = window.getComputedStyle(el);
       const backgroundImage = computedStyle.backgroundImage;
+      const backgroundColor = computedStyle.backgroundColor;
       
       // Check if element has a gradient
       if (backgroundImage && (backgroundImage.includes('gradient') || backgroundImage.includes('linear-gradient') || backgroundImage.includes('radial-gradient'))) {
@@ -229,28 +231,33 @@ class ExportImport {
           index: index,
           originalBackgroundImage: el.style.backgroundImage || '',
           originalBackground: el.style.background || '',
-          computedBackgroundImage: backgroundImage
+          originalBackgroundColor: el.style.backgroundColor || '',
+          computedBackgroundImage: backgroundImage,
+          computedBackgroundColor: backgroundColor
         });
         
-        // Replace gradient with solid color
-        // Try to extract a representative color from the gradient or use a default
-        let solidColor = '#f0f0f0'; // Default fallback
+        // Extract a representative color from the gradient
+        let solidColor = this.extractColorFromGradient(backgroundImage, backgroundColor);
         
-        // Try to extract first color from gradient
-        const gradientMatch = backgroundImage.match(/rgba?\([^)]+\)|#[a-fA-F0-9]{6}|#[a-fA-F0-9]{3}|\b\w+\b/);
-        if (gradientMatch) {
-          solidColor = gradientMatch[0];
-          // Convert common color names to hex
-          if (solidColor === 'white') solidColor = '#ffffff';
-          if (solidColor === 'black') solidColor = '#000000';
-          if (solidColor === 'transparent') solidColor = 'rgba(255,255,255,0.1)';
-        }
+        console.log(`🎨 Replacing gradient with solid color for element ${index}: ${solidColor}`);
         
-        // Apply solid background
+        // Apply solid background while preserving other background properties
         el.style.backgroundImage = 'none';
-        el.style.background = solidColor;
+        el.style.backgroundColor = solidColor;
+        // Keep other background properties if they exist
+        const bgSize = computedStyle.backgroundSize;
+        const bgPosition = computedStyle.backgroundPosition;
+        const bgRepeat = computedStyle.backgroundRepeat;
         
-        console.log(`🎨 Temporarily removed gradient from element ${index}, using: ${solidColor}`);
+        if (bgSize && bgSize !== 'auto auto') {
+          el.style.backgroundSize = bgSize;
+        }
+        if (bgPosition && bgPosition !== '0% 0%') {
+          el.style.backgroundPosition = bgPosition;
+        }
+        if (bgRepeat && bgRepeat !== 'repeat') {
+          el.style.backgroundRepeat = bgRepeat;
+        }
       }
     });
     
@@ -258,22 +265,113 @@ class ExportImport {
   }
 
   /**
+   * Extract a representative solid color from a CSS gradient
+   */
+  static extractColorFromGradient(gradientString, fallbackColor = '#f0f0f0') {
+    try {
+      // Common gradient patterns to extract colors from
+      const colorPatterns = [
+        // RGBA colors
+        /rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*(?:,\s*([\d.]+))?\s*\)/g,
+        // HSL colors
+        /hsla?\(\s*(\d+)\s*,\s*(\d+)%\s*,\s*(\d+)%\s*(?:,\s*([\d.]+))?\s*\)/g,
+        // Hex colors
+        /#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})/g,
+        // Named colors
+        /\b(red|blue|green|yellow|orange|purple|pink|brown|black|white|gray|grey|cyan|magenta|lime|navy|olive|maroon|teal|silver|gold)\b/g
+      ];
+
+      let extractedColors = [];
+
+      // Extract all colors from the gradient
+      colorPatterns.forEach(pattern => {
+        let match;
+        while ((match = pattern.exec(gradientString)) !== null) {
+          if (pattern.source.includes('rgba?')) {
+            // RGB/RGBA color
+            const r = parseInt(match[1]);
+            const g = parseInt(match[2]);
+            const b = parseInt(match[3]);
+            const a = match[4] ? parseFloat(match[4]) : 1;
+            if (a > 0.5) { // Only use colors that aren't too transparent
+              extractedColors.push(`rgb(${r}, ${g}, ${b})`);
+            }
+          } else if (pattern.source.includes('hsla?')) {
+            // HSL/HSLA color - convert to RGB
+            const h = parseInt(match[1]);
+            const s = parseInt(match[2]) / 100;
+            const l = parseInt(match[3]) / 100;
+            const a = match[4] ? parseFloat(match[4]) : 1;
+            if (a > 0.5) {
+              const rgb = this.hslToRgb(h, s, l);
+              extractedColors.push(`rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`);
+            }
+          } else if (pattern.source.includes('#')) {
+            // Hex color
+            extractedColors.push(match[0]);
+          } else {
+            // Named color
+            extractedColors.push(match[0]);
+          }
+        }
+      });
+
+      // If we found colors, use the first one (usually the dominant/starting color)
+      if (extractedColors.length > 0) {
+        return extractedColors[0];
+      }
+
+      // Try to use the computed background color as fallback
+      if (fallbackColor && fallbackColor !== 'rgba(0, 0, 0, 0)' && fallbackColor !== 'transparent') {
+        return fallbackColor;
+      }
+
+      // Ultimate fallback - a neutral color that works well for cards
+      return '#f8f9fa';
+
+    } catch (error) {
+      console.warn('Error extracting color from gradient, using fallback:', error);
+      return fallbackColor || '#f8f9fa';
+    }
+  }
+
+  /**
+   * Convert HSL to RGB
+   */
+  static hslToRgb(h, s, l) {
+    h = h / 360;
+    const a = s * Math.min(l, 1 - l);
+    const f = n => {
+      const k = (n + h / 0.08333333333333333) % 12;
+      const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+      return Math.round(255 * color);
+    };
+    return [f(0), f(8), f(4)];
+  }
+
+  /**
    * Restore original gradients after export
    */
   static restoreElementAfterExport(originalStyles) {
     originalStyles.forEach(styleData => {
-      const { element, originalBackgroundImage, originalBackground } = styleData;
+      const { element, originalBackgroundImage, originalBackground, originalBackgroundColor } = styleData;
       
-      // Restore original styles
+      // Restore original styles in the correct order
       if (originalBackgroundImage) {
         element.style.backgroundImage = originalBackgroundImage;
       } else {
         element.style.removeProperty('background-image');
       }
       
+      if (originalBackgroundColor) {
+        element.style.backgroundColor = originalBackgroundColor;
+      } else if (!originalBackground) {
+        element.style.removeProperty('background-color');
+      }
+      
       if (originalBackground) {
         element.style.background = originalBackground;
-      } else {
+      } else if (!originalBackgroundImage && !originalBackgroundColor) {
         element.style.removeProperty('background');
       }
     });
@@ -1052,8 +1150,13 @@ class ExportImport {
     };
 
     window.exportAllCardsAsPNG = () => {
-      const cards = document.querySelectorAll('.card');
+      const cards = document.querySelectorAll('.card, .card-wrapper');
       this.exportAllCardsAsPNG(Array.from(cards));
+    };
+
+    window.exportAllSkillsAsPNG = () => {
+      const skills = document.querySelectorAll('.skill-card, .skill-card-wrapper');
+      this.exportAllSkillsAsPNG(Array.from(skills));
     };
 
     window.exportSingleCardAsData = (cardData) => {
