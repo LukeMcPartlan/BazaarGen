@@ -679,7 +679,14 @@ static async createItemCard(item) {
         mode: 'browser',
         includeControls: true
       });
-    } else {
+    
+      // *** ADD UPVOTE BUTTON ***
+      const upvoteButton = await this.createItemUpvoteButton(item);
+      const controlsSection = cardElement.querySelector('.card-controls');
+      if (controlsSection) {
+        controlsSection.appendChild(upvoteButton);
+      }
+    }  else {
       cardElement = this.createFallbackItemCard(cardData);
     }
 
@@ -822,15 +829,37 @@ static async createItemCard(item) {
 
       let skillElement;
       if (typeof SkillGenerator !== 'undefined' && SkillGenerator.createSkill) {
-        try {
-          skillElement = await SkillGenerator.createSkill({
-            data: skillData,
-            mode: 'browser',
-            includeControls: false, // Disable controls in browser mode
-            container: null
-          });
-          console.log('✅ Skill card created with SkillGenerator');
-        } catch (skillGenError) {
+  try {
+    skillElement = await SkillGenerator.createSkill({
+      data: skillData,
+      mode: 'browser',
+      includeControls: false,
+      container: null
+    });
+
+    // *** ADD UPVOTE BUTTON ***
+    const upvoteButton = await this.createSkillUpvoteButton(skill);
+    
+    // Create controls section if it doesn't exist
+    let controlsSection = skillElement.querySelector('.skill-controls');
+    if (!controlsSection) {
+      controlsSection = document.createElement('div');
+      controlsSection.className = 'skill-controls';
+      controlsSection.style.cssText = `
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+        display: flex;
+        gap: 5px;
+      `;
+      skillElement.style.position = 'relative';
+      skillElement.appendChild(controlsSection);
+    }
+    controlsSection.appendChild(upvoteButton);
+
+    console.log('✅ Skill card created with SkillGenerator');
+  } catch (skillGenError) {
           console.warn('SkillGenerator failed, using fallback:', skillGenError);
           skillElement = this.createFallbackSkillCard(skillData);
         }
