@@ -253,7 +253,7 @@ class SupabaseClient {
   /**
    * Load items with filters
    */
- static async loadItems(options = {}, requestOptions = {}) {
+static async loadItems(options = {}, requestOptions = {}) {
   try {
     if (!this.isReady()) {
       throw new Error('Database not available');
@@ -306,7 +306,6 @@ class SupabaseClient {
     throw error;
   }
 }
-
   /**
    * Load skills with filters
    */
@@ -389,7 +388,7 @@ class SupabaseClient {
     this.debug('Error loading skills:', error);
     throw error;
   }
-  }
+}
 
   /**
    * Get user's saved items
