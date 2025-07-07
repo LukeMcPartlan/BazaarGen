@@ -442,6 +442,72 @@ static async loadSkills(options = {}, requestOptions = {}) {
     }
   }
 
+/**
+ * Get comments for a skill
+ */
+static async getSkillComments(skillId) {
+  try {
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
+
+    const { data, error } = await this.supabase
+      .from('comments')
+      .select('*')
+      .eq('skill_id', skillId)  // Use skill_id instead of item_id
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return data || [];
+  } catch (error) {
+    this.debug('Error fetching skill comments:', error);
+    throw error;
+  }
+}
+
+/**
+ * Add a comment to a skill
+ */
+static async addSkillComment(skillId, commentText) {
+  try {
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
+
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      throw new Error('User not signed in');
+    }
+
+    const userEmail = GoogleAuth.getUserEmail();
+    const userProfile = GoogleAuth.getUserProfile();
+
+    const commentData = {
+      skill_id: skillId,  // Use skill_id instead of item_id
+      user_email: userEmail,
+      user_alias: userProfile?.alias || 'Unknown',
+      content: commentText,
+      created_at: new Date().toISOString()
+    };
+
+    const { data, error } = await this.supabase
+      .from('comments')
+      .insert([commentData])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return data;
+  } catch (error) {
+    this.debug('Error adding skill comment:', error);
+    throw error;
+  }
+}
+
+
+  
+
   /**
    * Get user's saved skills
    */
