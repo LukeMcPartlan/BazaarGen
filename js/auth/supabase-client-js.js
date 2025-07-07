@@ -542,38 +542,81 @@ static async addSkillComment(skillId, commentText) {
    * Delete item
    */
   static async deleteItem(itemId) {
-    try {
-      if (!this.isReady()) {
-        throw new Error('Database not available');
-      }
-
-      if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
-        throw new Error('User not signed in');
-      }
-
-      const userEmail = GoogleAuth.getUserEmail();
-
-      const { data, error } = await this.supabase
-        .rpc('delete_user_item', {
-          item_id: parseInt(itemId),
-          user_email: userEmail
-        });
-
-      if (error) {
-        return { success: false, error: error.message };
-      }
-
-      if (!data || data.length === 0) {
-        return { success: false, error: 'Item not found or not owned by user' };
-      }
-
-      return { success: true, deletedItem: data[0] };
-    } catch (error) {
-      this.debug('Error deleting item:', error);
-      return { success: false, error: error.message };
+  try {
+    if (!this.isReady()) {
+      throw new Error('Database not available');
     }
-  }
 
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      throw new Error('User not signed in');
+    }
+
+    const userEmail = GoogleAuth.getUserEmail();
+
+    // First, verify the user owns this item
+    const { data: item, error: itemError } = await this.supabase
+      .from('items')
+      .select('id, user_email, item_data')
+      .eq('id', itemId)
+      .eq('user_email', userEmail)
+      .single();
+
+    if (itemError || !item) {
+      return { success: false, error: 'Item not found or not owned by user' };
+    }
+
+    this.debug('Deleting item and related records for item:', itemId);
+
+    // Delete in order: comments -> votes -> item (respecting foreign key constraints)
+
+    // 1. Delete related comments
+    const { error: commentsError } = await this.supabase
+      .from('comments')
+      .delete()
+      .eq('item_id', itemId);
+
+    if (commentsError) {
+      this.debug('Error deleting item comments:', commentsError);
+      // Continue anyway - comments might not exist
+    } else {
+      this.debug('Deleted comments for item:', itemId);
+    }
+
+    // 2. Delete related votes
+    const { error: votesError } = await this.supabase
+      .from('votes')
+      .delete()
+      .eq('item_id', itemId);
+
+    if (votesError) {
+      this.debug('Error deleting item votes:', votesError);
+      // Continue anyway - votes might not exist
+    } else {
+      this.debug('Deleted votes for item:', itemId);
+    }
+
+    // 3. Finally, delete the item itself
+    const { data: deletedItem, error: deleteError } = await this.supabase
+      .from('items')
+      .delete()
+      .eq('id', itemId)
+      .eq('user_email', userEmail)
+      .select()
+      .single();
+
+    if (deleteError) {
+      this.debug('Error deleting item:', deleteError);
+      return { success: false, error: deleteError.message };
+    }
+
+    this.debug('Item deleted successfully:', itemId);
+    return { success: true, deletedItem: deletedItem };
+
+  } catch (error) {
+    this.debug('Error in deleteItem:', error);
+    return { success: false, error: error.message };
+  }
+}
   /**
    * Delete skill
    */
