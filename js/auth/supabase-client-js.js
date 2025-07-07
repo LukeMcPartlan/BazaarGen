@@ -1,4 +1,26 @@
-/**
+tempting to delete skill with ID: 7, Name: "Paul Shits"
+google-auth-js.js:16 [GoogleAuth] Checking if signed in: true
+google-auth-js.js:16 [GoogleAuth] Getting user email: lukemcp45@gmail.com
+supabase-client-js.js:15 [SupabaseClient] Deleting skill and related records for skill: 7
+supabase-client-js.js:15 [SupabaseClient] Deleted comments for skill: 7
+supabase-client-js.js:15 [SupabaseClient] Deleted votes for skill: 7
+supabase-js@2:7  DELETE https://zslsedcfihgwbfljqhod.supabase.co/rest/v1/skills?id=eq.7&user_email=eq.lukemcp45%40gmail.com&select=* 406 (Not Acceptable)
+(anonymous) @ supabase-js@2:7
+(anonymous) @ supabase-js@2:7
+o @ supabase-js@2:7
+Promise.then
+l @ supabase-js@2:7
+(anonymous) @ supabase-js@2:7
+(anonymous) @ supabase-js@2:7
+(anonymous) @ supabase-js@2:7
+then @ supabase-js@2:7Understand this error
+supabase-client-js.js:15 [SupabaseClient] Error deleting skill: {code: 'PGRST116', details: 'The result contains 0 rows', hint: null, message: 'JSON object requested, multiple (or no) rows returned'}
+profile-controller-js.js:887 🗑️ Delete result: {success: false, error: 'JSON object requested, multiple (or no) rows returned'}
+profile-controller-js.js:944 Error deleting item: Error: JSON object requested, multiple (or no) rows returned
+    at ProfileController.deleteItem (profile-controller-js.js:940:15)
+deleteItem @ profile-controller-js.js:944
+await in deleteItem
+(anonymous) @ profile-controller-js.js:527Understand this error/**
  * Unified Supabase Database Client
  * Handles all database operations for items and skills with simplified structure
  */
@@ -680,8 +702,7 @@ static async addSkillComment(skillId, commentText) {
       .delete()
       .eq('id', skillId)
       .eq('user_email', userEmail)
-      .select()
-      .single();
+      .select();
 
     if (deleteError) {
       this.debug('Error deleting skill:', deleteError);
