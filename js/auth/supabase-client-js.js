@@ -732,6 +732,243 @@ static async addSkillComment(skillId, commentText) {
     }
   }
 
+/**
+ * Check if user has already voted on an item
+ */
+static async hasUserVoted(itemId, voteType = 'upvote') {
+  try {
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
+
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      return false;
+    }
+
+    const userEmail = GoogleAuth.getUserEmail();
+
+    const { data, error } = await this.supabase
+      .from('votes')
+      .select('id')
+      .eq('item_id', itemId)
+      .eq('user_email', userEmail)
+      .eq('vote_type', voteType)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      throw error;
+    }
+
+    return !!data;
+  } catch (error) {
+    this.debug('Error checking user vote:', error);
+    return false;
+  }
+}
+
+/**
+ * Check if user has already voted on a skill
+ */
+static async hasUserVotedSkill(skillId, voteType = 'upvote') {
+  try {
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
+
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      return false;
+    }
+
+    const userEmail = GoogleAuth.getUserEmail();
+
+    const { data, error } = await this.supabase
+      .from('votes')
+      .select('id')
+      .eq('skill_id', skillId)
+      .eq('user_email', userEmail)
+      .eq('vote_type', voteType)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      throw error;
+    }
+
+    return !!data;
+  } catch (error) {
+    this.debug('Error checking user skill vote:', error);
+    return false;
+  }
+}
+
+/**
+ * Vote on an item
+ */
+static async voteItem(itemId, voteType = 'upvote') {
+  try {
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
+
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      throw new Error('User not signed in');
+    }
+
+    const userEmail = GoogleAuth.getUserEmail();
+    const userProfile = GoogleAuth.getUserProfile();
+
+    // Check if user has already voted
+    const alreadyVoted = await this.hasUserVoted(itemId, voteType);
+    if (alreadyVoted) {
+      throw new Error('You have already voted on this item');
+    }
+
+    // Add vote record
+    const voteData = {
+      item_id: itemId,
+      user_email: userEmail,
+      vote_type: voteType,
+      created_at: new Date().toISOString()
+    };
+
+    const { data: voteRecord, error: voteError } = await this.supabase
+      .from('votes')
+      .insert([voteData])
+      .select()
+      .single();
+
+    if (voteError) throw voteError;
+
+    // Update item upvote count
+    const { data: updatedItem, error: updateError } = await this.supabase
+      .from('items')
+      .update({ 
+        upvotes: await this.getItemUpvoteCount(itemId),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', itemId)
+      .select()
+      .single();
+
+    if (updateError) throw updateError;
+
+    this.debug('Vote added successfully for item:', itemId);
+    return { 
+      success: true, 
+      vote: voteRecord, 
+      newCount: updatedItem.upvotes 
+    };
+
+  } catch (error) {
+    this.debug('Error voting on item:', error);
+    throw error;
+  }
+}
+
+/**
+ * Vote on a skill
+ */
+static async voteSkill(skillId, voteType = 'upvote') {
+  try {
+    if (!this.isReady()) {
+      throw new Error('Database not available');
+    }
+
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      throw new Error('User not signed in');
+    }
+
+    const userEmail = GoogleAuth.getUserEmail();
+
+    // Check if user has already voted
+    const alreadyVoted = await this.hasUserVotedSkill(skillId, voteType);
+    if (alreadyVoted) {
+      throw new Error('You have already voted on this skill');
+    }
+
+    // Add vote record
+    const voteData = {
+      skill_id: skillId,
+      user_email: userEmail,
+      vote_type: voteType,
+      created_at: new Date().toISOString()
+    };
+
+    const { data: voteRecord, error: voteError } = await this.supabase
+      .from('votes')
+      .insert([voteData])
+      .select()
+      .single();
+
+    if (voteError) throw voteError;
+
+    // Update skill upvote count
+    const { data: updatedSkill, error: updateError } = await this.supabase
+      .from('skills')
+      .update({ 
+        upvotes: await this.getSkillUpvoteCount(skillId),
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', skillId)
+      .select()
+      .single();
+
+    if (updateError) throw updateError;
+
+    this.debug('Vote added successfully for skill:', skillId);
+    return { 
+      success: true, 
+      vote: voteRecord, 
+      newCount: updatedSkill.upvotes 
+    };
+
+  } catch (error) {
+    this.debug('Error voting on skill:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get upvote count for an item
+ */
+static async getItemUpvoteCount(itemId) {
+  try {
+    const { count, error } = await this.supabase
+      .from('votes')
+      .select('*', { count: 'exact', head: true })
+      .eq('item_id', itemId)
+      .eq('vote_type', 'upvote');
+
+    if (error) throw error;
+    return count || 0;
+  } catch (error) {
+    this.debug('Error getting item upvote count:', error);
+    return 0;
+  }
+}
+
+/**
+ * Get upvote count for a skill
+ */
+static async getSkillUpvoteCount(skillId) {
+  try {
+    const { count, error } = await this.supabase
+      .from('votes')
+      .select('*', { count: 'exact', head: true })
+      .eq('skill_id', skillId)
+      .eq('vote_type', 'upvote');
+
+    if (error) throw error;
+    return count || 0;
+  } catch (error) {
+    this.debug('Error getting skill upvote count:', error);
+    return 0;
+  }
+}
+
+
+
+
+  
   /**
    * Setup real-time subscriptions
    */
