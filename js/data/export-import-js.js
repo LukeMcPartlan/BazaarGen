@@ -154,67 +154,161 @@ class ExportImport {
   }
 
   /**
-   * Export single card as PNG
+   * Export single card as PNG using html2canvas
    */
   static async exportCardAsPNG(cardElement, filename = null) {
-    if (!cardElement) return;
+    if (!cardElement) {
+      console.error('No card element provided for PNG export');
+      return;
+    }
 
+    // Check if html2canvas is available
     if (typeof html2canvas === 'undefined') {
+      const errorMsg = 'html2canvas library not loaded! Please ensure the library is included.';
+      console.error(errorMsg);
       if (typeof Messages !== 'undefined') {
-        Messages.showError('html2canvas library not loaded!');
+        Messages.showError(errorMsg);
+      } else {
+        alert(errorMsg);
       }
       return;
     }
 
     try {
+      console.log('🖼️ Starting PNG export with html2canvas...');
+      
+      // Get card name for filename
+      const cardNameElement = cardElement.querySelector('.card-name, .item-name, h3, h2');
+      const cardName = cardNameElement ? cardNameElement.textContent.trim() : 'card';
+      const finalFilename = filename || `${cardName}-${this.getDateString()}.png`;
+      
+      // Configure html2canvas options
       const canvas = await html2canvas(cardElement, {
         backgroundColor: null,
         scale: 2,
         useCORS: true,
-        allowTaint: true
+        allowTaint: true,
+        logging: false,
+        width: cardElement.offsetWidth,
+        height: cardElement.offsetHeight,
+        scrollX: 0,
+        scrollY: 0
       });
 
-      const dataURL = canvas.toDataURL('image/png');
-      const finalFilename = filename || `card-${this.getDateString()}.png`;
+      console.log('✅ Canvas created successfully');
       
-      this.downloadImage(dataURL, finalFilename);
+      // Convert to blob and download
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = finalFilename;
+          link.style.display = 'none';
+          
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Clean up
+          setTimeout(() => URL.revokeObjectURL(url), 100);
+          
+          if (typeof Messages !== 'undefined') {
+            Messages.showSuccess(`Card exported as ${finalFilename}`);
+          }
+          console.log('✅ PNG export completed:', finalFilename);
+        } else {
+          throw new Error('Failed to create blob from canvas');
+        }
+      }, 'image/png', 0.95);
+      
     } catch (error) {
-      console.error('Error exporting card as PNG:', error);
+      console.error('❌ Error exporting card as PNG:', error);
+      const errorMsg = `Failed to export card as PNG: ${error.message}`;
       if (typeof Messages !== 'undefined') {
-        Messages.showError('Failed to export card as PNG');
+        Messages.showError(errorMsg);
+      } else {
+        alert(errorMsg);
       }
     }
   }
 
   /**
-   * Export single skill as PNG
+   * Export single skill as PNG using html2canvas
    */
   static async exportSkillAsPNG(skillElement, filename = null) {
-    if (!skillElement) return;
+    if (!skillElement) {
+      console.error('No skill element provided for PNG export');
+      return;
+    }
 
+    // Check if html2canvas is available
     if (typeof html2canvas === 'undefined') {
+      const errorMsg = 'html2canvas library not loaded! Please ensure the library is included.';
+      console.error(errorMsg);
       if (typeof Messages !== 'undefined') {
-        Messages.showError('html2canvas library not loaded!');
+        Messages.showError(errorMsg);
+      } else {
+        alert(errorMsg);
       }
       return;
     }
 
     try {
+      console.log('🖼️ Starting skill PNG export with html2canvas...');
+      
+      // Get skill name for filename
+      const skillNameElement = skillElement.querySelector('.skill-name, .skill-title, h3, h2');
+      const skillName = skillNameElement ? skillNameElement.textContent.trim() : 'skill';
+      const finalFilename = filename || `${skillName}-${this.getDateString()}.png`;
+      
+      // Configure html2canvas options
       const canvas = await html2canvas(skillElement, {
         backgroundColor: null,
         scale: 2,
         useCORS: true,
-        allowTaint: true
+        allowTaint: true,
+        logging: false,
+        width: skillElement.offsetWidth,
+        height: skillElement.offsetHeight,
+        scrollX: 0,
+        scrollY: 0
       });
 
-      const dataURL = canvas.toDataURL('image/png');
-      const finalFilename = filename || `skill-${this.getDateString()}.png`;
+      console.log('✅ Skill canvas created successfully');
       
-      this.downloadImage(dataURL, finalFilename);
+      // Convert to blob and download
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const url = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = finalFilename;
+          link.style.display = 'none';
+          
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          
+          // Clean up
+          setTimeout(() => URL.revokeObjectURL(url), 100);
+          
+          if (typeof Messages !== 'undefined') {
+            Messages.showSuccess(`Skill exported as ${finalFilename}`);
+          }
+          console.log('✅ Skill PNG export completed:', finalFilename);
+        } else {
+          throw new Error('Failed to create blob from canvas');
+        }
+      }, 'image/png', 0.95);
+      
     } catch (error) {
-      console.error('Error exporting skill as PNG:', error);
+      console.error('❌ Error exporting skill as PNG:', error);
+      const errorMsg = `Failed to export skill as PNG: ${error.message}`;
       if (typeof Messages !== 'undefined') {
-        Messages.showError('Failed to export skill as PNG');
+        Messages.showError(errorMsg);
+      } else {
+        alert(errorMsg);
       }
     }
   }
@@ -804,6 +898,70 @@ class ExportImport {
       this.exportCardAsPNG(cardElement);
     };
 
+    window.exportSkillAsPNG = (skillElement) => {
+      this.exportSkillAsPNG(skillElement);
+    };
+
+    // Functions for individual card/skill export buttons
+    window.saveCardAsPNG = (button) => {
+      console.log('🖼️ saveCardAsPNG called');
+      const cardElement = button.closest('.card, .card-wrapper');
+      if (cardElement) {
+        this.exportCardAsPNG(cardElement);
+      } else {
+        console.error('Card element not found');
+        if (typeof Messages !== 'undefined') {
+          Messages.showError('Card not found for export');
+        }
+      }
+    };
+
+    window.saveSkillAsPNG = (button) => {
+      console.log('🖼️ saveSkillAsPNG called');
+      const skillElement = button.closest('.skill-card, .skill-card-wrapper');
+      if (skillElement) {
+        this.exportSkillAsPNG(skillElement);
+      } else {
+        console.error('Skill element not found');
+        if (typeof Messages !== 'undefined') {
+          Messages.showError('Skill not found for export');
+        }
+      }
+    };
+
+    // Functions to export individual card/skill data
+    window.exportCardData = (button) => {
+      console.log('📄 exportCardData called');
+      const cardElement = button.closest('.card, .card-wrapper');
+      if (cardElement && cardElement.cardData) {
+        this.exportSingleCardAsData(cardElement.cardData);
+      } else {
+        console.error('Card data not found');
+        if (typeof Messages !== 'undefined') {
+          Messages.showError('Card data not found for export');
+        }
+      }
+    };
+
+    window.exportSkillData = (button) => {
+      console.log('📄 exportSkillData called');
+      const skillElement = button.closest('.skill-card, .skill-card-wrapper');
+      if (skillElement && skillElement.skillData) {
+        this.exportSingleSkillAsData(skillElement.skillData);
+      } else {
+        console.error('Skill data not found');
+        if (typeof Messages !== 'undefined') {
+          Messages.showError('Skill data not found for export');
+        }
+      }
+    };
+
+    // Generic export menu function
+    window.showExportMenu = (button, itemData, type) => {
+      console.log('📋 showExportMenu called', { type, hasData: !!itemData });
+      this.setupExportMenu(button, itemData, type);
+    };
+
     window.triggerImport = () => {
       this.triggerFileInput('.json', (event) => {
         const currentPage = window.location.pathname.includes('skills') ? 'skills' : 'cards';
@@ -821,12 +979,14 @@ class ExportImport {
 
     // Close export menus when clicking outside
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.export-button')) {
+      if (!e.target.closest('.export-button, .export-menu')) {
         document.querySelectorAll('.export-menu').forEach(menu => {
           menu.style.display = 'none';
         });
       }
     });
+
+    console.log('✅ ExportImport event listeners set up');
   }
 }
 
@@ -835,10 +995,69 @@ if (typeof document !== 'undefined') {
   ExportImport.setupEventListeners();
 }
 
-// Global function for export menu (used in HTML)
+// Global functions for easy access from HTML buttons
 window.toggleExportMenu = (button, itemData) => {
   const type = button.className.includes('card') ? 'card' : 'skill';
   ExportImport.setupExportMenu(button, itemData, type);
+};
+
+// Simple export functions for direct button calls
+window.exportThisCardAsPNG = (button) => {
+  console.log('🖼️ Direct PNG export called');
+  const cardElement = button.closest('.card, .card-wrapper');
+  if (cardElement) {
+    ExportImport.exportCardAsPNG(cardElement);
+  } else {
+    console.error('❌ Card element not found for PNG export');
+  }
+};
+
+window.exportThisCardAsData = (button) => {
+  console.log('📄 Direct data export called');
+  const cardElement = button.closest('.card, .card-wrapper');
+  if (cardElement && cardElement.cardData) {
+    ExportImport.exportSingleCardAsData(cardElement.cardData);
+  } else {
+    // Try to get data from window.cardsData if not on element
+    const cardIndex = Array.from(document.querySelectorAll('.card, .card-wrapper')).indexOf(cardElement);
+    if (cardIndex >= 0 && window.cardsData && window.cardsData[cardIndex]) {
+      ExportImport.exportSingleCardAsData(window.cardsData[cardIndex]);
+    } else {
+      console.error('❌ Card data not found for export');
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('Card data not found for export');
+      }
+    }
+  }
+};
+
+window.exportThisSkillAsPNG = (button) => {
+  console.log('🖼️ Direct skill PNG export called');
+  const skillElement = button.closest('.skill-card, .skill-card-wrapper');
+  if (skillElement) {
+    ExportImport.exportSkillAsPNG(skillElement);
+  } else {
+    console.error('❌ Skill element not found for PNG export');
+  }
+};
+
+window.exportThisSkillAsData = (button) => {
+  console.log('📄 Direct skill data export called');
+  const skillElement = button.closest('.skill-card, .skill-card-wrapper');
+  if (skillElement && skillElement.skillData) {
+    ExportImport.exportSingleSkillAsData(skillElement.skillData);
+  } else {
+    // Try to get data from window.skillsData if not on element
+    const skillIndex = Array.from(document.querySelectorAll('.skill-card, .skill-card-wrapper')).indexOf(skillElement);
+    if (skillIndex >= 0 && window.skillsData && window.skillsData[skillIndex]) {
+      ExportImport.exportSingleSkillAsData(window.skillsData[skillIndex]);
+    } else {
+      console.error('❌ Skill data not found for export');
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('Skill data not found for export');
+      }
+    }
+  }
 };
 
 // Make ExportImport available globally
