@@ -12,7 +12,7 @@ class UnifiedBrowsePageController {
   static displayedSkills = [];
   static currentPage = 0;
   static currentSkillPage = 0;
-  static ITEMS_PER_LOAD = 5;
+  static ITEMS_PER_LOAD = 12;
   static isLoading = false;
   static isSkillsLoading = false;
   static isInitialized = false;
