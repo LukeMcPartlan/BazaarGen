@@ -909,7 +909,7 @@ if (skill.skill_data?.skills && Array.isArray(skill.skill_data.skills) && skill.
 }
 
       // Create comments section
-      const commentsSection = this.createSkillCommentsSection(skill.id);
+     const commentsSection = await this.createSkillCommentsSection(skill.id);
 
       cardWrapper.appendChild(creatorInfo);
       cardWrapper.appendChild(skillElement);
