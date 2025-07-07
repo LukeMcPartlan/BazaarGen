@@ -18,7 +18,7 @@ class IndexPageController {
       this.setupFormEvents();
       this.setupCardManagement();
       this.setupGlobalVariables();
-      this.setupDefaultEffects(); // Add default effects on load
+      this.setupDefaultEffects();
       this.isInitialized = true;
     });
   }
@@ -50,54 +50,238 @@ class IndexPageController {
    */
   static setupCardGeneration() {
     // Main create card function
-  window.createCard = async (isPreview = false) => {
-  try {
-    const cardElement = await CardGenerator.createCard({
-      formData: true,
-      isPreview: isPreview,
-      container: isPreview ? document.getElementById('previewContainer') : document.getElementById('outputContainer'),
-      includeControls: !isPreview,
-      mode: isPreview ? 'preview' : 'generator'
-    });
+    window.createCard = async (isPreview = false) => {
+      try {
+        const cardElement = await CardGenerator.createCard({
+          formData: true,
+          isPreview: isPreview,
+          container: isPreview ? document.getElementById('previewContainer') : document.getElementById('outputContainer'),
+          includeControls: !isPreview,
+          mode: isPreview ? 'preview' : 'generator'
+        });
 
-    if (cardElement && !isPreview) {
-      // IMPORTANT: Get the card data that was just created
-      const cardData = await CardGenerator.extractFormData();
-      
-      // Initialize cardsData array if it doesn't exist
-      if (!window.cardsData) {
-        window.cardsData = [];
-      }
-      
-      // Add card data to the array
-      window.cardsData.push(cardData);
-      
-      // Also update IndexPageController's array if it exists
-      if (window.IndexPageController && IndexPageController.cardsData) {
-        IndexPageController.cardsData.push(cardData);
-      }
-      
-      // Dispatch event for gallery manager
-      document.dispatchEvent(new CustomEvent('cardCreated', {
-        detail: { 
-          cardElement: cardElement,
-          cardData: cardData
+        if (cardElement && !isPreview) {
+          // IMPORTANT: Get the card data that was just created
+          const cardData = await CardGenerator.extractFormData();
+          
+          // Initialize cardsData array if it doesn't exist
+          if (!window.cardsData) {
+            window.cardsData = [];
+          }
+          
+          // Add card data to the array
+          window.cardsData.push(cardData);
+          const cardIndex = window.cardsData.length - 1;
+          
+          // CRITICAL: Attach card data to the card element for export functions
+          cardElement.cardData = cardData;
+          cardElement.cardIndex = cardIndex;
+          
+          // Also update IndexPageController's array if it exists
+          if (window.IndexPageController && IndexPageController.cardsData) {
+            IndexPageController.cardsData.push(cardData);
+          }
+          
+          // Setup the save buttons on this specific card
+          this.setupCardSaveButtons(cardElement, cardData, cardIndex);
+          
+          // Dispatch event for gallery manager
+          document.dispatchEvent(new CustomEvent('cardCreated', {
+            detail: { 
+              cardElement: cardElement,
+              cardData: cardData
+            }
+          }));
         }
-      }));
-    }
 
-    return cardElement;
-  } catch (error) {
-    console.error('Error in createCard:', error);
-    Messages.showError(error.message);
-    return null;
-  }
-};
+        return cardElement;
+      } catch (error) {
+        console.error('Error in createCard:', error);
+        if (typeof Messages !== 'undefined') {
+          Messages.showError(error.message);
+        }
+        return null;
+      }
+    };
 
     // Setup the main generate button
     const generateButton = document.querySelector('button[onclick="createCard()"]');
     if (generateButton) {
       generateButton.onclick = () => window.createCard(false);
+    }
+  }
+
+  /**
+   * Setup save buttons for a specific card
+   */
+  static setupCardSaveButtons(cardElement, cardData, cardIndex) {
+    console.log('🔧 Setting up save buttons for card:', cardData.itemName);
+    
+    // Find save/export buttons in this card
+    const saveButtons = cardElement.querySelectorAll('button[onclick*="save"], button[class*="save"], .export-button, .save-button');
+    
+    saveButtons.forEach(button => {
+      console.log('🔧 Found save button:', button.textContent, button.className);
+      
+      // Remove any existing onclick handlers
+      button.removeAttribute('onclick');
+      
+      // Determine button type and add appropriate click handler
+      const buttonText = button.textContent.toLowerCase();
+      const buttonClass = button.className.toLowerCase();
+      
+      if (buttonText.includes('png') || buttonClass.includes('png')) {
+        // PNG export button
+        button.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('🖼️ PNG export clicked for card:', cardData.itemName);
+          this.exportCardAsPNG(cardElement, cardData);
+        };
+      } else if (buttonText.includes('data') || buttonClass.includes('data')) {
+        // Data export button
+        button.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('📄 Data export clicked for card:', cardData.itemName);
+          this.exportCardAsData(cardData);
+        };
+      } else {
+        // Generic save button - show menu
+        button.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('💾 Save menu clicked for card:', cardData.itemName);
+          this.showCardExportMenu(button, cardElement, cardData);
+        };
+      }
+    });
+
+    // Also setup any dropdown menus that might exist
+    const exportMenus = cardElement.querySelectorAll('.export-menu, .save-menu');
+    exportMenus.forEach(menu => {
+      const pngOption = menu.querySelector('[data-action="png"], .export-png');
+      const dataOption = menu.querySelector('[data-action="data"], .export-data');
+      
+      if (pngOption) {
+        pngOption.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.exportCardAsPNG(cardElement, cardData);
+          menu.style.display = 'none';
+        };
+      }
+      
+      if (dataOption) {
+        dataOption.onclick = (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          this.exportCardAsData(cardData);
+          menu.style.display = 'none';
+        };
+      }
+    });
+  }
+
+  /**
+   * Show export menu for a card
+   */
+  static showCardExportMenu(button, cardElement, cardData) {
+    console.log('📋 Showing export menu for:', cardData.itemName);
+    
+    // Close any existing menus
+    document.querySelectorAll('.card-export-menu').forEach(menu => menu.remove());
+    
+    // Create new menu
+    const menu = document.createElement('div');
+    menu.className = 'card-export-menu';
+    menu.style.cssText = `
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      z-index: 1000;
+      min-width: 140px;
+      display: block;
+    `;
+    
+    menu.innerHTML = `
+      <div class="export-option" style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee;">
+        💾 Save as PNG
+      </div>
+      <div class="export-option" style="padding: 8px 12px; cursor: pointer;">
+        📄 Export Data
+      </div>
+    `;
+    
+    // Add event listeners
+    const pngOption = menu.querySelector('.export-option:first-child');
+    const dataOption = menu.querySelector('.export-option:last-child');
+    
+    pngOption.onclick = (e) => {
+      e.stopPropagation();
+      this.exportCardAsPNG(cardElement, cardData);
+      menu.remove();
+    };
+    
+    dataOption.onclick = (e) => {
+      e.stopPropagation();
+      this.exportCardAsData(cardData);
+      menu.remove();
+    };
+    
+    // Position menu relative to button
+    const buttonRect = button.getBoundingClientRect();
+    const parentRect = button.offsetParent.getBoundingClientRect();
+    
+    menu.style.top = (buttonRect.bottom - parentRect.top) + 'px';
+    menu.style.right = (parentRect.right - buttonRect.right) + 'px';
+    
+    // Add to button's parent
+    const parent = button.closest('.card, .card-wrapper') || button.parentElement;
+    parent.style.position = 'relative';
+    parent.appendChild(menu);
+    
+    // Close menu when clicking outside
+    setTimeout(() => {
+      const closeHandler = (e) => {
+        if (!menu.contains(e.target) && e.target !== button) {
+          menu.remove();
+          document.removeEventListener('click', closeHandler);
+        }
+      };
+      document.addEventListener('click', closeHandler);
+    }, 10);
+  }
+
+  /**
+   * Export card as PNG
+   */
+  static exportCardAsPNG(cardElement, cardData) {
+    console.log('🖼️ Exporting card as PNG:', cardData.itemName);
+    
+    if (typeof ExportImport !== 'undefined') {
+      ExportImport.exportCardAsPNG(cardElement);
+    } else {
+      console.error('ExportImport not available');
+      alert('Export functionality not available');
+    }
+  }
+
+  /**
+   * Export card as data
+   */
+  static exportCardAsData(cardData) {
+    console.log('📄 Exporting card data:', cardData.itemName);
+    
+    if (typeof ExportImport !== 'undefined') {
+      ExportImport.exportSingleCardAsData(cardData);
+    } else {
+      console.error('ExportImport not available');
+      alert('Export functionality not available');
     }
   }
 
@@ -157,38 +341,51 @@ class IndexPageController {
   static setupCardManagement() {
     // Clear all cards
     window.clearAllCards = () => {
-  const outputContainer = document.getElementById("outputContainer");
-  const previewContainer = document.getElementById("previewContainer");
-  
-  if (outputContainer) outputContainer.innerHTML = '';
-  if (previewContainer) previewContainer.innerHTML = '';
-  
-  // IMPORTANT: Clear the cards data array
-  window.cardsData = [];
-  
-  if (window.IndexPageController) {
-    IndexPageController.cardsData = [];
-  }
-  
-  // Exit gallery mode if active
-  if (window.GalleryManager && GalleryManager.isGalleryMode) {
-    GalleryManager.toggleGalleryMode();
-  }
-  
-  Messages.showSuccess('All cards cleared');
-};
+      const outputContainer = document.getElementById("outputContainer");
+      const previewContainer = document.getElementById("previewContainer");
+      
+      if (outputContainer) outputContainer.innerHTML = '';
+      if (previewContainer) previewContainer.innerHTML = '';
+      
+      // IMPORTANT: Clear the cards data array
+      window.cardsData = [];
+      
+      if (window.IndexPageController) {
+        IndexPageController.cardsData = [];
+      }
+      
+      // Exit gallery mode if active
+      if (window.GalleryManager && GalleryManager.isGalleryMode) {
+        GalleryManager.toggleGalleryMode();
+      }
+      
+      if (typeof Messages !== 'undefined') {
+        Messages.showSuccess('All cards cleared');
+      }
+    };
+
     // Setup clear all button
     const clearAllButton = document.querySelector('button[onclick="clearAllCards()"]');
     if (clearAllButton) {
       clearAllButton.onclick = () => {
         if (this.cardsData.length > 0) {
-          Messages.showConfirmation(
-            'Are you sure you want to clear all cards? This action cannot be undone.',
-            () => window.clearAllCards(),
-            () => {}
-          );
+          if (typeof Messages !== 'undefined') {
+            Messages.showConfirmation(
+              'Are you sure you want to clear all cards? This action cannot be undone.',
+              () => window.clearAllCards(),
+              () => {}
+            );
+          } else {
+            if (confirm('Are you sure you want to clear all cards? This action cannot be undone.')) {
+              window.clearAllCards();
+            }
+          }
         } else {
-          Messages.showInfo('No cards to clear');
+          if (typeof Messages !== 'undefined') {
+            Messages.showInfo('No cards to clear');
+          } else {
+            alert('No cards to clear');
+          }
         }
       };
     }
@@ -203,33 +400,90 @@ class IndexPageController {
 
     // Setup export functions
     window.exportAllCardsAsData = () => {
-      ExportImport.exportAllCardsAsData(this.cardsData);
+      if (typeof ExportImport !== 'undefined') {
+        ExportImport.exportAllCardsAsData(this.cardsData);
+      } else {
+        console.error('ExportImport not available');
+      }
     };
 
     window.exportAllCardsAsPNG = () => {
-      const cards = document.querySelectorAll('.card');
-      ExportImport.exportAllCardsAsPNG(Array.from(cards));
+      const cards = document.querySelectorAll('.card, .card-wrapper');
+      if (typeof ExportImport !== 'undefined') {
+        ExportImport.exportAllCardsAsPNG(Array.from(cards));
+      } else {
+        console.error('ExportImport not available');
+      }
     };
 
     window.importCardData = (event) => {
-      ExportImport.importData(event, 'cards');
+      if (typeof ExportImport !== 'undefined') {
+        ExportImport.importData(event, 'cards');
+      } else {
+        console.error('ExportImport not available');
+      }
     };
 
     window.triggerImport = () => {
-      ExportImport.triggerFileInput('.json', window.importCardData);
+      if (typeof ExportImport !== 'undefined') {
+        ExportImport.triggerFileInput('.json', window.importCardData);
+      } else {
+        console.error('ExportImport not available');
+      }
     };
 
     // Setup dynamic input functions - use existing Forms methods
     window.addTagInput = () => {
-      Forms.addTagInput();
+      if (typeof Forms !== 'undefined') {
+        Forms.addTagInput();
+      }
     };
 
     window.addPassiveInput = () => {
-      Forms.addPassiveInput();
+      if (typeof Forms !== 'undefined') {
+        Forms.addPassiveInput();
+      } else {
+        this.addPassiveInput();
+      }
     };
 
     window.addOnUseInput = () => {
-      Forms.addOnUseInput();
+      if (typeof Forms !== 'undefined') {
+        Forms.addOnUseInput();
+      } else {
+        this.addOnUseInput();
+      }
+    };
+
+    // Enhanced global save functions for individual cards
+    window.saveCardAsPNG = (button) => {
+      console.log('🖼️ Global saveCardAsPNG called');
+      const cardElement = button.closest('.card, .card-wrapper');
+      if (cardElement && cardElement.cardData) {
+        this.exportCardAsPNG(cardElement, cardElement.cardData);
+      } else {
+        console.error('Card or card data not found');
+      }
+    };
+
+    window.saveCardAsData = (button) => {
+      console.log('📄 Global saveCardAsData called');
+      const cardElement = button.closest('.card, .card-wrapper');
+      if (cardElement && cardElement.cardData) {
+        this.exportCardAsData(cardElement.cardData);
+      } else {
+        console.error('Card data not found');
+      }
+    };
+
+    window.showCardMenu = (button) => {
+      console.log('📋 Global showCardMenu called');
+      const cardElement = button.closest('.card, .card-wrapper');
+      if (cardElement && cardElement.cardData) {
+        this.showCardExportMenu(button, cardElement, cardElement.cardData);
+      } else {
+        console.error('Card or card data not found');
+      }
     };
   }
 
@@ -237,7 +491,9 @@ class IndexPageController {
    * Reset form with default effects
    */
   static resetForm() {
-    Forms.resetForm();
+    if (typeof Forms !== 'undefined') {
+      Forms.resetForm();
+    }
     this.cardsData = [];
     window.cardsData = this.cardsData;
   }
@@ -247,7 +503,10 @@ class IndexPageController {
    * @returns {Object} Current form data
    */
   static getCurrentFormData() {
-    return Forms.getFormData();
+    if (typeof Forms !== 'undefined') {
+      return Forms.getFormData();
+    }
+    return {};
   }
 
   /**
@@ -255,10 +514,10 @@ class IndexPageController {
    * @param {Object} data - Form data to set
    */
   static setFormData(data) {
-    Forms.setFormData(data);
+    if (typeof Forms !== 'undefined') {
+      Forms.setFormData(data);
+    }
   }
-
-  // ... rest of the existing methods remain the same ...
 
   /**
    * Get all generated cards data
@@ -273,6 +532,11 @@ class IndexPageController {
    * @param {Object} cardData - Card data to add
    */
   static addCard(cardData) {
+    if (typeof CardGenerator === 'undefined') {
+      console.error('CardGenerator not available');
+      return null;
+    }
+
     const cardElement = CardGenerator.createCard({
       data: cardData,
       container: document.getElementById('outputContainer'),
@@ -282,6 +546,13 @@ class IndexPageController {
     if (cardElement) {
       this.cardsData.push(cardData);
       window.cardsData = this.cardsData;
+      
+      // Attach data to element
+      cardElement.cardData = cardData;
+      cardElement.cardIndex = this.cardsData.length - 1;
+      
+      // Setup save buttons
+      this.setupCardSaveButtons(cardElement, cardData, this.cardsData.length - 1);
     }
 
     return cardElement;
@@ -379,11 +650,17 @@ class IndexPageController {
       if (e.ctrlKey && e.shiftKey && e.key === 'C') {
         e.preventDefault();
         if (this.cardsData.length > 0) {
-          Messages.showConfirmation(
-            'Clear all cards?',
-            () => window.clearAllCards(),
-            () => {}
-          );
+          if (typeof Messages !== 'undefined') {
+            Messages.showConfirmation(
+              'Clear all cards?',
+              () => window.clearAllCards(),
+              () => {}
+            );
+          } else {
+            if (confirm('Clear all cards?')) {
+              window.clearAllCards();
+            }
+          }
         }
       }
 
@@ -393,7 +670,11 @@ class IndexPageController {
         if (this.cardsData.length > 0) {
           window.exportAllCardsAsData();
         } else {
-          Messages.showInfo('No cards to export');
+          if (typeof Messages !== 'undefined') {
+            Messages.showInfo('No cards to export');
+          } else {
+            alert('No cards to export');
+          }
         }
       }
     });
@@ -427,16 +708,32 @@ class IndexPageController {
         
         // Only restore if save is less than 1 hour old
         if (now - saveTime < 60 * 60 * 1000) {
-          Messages.showConfirmation(
-            `Found auto-saved data from ${saveTime.toLocaleString()}. Restore ${parsed.cards.length} cards?`,
-            () => {
-              parsed.cards.forEach(cardData => this.addCard(cardData));
+          const restoreHandler = () => {
+            parsed.cards.forEach(cardData => this.addCard(cardData));
+            if (typeof Messages !== 'undefined') {
               Messages.showSuccess(`Restored ${parsed.cards.length} cards from auto-save`);
-            },
-            () => {
-              localStorage.removeItem('bazaargen_cards_autosave');
+            } else {
+              alert(`Restored ${parsed.cards.length} cards from auto-save`);
             }
-          );
+          };
+
+          const cancelHandler = () => {
+            localStorage.removeItem('bazaargen_cards_autosave');
+          };
+
+          if (typeof Messages !== 'undefined') {
+            Messages.showConfirmation(
+              `Found auto-saved data from ${saveTime.toLocaleString()}. Restore ${parsed.cards.length} cards?`,
+              restoreHandler,
+              cancelHandler
+            );
+          } else {
+            if (confirm(`Found auto-saved data from ${saveTime.toLocaleString()}. Restore ${parsed.cards.length} cards?`)) {
+              restoreHandler();
+            } else {
+              cancelHandler();
+            }
+          }
         }
       }
     } catch (error) {
@@ -453,3 +750,6 @@ document.addEventListener('DOMContentLoaded', () => {
   IndexPageController.setupKeyboardShortcuts();
   IndexPageController.setupAutoSave();
 });
+
+// Make available globally
+window.IndexPageController = IndexPageController;
