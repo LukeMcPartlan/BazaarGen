@@ -1,4 +1,4 @@
-
+  /**
  * Unified Supabase Database Client
  * Handles all database operations for items and skills with simplified structure
  */
