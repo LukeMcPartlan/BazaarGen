@@ -402,6 +402,14 @@
             background: rgb(251, 225, 183);
         }
     </style>
+
+<script>
+setTimeout(() => {
+  console.log('SupabaseClient loaded:', typeof SupabaseClient !== 'undefined');
+  console.log('SupabaseClient ready:', SupabaseClient?.isReady?.());
+}, 1000);
+</script>
+     
 </head>
 <body>
     <!-- Navigation -->
