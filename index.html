@@ -81,6 +81,14 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <link rel="stylesheet" href="styles.css" />
+
+
+  <script>
+setTimeout(() => {
+  console.log('SupabaseClient loaded:', typeof SupabaseClient !== 'undefined');
+  console.log('SupabaseClient ready:', SupabaseClient?.isReady?.());
+}, 1000);
+</script>
 </head>
 <body>
   <!-- Top Navigation -->
