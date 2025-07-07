@@ -534,7 +534,7 @@ class UnifiedBrowsePageController {
       this.currentSkillsController = null;
     }
   }
-}
+
   /**
    * Load more items for display
    */
