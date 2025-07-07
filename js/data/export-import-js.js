@@ -5,11 +5,15 @@
 class ExportImport {
   
   /**
-   * Export all cards as JSON data (unchanged)
+   * Export all cards as JSON data
    */
   static exportAllCardsAsData(cardsData) {
     if (!cardsData || cardsData.length === 0) {
-      Messages.showError('No cards to export!');
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('No cards to export!');
+      } else {
+        alert('No cards to export!');
+      }
       return;
     }
 
@@ -21,13 +25,198 @@ class ExportImport {
       collection: {
         name: `Card Collection ${this.getDateString()}`,
         description: `${cardsData.length} cards exported from BazaarGen`,
-        created_by: GoogleAuth?.getUserDisplayName() || 'Unknown'
+        created_by: (typeof GoogleAuth !== 'undefined' && GoogleAuth.getUserDisplayName()) || 'Unknown'
       },
       cards: cardsData
     };
 
     this.downloadJSON(dataToExport, `Bazaar-cards-${this.getDateString()}.json`);
-    Messages.showSuccess(`Exported ${cardsData.length} cards successfully!`);
+    
+    if (typeof Messages !== 'undefined') {
+      Messages.showSuccess(`Exported ${cardsData.length} cards successfully!`);
+    } else {
+      alert(`Exported ${cardsData.length} cards successfully!`);
+    }
+  }
+
+  /**
+   * Export all skills as JSON data
+   */
+  static exportAllSkillsAsData(skillsData) {
+    if (!skillsData || skillsData.length === 0) {
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('No skills to export!');
+      } else {
+        alert('No skills to export!');
+      }
+      return;
+    }
+
+    const dataToExport = {
+      version: "1.0",
+      timestamp: new Date().toISOString(),
+      type: "skills",
+      count: skillsData.length,
+      collection: {
+        name: `Skill Collection ${this.getDateString()}`,
+        description: `${skillsData.length} skills exported from BazaarGen`,
+        created_by: (typeof GoogleAuth !== 'undefined' && GoogleAuth.getUserDisplayName()) || 'Unknown'
+      },
+      skills: skillsData
+    };
+
+    this.downloadJSON(dataToExport, `Bazaar-skills-${this.getDateString()}.json`);
+    
+    if (typeof Messages !== 'undefined') {
+      Messages.showSuccess(`Exported ${skillsData.length} skills successfully!`);
+    } else {
+      alert(`Exported ${skillsData.length} skills successfully!`);
+    }
+  }
+
+  /**
+   * Export single card as JSON
+   */
+  static exportSingleCardAsData(cardData) {
+    if (!cardData) {
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('No card data to export!');
+      }
+      return;
+    }
+
+    const dataToExport = {
+      version: "1.0",
+      timestamp: new Date().toISOString(),
+      type: "cards",
+      count: 1,
+      cards: [cardData]
+    };
+
+    const fileName = `${cardData.itemName || 'Card'}-${this.getDateString()}.json`;
+    this.downloadJSON(dataToExport, fileName);
+  }
+
+  /**
+   * Export single skill as JSON
+   */
+  static exportSingleSkillAsData(skillData) {
+    if (!skillData) {
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('No skill data to export!');
+      }
+      return;
+    }
+
+    const dataToExport = {
+      version: "1.0",
+      timestamp: new Date().toISOString(),
+      type: "skills",
+      count: 1,
+      skills: [skillData]
+    };
+
+    const fileName = `${skillData.skillName || 'Skill'}-${this.getDateString()}.json`;
+    this.downloadJSON(dataToExport, fileName);
+  }
+
+  /**
+   * Export all cards as PNG images
+   */
+  static async exportAllCardsAsPNG(cardElements) {
+    if (!cardElements || cardElements.length === 0) {
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('No cards to export as PNG!');
+      }
+      return;
+    }
+
+    if (typeof html2canvas === 'undefined') {
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('html2canvas library not loaded!');
+      }
+      return;
+    }
+
+    for (let i = 0; i < cardElements.length; i++) {
+      try {
+        await this.exportCardAsPNG(cardElements[i], `card-${i + 1}`);
+        // Small delay between exports
+        await this.delay(200);
+      } catch (error) {
+        console.error(`Failed to export card ${i + 1}:`, error);
+      }
+    }
+
+    if (typeof Messages !== 'undefined') {
+      Messages.showSuccess(`Exported ${cardElements.length} cards as PNG!`);
+    }
+  }
+
+  /**
+   * Export single card as PNG
+   */
+  static async exportCardAsPNG(cardElement, filename = null) {
+    if (!cardElement) return;
+
+    if (typeof html2canvas === 'undefined') {
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('html2canvas library not loaded!');
+      }
+      return;
+    }
+
+    try {
+      const canvas = await html2canvas(cardElement, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+        allowTaint: true
+      });
+
+      const dataURL = canvas.toDataURL('image/png');
+      const finalFilename = filename || `card-${this.getDateString()}.png`;
+      
+      this.downloadImage(dataURL, finalFilename);
+    } catch (error) {
+      console.error('Error exporting card as PNG:', error);
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('Failed to export card as PNG');
+      }
+    }
+  }
+
+  /**
+   * Export single skill as PNG
+   */
+  static async exportSkillAsPNG(skillElement, filename = null) {
+    if (!skillElement) return;
+
+    if (typeof html2canvas === 'undefined') {
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('html2canvas library not loaded!');
+      }
+      return;
+    }
+
+    try {
+      const canvas = await html2canvas(skillElement, {
+        backgroundColor: null,
+        scale: 2,
+        useCORS: true,
+        allowTaint: true
+      });
+
+      const dataURL = canvas.toDataURL('image/png');
+      const finalFilename = filename || `skill-${this.getDateString()}.png`;
+      
+      this.downloadImage(dataURL, finalFilename);
+    } catch (error) {
+      console.error('Error exporting skill as PNG:', error);
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('Failed to export skill as PNG');
+      }
+    }
   }
 
   /**
@@ -42,16 +231,23 @@ class ExportImport {
       const importedData = JSON.parse(fileContent);
       
       // Validate import data
-      const validation = Validation.validateImportData(importedData, type);
-      if (!validation.valid) {
-        throw new Error(validation.error);
+      if (typeof Validation !== 'undefined') {
+        const validation = Validation.validateImportData(importedData, type);
+        if (!validation.valid) {
+          throw new Error(validation.error);
+        }
       }
 
       const itemsArray = importedData[type] || [];
       const totalItems = itemsArray.length;
 
       if (totalItems === 0) {
-        Messages.showError(`No ${type} found in the imported file.`);
+        const errorMsg = `No ${type} found in the imported file.`;
+        if (typeof Messages !== 'undefined') {
+          Messages.showError(errorMsg);
+        } else {
+          alert(errorMsg);
+        }
         return;
       }
 
@@ -62,7 +258,9 @@ class ExportImport {
         
         const confirmed = await this.showBulkImportConfirmation(confirmMessage, importedData);
         if (!confirmed) {
-          Messages.showInfo('Import cancelled');
+          if (typeof Messages !== 'undefined') {
+            Messages.showInfo('Import cancelled');
+          }
           return;
         }
       }
@@ -71,25 +269,31 @@ class ExportImport {
       console.log('🔍 Validating all items before import...');
       const validationErrors = [];
       
-      for (let i = 0; i < itemsArray.length; i++) {
-        const item = itemsArray[i];
-        let itemValidation;
-        
-        if (type === 'cards') {
-          itemValidation = Validation.validateCardData(item);
-        } else if (type === 'skills') {
-          itemValidation = Validation.validateSkillData(item);
+      if (typeof Validation !== 'undefined') {
+        for (let i = 0; i < itemsArray.length; i++) {
+          const item = itemsArray[i];
+          let itemValidation;
+          
+          if (type === 'cards') {
+            itemValidation = Validation.validateCardData(item);
+          } else if (type === 'skills') {
+            itemValidation = Validation.validateSkillData(item);
+          }
+          
+          if (itemValidation && !itemValidation.valid) {
+            validationErrors.push(`Item ${i + 1}: ${itemValidation.error}`);
+          }
         }
-        
-        if (!itemValidation.valid) {
-          validationErrors.push(`Item ${i + 1}: ${itemValidation.error}`);
-        }
-      }
 
-      if (validationErrors.length > 0) {
-        const errorMessage = `Found ${validationErrors.length} validation errors:\n\n${validationErrors.slice(0, 5).join('\n')}${validationErrors.length > 5 ? '\n...and more' : ''}`;
-        Messages.showError(errorMessage);
-        return;
+        if (validationErrors.length > 0) {
+          const errorMessage = `Found ${validationErrors.length} validation errors:\n\n${validationErrors.slice(0, 5).join('\n')}${validationErrors.length > 5 ? '\n...and more' : ''}`;
+          if (typeof Messages !== 'undefined') {
+            Messages.showError(errorMessage);
+          } else {
+            alert(errorMessage);
+          }
+          return;
+        }
       }
 
       // Show progress for bulk imports
@@ -134,7 +338,12 @@ class ExportImport {
         const successMessage = totalItems > 1 
           ? `Successfully imported ${importedCount}/${totalItems} ${type}!`
           : `Successfully imported ${type.slice(0, -1)}!`;
-        Messages.showSuccess(successMessage);
+        
+        if (typeof Messages !== 'undefined') {
+          Messages.showSuccess(successMessage);
+        } else {
+          alert(successMessage);
+        }
 
         // Add collection metadata to imported cards for gallery
         if (totalItems > 1 && importedData.collection) {
@@ -144,23 +353,89 @@ class ExportImport {
 
       if (errors.length > 0) {
         console.warn('Import errors:', errors);
-        if (errors.length <= 3) {
-          Messages.showWarning(`Some items failed to import: ${errors.join(', ')}`);
+        const warningMsg = errors.length <= 3 
+          ? `Some items failed to import: ${errors.join(', ')}`
+          : `${errors.length} items failed to import. Check console for details.`;
+        
+        if (typeof Messages !== 'undefined') {
+          Messages.showWarning(warningMsg);
         } else {
-          Messages.showWarning(`${errors.length} items failed to import. Check console for details.`);
+          alert(warningMsg);
         }
       }
 
       if (importedCount === 0) {
-        Messages.showError(`No ${type} could be imported from this file.`);
+        const errorMsg = `No ${type} could be imported from this file.`;
+        if (typeof Messages !== 'undefined') {
+          Messages.showError(errorMsg);
+        } else {
+          alert(errorMsg);
+        }
       }
 
     } catch (error) {
-      Messages.showError('Error reading file: ' + error.message);
+      const errorMsg = 'Error reading file: ' + error.message;
+      if (typeof Messages !== 'undefined') {
+        Messages.showError(errorMsg);
+      } else {
+        alert(errorMsg);
+      }
     } finally {
       // Clear the input
       event.target.value = '';
     }
+  }
+
+  /**
+   * Import single card
+   */
+  static async importSingleCard(cardData) {
+    if (typeof CardGenerator === 'undefined') {
+      throw new Error('CardGenerator not available');
+    }
+
+    const outputContainer = document.getElementById("outputContainer");
+    if (!outputContainer) {
+      throw new Error('Output container not found');
+    }
+
+    const cardElement = await CardGenerator.createCard({
+      data: cardData,
+      container: outputContainer,
+      mode: 'generator'
+    });
+
+    if (!cardElement) {
+      throw new Error('Failed to create card element');
+    }
+
+    return cardElement;
+  }
+
+  /**
+   * Import single skill
+   */
+  static async importSingleSkill(skillData) {
+    if (typeof SkillGenerator === 'undefined') {
+      throw new Error('SkillGenerator not available');
+    }
+
+    const outputContainer = document.getElementById("outputContainer");
+    if (!outputContainer) {
+      throw new Error('Output container not found');
+    }
+
+    const skillElement = SkillGenerator.createSkill({
+      data: skillData,
+      container: outputContainer,
+      mode: 'generator'
+    });
+
+    if (!skillElement) {
+      throw new Error('Failed to create skill element');
+    }
+
+    return skillElement;
   }
 
   /**
@@ -176,8 +451,10 @@ class ExportImport {
       `;
 
       const collection = importData.collection || {};
-      const preview = importData.cards?.slice(0, 3).map(card => card.itemName || 'Unnamed').join(', ') || '';
-      const moreText = importData.cards?.length > 3 ? ` +${importData.cards.length - 3} more` : '';
+      const preview = importData.cards?.slice(0, 3).map(card => card.itemName || 'Unnamed').join(', ') || 
+                     importData.skills?.slice(0, 3).map(skill => skill.skillName || 'Unnamed').join(', ') || '';
+      const itemCount = importData.cards?.length || importData.skills?.length || 0;
+      const moreText = itemCount > 3 ? ` +${itemCount - 3} more` : '';
 
       modal.innerHTML = `
         <div style="
@@ -209,11 +486,11 @@ class ExportImport {
             </div>
           ` : ''}
           <div style="display: flex; gap: 15px; justify-content: center; margin-top: 20px;">
-            <button onclick="this.closest('div[style*=\"position: fixed\"]').remove(); resolve(false);" 
+            <button class="cancel-btn" 
                     style="padding: 10px 20px; border: 2px solid rgb(251, 225, 183); background: transparent; color: rgb(251, 225, 183); border-radius: 6px; cursor: pointer;">
               Cancel
             </button>
-            <button onclick="this.closest('div[style*=\"position: fixed\"]').remove(); resolve(true);"
+            <button class="import-btn"
                     style="padding: 10px 20px; border: none; background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%); color: rgb(37, 26, 12); border-radius: 6px; cursor: pointer; font-weight: bold;">
               Import All
             </button>
@@ -221,8 +498,16 @@ class ExportImport {
         </div>
       `;
 
-      // Make resolve available to buttons
-      modal.resolve = resolve;
+      // Add event listeners
+      modal.querySelector('.cancel-btn').onclick = () => {
+        modal.remove();
+        resolve(false);
+      };
+
+      modal.querySelector('.import-btn').onclick = () => {
+        modal.remove();
+        resolve(true);
+      };
 
       // Close on overlay click
       modal.onclick = (e) => {
@@ -260,7 +545,7 @@ class ExportImport {
         text-align: center;
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
       ">
-        <h3 style="margin: 0 0 20px 0;">⚔️ Importing Cards ⚔️</h3>
+        <h3 style="margin: 0 0 20px 0;">⚔️ Importing Items ⚔️</h3>
         <div class="progress-info">
           <div class="progress-text" style="margin-bottom: 15px; font-size: 16px;">
             Processing item <span class="current-item">1</span> of <span class="total-items">${totalItems}</span>
@@ -295,7 +580,6 @@ class ExportImport {
    * Mark imported items as part of a collection
    */
   static markAsCollection(collectionInfo, itemCount) {
-    // Store collection info for gallery functionality
     const collectionData = {
       ...collectionInfo,
       itemCount: itemCount,
@@ -303,7 +587,6 @@ class ExportImport {
     };
     
     try {
-      // Save to sessionStorage for current session
       const existingCollections = JSON.parse(sessionStorage.getItem('bazaargen_collections') || '[]');
       existingCollections.push(collectionData);
       sessionStorage.setItem('bazaargen_collections', JSON.stringify(existingCollections));
@@ -314,83 +597,114 @@ class ExportImport {
     }
   }
 
-  // ... rest of the existing methods remain the same ...
-  
   /**
-   * Export all skills as JSON data (unchanged)
+   * Setup export menu for individual items
    */
-  static exportAllSkillsAsData(skillsData) {
-    if (!skillsData || skillsData.length === 0) {
-      Messages.showError('No skills to export!');
-      return;
+  static setupExportMenu(button, itemData, type) {
+    // Close all other export menus
+    document.querySelectorAll('.export-menu').forEach(menu => {
+      if (menu.parentElement !== button.parentElement) {
+        menu.classList.remove('show');
+      }
+    });
+
+    let menu = button.parentElement.querySelector('.export-menu');
+    if (!menu) {
+      menu = document.createElement('div');
+      menu.className = 'export-menu';
+      menu.style.cssText = `
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        z-index: 1000;
+        min-width: 120px;
+        display: none;
+      `;
+      
+      const dataOption = document.createElement('div');
+      dataOption.className = 'export-option';
+      dataOption.textContent = 'Export as Data';
+      dataOption.style.cssText = `
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+      `;
+      dataOption.onclick = () => {
+        if (type === 'card') {
+          this.exportSingleCardAsData(itemData);
+        } else {
+          this.exportSingleSkillAsData(itemData);
+        }
+        menu.style.display = 'none';
+      };
+      
+      const pngOption = document.createElement('div');
+      pngOption.className = 'export-option';
+      pngOption.textContent = 'Save as PNG';
+      pngOption.style.cssText = `
+        padding: 8px 12px;
+        cursor: pointer;
+      `;
+      pngOption.onclick = () => {
+        const element = button.closest(type === 'card' ? '.card' : '.skill-card');
+        if (type === 'card') {
+          this.exportCardAsPNG(element);
+        } else {
+          this.exportSkillAsPNG(element);
+        }
+        menu.style.display = 'none';
+      };
+      
+      menu.appendChild(dataOption);
+      menu.appendChild(pngOption);
+      button.parentElement.appendChild(menu);
     }
 
-    const dataToExport = {
-      version: "1.0",
-      timestamp: new Date().toISOString(),
-      type: "skills",
-      count: skillsData.length,
-      collection: {
-        name: `Skill Collection ${this.getDateString()}`,
-        description: `${skillsData.length} skills exported from BazaarGen`,
-        created_by: GoogleAuth?.getUserDisplayName() || 'Unknown'
-      },
-      skills: skillsData
+    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+  }
+
+  /**
+   * Trigger file input for import
+   */
+  static triggerFileInput(accept = '.json', callback) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = accept;
+    input.style.display = 'none';
+    
+    input.addEventListener('change', callback);
+    
+    document.body.appendChild(input);
+    input.click();
+    document.body.removeChild(input);
+  }
+
+  /**
+   * Get export statistics
+   */
+  static getExportStats() {
+    return {
+      totalCards: window.cardsData?.length || 0,
+      totalSkills: window.skillsData?.length || 0,
+      lastExport: localStorage.getItem('bazaargen_last_export') || 'Never',
+      exportCount: parseInt(localStorage.getItem('bazaargen_export_count') || '0')
     };
-
-    this.downloadJSON(dataToExport, `Bazaar-skills-${this.getDateString()}.json`);
-    Messages.showSuccess(`Exported ${skillsData.length} skills successfully!`);
   }
 
   /**
-   * Import single card (unchanged)
+   * Update export statistics
    */
-  static async importSingleCard(cardData) {
-    if (!window.CardGenerator) {
-      throw new Error('CardGenerator not available');
-    }
-
-    const outputContainer = document.getElementById("outputContainer");
-    if (!outputContainer) {
-      throw new Error('Output container not found');
-    }
-
-    const cardElement = await CardGenerator.createCard({
-      data: cardData,
-      container: outputContainer,
-      mode: 'generator'
-    });
-
-    if (!cardElement) {
-      throw new Error('Failed to create card element');
-    }
+  static updateExportStats(type, count) {
+    const currentCount = parseInt(localStorage.getItem('bazaargen_export_count') || '0');
+    localStorage.setItem('bazaargen_export_count', (currentCount + count).toString());
+    localStorage.setItem('bazaargen_last_export', new Date().toISOString());
   }
 
-  /**
-   * Import single skill (unchanged)
-   */
-  static async importSingleSkill(skillData) {
-    if (!window.SkillGenerator) {
-      throw new Error('SkillGenerator not available');
-    }
-
-    const outputContainer = document.getElementById("outputContainer");
-    if (!outputContainer) {
-      throw new Error('Output container not found');
-    }
-
-    const skillElement = SkillGenerator.createSkill({
-      data: skillData,
-      container: outputContainer,
-      mode: 'generator'
-    });
-
-    if (!skillElement) {
-      throw new Error('Failed to create skill element');
-    }
-  }
-
-  // ... rest of helper methods remain the same ...
+  // ===== UTILITY METHODS =====
 
   /**
    * Create delay for sequential operations
@@ -428,6 +742,20 @@ class ExportImport {
   }
 
   /**
+   * Download image data as file
+   */
+  static downloadImage(dataURL, filename) {
+    const link = document.createElement('a');
+    link.href = dataURL;
+    link.download = filename;
+    link.style.display = 'none';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  /**
    * Download blob as file
    */
   static downloadBlob(blob, filename) {
@@ -446,62 +774,8 @@ class ExportImport {
     setTimeout(() => URL.revokeObjectURL(url), 100);
   }
 
-  // ... rest of the existing methods remain unchanged ...
-}
-
-  /**
-   * Read file as text
-   * @param {File} file - File to read
-   * @returns {Promise<string>} File content as text
-   */
-  static readFileAsText(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => resolve(e.target.result);
-      reader.onerror = (e) => reject(new Error('Failed to read file'));
-      reader.readAsText(file);
-    });
-  }
-
-  /**
-   * Get formatted date string for filenames
-   * @returns {string} Date string in YYYY-MM-DD format
-   */
-  static getDateString() {
-    return new Date().toISOString().split('T')[0];
-  }
-
-  /**
-   * Create delay for sequential operations
-   * @param {number} ms - Milliseconds to delay
-   * @returns {Promise<void>}
-   */
-  static delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-  }
-
-  /**
-   * Trigger file input for import
-   * @param {string} accept - File types to accept
-   * @param {Function} callback - Callback function for file selection
-   * @returns {void}
-   */
-  static triggerFileInput(accept = '.json', callback) {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = accept;
-    input.style.display = 'none';
-    
-    input.addEventListener('change', callback);
-    
-    document.body.appendChild(input);
-    input.click();
-    document.body.removeChild(input);
-  }
-
   /**
    * Setup export/import event listeners
-   * @returns {void}
    */
   static setupEventListeners() {
     // Global functions for HTML onclick handlers
@@ -544,93 +818,28 @@ class ExportImport {
     window.importSkillData = (event) => {
       this.importData(event, 'skills');
     };
-  }
 
-  /**
-   * Setup export menu for individual items
-   * @param {HTMLElement} button - Export button element
-   * @param {Object} itemData - Item data (card or skill)
-   * @param {string} type - 'card' or 'skill'
-   * @returns {void}
-   */
-  static setupExportMenu(button, itemData, type) {
-    // Close all other export menus
-    document.querySelectorAll('.export-menu').forEach(menu => {
-      if (menu.parentElement !== button.parentElement) {
-        menu.classList.remove('show');
+    // Close export menus when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.export-button')) {
+        document.querySelectorAll('.export-menu').forEach(menu => {
+          menu.style.display = 'none';
+        });
       }
     });
-
-    let menu = button.parentElement.querySelector('.export-menu');
-    if (!menu) {
-      menu = document.createElement('div');
-      menu.className = 'export-menu';
-      
-      const dataOption = document.createElement('div');
-      dataOption.className = 'export-option';
-      dataOption.textContent = 'Export as Data';
-      dataOption.onclick = () => {
-        if (type === 'card') {
-          this.exportSingleCardAsData(itemData);
-        } else {
-          this.exportSingleSkillAsData(itemData);
-        }
-        menu.classList.remove('show');
-      };
-      
-      const pngOption = document.createElement('div');
-      pngOption.className = 'export-option';
-      pngOption.textContent = 'Save as PNG';
-      pngOption.onclick = () => {
-        const element = button.closest(type === 'card' ? '.card' : '.skill-card');
-        if (type === 'card') {
-          this.exportCardAsPNG(element);
-        } else {
-          this.exportSkillAsPNG(element);
-        }
-        menu.classList.remove('show');
-      };
-      
-      menu.appendChild(dataOption);
-      menu.appendChild(pngOption);
-      button.parentElement.appendChild(menu);
-    }
-
-    menu.classList.toggle('show');
-  }
-
-  /**
-   * Get export statistics
-   * @returns {Object} Export statistics
-   */
-  static getExportStats() {
-    return {
-      totalCards: window.cardsData?.length || 0,
-      totalSkills: window.skillsData?.length || 0,
-      lastExport: localStorage.getItem('bazaargen_last_export') || 'Never',
-      exportCount: parseInt(localStorage.getItem('bazaargen_export_count') || '0')
-    };
-  }
-
-  /**
-   * Update export statistics
-   * @param {string} type - Export type ('cards' or 'skills')
-   * @param {number} count - Number of items exported
-   * @returns {void}
-   */
-  static updateExportStats(type, count) {
-    const currentCount = parseInt(localStorage.getItem('bazaargen_export_count') || '0');
-    localStorage.setItem('bazaargen_export_count', (currentCount + count).toString());
-    localStorage.setItem('bazaargen_last_export', new Date().toISOString());
   }
 }
 
-// Auto-setup event listeners
-ExportImport.setupEventListeners();
+// Auto-setup event listeners when the class loads
+if (typeof document !== 'undefined') {
+  ExportImport.setupEventListeners();
+}
 
 // Global function for export menu (used in HTML)
 window.toggleExportMenu = (button, itemData) => {
   const type = button.className.includes('card') ? 'card' : 'skill';
   ExportImport.setupExportMenu(button, itemData, type);
 };
-   
+
+// Make ExportImport available globally
+window.ExportImport = ExportImport;
