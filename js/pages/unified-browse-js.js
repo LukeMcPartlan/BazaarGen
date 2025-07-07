@@ -3,6 +3,8 @@
  * Simplified controller for browsing items and skills without collection complexity
  */
 class UnifiedBrowsePageController {
+  static currentItemsController = null;
+  static currentSkillsController = null;
   
   static allItems = [];
   static allSkills = [];
@@ -124,9 +126,22 @@ class UnifiedBrowsePageController {
   /**
    * Switch between tabs
    */
-  static switchTab(tabId) {
+   static switchTab(tabId) {
     this.activeTab = tabId;
     console.log('🔄 Switching to tab:', tabId);
+
+    // *** CANCEL ANY ONGOING REQUESTS ***
+    if (this.currentItemsController) {
+      this.currentItemsController.abort();
+      this.currentItemsController = null;
+      this.isLoading = false;
+    }
+    
+    if (this.currentSkillsController) {
+      this.currentSkillsController.abort();
+      this.currentSkillsController = null;
+      this.isSkillsLoading = false;
+    }
 
     // Update tab appearance
     document.querySelectorAll('.browse-tab').forEach(tab => {
@@ -404,6 +419,14 @@ class UnifiedBrowsePageController {
   static async loadItems() {
     if (this.isLoading) return;
     
+    // Cancel any existing items request
+    if (this.currentItemsController) {
+      this.currentItemsController.abort();
+    }
+    
+    // Create new controller for this request
+    this.currentItemsController = new AbortController();
+    
     this.isLoading = true;
     this.showLoading(true);
     this.hideMessages();
@@ -413,7 +436,16 @@ class UnifiedBrowsePageController {
       const filters = this.getFilters();
       const options = this.buildQueryOptions(filters);
       
-      const data = await SupabaseClient.loadItems(options);
+      // Add signal to the SupabaseClient call if it supports it
+      const data = await SupabaseClient.loadItems(options, { 
+        signal: this.currentItemsController.signal 
+      });
+      
+      // Check if request was cancelled
+      if (this.currentItemsController.signal.aborted) {
+        console.log('Items request was cancelled');
+        return;
+      }
       
       this.allItems = data || [];
       this.displayedItems = [];
@@ -426,16 +458,19 @@ class UnifiedBrowsePageController {
       }
       
       this.updateStats();
-      this.isLoading = false;
-      this.showLoading(false);
-      
       this.loadMoreItems();
 
     } catch (error) {
+      if (error.name === 'AbortError') {
+        console.log('Items request cancelled');
+        return;
+      }
       console.error('❌ Error loading items:', error);
       this.showError('Failed to load items: ' + error.message);
+    } finally {
       this.isLoading = false;
       this.showLoading(false);
+      this.currentItemsController = null;
     }
   }
 
@@ -444,6 +479,14 @@ class UnifiedBrowsePageController {
    */
   static async loadSkills() {
     if (this.isSkillsLoading) return;
+    
+    // Cancel any existing skills request
+    if (this.currentSkillsController) {
+      this.currentSkillsController.abort();
+    }
+    
+    // Create new controller for this request
+    this.currentSkillsController = new AbortController();
     
     this.isSkillsLoading = true;
     this.showLoading(true);
@@ -454,8 +497,16 @@ class UnifiedBrowsePageController {
       const filters = this.getSkillFilters();
       console.log('🔍 Skill filters:', filters);
       
-      // Use the unified SupabaseClient.loadSkills method
-      const skills = await SupabaseClient.loadSkills(filters);
+      // Add signal to the SupabaseClient call if it supports it
+      const skills = await SupabaseClient.loadSkills(filters, {
+        signal: this.currentSkillsController.signal
+      });
+      
+      // Check if request was cancelled
+      if (this.currentSkillsController.signal.aborted) {
+        console.log('Skills request was cancelled');
+        return;
+      }
       
       this.allSkills = skills || [];
       this.displayedSkills = [];
@@ -468,19 +519,22 @@ class UnifiedBrowsePageController {
       }
       
       this.updateStats();
-      this.isSkillsLoading = false;
-      this.showLoading(false);
-      
       this.loadMoreSkills();
 
     } catch (error) {
+      if (error.name === 'AbortError') {
+        console.log('Skills request cancelled');
+        return;
+      }
       console.error('❌ Error loading skills:', error);
       this.showError('Failed to load skills: ' + error.message);
+    } finally {
       this.isSkillsLoading = false;
       this.showLoading(false);
+      this.currentSkillsController = null;
     }
   }
-
+}
   /**
    * Load more items for display
    */
