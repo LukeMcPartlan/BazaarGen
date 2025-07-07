@@ -1047,44 +1047,158 @@ if (skill.skill_data?.skills && Array.isArray(skill.skill_data.skills) && skill.
     return colors[rarity] || colors.gold;
   }
 
-  /**
-   * Create comments section for skills
-   */
-  static createSkillCommentsSection(skillId) {
-    const commentsContainer = document.createElement('div');
-    commentsContainer.className = 'skill-comments-section';
-    commentsContainer.style.cssText = `
-      background: linear-gradient(135deg, rgba(101, 84, 63, 0.95) 0%, rgba(89, 72, 51, 0.9) 100%);
-      border: 2px solid rgb(218, 165, 32);
-      border-radius: 0 0 12px 12px;
-      padding: 20px;
-      margin-top: -2px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-      min-width: 450px;
-    `;
+ /**
+ * Create comments section for skills - REAL IMPLEMENTATION
+ */
+static async createSkillCommentsSection(skillId) {
+  const commentsContainer = document.createElement('div');
+  commentsContainer.className = 'skill-comments-section';
+  commentsContainer.style.cssText = `
+    background: linear-gradient(135deg, rgba(101, 84, 63, 0.95) 0%, rgba(89, 72, 51, 0.9) 100%);
+    border: 2px solid rgb(218, 165, 32);
+    border-radius: 0 0 12px 12px;
+    padding: 20px;
+    margin-top: -2px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    min-width: 450px;
+  `;
 
-    commentsContainer.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-        <h4 style="margin: 0; color: rgb(251, 225, 183); font-size: 18px;">⚡ Skill Comments</h4>
-        <button class="toggle-comments-btn" style="
-          background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%);
-          border: 2px solid rgb(37, 26, 12);
-          padding: 6px 14px;
-          border-radius: 6px;
-          cursor: pointer;
-          font-size: 12px;
-          color: rgb(37, 26, 12);
-          font-weight: bold;
-        ">Show/Hide</button>
-      </div>
-      <div style="padding: 30px; text-align: center; color: rgb(201, 175, 133); font-style: italic;">
-        💬 Skill comments feature coming soon!
+  const header = document.createElement('div');
+  header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;';
+  header.innerHTML = `
+    <h4 style="margin: 0; color: rgb(251, 225, 183); font-size: 18px;">⚡ Skill Comments</h4>
+    <button class="toggle-comments-btn" style="
+      background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%);
+      border: 2px solid rgb(37, 26, 12);
+      padding: 6px 14px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      color: rgb(37, 26, 12);
+      font-weight: bold;
+    ">Show/Hide</button>
+  `;
+
+  const commentsList = document.createElement('div');
+  commentsList.className = 'comments-list';
+  commentsList.id = `skill-comments-${skillId}`;
+  commentsList.style.cssText = `
+    max-height: 300px; 
+    overflow-y: auto; 
+    margin: 15px 0;
+    background: rgba(37, 26, 12, 0.7);
+    border: 2px solid rgba(218, 165, 32, 0.3);
+    border-radius: 8px;
+    padding: 10px;
+  `;
+
+  const commentForm = document.createElement('div');
+  commentForm.className = 'comment-form';
+  
+  if (window.GoogleAuth && GoogleAuth.isSignedIn()) {
+    commentForm.innerHTML = `
+      <div style="display: flex; gap: 10px; margin-top: 10px; border-top: 2px solid rgb(218, 165, 32); padding-top: 15px;">
+        <input type="text" 
+               id="skill-comment-input-${skillId}" 
+               placeholder="Add a comment..." 
+               style="flex: 1; padding: 10px 15px; border: 2px solid rgb(218, 165, 32); border-radius: 6px; background-color: rgba(37, 26, 12, 0.8); color: rgb(251, 225, 183); font-size: 14px;">
+        <button onclick="UnifiedBrowsePageController.addSkillComment('${skillId}')" 
+                style="padding: 10px 20px; background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%); color: rgb(37, 26, 12); border: 2px solid rgb(37, 26, 12); border-radius: 6px; cursor: pointer; font-weight: bold;">
+          Post
+        </button>
       </div>
     `;
-
-    return commentsContainer;
+  } else {
+    commentForm.innerHTML = `
+      <div style="text-align: center; padding: 20px; color: rgb(251, 225, 183); font-style: italic;">
+        Sign in to comment
+      </div>
+    `;
   }
 
+  // Load skill comments using the new method
+  await this.loadSkillComments(skillId, commentsList);
+
+  const toggleBtn = header.querySelector('.toggle-comments-btn');
+  toggleBtn.addEventListener('click', () => {
+    const isHidden = commentsList.style.display === 'none';
+    commentsList.style.display = isHidden ? 'block' : 'none';
+    commentForm.style.display = isHidden ? 'block' : 'none';
+    toggleBtn.textContent = isHidden ? 'Hide' : 'Show';
+  });
+
+  commentsContainer.appendChild(header);
+  commentsContainer.appendChild(commentsList);
+  commentsContainer.appendChild(commentForm);
+
+  return commentsContainer;
+}
+
+/**
+ * Load comments for a skill
+ */
+static async loadSkillComments(skillId, container) {
+  try {
+    const comments = await SupabaseClient.getSkillComments(skillId);
+    
+    if (comments.length === 0) {
+      container.innerHTML = '<div style="padding: 30px; text-align: center; color: rgb(201, 175, 133); font-style: italic;">No comments yet</div>';
+      return;
+    }
+
+    container.innerHTML = comments.map(comment => `
+      <div style="padding: 12px; border-bottom: 1px solid rgba(218, 165, 32, 0.3); background: linear-gradient(135deg, rgba(74, 60, 46, 0.7) 0%, rgba(89, 72, 51, 0.6) 100%); margin-bottom: 8px; border-radius: 6px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+          <strong style="color: rgb(251, 225, 183); font-size: 14px;">${comment.user_alias}</strong>
+          <span style="color: rgb(218, 165, 32); font-size: 12px;">
+            ${new Date(comment.created_at).toLocaleDateString()}
+          </span>
+        </div>
+        <div style="color: rgb(251, 225, 183); font-size: 14px; line-height: 1.5;">${comment.content}</div>
+      </div>
+    `).join('');
+  } catch (error) {
+    console.error('Error loading skill comments:', error);
+    container.innerHTML = '<div style="padding: 10px; color: #d32f2f;">Error loading comments</div>';
+  }
+}
+
+/**
+ * Add a comment to a skill
+ */
+static async addSkillComment(skillId) {
+  const input = document.getElementById(`skill-comment-input-${skillId}`);
+  const commentText = input.value.trim();
+  
+  if (!commentText) {
+    if (typeof Messages !== 'undefined') {
+      Messages.showError('Please enter a comment');
+    } else {
+      alert('Please enter a comment');
+    }
+    return;
+  }
+
+  try {
+    await SupabaseClient.addSkillComment(skillId, commentText);
+    
+    input.value = '';
+    
+    const container = document.getElementById(`skill-comments-${skillId}`);
+    await this.loadSkillComments(skillId, container);
+    
+    if (typeof Messages !== 'undefined') {
+      Messages.showSuccess('Comment added!');
+    }
+  } catch (error) {
+    console.error('Error adding skill comment:', error);
+    if (typeof Messages !== 'undefined') {
+      Messages.showError('Failed to add comment');
+    } else {
+      alert('Failed to add comment: ' + error.message);
+    }
+  }
+}
   /**
    * Create comments section for items
    */
