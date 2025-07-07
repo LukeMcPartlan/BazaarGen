@@ -117,42 +117,71 @@ class IndexPageController {
   static setupCardSaveButtons(cardElement, cardData, cardIndex) {
     console.log('🔧 Setting up save buttons for card:', cardData.itemName);
     
-    // Find save/export buttons in this card
-    const saveButtons = cardElement.querySelectorAll('button[onclick*="save"], button[class*="save"], .export-button, .save-button');
+    // Find different types of buttons in this card
+    const databaseButtons = cardElement.querySelectorAll('button[onclick*="🗃️"], .save-to-database, .database-save');
+    const exportButtons = cardElement.querySelectorAll('button[onclick*="💾"], .export-menu-button, .export-button');
+    const saveButtons = cardElement.querySelectorAll('button[class*="save"], .save-button');
     
-    saveButtons.forEach(button => {
-      console.log('🔧 Found save button:', button.textContent, button.className);
+    // Setup database save buttons (🗃️)
+    databaseButtons.forEach(button => {
+      console.log('🗃️ Found database save button:', button.textContent);
       
       // Remove any existing onclick handlers
       button.removeAttribute('onclick');
       
-      // Determine button type and add appropriate click handler
-      const buttonText = button.textContent.toLowerCase();
-      const buttonClass = button.className.toLowerCase();
+      button.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('🗃️ Database save clicked for card:', cardData.itemName);
+        this.saveCardToDatabase(cardElement, cardData, button);
+      };
+    });
+
+    // Setup export menu buttons (💾)
+    exportButtons.forEach(button => {
+      console.log('💾 Found export menu button:', button.textContent);
       
-      if (buttonText.includes('png') || buttonClass.includes('png')) {
-        // PNG export button
+      // Remove any existing onclick handlers
+      button.removeAttribute('onclick');
+      
+      button.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('💾 Export menu clicked for card:', cardData.itemName);
+        this.showCardExportMenu(button, cardElement, cardData);
+      };
+    });
+
+    // Handle generic save buttons by checking their text/emoji content
+    saveButtons.forEach(button => {
+      const buttonText = button.textContent || button.innerHTML;
+      
+      if (buttonText.includes('🗃️') || buttonText.toLowerCase().includes('database')) {
+        // Database save button
+        console.log('🗃️ Found generic database save button:', buttonText);
+        button.removeAttribute('onclick');
         button.onclick = (e) => {
           e.preventDefault();
           e.stopPropagation();
-          console.log('🖼️ PNG export clicked for card:', cardData.itemName);
-          this.exportCardAsPNG(cardElement, cardData);
+          this.saveCardToDatabase(cardElement, cardData, button);
         };
-      } else if (buttonText.includes('data') || buttonClass.includes('data')) {
-        // Data export button
+      } else if (buttonText.includes('💾') || buttonText.toLowerCase().includes('export')) {
+        // Export menu button  
+        console.log('💾 Found generic export button:', buttonText);
+        button.removeAttribute('onclick');
         button.onclick = (e) => {
           e.preventDefault();
           e.stopPropagation();
-          console.log('📄 Data export clicked for card:', cardData.itemName);
-          this.exportCardAsData(cardData);
+          this.showCardExportMenu(button, cardElement, cardData);
         };
       } else {
-        // Generic save button - show menu
+        // Fallback: if button has "save" in class but no specific emoji, make it database save
+        console.log('🗃️ Generic save button, defaulting to database save:', buttonText);
+        button.removeAttribute('onclick');
         button.onclick = (e) => {
           e.preventDefault();
           e.stopPropagation();
-          console.log('💾 Save menu clicked for card:', cardData.itemName);
-          this.showCardExportMenu(button, cardElement, cardData);
+          this.saveCardToDatabase(cardElement, cardData, button);
         };
       }
     });
@@ -184,10 +213,86 @@ class IndexPageController {
   }
 
   /**
-   * Show export menu for a card
+   * Save card to database (Supabase)
+   */
+  static async saveCardToDatabase(cardElement, cardData, button) {
+    console.log('🗃️ Saving card to database:', cardData.itemName);
+    
+    // Check if user is signed in
+    if (typeof GoogleAuth === 'undefined' || !GoogleAuth.isSignedIn()) {
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('Please sign in to save cards to the database');
+      } else {
+        alert('Please sign in to save cards to the database');
+      }
+      return;
+    }
+
+    // Check if SupabaseClient is available
+    if (typeof SupabaseClient === 'undefined') {
+      console.error('SupabaseClient not available');
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('Database not available. Please refresh the page.');
+      } else {
+        alert('Database not available. Please refresh the page.');
+      }
+      return;
+    }
+
+    // Update button state to show saving
+    const originalText = button.textContent;
+    const originalDisabled = button.disabled;
+    
+    button.textContent = '⏳ Saving...';
+    button.disabled = true;
+
+    try {
+      // Save to database using SupabaseClient
+      const result = await SupabaseClient.saveItem(cardData);
+      
+      if (result.success) {
+        // Success feedback
+        button.textContent = '✅ Saved!';
+        
+        if (typeof Messages !== 'undefined') {
+          Messages.showSuccess(`Card "${cardData.itemName}" saved to database!`);
+        }
+        
+        // Reset button after 2 seconds
+        setTimeout(() => {
+          button.textContent = originalText;
+          button.disabled = originalDisabled;
+        }, 2000);
+        
+      } else {
+        throw new Error(result.error || 'Failed to save to database');
+      }
+      
+    } catch (error) {
+      console.error('Error saving card to database:', error);
+      
+      // Error feedback
+      button.textContent = '❌ Failed';
+      
+      if (typeof Messages !== 'undefined') {
+        Messages.showError(`Failed to save card: ${error.message}`);
+      } else {
+        alert(`Failed to save card: ${error.message}`);
+      }
+      
+      // Reset button after 3 seconds
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.disabled = originalDisabled;
+      }, 3000);
+    }
+  }
+
+  /**
+   * Show export menu for a card (💾 button functionality)
    */
   static showCardExportMenu(button, cardElement, cardData) {
-    console.log('📋 Showing export menu for:', cardData.itemName);
+    console.log('💾 Showing export menu for:', cardData.itemName);
     
     // Close any existing menus
     document.querySelectorAll('.card-export-menu').forEach(menu => menu.remove());
@@ -210,7 +315,7 @@ class IndexPageController {
     
     menu.innerHTML = `
       <div class="export-option" style="padding: 8px 12px; cursor: pointer; border-bottom: 1px solid #eee;">
-        💾 Save as PNG
+        🖼️ Save as PNG
       </div>
       <div class="export-option" style="padding: 8px 12px; cursor: pointer;">
         📄 Export Data
@@ -455,7 +560,28 @@ class IndexPageController {
       }
     };
 
-    // Enhanced global save functions for individual cards
+    // Enhanced global functions for individual cards with proper separation
+    window.saveCardToDatabase = (button) => {
+      console.log('🗃️ Global saveCardToDatabase called');
+      const cardElement = button.closest('.card, .card-wrapper');
+      if (cardElement && cardElement.cardData) {
+        this.saveCardToDatabase(cardElement, cardElement.cardData, button);
+      } else {
+        console.error('Card or card data not found');
+      }
+    };
+
+    window.showExportMenu = (button) => {
+      console.log('💾 Global showExportMenu called');
+      const cardElement = button.closest('.card, .card-wrapper');
+      if (cardElement && cardElement.cardData) {
+        this.showCardExportMenu(button, cardElement, cardElement.cardData);
+      } else {
+        console.error('Card or card data not found');
+      }
+    };
+
+    // Direct export functions (for when called from export menu)
     window.saveCardAsPNG = (button) => {
       console.log('🖼️ Global saveCardAsPNG called');
       const cardElement = button.closest('.card, .card-wrapper');
@@ -476,14 +602,10 @@ class IndexPageController {
       }
     };
 
+    // Legacy function name for compatibility
     window.showCardMenu = (button) => {
-      console.log('📋 Global showCardMenu called');
-      const cardElement = button.closest('.card, .card-wrapper');
-      if (cardElement && cardElement.cardData) {
-        this.showCardExportMenu(button, cardElement, cardElement.cardData);
-      } else {
-        console.error('Card or card data not found');
-      }
+      console.log('📋 Global showCardMenu called (legacy)');
+      window.showExportMenu(button);
     };
   }
 
