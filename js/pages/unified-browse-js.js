@@ -1526,8 +1526,6 @@ static async addSkillComment(skillId) {
       this.loadSkills();
     }
   }
-}
-
 /**
  * Create upvote button for items
  */
@@ -1829,6 +1827,14 @@ static async handleSkillUpvote(skillId, button) {
     }
   }
 }
+
+
+
+
+  
+}
+
+
 
 
 // PREVENT CONFLICTS - Force override any existing controllers
