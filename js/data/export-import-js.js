@@ -243,7 +243,7 @@ class ExportImport {
         
         // Apply solid background while preserving other background properties
         el.style.backgroundImage = 'none';
-        el.style.backgroundColor = solidColor;
+        el.style.backgroundColor = '#20160c';
         // Keep other background properties if they exist
         const bgSize = computedStyle.backgroundSize;
         const bgPosition = computedStyle.backgroundPosition;
