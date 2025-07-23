@@ -981,7 +981,7 @@ class ExportImport {
         position: absolute;
         top: 100%;
         right: 0;
-        background: white;
+        background: linear-gradient(135deg, #f5e7c4 0%, #e0c185 100%);
         border: 1px solid #ddd;
         border-radius: 4px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
