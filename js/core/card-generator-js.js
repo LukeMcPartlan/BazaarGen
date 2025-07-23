@@ -284,6 +284,12 @@ static async createCard(options = {}) {
     return card;
   }
 
+
+
+
+
+
+  
   /**
    * Create card control buttons based on mode
    */
@@ -306,16 +312,8 @@ static async createCard(options = {}) {
         }
       };
 
-      // Save to database button
-      const saveBtn = document.createElement("button");
-      saveBtn.className = "card-save-btn";
-      saveBtn.innerHTML = "🗃️";
-      saveBtn.title = "Save to database";
-      saveBtn.onclick = function() {
-        if (window.Database && window.Database.saveCard) {
-          window.Database.saveCard(cardData);
-        }
-      };
+      
+      
 
       // Delete button
       const deleteBtn = document.createElement("button");
@@ -828,3 +826,31 @@ console.log('📊 Dependency check:');
 console.log('  - Validation:', typeof Validation !== 'undefined' ? '✅ Available' : '❌ Missing');
 console.log('  - Messages:', typeof Messages !== 'undefined' ? '✅ Available' : '❌ Missing');
 console.log('  - KeywordProcessor:', typeof KeywordProcessor !== 'undefined' ? '✅ Available' : '❌ Missing');
+
+// Clear card function
+window.clearCard = (cardElement) => {
+  if (!cardElement) return;
+
+  // Remove from DOM
+  cardElement.remove();
+
+  // Remove from cardsData array if present
+  if (window.cardsData && cardElement.cardIndex !== undefined) {
+    window.cardsData.splice(cardElement.cardIndex, 1);
+  }
+
+  // Update cardIndex for all remaining cards in DOM and data array
+  const cardElements = document.querySelectorAll('.card');
+  cardElements.forEach((el, idx) => {
+    el.cardIndex = idx;
+    if (window.cardsData && window.cardsData[idx]) {
+      // Optionally, you can also update a property in the data object if needed
+      window.cardsData[idx].cardIndex = idx;
+    }
+  });
+
+  // Optionally show a message
+  if (typeof Messages !== 'undefined') {
+    Messages.showSuccess('Card deleted');
+  }
+};

@@ -981,8 +981,8 @@ class ExportImport {
         position: absolute;
         top: 100%;
         right: 0;
-        background: linear-gradient(135deg, #f5e7c4 0%, #e0c185 100%);
-        border: 1px solid #ddd;
+        background: linear-gradient(135deg,rgb(87, 72, 38) 0%,rgb(131, 103, 47) 100%);
+        border: 1px solid black;
         border-radius: 4px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         z-index: 1000;
@@ -992,7 +992,7 @@ class ExportImport {
       
       const dataOption = document.createElement('div');
       dataOption.className = 'export-option';
-      dataOption.textContent = 'Export as Data';
+      dataOption.textContent = 'Export ALL as Data';
       dataOption.style.cssText = `
         padding: 8px 12px;
         cursor: pointer;
