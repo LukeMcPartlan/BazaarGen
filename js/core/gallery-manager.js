@@ -26,8 +26,7 @@ class GalleryManager {
    */
   static addGalleryButton() {
     // Find the button container
-    const buttonContainer = document.querySelector('.btn-group') || 
-                           document.querySelector('button[onclick="createCard()"]')?.parentElement;
+    const buttonContainer = document.querySelector('.management-section');
     
     if (!buttonContainer) return;
 
