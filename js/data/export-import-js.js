@@ -963,6 +963,9 @@ class ExportImport {
    * Setup export menu for individual items
    */
   static setupExportMenu(button, itemData, type) {
+
+
+    console.log('💾 [DEBUG] setupExportMenu called', {button, itemData, type});
     // Close all other export menus
     document.querySelectorAll('.export-menu').forEach(menu => {
       if (menu.parentElement !== button.parentElement) {
@@ -1024,6 +1027,7 @@ class ExportImport {
       menu.appendChild(dataOption);
       menu.appendChild(pngOption);
       button.parentElement.appendChild(menu);
+      console.log('💾 [DEBUG] Export menu should now be visible');
     }
 
     menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
