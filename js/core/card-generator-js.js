@@ -327,7 +327,7 @@ static async createCard(options = {}) {
       };
 
       cardControls.appendChild(exportBtn);
-      cardControls.appendChild(saveBtn);
+      
       cardControls.appendChild(deleteBtn);
 
     } else if (mode === 'browser') {
