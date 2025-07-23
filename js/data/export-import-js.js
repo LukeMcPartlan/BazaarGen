@@ -1030,7 +1030,7 @@ class ExportImport {
       console.log('💾 [DEBUG] Export menu should now be visible');
     }
 
-    menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+    menu.style.display = 'block';
   }
 
   /**
