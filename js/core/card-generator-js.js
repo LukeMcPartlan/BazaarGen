@@ -298,8 +298,11 @@ static async createCard(options = {}) {
       exportBtn.innerHTML = "💾";
       exportBtn.title = "Export this card";
       exportBtn.onclick = function() {
+        console.log('💾 [DEBUG] Export button clicked');
         if (window.toggleExportMenu) {
           window.toggleExportMenu(exportBtn, cardData);
+        } else{
+          console.error('❌ [DEBUG] toggleExportMenu not found');
         }
       };
 

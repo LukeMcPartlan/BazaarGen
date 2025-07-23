@@ -435,6 +435,18 @@ setTimeout(() => {
   console.log('SupabaseClient ready:', SupabaseClient?.isReady?.());
 }, 1000);
 </script>
+
+<script>
+    window.toggleExportMenu = (button, itemData) => {
+      console.log('💾 [DEBUG] toggleExportMenu called', {button, itemData});
+      if (window.ExportImport && typeof window.ExportImport.setupExportMenu === 'function') {
+        window.ExportImport.setupExportMenu(button, itemData, 'card');
+      } else {
+        console.error('❌ [DEBUG] ExportImport.setupExportMenu not found');
+      }
+    };
+    </script>
+
     
 </body>
 </html>
