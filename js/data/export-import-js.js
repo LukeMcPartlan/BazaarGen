@@ -1013,6 +1013,7 @@ class ExportImport {
       pngOption.style.cssText = `
         padding: 8px 12px;
         cursor: pointer;
+        border-bottom: 1px solid #eee;
       `;
       pngOption.onclick = () => {
         const element = button.closest(type === 'card' ? '.card' : '.skill-card');
@@ -1023,9 +1024,27 @@ class ExportImport {
         }
         menu.style.display = 'none';
       };
+
+      const profileOption = document.createElement('div');
+      profileOption.className = 'export-option';
+      profileOption.textContent = 'Save to Profile';
+      profileOption.style.cssText = `
+        padding: 8px 12px;
+        cursor: pointer;
+        border-top: 1px solid #eee;
+        color: #2e7d32;
+        font-weight: bold;
+      `;
+      profileOption.onclick = () => {
+        if (window.Database && window.Database.saveCard) {
+          window.Database.saveCard(itemData);
+        }
+        menu.style.display = 'none';
+      };
       
       menu.appendChild(dataOption);
       menu.appendChild(pngOption);
+      menu.appendChild(profileOption);
       button.parentElement.appendChild(menu);
       console.log('💾 [DEBUG] Export menu should now be visible');
     }
