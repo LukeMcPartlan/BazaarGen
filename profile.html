@@ -132,7 +132,7 @@
 
         .items-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(600px, 1fr));
             gap: 30px;
             margin-top: 20px;
         }
@@ -274,6 +274,31 @@
 
         .profile-card-wrapper .comments-list::-webkit-scrollbar-thumb:hover {
             background: rgb(251, 225, 183);
+        }
+
+        /* Mobile responsive adjustments */
+        @media (max-width: 768px) {
+            .items-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .profile-card-wrapper {
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            .profile-card-wrapper .card {
+                width: 100%;
+                max-width: 100%;
+                min-width: auto;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .items-grid {
+                gap: 15px;
+            }
         }
     </style>
 </head>

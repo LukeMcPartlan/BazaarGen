@@ -771,10 +771,10 @@ h1 {
 }
 /* SKILL-SPECIFIC WIDTH FIXES */
 .skill-content {
-  width: 100%; /* Changed from fit-content to 100% */
-  max-width: 100%; /* Changed from 600px to 100% */
+  width: 100%;
+  min-width: 500px;
+  max-width: none;
   box-sizing: border-box;
-  flex-shrink: 0;
 }
 
 .skill-card-wrapper {
@@ -823,6 +823,19 @@ h1 {
   .skill-card,
   .card {
     width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .card-visual-content {
+    width: 100%;
+    min-width: auto; /* Remove minimum width on mobile */
+    box-sizing: border-box;
+  }
+  
+  .card-content, .skill-content {
+    width: 100%;
+    min-width: auto; /* Remove minimum width on mobile */
     max-width: 100%;
     box-sizing: border-box;
   }
@@ -1046,10 +1059,12 @@ h1 {
 .card-visual-content {
   display: flex;
   align-items: flex-start;
-  width: fit-content;
+  width: 100%; /* Changed from fit-content to 100% */
+  min-width: 600px; /* Add minimum width to ensure content fits */
   position: relative;
   padding: 20px;
   border-radius: 10px;
+  box-sizing: border-box;
 }
 
 .card-controls, .skill-controls {
@@ -1303,14 +1318,18 @@ h1 {
   flex-direction: column;
   border: 3px solid gold;
   border-radius: 10px;
-  max-width: 400px;
-  min-width: 300px;
-  width: fit-content;
-  background: radial-gradient(ellipse at center, rgb(60, 45, 30) 0%, rgb(45, 35, 22) 40%, rgb(25, 18, 10) 100%) ;
+  width: 100%; /* Changed from fit-content to 100% */
+  min-width: 500px; /* Increased minimum width */
+  max-width: none; /* Removed max-width constraint */
+  background: radial-gradient(ellipse at center, rgb(60, 45, 30) 0%, rgb(45, 35, 22) 40%, rgb(25, 18, 10) 100%);
+  box-sizing: border-box;
 }
 
 .skill-content {
-  min-width: 300px;
+  width: 100%;
+  min-width: 500px;
+  max-width: none;
+  box-sizing: border-box;
 }
 
 .card-wrapper {
@@ -1326,7 +1345,8 @@ h1 {
   margin-bottom: 5px;
   padding: 0;
   background: transparent;
-  width: 300px;
+  width: 100%; /* Changed from fixed 300px to 100% */
+  box-sizing: border-box;
 }
 
 .item-tag {
@@ -1603,11 +1623,18 @@ h1 {
 
 .card-wrapper .card-visual-content {
   position: relative;
+  width: 100%;
+  min-width: 600px;
+  box-sizing: border-box;
 }
 
 .card-wrapper .card-content {
   position: relative;
   overflow: visible; /* Important: allow cooldown/ammo to extend outside */
+  width: 100%;
+  min-width: 500px;
+  max-width: none;
+  box-sizing: border-box;
 }
 
 .card-wrapper .text-section {
