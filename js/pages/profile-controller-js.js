@@ -69,12 +69,10 @@ class ProfileController {
     
     const userProfile = GoogleAuth.getUserProfile();
     const userEmail = GoogleAuth.getUserEmail();
-    const displayName = GoogleAuth.getUserDisplayName();
 
     this.debug('User profile data:', {
       userProfile,
       userEmail,
-      displayName,
       alias: userProfile?.alias
     });
 
@@ -82,7 +80,8 @@ class ProfileController {
     const profileEmailEl = document.getElementById('profileEmail');
 
     if (profileNameEl) {
-      const displayedName = userProfile?.alias || displayName || 'Unknown User';
+      // Explicitly use the alias from user profile, fallback to email if no alias
+      const displayedName = userProfile?.alias || userEmail?.split('@')[0] || 'Unknown User';
       profileNameEl.textContent = displayedName;
       this.debug('✅ Profile name set to:', displayedName);
     } else {

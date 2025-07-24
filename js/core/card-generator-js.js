@@ -379,10 +379,17 @@ static async createCard(options = {}) {
     const imageClipWrapper = document.createElement("div");
     imageClipWrapper.className = "image-clip-wrapper";
 
-    if (cardData.imageData) {
+    // For galleries, use the first gallery item's image if no imageData is set
+    let imageData = cardData.imageData;
+    if (!imageData && cardData.isGallery && cardData.galleryItems && cardData.galleryItems.length > 0) {
+      imageData = cardData.galleryItems[0].imageData;
+      console.log('🖼️ Using first gallery item image for gallery display');
+    }
+
+    if (imageData) {
       const img = document.createElement("img");
       img.className = "uploaded-image";
-      img.src = cardData.imageData;
+      img.src = imageData;
       img.onerror = function() {
         imageClipWrapper.style.background = '#333';
         imageClipWrapper.innerHTML = '<div style="color: white; text-align: center; padding: 20px;">Image not available</div>';
