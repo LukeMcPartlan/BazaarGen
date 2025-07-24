@@ -15,6 +15,7 @@ class CardGenerator {
  * @param {HTMLElement} options.container - Container to append card to
  * @param {boolean} options.includeControls - Whether to include control buttons
  * @param {string} options.mode - 'generator' | 'browser' | 'preview'
+ * @param {boolean} options.skipValidation - Skip validation (for galleries)
  * @returns {Promise<HTMLElement|null>} The created card element
  */
 static async createCard(options = {}) {
@@ -26,7 +27,8 @@ static async createCard(options = {}) {
     isPreview = false,
     container = null,
     includeControls = true,
-    mode = 'generator'
+    mode = 'generator',
+    skipValidation = false
   } = options;
 
   try {
@@ -51,22 +53,27 @@ static async createCard(options = {}) {
       throw new Error('Validation class not loaded');
     }
 
-    console.log('🔍 Validating card data...');
-    // Validate card data
-    const validation = Validation.validateCardData(cardData);
-    if (!validation.valid) {
-      console.error('❌ Validation failed:', validation.error);
-      if (mode === 'generator' || mode === 'preview') {
-        if (typeof Messages !== 'undefined') {
-          Messages.showError(validation.error);
-        } else {
-          console.error('❌ Messages class not available, showing alert instead');
-          alert('Validation Error: ' + validation.error);
+    // Skip validation if requested (for galleries)
+    if (!skipValidation) {
+      console.log('🔍 Validating card data...');
+      // Validate card data
+      const validation = Validation.validateCardData(cardData);
+      if (!validation.valid) {
+        console.error('❌ Validation failed:', validation.error);
+        if (mode === 'generator' || mode === 'preview') {
+          if (typeof Messages !== 'undefined') {
+            Messages.showError(validation.error);
+          } else {
+            console.error('❌ Messages class not available, showing alert instead');
+            alert('Validation Error: ' + validation.error);
+          }
         }
+        return null;
       }
-      return null;
+      console.log('✅ Validation passed');
+    } else {
+      console.log('⏭️ Skipping validation (skipValidation: true)');
     }
-    console.log('✅ Validation passed');
 
     console.log('🏗️ Building card element...');
     // Create the card element

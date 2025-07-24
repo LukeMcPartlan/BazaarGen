@@ -289,15 +289,11 @@
             <div class="profile-stats">
                 <div class="stat-item">
                     <div class="stat-number" id="totalCards">0</div>
-                    <div class="stat-label">Cards</div>
+                    <div class="stat-label">Cards & Galleries</div>
                 </div>
                 <div class="stat-item">
                     <div class="stat-number" id="totalSkills">0</div>
                     <div class="stat-label">Skills</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="totalGalleries">0</div>
-                    <div class="stat-label">Galleries</div>
                 </div>
             </div>
         </div>
@@ -305,22 +301,19 @@
         <!-- Content Tabs -->
         <div class="content-tabs">
             <button class="tab-button active" onclick="ProfileController.switchTab('cards')">
-                ⚔️ My Cards
+                ⚔️ My Cards & Galleries
             </button>
             <button class="tab-button" onclick="ProfileController.switchTab('skills')">
                 📜 My Skills
-            </button>
-            <button class="tab-button" onclick="ProfileController.switchTab('galleries')">
-                📦 My Galleries
             </button>
         </div>
 
         <!-- Content Sections -->
         <div id="cardsSection" class="content-section active">
-            <div id="cardsLoading" class="loading-spinner">Loading cards...</div>
+            <div id="cardsLoading" class="loading-spinner">Loading cards and galleries...</div>
             <div id="cardsGrid" class="items-grid"></div>
             <div id="cardsEmpty" class="empty-state" style="display: none;">
-                <h3>No Cards Yet</h3>
+                <h3>No Cards or Galleries Yet</h3>
                 <p>Create your first card in the <a href="index.html">Item Generator</a></p>
             </div>
         </div>
@@ -331,15 +324,6 @@
             <div id="skillsEmpty" class="empty-state" style="display: none;">
                 <h3>No Skills Yet</h3>
                 <p>Create your first skill in the <a href="skills.html">Skill Generator</a></p>
-            </div>
-        </div>
-
-        <div id="galleriesSection" class="content-section">
-            <div id="galleriesLoading" class="loading-spinner">Loading galleries...</div>
-            <div id="galleriesGrid" class="items-grid"></div>
-            <div id="galleriesEmpty" class="empty-state" style="display: none;">
-                <h3>No Galleries Yet</h3>
-                <p>Create galleries by selecting multiple cards in the <a href="index.html">Item Generator</a></p>
             </div>
         </div>
     </div>

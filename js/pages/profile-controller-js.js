@@ -105,14 +105,11 @@ class ProfileController {
     this.debug('📥 Starting to load all user content...');
     
     try {
-      this.debug('📊 Loading user cards...');
+      this.debug('�� Loading user cards and galleries...');
       await this.loadUserCards();
       
       this.debug('📜 Loading user skills...');
       await this.loadUserSkills();
-      
-      this.debug('🖼️ Loading user galleries...');
-      await this.displayGalleries();
       
       this.debug('📈 Updating statistics...');
       this.updateStatistics();
@@ -182,33 +179,36 @@ class ProfileController {
       
       if (loadingEl) loadingEl.style.display = 'none';
       
-      if (this.userItems.length === 0) {
-        this.debug('📭 No cards found, showing empty state');
+      // Combine regular cards and galleries for display
+      const allItemsToDisplay = [...this.userItems, ...this.userGalleries];
+      
+      if (allItemsToDisplay.length === 0) {
+        this.debug('📭 No cards or galleries found, showing empty state');
         if (emptyEl) emptyEl.style.display = 'block';
       } else {
-        this.debug(`🎴 Creating ${this.userItems.length} card elements...`);
+        this.debug(`🎴 Creating ${allItemsToDisplay.length} card/gallery elements...`);
         
-        // Display each card using the same method as browse page
-        for (let i = 0; i < this.userItems.length; i++) {
-          const item = this.userItems[i];
-          this.debug(`🎴 Creating card ${i + 1}/${this.userItems.length} - ID: ${item.id}, Name: "${item.item_data?.itemName}"`);
+        // Display each card/gallery using the same method as browse page
+        for (let i = 0; i < allItemsToDisplay.length; i++) {
+          const item = allItemsToDisplay[i];
+          this.debug(`🎴 Creating item ${i + 1}/${allItemsToDisplay.length} - ID: ${item.id}, Name: "${item.item_data?.itemName}", Type: ${item.item_data?.isGallery ? 'Gallery' : 'Card'}`);
           
           try {
             // Use the same card creation method as BrowsePageController
             const cardWrapper = await this.createProfileItemCard(item);
             if (cardWrapper && gridEl) {
               gridEl.appendChild(cardWrapper);
-              this.debug(`✅ Card ${item.id} added to grid`);
+              this.debug(`✅ Item ${item.id} added to grid`);
             } else {
-              this.debug(`❌ Failed to create or append card ${item.id}`);
+              this.debug(`❌ Failed to create or append item ${item.id}`);
             }
           } catch (error) {
-            this.debug(`❌ Error creating card ${item.id}:`, error);
-            console.error(`Failed to create card for item ${item.id}:`, error);
+            this.debug(`❌ Error creating item ${item.id}:`, error);
+            console.error(`Failed to create item for ${item.id}:`, error);
           }
         }
         
-        this.debug('✅ All cards created and added to grid');
+        this.debug('✅ All items created and added to grid');
       }
       
     } catch (error) {
@@ -334,10 +334,13 @@ class ProfileController {
       cardData.database_id = item.id;
 
       this.debug('🎴 Calling CardGenerator.createCard...');
+      
+      // For galleries, skip validation since they have a different structure
       const cardElement = await CardGenerator.createCard({
         data: cardData,
         mode: 'browser',
-        includeControls: true // Include controls for full functionality
+        includeControls: true, // Include controls for full functionality
+        skipValidation: item.item_data?.isGallery // Skip validation for galleries
       });
 
       if (!cardElement) {
@@ -672,12 +675,6 @@ class ProfileController {
         document.getElementById('skillsSection').classList.add('active');
         this.debug('✅ Skills section activated');
         break;
-      case 'galleries':
-        document.getElementById('galleriesSection').classList.add('active');
-        this.debug('🖼️ Loading galleries...');
-        this.displayGalleries();
-        this.debug('✅ Galleries section activated');
-        break;
       default:
         this.debug(`❌ Unknown tab: ${tab}`);
     }
@@ -690,37 +687,31 @@ class ProfileController {
     this.debug('📊 Updating statistics...');
     
     const stats = {
-      cards: this.userItems.length,
-      skills: this.userSkills.length,
-      galleries: this.userGalleries.length
+      cards: this.userItems.length + this.userGalleries.length, // Include galleries in card count
+      skills: this.userSkills.length
     };
     
-    this.debug('📊 Current statistics:', stats);
-
+    this.debug('📊 Stats calculated:', stats);
+    
+    // Update DOM elements
     const totalCardsEl = document.getElementById('totalCards');
     const totalSkillsEl = document.getElementById('totalSkills');
-    const totalGalleriesEl = document.getElementById('totalGalleries');
-
+    
     if (totalCardsEl) {
       totalCardsEl.textContent = stats.cards;
-      this.debug(`✅ Updated cards count: ${stats.cards}`);
+      this.debug('✅ Cards count updated:', stats.cards);
     } else {
-      this.debug('❌ totalCards element not found');
+      this.debug('❌ Total cards element not found');
     }
-
+    
     if (totalSkillsEl) {
       totalSkillsEl.textContent = stats.skills;
-      this.debug(`✅ Updated skills count: ${stats.skills}`);
+      this.debug('✅ Skills count updated:', stats.skills);
     } else {
-      this.debug('❌ totalSkills element not found');
+      this.debug('❌ Total skills element not found');
     }
-
-    if (totalGalleriesEl) {
-      totalGalleriesEl.textContent = stats.galleries;
-      this.debug(`✅ Updated galleries count: ${stats.galleries}`);
-    } else {
-      this.debug('❌ totalGalleries element not found');
-    }
+    
+    this.debug('✅ Statistics update complete');
   }
 
   /**
