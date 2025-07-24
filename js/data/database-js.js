@@ -270,6 +270,8 @@ class Database {
       return 'Permission denied. Please check your account permissions.';
     } else if (error.code === '23505') {
       return 'This item may already exist in the database.';
+    } else if (error.code === '57014') {
+      return 'Database operation timed out. The data might be too large. Please try saving fewer items or contact support.';
     } else if (error.message?.includes('column') && error.message?.includes('does not exist')) {
       return 'Database schema error. Please contact support.';
     } else if (error.message?.includes('not authenticated')) {

@@ -250,6 +250,191 @@ class SupabaseClient {
     }
   }
 
+  /**
+   * Save skill collection to database (alias for saveSkill)
+   */
+  static async saveSkillCollection(collectionData) {
+    try {
+      this.debug('Saving skill collection:', collectionData);
+      
+      // Convert collection data to skill format
+      const skillData = {
+        skillName: collectionData.name,
+        skillEffect: collectionData.description,
+        skills: collectionData.skills,
+        isCollection: true,
+        border: 'gold' // Default border for collections
+      };
+
+      return await this.saveSkill(skillData);
+    } catch (error) {
+      this.debug('Error saving skill collection:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Save item collection/gallery to database
+   */
+  static async saveItemCollection(itemData) {
+    try {
+      if (!this.isReady()) {
+        throw new Error('Database not available');
+      }
+
+      if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+        throw new Error('User not signed in');
+      }
+
+      const userEmail = GoogleAuth.getUserEmail();
+      const userProfile = GoogleAuth.getUserProfile();
+
+      // Optimize the gallery data to reduce size but keep images
+      const optimizedItemData = this.optimizeGalleryData(itemData);
+
+      const itemRecord = {
+        user_email: userEmail,
+        user_alias: userProfile?.alias || 'Unknown',
+        item_data: optimizedItemData,
+        created_at: new Date().toISOString()
+      };
+
+      this.debug('Saving item collection with data size:', 
+        JSON.stringify(optimizedItemData).length);
+
+      const { data, error } = await this.supabase
+        .from('items')
+        .insert([itemRecord])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      this.debug('Item collection saved successfully');
+      return { success: true, data };
+    } catch (error) {
+      this.debug('Error saving item collection:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Optimize gallery data to reduce database payload size while keeping images
+   */
+  static optimizeGalleryData(itemData) {
+    if (!itemData.isGallery || !itemData.galleryItems) {
+      return itemData;
+    }
+
+    // Create a simplified version of the gallery data
+    const optimizedData = {
+      itemName: itemData.itemName,
+      hero: itemData.hero,
+      itemSize: itemData.itemSize,
+      border: itemData.border,
+      tags: itemData.tags,
+      passiveEffects: itemData.passiveEffects,
+      onUseEffects: itemData.onUseEffects,
+      scalingValues: itemData.scalingValues,
+      timestamp: itemData.timestamp,
+      isGallery: true,
+      galleryInfo: {
+        name: itemData.galleryInfo?.name,
+        itemCount: itemData.galleryInfo?.itemCount,
+        createdBy: itemData.galleryInfo?.createdBy,
+        createdAt: itemData.galleryInfo?.createdAt
+      },
+      // Keep all gallery items with their images
+      galleryItems: itemData.galleryItems.map(item => ({
+        itemName: item.itemName,
+        hero: item.hero,
+        itemSize: item.itemSize,
+        border: item.border,
+        tags: item.tags,
+        passiveEffects: item.passiveEffects,
+        onUseEffects: item.onUseEffects,
+        scalingValues: item.scalingValues,
+        imageData: item.imageData, // Keep the image
+        timestamp: item.timestamp
+      }))
+    };
+
+    return optimizedData;
+  }
+
+  /**
+   * Check if gallery data size is within acceptable limits
+   */
+  static checkGallerySize(itemData) {
+    const dataSize = JSON.stringify(itemData).length;
+    const sizeInMB = dataSize / (1024 * 1024);
+    
+    this.debug(`Gallery data size: ${sizeInMB.toFixed(2)}MB (${dataSize} bytes)`);
+    
+    // Warning thresholds
+    if (sizeInMB > 50) {
+      return { 
+        acceptable: false, 
+        message: `Gallery too large (${sizeInMB.toFixed(1)}MB). Maximum recommended size is 50MB.` 
+      };
+    } else if (sizeInMB > 25) {
+      return { 
+        acceptable: true, 
+        warning: `Large gallery (${sizeInMB.toFixed(1)}MB). This may take longer to save.` 
+      };
+    } else {
+      return { acceptable: true };
+    }
+  }
+
+  /**
+   * Split large gallery into smaller chunks for saving
+   */
+  static async saveLargeGallery(itemData) {
+    const maxItemsPerChunk = 10; // Maximum items per chunk
+    const galleryItems = itemData.galleryItems || [];
+    
+    if (galleryItems.length <= maxItemsPerChunk) {
+      // Small enough to save as single collection
+      return await this.saveItemCollection(itemData);
+    }
+
+    // Split into multiple collections
+    const chunks = [];
+    for (let i = 0; i < galleryItems.length; i += maxItemsPerChunk) {
+      chunks.push(galleryItems.slice(i, i + maxItemsPerChunk));
+    }
+
+    this.debug(`Splitting gallery into ${chunks.length} chunks of max ${maxItemsPerChunk} items each`);
+
+    const savedCollections = [];
+    
+    for (let i = 0; i < chunks.length; i++) {
+      const chunkData = {
+        ...itemData,
+        itemName: `${itemData.itemName} (Part ${i + 1}/${chunks.length})`,
+        galleryItems: chunks[i],
+        galleryInfo: {
+          ...itemData.galleryInfo,
+          name: `${itemData.galleryInfo.name} (Part ${i + 1}/${chunks.length})`,
+          itemCount: chunks[i].length,
+          partNumber: i + 1,
+          totalParts: chunks.length
+        }
+      };
+
+      const result = await this.saveItemCollection(chunkData);
+      savedCollections.push(result);
+    }
+
+    return {
+      success: true,
+      data: savedCollections,
+      split: true,
+      totalParts: chunks.length
+    };
+  }
+
  /**
  * Load items with filters - CORRECTED VERSION
  */
@@ -412,6 +597,70 @@ static async loadSkills(options = {}, requestOptions = {}) {
     throw error;
   }
 }
+  /**
+   * Load item collections/galleries from database
+   */
+  static async loadItemCollections(options = {}) {
+    try {
+      if (!this.isReady()) {
+        throw new Error('Database not available');
+      }
+
+      let query = this.supabase
+        .from('items')
+        .select('*')
+        .filter('item_data->isGallery', 'eq', true)
+        .order('created_at', { ascending: false });
+
+      // Apply user filter if specified
+      if (options.userEmail) {
+        query = query.eq('user_email', options.userEmail);
+      }
+
+      // Apply limit
+      if (options.limit) {
+        query = query.limit(options.limit);
+      }
+
+      const { data, error } = await query;
+
+      if (error) throw error;
+
+      this.debug(`Loaded ${data.length} item collections`);
+      return data;
+
+    } catch (error) {
+      this.debug('Error loading item collections:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get a specific item collection by ID
+   */
+  static async getItemCollection(collectionId) {
+    try {
+      if (!this.isReady()) {
+        throw new Error('Database not available');
+      }
+
+      const { data, error } = await this.supabase
+        .from('items')
+        .select('*')
+        .eq('id', collectionId)
+        .filter('item_data->isGallery', 'eq', true)
+        .single();
+
+      if (error) throw error;
+
+      this.debug('Loaded item collection:', data);
+      return data;
+
+    } catch (error) {
+      this.debug('Error loading item collection:', error);
+      throw error;
+    }
+  }
   /**
    * Get user's saved items
    */
@@ -1118,6 +1367,76 @@ static async getSkillUpvoteCount(skillId) {
     this.debugMode = !this.debugMode;
     this.debug('Debug mode toggled:', this.debugMode ? 'ON' : 'OFF');
     return this.debugMode;
+  }
+
+  /**
+   * Load and reassemble split galleries
+   */
+  static async loadCompleteGallery(collectionId) {
+    try {
+      // First, get the main collection
+      const mainCollection = await this.getItemCollection(collectionId);
+      
+      if (!mainCollection || !mainCollection.item_data?.galleryInfo) {
+        throw new Error('Collection not found or invalid');
+      }
+
+      const galleryInfo = mainCollection.item_data.galleryInfo;
+      
+      // If it's not a split collection, return as is
+      if (!galleryInfo.totalParts || galleryInfo.totalParts <= 1) {
+        return mainCollection;
+      }
+
+      // For split collections, find all parts
+      const allParts = [];
+      
+      // Get the base name (remove "Part X/Y" suffix)
+      const baseName = galleryInfo.name.replace(/\s*\(Part\s+\d+\/\d+\)$/, '');
+      
+      // Query for all parts of this collection
+      const { data: allCollections, error } = await this.supabase
+        .from('items')
+        .select('*')
+        .filter('item_data->galleryInfo->name', 'ilike', `${baseName} (Part %`)
+        .filter('item_data->isGallery', 'eq', true)
+        .order('item_data->galleryInfo->partNumber', { ascending: true });
+
+      if (error) throw error;
+
+      // Reassemble the complete gallery
+      const completeGallery = {
+        ...mainCollection,
+        item_data: {
+          ...mainCollection.item_data,
+          galleryItems: [],
+          galleryInfo: {
+            ...galleryInfo,
+            name: baseName, // Remove part suffix
+            itemCount: 0,
+            partNumber: undefined,
+            totalParts: undefined
+          }
+        }
+      };
+
+      // Combine all gallery items from all parts
+      allCollections.forEach(collection => {
+        const items = collection.item_data?.galleryItems || [];
+        completeGallery.item_data.galleryItems.push(...items);
+      });
+
+      // Update total item count
+      completeGallery.item_data.galleryInfo.itemCount = completeGallery.item_data.galleryItems.length;
+
+      this.debug(`Reassembled split gallery: ${completeGallery.item_data.galleryItems.length} items from ${allCollections.length} parts`);
+      
+      return completeGallery;
+
+    } catch (error) {
+      this.debug('Error loading complete gallery:', error);
+      throw error;
+    }
   }
 }
 

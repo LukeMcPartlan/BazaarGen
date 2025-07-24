@@ -292,7 +292,16 @@ class GalleryManager {
       // Save to database
       Messages.showInfo('Saving gallery to database...');
       
-      if (window.Database && Database.saveCard) {
+      if (window.SupabaseClient && SupabaseClient.saveItemCollection) {
+        await SupabaseClient.saveItemCollection(galleryData);
+        
+        // Clear selection and exit gallery mode
+        this.clearSelection();
+        this.toggleGalleryMode();
+        
+        Messages.showSuccess(`Gallery "${galleryName}" saved successfully!`);
+      } else if (window.Database && Database.saveCard) {
+        // Fallback to old method
         await Database.saveCard(galleryData);
         
         // Clear selection and exit gallery mode
