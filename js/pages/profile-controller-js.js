@@ -332,6 +332,18 @@ class ProfileController {
       cardData.creator_alias = creatorAlias;
       cardData.database_id = item.id;
 
+      // Debug gallery data specifically
+      if (cardData.isGallery) {
+        this.debug('🖼️ Gallery data debug:', {
+          hasImageData: !!cardData.imageData,
+          imageDataLength: cardData.imageData ? cardData.imageData.length : 0,
+          hasGalleryItems: !!(cardData.galleryItems && cardData.galleryItems.length > 0),
+          galleryItemsCount: cardData.galleryItems ? cardData.galleryItems.length : 0,
+          firstGalleryItemImage: cardData.galleryItems && cardData.galleryItems[0] ? !!cardData.galleryItems[0].imageData : false,
+          firstGalleryItemImageLength: cardData.galleryItems && cardData.galleryItems[0] && cardData.galleryItems[0].imageData ? cardData.galleryItems[0].imageData.length : 0
+        });
+      }
+
       this.debug('🎴 Calling CardGenerator.createCard...');
       
       // For galleries, skip validation since they have a different structure

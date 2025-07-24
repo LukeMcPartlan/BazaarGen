@@ -381,9 +381,17 @@ static async createCard(options = {}) {
 
     // For galleries, use the first gallery item's image if no imageData is set
     let imageData = cardData.imageData;
+    console.log('🖼️ CardGenerator - Image data check:', {
+      hasImageData: !!cardData.imageData,
+      isGallery: cardData.isGallery,
+      hasGalleryItems: !!(cardData.galleryItems && cardData.galleryItems.length > 0),
+      galleryItemsCount: cardData.galleryItems ? cardData.galleryItems.length : 0,
+      firstGalleryItemImage: cardData.galleryItems && cardData.galleryItems[0] ? !!cardData.galleryItems[0].imageData : false
+    });
+    
     if (!imageData && cardData.isGallery && cardData.galleryItems && cardData.galleryItems.length > 0) {
       imageData = cardData.galleryItems[0].imageData;
-      console.log('🖼️ Using first gallery item image for gallery display');
+      console.log('🖼️ Using first gallery item image for gallery display:', !!imageData);
     }
 
     if (imageData) {
@@ -391,11 +399,16 @@ static async createCard(options = {}) {
       img.className = "uploaded-image";
       img.src = imageData;
       img.onerror = function() {
+        console.log('❌ Image failed to load:', imageData);
         imageClipWrapper.style.background = '#333';
         imageClipWrapper.innerHTML = '<div style="color: white; text-align: center; padding: 20px;">Image not available</div>';
       };
+      img.onload = function() {
+        console.log('✅ Image loaded successfully');
+      };
       imageClipWrapper.appendChild(img);
     } else {
+      console.log('❌ No image data available for card');
       imageClipWrapper.style.background = '#333';
       imageClipWrapper.innerHTML = '<div style="color: white; text-align: center; padding: 20px;">No image</div>';
     }

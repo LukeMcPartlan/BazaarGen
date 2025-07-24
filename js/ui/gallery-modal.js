@@ -274,7 +274,6 @@ class GalleryModal {
       if (cardElement) {
         // Style for gallery display
         cardElement.style.cssText = `
-          transform: scale(1.2);
           box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
           border-radius: 15px;
           max-width: none;

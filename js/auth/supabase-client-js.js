@@ -289,8 +289,24 @@ class SupabaseClient {
       const userEmail = GoogleAuth.getUserEmail();
       const userProfile = GoogleAuth.getUserProfile();
 
+      // Debug the incoming data
+      this.debug('🖼️ Saving gallery - Original data:', {
+        hasImageData: !!itemData.imageData,
+        imageDataLength: itemData.imageData ? itemData.imageData.length : 0,
+        hasGalleryItems: !!(itemData.galleryItems && itemData.galleryItems.length > 0),
+        firstGalleryItemImage: itemData.galleryItems && itemData.galleryItems[0] ? !!itemData.galleryItems[0].imageData : false
+      });
+
       // Optimize the gallery data to reduce size but keep images
       const optimizedItemData = this.optimizeGalleryData(itemData);
+
+      // Debug the optimized data
+      this.debug('🖼️ Saving gallery - Optimized data:', {
+        hasImageData: !!optimizedItemData.imageData,
+        imageDataLength: optimizedItemData.imageData ? optimizedItemData.imageData.length : 0,
+        hasGalleryItems: !!(optimizedItemData.galleryItems && optimizedItemData.galleryItems.length > 0),
+        firstGalleryItemImage: optimizedItemData.galleryItems && optimizedItemData.galleryItems[0] ? !!optimizedItemData.galleryItems[0].imageData : false
+      });
 
       const itemRecord = {
         user_email: userEmail,
@@ -336,6 +352,7 @@ class SupabaseClient {
       passiveEffects: itemData.passiveEffects,
       onUseEffects: itemData.onUseEffects,
       scalingValues: itemData.scalingValues,
+      imageData: itemData.imageData, // Preserve the main gallery image
       timestamp: itemData.timestamp,
       isGallery: true,
       galleryInfo: {
