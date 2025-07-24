@@ -1275,7 +1275,7 @@ class ExportImport {
 
     // Close export menus when clicking outside
     document.addEventListener('click', (e) => {
-      if (!e.target.closest('.card-export-btn, .export-menu')) {
+      if (!e.target.closest('.card-export-btn, .skill-export-btn, .export-menu')) {
         document.querySelectorAll('.export-menu').forEach(menu => {
           menu.style.display = 'none';
         });
