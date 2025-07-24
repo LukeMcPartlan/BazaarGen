@@ -167,6 +167,27 @@
 
         .profile-card-wrapper {
             position: relative;
+            transition: transform 0.3s ease;
+            width: 100%; /* Make wrapper full width */
+            max-width: 100%; /* Allow responsive behavior */
+        }
+
+        .profile-card-wrapper:hover {
+            transform: translateY(-5px);
+        }
+
+        /* Ensure all elements in the card wrapper have consistent width */
+        .profile-card-wrapper .creator-info,
+        .profile-card-wrapper .comments-section {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Make the card itself take full width of its container */
+        .profile-card-wrapper .card {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         .profile-delete-btn {

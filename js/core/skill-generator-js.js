@@ -74,16 +74,21 @@ class SkillGenerator {
       container,
       mode = 'generator',
       isPreview = false,
-      includeControls = true
+      includeControls = true,
+      skipValidation = false
     } = options;
 
-    this.debug('Creating skill card with options:', { mode, isPreview, includeControls });
+    this.debug('Creating skill card with options:', { mode, isPreview, includeControls, skipValidation });
 
     try {
-      // Validate skill data
-      const validation = Validation.validateSkillData(data);
-      if (!validation.valid) {
-        throw new Error(validation.error);
+      // Validate skill data unless skipped
+      if (!skipValidation) {
+        const validation = Validation.validateSkillData(data);
+        if (!validation.valid) {
+          throw new Error(validation.error);
+        }
+      } else {
+        this.debug('Skipping skill validation');
       }
 
       const skillCard = this.buildSkillElement(data, mode, includeControls);

@@ -677,7 +677,8 @@ static async createItemCard(item) {
       cardElement = await CardGenerator.createCard({
         data: cardData,
         mode: 'browser',
-        includeControls: true
+        includeControls: true,
+        skipValidation: item.item_data?.isGallery // Skip validation for galleries
       });
     
       // *** ADD UPVOTE BUTTON ***
@@ -834,7 +835,8 @@ static async createItemCard(item) {
       data: skillData,
       mode: 'browser',
       includeControls: false,
-      container: null
+      container: null,
+      skipValidation: true // Skip validation for skills loaded from database
     });
 
     // *** ADD UPVOTE BUTTON ***

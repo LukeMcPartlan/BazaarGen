@@ -764,7 +764,8 @@ class ExportImport {
     const cardElement = await CardGenerator.createCard({
       data: cardData,
       container: outputContainer,
-      mode: 'generator'
+      mode: 'generator',
+      skipValidation: true // Skip validation for imported cards
     });
 
     if (!cardElement) {
@@ -992,7 +993,7 @@ class ExportImport {
       
       const dataOption = document.createElement('div');
       dataOption.className = 'export-option';
-      dataOption.textContent = 'Export ALL as Data';
+      dataOption.textContent = 'Export as Data';
       dataOption.style.cssText = `
         padding: 8px 12px;
         cursor: pointer;

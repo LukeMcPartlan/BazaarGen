@@ -180,7 +180,8 @@ class GalleryModal {
       const cardElement = await CardGenerator.createCard({
         data: currentItem,
         mode: 'browser',
-        includeControls: false
+        includeControls: false,
+        skipValidation: true // Skip validation for gallery items
       });
 
       if (cardElement) {

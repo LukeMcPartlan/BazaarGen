@@ -741,26 +741,27 @@ h1 {
 .skill-card-wrapper, 
 .profile-card-wrapper {
   flex: 0 0 auto; /* Don't grow or shrink, stay natural size */
-  width: fit-content;
-  min-width: 450px; /* Minimum readable width */
-  max-width: 600px; /* Maximum to prevent too-wide cards */
+  width: 100%; /* Changed from fit-content to 100% for consistency */
+  max-width: 100%; /* Changed from 600px to 100% for consistency */
+  box-sizing: border-box;
 }
 
 /* Ensure cards themselves fit content */
 .card, 
 .skill-card {
-  width: fit-content;
-  max-width: none;
+  width: 100%; /* Changed from fit-content to 100% */
+  max-width: 100%; /* Changed from none to 100% */
   flex-shrink: 0;
+  box-sizing: border-box;
 }
 
 /* Fix skill card content to fit properly */
 .skill-card {
   display: flex;
   align-items: flex-start;
-  width: fit-content; /* This fixes the 100% width issue */
-  min-width: 450px; /* Ensure readability */
-  max-width: 600px; /* Prevent too wide */
+  width: 100%; /* Changed from fit-content to 100% */
+  max-width: 100%; /* Changed from 600px to 100% */
+  box-sizing: border-box;
 }
 
 /* Profile-specific grid layout */
@@ -770,23 +771,24 @@ h1 {
 }
 /* SKILL-SPECIFIC WIDTH FIXES */
 .skill-content {
-  min-width: 450px;
-  max-width: 600px;
-  width: fit-content; /* Key fix for skill width */
+  width: 100%; /* Changed from fit-content to 100% */
+  max-width: 100%; /* Changed from 600px to 100% */
+  box-sizing: border-box;
   flex-shrink: 0;
 }
 
 .skill-card-wrapper {
-  width: fit-content !important; /* Override any inherited width */
+  width: 100% !important; /* Changed from fit-content to 100% */
   display: flex;
   flex-direction: column;
+  box-sizing: border-box;
 }
 
 /* Fix skill fallback cards */
 .skill-card-fallback {
-  width: fit-content !important;
-  min-width: 450px !important;
-  max-width: 600px !important;
+  width: 100% !important; /* Changed from fit-content to 100% */
+  max-width: 100% !important; /* Changed from 600px to 100% */
+  box-sizing: border-box;
 }
 
 /* Ensure skill headers and sections fit content */
@@ -815,13 +817,14 @@ h1 {
   .profile-card-wrapper {
     width: 100%;
     max-width: 100%;
-    min-width: 300px;
+    box-sizing: border-box;
   }
   
   .skill-card,
   .card {
     width: 100%;
     max-width: 100%;
+    box-sizing: border-box;
   }
 }
 
@@ -829,7 +832,6 @@ h1 {
 .creator-info,
 .comments-section {
   width: 100%;
-  min-width: 450px;
   box-sizing: border-box;
 }
 
@@ -837,6 +839,7 @@ h1 {
 .profile-card-wrapper .creator-info,
 .profile-card-wrapper .comments-section {
   width: 100%;
+  box-sizing: border-box;
 }
 
 
@@ -1586,10 +1589,11 @@ h1 {
 /* ===== COMMENTS SECTION STYLES - COMPLETE FIX ===== */
 .card-wrapper {
   margin-bottom: 30px;
-  width: fit-content;
+  width: 100%; /* Changed from fit-content to 100% for consistency */
   max-width: 100%;
   position: relative;
   z-index: 1;
+  box-sizing: border-box;
 }
 
 /* Reset positioning for browse page cards to match index.html */
@@ -1641,7 +1645,8 @@ h1 {
   justify-content: space-between;
   align-items: center;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
-  min-width: 450px;
+  width: 100%; /* Changed from min-width to width */
+  box-sizing: border-box;
 }
 
 .creator-info span:first-child {
@@ -1662,7 +1667,8 @@ h1 {
   padding: 20px;
   margin-top: -2px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  min-width: 450px;
+  width: 100%; /* Changed from min-width to width */
+  box-sizing: border-box;
   transition: width 0.3s ease;
 }
 

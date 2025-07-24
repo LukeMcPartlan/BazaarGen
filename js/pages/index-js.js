@@ -662,7 +662,8 @@ class IndexPageController {
     const cardElement = CardGenerator.createCard({
       data: cardData,
       container: document.getElementById('outputContainer'),
-      mode: 'generator'
+      mode: 'generator',
+      skipValidation: true // Skip validation for externally added cards
     });
 
     if (cardElement) {

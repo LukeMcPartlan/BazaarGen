@@ -551,7 +551,8 @@ class ProfileController {
         const skillElement = SkillGenerator.createSkill({
           data: skill.skill_data,
           mode: 'browser',
-          includeControls: true
+          includeControls: true,
+          skipValidation: true // Skip validation for skills loaded from database
         });
         
         if (skillElement) {
