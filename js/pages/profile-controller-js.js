@@ -111,6 +111,9 @@ class ProfileController {
       this.debug('📜 Loading user skills...');
       await this.loadUserSkills();
       
+      this.debug('🖼️ Loading user galleries...');
+      await this.displayGalleries();
+      
       this.debug('📈 Updating statistics...');
       this.updateStatistics();
       
@@ -168,6 +171,14 @@ class ProfileController {
         regularCards: this.userItems.length,
         galleries: this.userGalleries.length
       });
+      
+      // Debug: Log gallery detection
+      this.debug('Gallery detection details:', items.map(item => ({
+        id: item.id,
+        itemName: item.item_data?.itemName,
+        isGallery: item.item_data?.isGallery,
+        galleryItemsCount: item.item_data?.galleryItems?.length
+      })));
       
       if (loadingEl) loadingEl.style.display = 'none';
       
@@ -583,6 +594,17 @@ class ProfileController {
     
     this.debug(`📊 Gallery stats: ${this.userGalleries.length} galleries available`);
     
+    // Debug: Log the first gallery data structure
+    if (this.userGalleries.length > 0) {
+      this.debug('First gallery data structure:', {
+        id: this.userGalleries[0].id,
+        itemName: this.userGalleries[0].item_data?.itemName,
+        isGallery: this.userGalleries[0].item_data?.isGallery,
+        galleryItemsCount: this.userGalleries[0].item_data?.galleryItems?.length,
+        galleryItems: this.userGalleries[0].item_data?.galleryItems?.slice(0, 2) // First 2 items
+      });
+    }
+    
     if (loadingEl) loadingEl.style.display = 'block';
     if (gridEl) gridEl.innerHTML = '';
     if (emptyEl) emptyEl.style.display = 'none';
@@ -599,12 +621,17 @@ class ProfileController {
         const gallery = this.userGalleries[i];
         this.debug(`🖼️ Creating gallery ${i + 1}/${this.userGalleries.length} - ID: ${gallery.id}`);
         
-        const galleryCard = await this.createProfileItemCard(gallery); // Use same method as regular cards
-        if (galleryCard && gridEl) {
-          gridEl.appendChild(galleryCard);
-          this.debug(`✅ Gallery ${gallery.id} added to grid`);
-        } else {
-          this.debug(`❌ Failed to create or append gallery ${gallery.id}`);
+        try {
+          const galleryCard = await this.createProfileItemCard(gallery); // Use same method as regular cards
+          if (galleryCard && gridEl) {
+            gridEl.appendChild(galleryCard);
+            this.debug(`✅ Gallery ${gallery.id} added to grid`);
+          } else {
+            this.debug(`❌ Failed to create or append gallery ${gallery.id}`);
+          }
+        } catch (error) {
+          this.debug(`❌ Error creating gallery ${gallery.id}:`, error);
+          console.error(`Failed to create gallery for item ${gallery.id}:`, error);
         }
       }
       
