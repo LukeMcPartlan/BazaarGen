@@ -579,6 +579,43 @@ class ProfileController {
       
       wrapper.appendChild(deleteBtn);
       this.debug('✅ Delete button created and added');
+
+      // Create creator info section (same as browse page)
+      const creatorInfo = document.createElement('div');
+      creatorInfo.className = 'creator-info';
+      creatorInfo.style.cssText = `
+        padding: 12px 20px;
+        background: linear-gradient(135deg, rgba(74, 60, 46, 0.9) 0%, rgba(37, 26, 12, 0.8) 100%);
+        border: 2px solid rgb(218, 165, 32);
+        border-radius: 12px 12px 0 0;
+        font-size: 14px;
+        color: rgb(251, 225, 183);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        min-width: 450px;
+      `;
+
+      const creatorAlias = skill.user_alias || 'Your Creation';
+      const createdDate = new Date(skill.created_at).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+
+      this.debug('Creator info:', { creatorAlias, createdDate });
+
+      creatorInfo.innerHTML = `
+        <span style="font-weight: 600; color: rgb(251, 225, 183);">
+          <span style="color: rgb(218, 165, 32);">Your Creation:</span> ${creatorAlias}
+        </span>
+        <span style="color: rgb(201, 175, 133); font-size: 12px;">${createdDate}</span>
+      `;
+
+      this.debug('✅ Creator info section created');
+      
+      wrapper.appendChild(creatorInfo);
       
       // Create the skill with enhanced styling
       this.debug('📜 Checking SkillGenerator availability...');

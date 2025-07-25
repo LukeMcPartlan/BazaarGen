@@ -198,7 +198,7 @@ class GoogleAuth {
       if (typeof SupabaseClient === 'undefined') {
         this.debug('SupabaseClient not available, using fallback');
         this.userProfile = {
-          alias: this.currentUser.email.split('@')[0], // Use email username, not Google name
+          alias: 'User', // Use generic fallback, not email
           email: this.currentUser.email
         };
         this.updateUserDisplay();
@@ -208,7 +208,7 @@ class GoogleAuth {
       if (!SupabaseClient.isReady()) {
         this.debug('Database not ready, using fallback');
         this.userProfile = {
-          alias: this.currentUser.email.split('@')[0], // Use email username, not Google name
+          alias: 'User', // Use generic fallback, not email
           email: this.currentUser.email
         };
         this.updateUserDisplay();
@@ -234,10 +234,10 @@ class GoogleAuth {
       this.debug('Error fetching user profile:', error);
       console.error('Error fetching user profile:', error);
       
-      // Fallback to using email username, never Google name
+      // Fallback to generic user, never use email
       this.debug('Using fallback profile');
       this.userProfile = {
-        alias: this.currentUser.email.split('@')[0], // Use email username, not Google name
+        alias: 'User', // Use generic fallback, not email
         email: this.currentUser.email
       };
       this.updateUserDisplay();
@@ -265,7 +265,7 @@ class GoogleAuth {
       title.textContent = 'Welcome to BazaarGen!';
       description.textContent = 'Choose an alias to display on the site';
       cancelBtn.style.display = 'none'; // Hide cancel for new users
-      input.value = this.currentUser.email.split('@')[0]; // Use email username, not Google name
+      input.value = ''; // Start with empty input, not email
     } else {
       title.textContent = 'Edit Your Alias';
       description.textContent = 'Change your display name';
@@ -387,7 +387,7 @@ class GoogleAuth {
     if (this.currentUser && !this.userProfile) {
       this.debug('Using fallback profile for canceled alias creation');
       this.userProfile = {
-        alias: this.currentUser.name || this.currentUser.email.split('@')[0],
+        alias: this.currentUser.name || 'User', // Use generic fallback, not email
         email: this.currentUser.email
       };
       this.updateUserDisplay();
@@ -421,11 +421,7 @@ static updateUserDisplay() {
     // Always prioritize the alias from the database
     let displayName = this.userProfile?.alias;
     
-    // Only fall back to email username, never to Google account name
-    if (!displayName && this.currentUser?.email) {
-      displayName = this.currentUser.email.split('@')[0];
-    }
-    
+    // Only fall back to generic user, never to email or Google name
     if (!displayName) {
       displayName = 'User';
     }
@@ -645,11 +641,7 @@ static updateUserDisplay() {
     // Always prioritize the alias from the database
     let displayName = this.userProfile?.alias;
     
-    // Only fall back to email username, never to Google account name
-    if (!displayName && this.currentUser?.email) {
-      displayName = this.currentUser.email.split('@')[0];
-    }
-    
+    // Only fall back to generic user, never to email or Google name
     if (!displayName) {
       displayName = 'User';
     }
