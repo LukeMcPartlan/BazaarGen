@@ -1481,11 +1481,13 @@ class ProfileController {
           if (typeof ExportImport !== 'undefined') {
             ExportImport.exportSingleSkillAsData(itemData.skill_data);
           }
-        } else {
+        } else if (itemData.item_data) {
           // This is an item
           if (typeof ExportImport !== 'undefined') {
             ExportImport.exportSingleCardAsData(itemData.item_data);
           }
+        } else {
+          this.debug('❌ No skill_data or item_data found in itemData:', itemData);
         }
         menu.style.display = 'none';
       };
@@ -1512,11 +1514,13 @@ class ProfileController {
           if (typeof ExportImport !== 'undefined') {
             ExportImport.exportSkillAsPNG(element);
           }
-        } else {
+        } else if (itemData.item_data) {
           // This is an item
           if (typeof ExportImport !== 'undefined') {
             ExportImport.exportCardAsPNG(element);
           }
+        } else {
+          this.debug('❌ No skill_data or item_data found in itemData:', itemData);
         }
         menu.style.display = 'none';
       };

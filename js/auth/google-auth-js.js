@@ -7,6 +7,11 @@ class GoogleAuth {
   static currentUser = null;
   static userProfile = null;
   static debugMode = true; // Enable debugging
+  static authCache = {
+    isSignedIn: null,
+    lastCheck: 0,
+    cacheDuration: 1000 // Cache for 1 second
+  };
 
   /**
    * Debug logging function
@@ -128,6 +133,10 @@ class GoogleAuth {
       };
 
       this.debug('Stored current user:', this.currentUser);
+
+      // Clear auth cache
+      this.authCache.isSignedIn = true;
+      this.authCache.lastCheck = Date.now();
 
       // Store in session storage for persistence
       this.debug('Saving to session storage...');
@@ -488,6 +497,10 @@ static updateUserDisplay() {
       this.currentUser = null;
       this.userProfile = null;
       
+      // Clear auth cache
+      this.authCache.isSignedIn = false;
+      this.authCache.lastCheck = Date.now();
+      
       // Clear session storage
       this.debug('Clearing session storage...');
       sessionStorage.removeItem('bazaargen_user');
@@ -536,6 +549,10 @@ static updateUserDisplay() {
         this.debug('Found saved user session');
         this.currentUser = JSON.parse(savedUser);
         this.debug('Restored user session:', this.currentUser.email);
+        
+        // Clear auth cache
+        this.authCache.isSignedIn = true;
+        this.authCache.lastCheck = Date.now();
         
         // Fetch user profile
         this.fetchUserProfile();
@@ -617,12 +634,26 @@ static updateUserDisplay() {
   }
 
   /**
-   * Check if user is signed in
+   * Check if user is signed in with caching to reduce excessive checks
    */
   static isSignedIn() {
-    const signedIn = this.currentUser !== null;
-    this.debug('Checking if signed in:', signedIn);
-    return signedIn;
+    const now = Date.now();
+    
+    // Return cached result if it's still valid
+    if (this.authCache.isSignedIn !== null && 
+        (now - this.authCache.lastCheck) < this.authCache.cacheDuration) {
+      return this.authCache.isSignedIn;
+    }
+    
+    // Perform actual check
+    const result = this.currentUser !== null;
+    
+    // Cache the result
+    this.authCache.isSignedIn = result;
+    this.authCache.lastCheck = now;
+    
+    console.log('[GoogleAuth] Checking if signed in:', result);
+    return result;
   }
 
   /**
