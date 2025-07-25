@@ -345,20 +345,11 @@ class UnifiedBrowsePageController {
         <button id="clearFilters" class="filter-btn clear">
           🗑️ Clear All
         </button>
-        <button id="toggleFilters" class="filter-btn toggle">
-          ⚙️ Show Filters
-        </button>
       </div>
     `;
 
     // Show filters by default
     controlsGrid.style.display = 'none';
-    
-    // Update toggle button text to "Show Filters" since filters are hidden by default
-    const toggleBtn = document.querySelector('#toggleFilters');
-    if (toggleBtn) {
-      toggleBtn.textContent = '⚙️ Show Filters';
-    }
     
     this.setupEventListeners();
   }
@@ -488,20 +479,11 @@ class UnifiedBrowsePageController {
         <button id="clearSkillFilters" class="filter-btn clear">
           🗑️ Clear All
         </button>
-        <button id="toggleSkillFilters" class="filter-btn toggle">
-          ⚙️ Show Filters
-        </button>
       </div>
     `;
 
     // Show filters by default
     controlsGrid.style.display = 'none';
-    
-    // Update toggle button text to "Show Filters" since filters are hidden by default
-    const toggleBtn = document.querySelector('#toggleSkillFilters');
-    if (toggleBtn) {
-      toggleBtn.textContent = '⚙️ Show Filters';
-    }
     
     this.setupEventListeners();
   }
@@ -561,11 +543,10 @@ class UnifiedBrowsePageController {
     // Filter action buttons
     this.addEventListenerIfExists('applyFilters', 'click', () => this.handleFilterChange());
     this.addEventListenerIfExists('clearFilters', 'click', () => this.clearAllFilters());
-    this.addEventListenerIfExists('toggleFilters', 'click', () => this.toggleFilters());
-
+    this.addEventListenerIfExists('toggleFiltersBtn', 'click', () => this.toggleFilters());
+    
     this.addEventListenerIfExists('applySkillFilters', 'click', () => this.handleFilterChange());
     this.addEventListenerIfExists('clearSkillFilters', 'click', () => this.clearAllFilters());
-    this.addEventListenerIfExists('toggleSkillFilters', 'click', () => this.toggleFilters());
 
     // Debounced search for better performance
     let searchTimeout;
@@ -1349,7 +1330,7 @@ static async createSkillCommentsSection(skillId) {
 
   const commentsList = document.createElement('div');
   commentsList.className = 'comments-list';
-  commentsList.id = `skill-comments-${skillId}`;
+  commentsList.id = `comments-${skillId}`;
   commentsList.style.cssText = `
     max-height: 300px; 
     overflow-y: auto; 
@@ -1498,7 +1479,7 @@ static async addSkillComment(skillId) {
         font-size: 12px;
         color: rgb(37, 26, 12);
         font-weight: bold;
-      ">Show/Hide</button>
+      ">Show</button>
     `;
 
     const commentsList = document.createElement('div');
@@ -1512,6 +1493,7 @@ static async addSkillComment(skillId) {
       border: 2px solid rgba(218, 165, 32, 0.3);
       border-radius: 8px;
       padding: 10px;
+      display: none;
     `;
 
     const commentForm = document.createElement('div');
@@ -1836,17 +1818,12 @@ static async addSkillComment(skillId) {
    */
   static toggleFilters() {
     const controlsGrid = document.querySelector('.controls-grid');
-    if (controlsGrid) {
+    const toggleBtn = document.querySelector('#toggleFiltersBtn');
+    
+    if (controlsGrid && toggleBtn) {
       const isVisible = controlsGrid.style.display !== 'none';
       controlsGrid.style.display = isVisible ? 'none' : 'grid';
-      
-      // Update button text for both tabs
-      const toggleBtns = document.querySelectorAll('#toggleFilters, #toggleSkillFilters');
-      toggleBtns.forEach(btn => {
-        if (btn) {
-          btn.textContent = isVisible ? '⚙️ Show Filters' : '⚙️ Hide Filters';
-        }
-      });
+      toggleBtn.textContent = isVisible ? '⚙️ Show Filters' : '⚙️ Hide Filters';
     }
   }
 
