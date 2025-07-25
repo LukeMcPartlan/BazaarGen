@@ -40,6 +40,10 @@ class UnifiedBrowsePageController {
       this.setupDOMElements();
       this.setupEventListeners();
       this.initializeSupabase();
+      
+      // Set up initial controls for the default items tab
+      this.updateControlsForTab('items');
+      
       this.isInitialized = true;
       console.log('✅ Unified Browse Page Controller initialized');
     });
@@ -211,6 +215,9 @@ class UnifiedBrowsePageController {
    */
   static setupItemsControls() {
     const controlsGrid = document.querySelector('.controls-grid');
+    console.log('🔧 Setting up items controls');
+    console.log('Controls grid found:', !!controlsGrid);
+    
     if (!controlsGrid) return;
 
     controlsGrid.innerHTML = `
@@ -350,6 +357,10 @@ class UnifiedBrowsePageController {
 
     // Show filters by default
     controlsGrid.style.display = 'none';
+    
+    console.log('🔧 Items controls setup complete');
+    console.log('Controls grid innerHTML length:', controlsGrid.innerHTML.length);
+    console.log('Controls grid display:', controlsGrid.style.display);
     
     this.setupEventListeners();
   }
@@ -1820,10 +1831,20 @@ static async addSkillComment(skillId) {
     const controlsGrid = document.querySelector('.controls-grid');
     const toggleBtn = document.querySelector('#toggleFiltersBtn');
     
+    console.log('🔧 Toggle filters called');
+    console.log('Controls grid found:', !!controlsGrid);
+    console.log('Toggle button found:', !!toggleBtn);
+    
     if (controlsGrid && toggleBtn) {
       const isVisible = controlsGrid.style.display !== 'none';
+      console.log('Current display state:', controlsGrid.style.display);
+      console.log('Is visible:', isVisible);
+      
       controlsGrid.style.display = isVisible ? 'none' : 'grid';
       toggleBtn.textContent = isVisible ? '⚙️ Show Filters' : '⚙️ Hide Filters';
+      
+      console.log('New display state:', controlsGrid.style.display);
+      console.log('New button text:', toggleBtn.textContent);
     }
   }
 

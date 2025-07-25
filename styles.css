@@ -746,6 +746,13 @@ h1 {
   box-sizing: border-box;
 }
 
+/* Browse page specific card width */
+.browse-container .card-wrapper {
+  width: 700px;
+  max-width: 700px;
+  flex: 0 0 700px;
+}
+
 /* Ensure cards themselves fit content */
 .card, 
 .skill-card {
@@ -770,17 +777,19 @@ h1 {
   align-content: flex-start;
 }
 
-/* Browse page container - match profile page formatting */
+/* Browse page container - full width */
 .browse-container {
-  max-width: 1400px;
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
   padding: 20px;
+  box-sizing: border-box;
 }
 
 /* Browse-specific grid layout */
 .browse-container .items-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(700px, 1fr));
   gap: 30px;
   justify-content: center;
   align-content: flex-start;
@@ -819,6 +828,13 @@ h1 {
 @media (max-width: 1400px) {
   .items-grid {
     justify-content: center; /* Center when less space */
+  }
+  
+  /* Ensure browse page cards maintain 700px width */
+  .browse-container .card-wrapper {
+    width: 700px !important;
+    max-width: 700px !important;
+    flex: 0 0 700px !important;
   }
 }
 
@@ -3354,6 +3370,13 @@ h1 {
   
   .browse-container {
     padding: 15px;
+  }
+  
+  /* Ensure browse page cards maintain 700px width on mobile */
+  .browse-container .card-wrapper {
+    width: 700px !important;
+    max-width: 700px !important;
+    flex: 0 0 700px !important;
   }
 }
 
