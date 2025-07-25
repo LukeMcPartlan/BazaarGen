@@ -1518,6 +1518,81 @@ static async getSkillUpvoteCount(skillId) {
       throw error;
     }
   }
+
+  /**
+   * Get all items from database (for comprehensive filtering)
+   */
+  static async getAllItems() {
+    try {
+      if (!this.isReady()) {
+        throw new Error('Supabase not initialized');
+      }
+
+      this.debug('Loading all items for comprehensive filtering...');
+
+      const { data, error } = await this.supabase
+        .from('items')
+        .select(`
+          id,
+          user_email,
+          user_alias,
+          item_data,
+          created_at,
+          contest,
+          upvotes
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        this.debug('Error loading all items:', error);
+        throw error;
+      }
+
+      this.debug(`Loaded ${data?.length || 0} items for filtering`);
+      return data || [];
+    } catch (error) {
+      this.debug('Failed to load all items:', error);
+      console.error('Error loading all items:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get all skills from database (for comprehensive filtering)
+   */
+  static async getAllSkills() {
+    try {
+      if (!this.isReady()) {
+        throw new Error('Supabase not initialized');
+      }
+
+      this.debug('Loading all skills for comprehensive filtering...');
+
+      const { data, error } = await this.supabase
+        .from('skills')
+        .select(`
+          id,
+          user_email,
+          user_alias,
+          skill_data,
+          created_at,
+          upvotes
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        this.debug('Error loading all skills:', error);
+        throw error;
+      }
+
+      this.debug(`Loaded ${data?.length || 0} skills for filtering`);
+      return data || [];
+    } catch (error) {
+      this.debug('Failed to load all skills:', error);
+      console.error('Error loading all skills:', error);
+      return [];
+    }
+  }
 }
 
 // Auto-initialize

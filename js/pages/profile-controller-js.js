@@ -1180,7 +1180,7 @@ class ProfileController {
     
     if (confirmed) {
       try {
-        if (type === 'item') {
+        if (type === 'item' || type === 'card') {
           await SupabaseClient.deleteItem(itemId);
         } else if (type === 'skill') {
           await SupabaseClient.deleteSkill(itemId);

@@ -207,21 +207,29 @@ class UnifiedBrowsePageController {
   }
 
   /**
-   * Setup controls for items tab
+   * Setup comprehensive controls for items tab
    */
   static setupItemsControls() {
     const controlsGrid = document.querySelector('.controls-grid');
     if (!controlsGrid) return;
 
     controlsGrid.innerHTML = `
+      <!-- Sort Options -->
       <div class="control-group">
         <label class="control-label">Sort By</label>
         <select id="sortBy" class="control-select">
           <option value="recent">Most Recent</option>
           <option value="oldest">Oldest First</option>
+          <option value="upvotes_desc">Most Upvoted</option>
+          <option value="upvotes_asc">Least Upvoted</option>
+          <option value="name_asc">Name A-Z</option>
+          <option value="name_desc">Name Z-A</option>
+          <option value="creator_asc">Creator A-Z</option>
+          <option value="creator_desc">Creator Z-A</option>
         </select>
       </div>
 
+      <!-- Hero Filter -->
       <div class="control-group">
         <label class="control-label">Hero Filter</label>
         <select id="heroFilter" class="control-select">
@@ -237,11 +245,66 @@ class UnifiedBrowsePageController {
         </select>
       </div>
 
+      <!-- Item Size Filter -->
+      <div class="control-group">
+        <label class="control-label">Item Size</label>
+        <select id="sizeFilter" class="control-select">
+          <option value="">All Sizes</option>
+          <option value="Small">Small</option>
+          <option value="Medium">Medium</option>
+          <option value="Large">Large</option>
+        </select>
+      </div>
+
+      <!-- Border/Rarity Filter -->
+      <div class="control-group">
+        <label class="control-label">Border/Rarity</label>
+        <select id="borderFilter" class="control-select">
+          <option value="">All Borders</option>
+          <option value="bronze">Bronze</option>
+          <option value="silver">Silver</option>
+          <option value="gold">Gold</option>
+          <option value="diamond">Diamond</option>
+          <option value="legendary">Legendary</option>
+        </select>
+      </div>
+
+      <!-- Upvote Range -->
+      <div class="control-group">
+        <label class="control-label">Min Upvotes</label>
+        <input type="number" id="minUpvotes" class="control-input" placeholder="0" min="0">
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">Max Upvotes</label>
+        <input type="number" id="maxUpvotes" class="control-input" placeholder="∞" min="0">
+      </div>
+
+      <!-- Search Options -->
       <div class="control-group">
         <label class="control-label">Search Items</label>
         <input type="text" id="searchInput" class="control-input" placeholder="Search item names...">
       </div>
 
+      <!-- Tag Filter -->
+      <div class="control-group">
+        <label class="control-label">Tags (comma separated)</label>
+        <input type="text" id="tagFilter" class="control-input" placeholder="Weapon, Armor, etc.">
+      </div>
+
+      <!-- Keyword Filter -->
+      <div class="control-group">
+        <label class="control-label">Effect Keywords</label>
+        <input type="text" id="keywordFilter" class="control-input" placeholder="damage, heal, slow, etc.">
+      </div>
+
+      <!-- Creator Filter -->
+      <div class="control-group">
+        <label class="control-label">Creator</label>
+        <input type="text" id="creatorFilter" class="control-input" placeholder="Search by creator...">
+      </div>
+
+      <!-- Contest Filter -->
       <div class="control-group">
         <label class="control-label">Contest Filter</label>
         <select id="contestFilter" class="control-select">
@@ -252,29 +315,74 @@ class UnifiedBrowsePageController {
           <option value="3">Contest 3</option>
         </select>
       </div>
+
+      <!-- Gallery Filter -->
+      <div class="control-group">
+        <label class="control-label">Item Type</label>
+        <select id="itemTypeFilter" class="control-select">
+          <option value="">All Types</option>
+          <option value="single">Single Items</option>
+          <option value="gallery">Galleries</option>
+        </select>
+      </div>
+
+      <!-- Date Range -->
+      <div class="control-group">
+        <label class="control-label">Created After</label>
+        <input type="date" id="dateFrom" class="control-input">
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">Created Before</label>
+        <input type="date" id="dateTo" class="control-input">
+      </div>
+
+      <!-- Filter Actions -->
+      <div class="filter-actions">
+        <button id="applyFilters" class="filter-btn apply">
+          🔍 Apply Filters
+        </button>
+        <button id="clearFilters" class="filter-btn clear">
+          🗑️ Clear All
+        </button>
+        <button id="toggleFilters" class="filter-btn toggle">
+          ⚙️ Hide Filters
+        </button>
+      </div>
     `;
 
+    // Show filters by default
+    controlsGrid.style.display = 'grid';
+    
     this.setupEventListeners();
   }
 
   /**
-   * Setup controls for skills tab
+   * Setup comprehensive controls for skills tab
    */
   static setupSkillsControls() {
     const controlsGrid = document.querySelector('.controls-grid');
     if (!controlsGrid) return;
 
     controlsGrid.innerHTML = `
+      <!-- Sort Options -->
       <div class="control-group">
         <label class="control-label">Sort By</label>
         <select id="skillSortBy" class="control-select">
           <option value="recent">Most Recent</option>
           <option value="oldest">Oldest First</option>
-          <option value="name">Name A-Z</option>
+          <option value="upvotes_desc">Most Upvoted</option>
+          <option value="upvotes_asc">Least Upvoted</option>
+          <option value="name_asc">Name A-Z</option>
           <option value="name_desc">Name Z-A</option>
+          <option value="creator_asc">Creator A-Z</option>
+          <option value="creator_desc">Creator Z-A</option>
+          <option value="rarity_asc">Rarity (Low to High)</option>
+          <option value="rarity_desc">Rarity (High to Low)</option>
         </select>
       </div>
 
+      <!-- Rarity Filter -->
       <div class="control-group">
         <label class="control-label">Rarity Filter</label>
         <select id="rarityFilter" class="control-select">
@@ -287,21 +395,36 @@ class UnifiedBrowsePageController {
         </select>
       </div>
 
+      <!-- Upvote Range -->
+      <div class="control-group">
+        <label class="control-label">Min Upvotes</label>
+        <input type="number" id="skillMinUpvotes" class="control-input" placeholder="0" min="0">
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">Max Upvotes</label>
+        <input type="number" id="skillMaxUpvotes" class="control-input" placeholder="∞" min="0">
+      </div>
+
+      <!-- Search Options -->
       <div class="control-group">
         <label class="control-label">Search Skills</label>
-        <input type="text" id="skillSearchInput" class="control-input" placeholder="Search skills...">
+        <input type="text" id="skillSearchInput" class="control-input" placeholder="Search skill names...">
       </div>
 
+      <!-- Effect Keywords -->
       <div class="control-group">
         <label class="control-label">Effect Keywords</label>
-        <input type="text" id="keywordFilter" class="control-input" placeholder="damage, heal, slow, etc.">
+        <input type="text" id="skillKeywordFilter" class="control-input" placeholder="damage, heal, slow, etc.">
       </div>
 
+      <!-- Creator Filter -->
       <div class="control-group">
-        <label class="control-label">Creator Filter</label>
-        <input type="text" id="creatorFilter" class="control-input" placeholder="Search by creator...">
+        <label class="control-label">Creator</label>
+        <input type="text" id="skillCreatorFilter" class="control-input" placeholder="Search by creator...">
       </div>
 
+      <!-- Effect Length -->
       <div class="control-group">
         <label class="control-label">Effect Length</label>
         <select id="lengthFilter" class="control-select">
@@ -311,8 +434,63 @@ class UnifiedBrowsePageController {
           <option value="long">Long (200+ chars)</option>
         </select>
       </div>
+
+      <!-- Skill Type Filter -->
+      <div class="control-group">
+        <label class="control-label">Skill Type</label>
+        <select id="skillTypeFilter" class="control-select">
+          <option value="">All Types</option>
+          <option value="attack">Attack Skills</option>
+          <option value="defense">Defense Skills</option>
+          <option value="utility">Utility Skills</option>
+          <option value="healing">Healing Skills</option>
+          <option value="buff">Buff Skills</option>
+          <option value="debuff">Debuff Skills</option>
+        </select>
+      </div>
+
+      <!-- Effect Categories -->
+      <div class="control-group">
+        <label class="control-label">Effect Categories</label>
+        <select id="effectCategoryFilter" class="control-select">
+          <option value="">All Categories</option>
+          <option value="damage">Damage</option>
+          <option value="heal">Healing</option>
+          <option value="buff">Buffs</option>
+          <option value="debuff">Debuffs</option>
+          <option value="control">Control</option>
+          <option value="utility">Utility</option>
+        </select>
+      </div>
+
+      <!-- Date Range -->
+      <div class="control-group">
+        <label class="control-label">Created After</label>
+        <input type="date" id="skillDateFrom" class="control-input">
+      </div>
+
+      <div class="control-group">
+        <label class="control-label">Created Before</label>
+        <input type="date" id="skillDateTo" class="control-input">
+      </div>
+
+      <!-- Filter Actions -->
+      <div class="filter-actions">
+        <button id="applySkillFilters" class="filter-btn apply">
+          🔍 Apply Filters
+        </button>
+        <button id="clearSkillFilters" class="filter-btn clear">
+          🗑️ Clear All
+        </button>
+        <button id="toggleSkillFilters" class="filter-btn toggle">
+          ⚙️ Hide Filters
+        </button>
+      </div>
     `;
 
+    // Show filters by default
+    controlsGrid.style.display = 'grid';
+    
     this.setupEventListeners();
   }
 
@@ -332,111 +510,90 @@ class UnifiedBrowsePageController {
   }
 
   /**
-   * Setup event listeners
+   * Setup comprehensive event listeners
    */
   static setupEventListeners() {
-    // Remove existing listeners to prevent duplicates
-    const existingElements = [
-      'sortBy', 'heroFilter', 'searchInput', 'contestFilter',
-      'skillSortBy', 'rarityFilter', 'skillSearchInput', 'keywordFilter', 
-      'creatorFilter', 'lengthFilter'
+    // Load more button
+    this.addEventListenerIfExists('loadMoreBtn', 'click', () => {
+      if (this.activeTab === 'items') {
+        this.loadMoreItems();
+      } else if (this.activeTab === 'skills') {
+        this.loadMoreSkills();
+      }
+    });
+
+    // Item filter event listeners
+    const itemFilterElements = [
+      'sortBy', 'heroFilter', 'sizeFilter', 'borderFilter', 'minUpvotes', 'maxUpvotes',
+      'searchInput', 'tagFilter', 'keywordFilter', 'creatorFilter', 'contestFilter',
+      'itemTypeFilter', 'dateFrom', 'dateTo'
     ];
 
-    existingElements.forEach(id => {
-      const element = document.getElementById(id);
-      if (element) {
-        const newElement = element.cloneNode(true);
-        element.parentNode.replaceChild(newElement, element);
-      }
+    itemFilterElements.forEach(elementId => {
+      this.addEventListenerIfExists(elementId, 'change', () => this.handleFilterChange());
+      this.addEventListenerIfExists(elementId, 'input', () => this.handleFilterChange());
     });
 
-    // Add new listeners
-    this.addEventListenerIfExists('sortBy', 'change', () => this.handleFilterChange());
-    this.addEventListenerIfExists('heroFilter', 'change', () => this.handleFilterChange());
-    this.addEventListenerIfExists('contestFilter', 'change', () => this.handleFilterChange());
-    this.addEventListenerIfExists('skillSortBy', 'change', () => this.handleFilterChange());
-    this.addEventListenerIfExists('rarityFilter', 'change', () => this.handleFilterChange());
-    this.addEventListenerIfExists('creatorFilter', 'input', () => this.handleFilterChange());
-    this.addEventListenerIfExists('lengthFilter', 'change', () => this.handleFilterChange());
+    // Skill filter event listeners
+    const skillFilterElements = [
+      'skillSortBy', 'rarityFilter', 'skillMinUpvotes', 'skillMaxUpvotes',
+      'skillSearchInput', 'skillKeywordFilter', 'skillCreatorFilter', 'lengthFilter',
+      'skillTypeFilter', 'effectCategoryFilter', 'skillDateFrom', 'skillDateTo'
+    ];
 
-    // Debounced search inputs
-    let searchTimeout, skillSearchTimeout, keywordTimeout;
-    
-    this.addEventListenerIfExists('searchInput', 'input', () => {
+    skillFilterElements.forEach(elementId => {
+      this.addEventListenerIfExists(elementId, 'change', () => this.handleFilterChange());
+      this.addEventListenerIfExists(elementId, 'input', () => this.handleFilterChange());
+    });
+
+    // Filter action buttons
+    this.addEventListenerIfExists('applyFilters', 'click', () => this.handleFilterChange());
+    this.addEventListenerIfExists('clearFilters', 'click', () => this.clearAllFilters());
+    this.addEventListenerIfExists('toggleFilters', 'click', () => this.toggleFilters());
+
+    this.addEventListenerIfExists('applySkillFilters', 'click', () => this.handleFilterChange());
+    this.addEventListenerIfExists('clearSkillFilters', 'click', () => this.clearAllFilters());
+    this.addEventListenerIfExists('toggleSkillFilters', 'click', () => this.toggleFilters());
+
+    // Debounced search for better performance
+    let searchTimeout;
+    const debouncedSearch = (callback) => {
       clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => this.handleFilterChange(), 500);
-    });
-
-    this.addEventListenerIfExists('skillSearchInput', 'input', () => {
-      clearTimeout(skillSearchTimeout);
-      skillSearchTimeout = setTimeout(() => this.handleFilterChange(), 500);
-    });
-
-    this.addEventListenerIfExists('keywordFilter', 'input', () => {
-      clearTimeout(keywordTimeout);
-      keywordTimeout = setTimeout(() => this.handleFilterChange(), 500);
-    });
-
-    // Load more button
-    if (this.loadMoreBtn) {
-      this.loadMoreBtn.addEventListener('click', () => this.loadMoreContent());
-    }
-
-    // Infinite scroll
-    window.addEventListener('scroll', () => {
-      if (window.innerHeight + window.scrollY >= document.documentElement.offsetHeight - 200) {
-        if (this.activeTab === 'items' && !this.isLoading && this.displayedItems.length < this.allItems.length) {
-          this.loadMoreItems();
-        } else if (this.activeTab === 'skills' && !this.isSkillsLoading && this.displayedSkills.length < this.allSkills.length) {
-          this.loadMoreSkills();
-        }
-      }
-    });
-
-    // Listen for authentication status changes
-    document.addEventListener('userSignedIn', () => {
-      console.log('👤 User signed in, updating tabs...');
-      this.updateTabsForAuthStatus();
-      this.updateMainNavigation();
-    });
-
-    // Close export menus when clicking outside
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('.card-export-btn, .skill-export-btn, .export-menu')) {
-        document.querySelectorAll('.export-menu').forEach(menu => {
-          menu.style.display = 'none';
-        });
-      }
-    });
-
-    // Listen for sign out (custom event or check periodically)
-    const checkAuthStatus = () => {
-      const isSignedIn = GoogleAuth && GoogleAuth.isSignedIn();
-      const hasProfileTab = document.querySelector('.browse-tab[data-tab="profile"]');
-      const hasMainProfileTab = document.querySelector('#nav-menu [data-page="profile"]');
-      
-      if (isSignedIn && !hasProfileTab) {
-        console.log('👤 User signed in but no profile tab, updating tabs...');
-        this.updateTabsForAuthStatus();
-        this.updateMainNavigation();
-      } else if (!isSignedIn && hasProfileTab) {
-        console.log('👤 User signed out, updating tabs...');
-        this.updateTabsForAuthStatus();
-        this.updateMainNavigation();
-      }
-      
-      // Check main navigation separately
-      if (isSignedIn && !hasMainProfileTab) {
-        console.log('👤 User signed in but no main profile tab, updating navigation...');
-        this.updateMainNavigation();
-      } else if (!isSignedIn && hasMainProfileTab) {
-        console.log('👤 User signed out, updating main navigation...');
-        this.updateMainNavigation();
-      }
+      searchTimeout = setTimeout(callback, 300);
     };
 
-    // Check auth status periodically
-    setInterval(checkAuthStatus, 2000);
+    // Add debounced search for text inputs
+    ['searchInput', 'tagFilter', 'keywordFilter', 'creatorFilter', 
+     'skillSearchInput', 'skillKeywordFilter', 'skillCreatorFilter'].forEach(elementId => {
+      this.addEventListenerIfExists(elementId, 'input', () => {
+        debouncedSearch(() => this.handleFilterChange());
+      });
+    });
+
+    // Authentication status monitoring
+    if (window.GoogleAuth) {
+      window.addEventListener('userSignedIn', () => {
+        this.updateTabsForAuthStatus();
+        this.updateMainNavigation();
+      });
+
+      window.addEventListener('userSignedOut', () => {
+        this.updateTabsForAuthStatus();
+        this.updateMainNavigation();
+      });
+
+      // Check auth status periodically
+      const checkAuthStatus = () => {
+        if (GoogleAuth.isSignedIn()) {
+          this.updateTabsForAuthStatus();
+          this.updateMainNavigation();
+        }
+      };
+
+      // Check immediately and then every 5 seconds
+      checkAuthStatus();
+      setInterval(checkAuthStatus, 5000);
+    }
   }
 
   /**
@@ -508,210 +665,157 @@ class UnifiedBrowsePageController {
   }
 
   /**
-   * Load items from database
+   * Load items with comprehensive filtering
    */
   static async loadItems() {
     if (this.isLoading) return;
-    
-    // Cancel any existing items request
-    if (this.currentItemsController) {
-      this.currentItemsController.abort();
-    }
-    
-    // Create new controller for this request
-    this.currentItemsController = new AbortController();
     
     this.isLoading = true;
     this.showLoading(true);
     this.hideMessages();
 
     try {
-      console.log('🃏 Loading items...');
+      // Get all items from database
+      const items = await SupabaseClient.getAllItems();
+      this.allItems = items || [];
+
+      // Apply comprehensive filtering
       const filters = this.getFilters();
-      const options = this.buildQueryOptions(filters);
-      
-      // Add signal to the SupabaseClient call if it supports it
-      const data = await SupabaseClient.loadItems(options, { 
-        signal: this.currentItemsController.signal 
-      });
-      
-      // Check if request was cancelled
-      if (this.currentItemsController.signal.aborted) {
-        console.log('Items request was cancelled');
-        return;
-      }
-      
-      this.allItems = data || [];
-      this.displayedItems = [];
+      this.displayedItems = this.applyItemFilters(this.allItems, filters);
+
+      // Reset pagination
       this.currentPage = 0;
       
-      console.log(`📊 Loaded ${this.allItems.length} items`);
-      
-      if (this.itemsGrid) {
-        this.itemsGrid.innerHTML = '';
-      }
+      // Display first page
+      await this.displayItemsPage(0);
       
       this.updateStats();
-
+      this.updateLoadMoreButton();
+      
+    } catch (error) {
+      console.error('Error loading items:', error);
+      this.showError('Failed to load items. Please try again.');
+    } finally {
       this.isLoading = false;
       this.showLoading(false);
-      
-      this.loadMoreItems();
-
-    } catch (error) {
-      if (error.name === 'AbortError') {
-        console.log('Items request cancelled');
-        return;
-      }
-      console.error('❌ Error loading items:', error);
-      this.showError('Failed to load items: ' + error.message);
-    } finally {
-    
-      this.currentItemsController = null;
     }
   }
 
   /**
-   * Load skills from database - FIXED VERSION
+   * Display a specific page of items
+   */
+  static async displayItemsPage(page) {
+    const startIndex = page * this.ITEMS_PER_LOAD;
+    const endIndex = startIndex + this.ITEMS_PER_LOAD;
+    const pageItems = this.displayedItems.slice(startIndex, endIndex);
+
+    if (page === 0) {
+      this.itemsGrid.innerHTML = '';
+    }
+
+    for (const item of pageItems) {
+      const card = await this.createItemCard(item);
+      if (card) {
+        this.itemsGrid.appendChild(card);
+      }
+    }
+  }
+
+  /**
+   * Load skills with comprehensive filtering
    */
   static async loadSkills() {
     if (this.isSkillsLoading) return;
-    
-    // Cancel any existing skills request
-    if (this.currentSkillsController) {
-      this.currentSkillsController.abort();
-    }
-    
-    // Create new controller for this request
-    this.currentSkillsController = new AbortController();
     
     this.isSkillsLoading = true;
     this.showLoading(true);
     this.hideMessages();
 
     try {
-      console.log('⚡ Loading skills...');
-      const filters = this.getSkillFilters();
-      console.log('🔍 Skill filters:', filters);
-      
-      // Add signal to the SupabaseClient call if it supports it
-      const skills = await SupabaseClient.loadSkills(filters, {
-        signal: this.currentSkillsController.signal
-      });
-      
-      // Check if request was cancelled
-      if (this.currentSkillsController.signal.aborted) {
-        console.log('Skills request was cancelled');
-        return;
-      }
-      
+      // Get all skills from database
+      const skills = await SupabaseClient.getAllSkills();
       this.allSkills = skills || [];
-      this.displayedSkills = [];
+
+      // Apply comprehensive filtering
+      const filters = this.getSkillFilters();
+      this.displayedSkills = this.applySkillFilters(this.allSkills, filters);
+
+      // Reset pagination
       this.currentSkillPage = 0;
       
-      console.log(`📊 Loaded ${this.allSkills.length} skills`);
-      
-      if (this.itemsGrid) {
-        this.itemsGrid.innerHTML = '';
-      }
+      // Display first page
+      await this.displaySkillsPage(0);
       
       this.updateStats();
-
+      this.updateLoadMoreButton();
+      
+    } catch (error) {
+      console.error('Error loading skills:', error);
+      this.showError('Failed to load skills. Please try again.');
+    } finally {
       this.isSkillsLoading = false;
       this.showLoading(false);
-      
-      this.loadMoreSkills();
-
-    } catch (error) {
-      if (error.name === 'AbortError') {
-        console.log('Skills request cancelled');
-        return;
-      }
-      console.error('❌ Error loading skills:', error);
-      this.showError('Failed to load skills: ' + error.message);
-    } finally {
-      
-      this.currentSkillsController = null;
     }
   }
 
   /**
-   * Load more items for display
+   * Display a specific page of skills
+   */
+  static async displaySkillsPage(page) {
+    const startIndex = page * this.ITEMS_PER_LOAD;
+    const endIndex = startIndex + this.ITEMS_PER_LOAD;
+    const pageSkills = this.displayedSkills.slice(startIndex, endIndex);
+
+    if (page === 0) {
+      this.itemsGrid.innerHTML = '';
+    }
+
+    for (const skill of pageSkills) {
+      const card = await this.createSkillCard(skill);
+      if (card) {
+        this.itemsGrid.appendChild(card);
+      }
+    }
+  }
+
+  /**
+   * Load more items (pagination)
    */
   static async loadMoreItems() {
-       console.log('🔄 loadMoreItems called!');
-        console.log('🔄 isLoading:', this.isLoading);
-        console.log('🔄 displayedItems.length:', this.displayedItems.length);
-        console.log('🔄 allItems.length:', this.allItems.length);
-        console.log('🔄 itemsGrid element:', this.itemsGrid);
-        
-        if (this.isLoading || this.displayedItems.length >= this.allItems.length) {
-          console.log('🔄 Early return - isLoading or all items displayed');
-          this.updateLoadMoreButton();
-          return;
-        }
-
-    if (this.isLoading || this.displayedItems.length >= this.allItems.length) {
+    if (this.isLoading) return;
+    
+    this.isLoading = true;
+    this.currentPage++;
+    
+    try {
+      await this.displayItemsPage(this.currentPage);
       this.updateLoadMoreButton();
-      return;
+    } catch (error) {
+      console.error('Error loading more items:', error);
+      this.currentPage--; // Revert on error
+    } finally {
+      this.isLoading = false;
     }
-
-    const startIndex = this.displayedItems.length;
-    const endIndex = Math.min(startIndex + this.ITEMS_PER_LOAD, this.allItems.length);
-    const newItems = this.allItems.slice(startIndex, endIndex);
-
-    console.log(`🔄 Loading items ${startIndex + 1}-${endIndex} of ${this.allItems.length}`);
-
-    for (const item of newItems) {
-      try {
-        const itemCard = await this.createItemCard(item);
-        if (itemCard && this.itemsGrid) {
-          this.itemsGrid.appendChild(itemCard);
-          this.displayedItems.push(item);
-        }
-      } catch (error) {
-        console.error(`Failed to create card for item ${item.id}:`, error);
-      }
-    }
-
-    this.updateStats();
-    console.log('🎯 About to call loadMoreItems');
-    console.log('🎯 this.allItems.length:', this.allItems.length);
-    console.log('🎯 this.displayedItems.length:', this.displayedItems.length);
-    console.log('🎯 this.itemsGrid exists:', !!this.itemsGrid);
-    console.log('🎯 loadMoreItems method exists:', typeof this.loadMoreItems);
-    this.updateLoadMoreButton();
   }
 
   /**
-   * Load more skills for display - FIXED VERSION
+   * Load more skills (pagination)
    */
   static async loadMoreSkills() {
-    if (this.isSkillsLoading || this.displayedSkills.length >= this.allSkills.length) {
+    if (this.isSkillsLoading) return;
+    
+    this.isSkillsLoading = true;
+    this.currentSkillPage++;
+    
+    try {
+      await this.displaySkillsPage(this.currentSkillPage);
       this.updateLoadMoreButton();
-      return;
+    } catch (error) {
+      console.error('Error loading more skills:', error);
+      this.currentSkillPage--; // Revert on error
+    } finally {
+      this.isSkillsLoading = false;
     }
-
-    const startIndex = this.displayedSkills.length;
-    const endIndex = Math.min(startIndex + this.ITEMS_PER_LOAD, this.allSkills.length);
-    const newSkills = this.allSkills.slice(startIndex, endIndex);
-
-    console.log(`🔄 Loading skills ${startIndex + 1}-${endIndex} of ${this.allSkills.length}`);
-
-    for (const skill of newSkills) {
-      try {
-        const skillCard = await this.createSkillCard(skill);
-        if (skillCard && this.itemsGrid) {
-          this.itemsGrid.appendChild(skillCard);
-          this.displayedSkills.push(skill);
-        }
-      } catch (error) {
-        console.error(`Failed to create skill card for skill ${skill.id}:`, error);
-      }
-    }
-
-    this.updateStats();
-    this.updateLoadMoreButton();
   }
 
   /**
@@ -1504,22 +1608,38 @@ static async addSkillComment(skillId) {
     return {
       sortBy: document.getElementById('skillSortBy')?.value || 'recent',
       rarity: document.getElementById('rarityFilter')?.value || '',
+      minUpvotes: parseInt(document.getElementById('skillMinUpvotes')?.value) || 0,
+      maxUpvotes: parseInt(document.getElementById('skillMaxUpvotes')?.value) || null,
       search: document.getElementById('skillSearchInput')?.value?.trim() || '',
-      keywords: document.getElementById('keywordFilter')?.value?.trim() || '',
-      creator: document.getElementById('creatorFilter')?.value?.trim() || '',
-      length: document.getElementById('lengthFilter')?.value || ''
+      keywords: document.getElementById('skillKeywordFilter')?.value?.trim() || '',
+      creator: document.getElementById('skillCreatorFilter')?.value?.trim() || '',
+      length: document.getElementById('lengthFilter')?.value || '',
+      skillType: document.getElementById('skillTypeFilter')?.value || '',
+      effectCategory: document.getElementById('effectCategoryFilter')?.value || '',
+      dateFrom: document.getElementById('skillDateFrom')?.value || '',
+      dateTo: document.getElementById('skillDateTo')?.value || ''
     };
   }
 
   /**
-   * Get item filter values
+   * Get comprehensive item filter values
    */
   static getFilters() {
     return {
       sortBy: document.getElementById('sortBy')?.value || 'recent',
       hero: document.getElementById('heroFilter')?.value || '',
+      size: document.getElementById('sizeFilter')?.value || '',
+      border: document.getElementById('borderFilter')?.value || '',
+      minUpvotes: parseInt(document.getElementById('minUpvotes')?.value) || 0,
+      maxUpvotes: parseInt(document.getElementById('maxUpvotes')?.value) || null,
       search: document.getElementById('searchInput')?.value?.trim() || '',
-      contest: document.getElementById('contestFilter')?.value || ''
+      tags: document.getElementById('tagFilter')?.value?.trim() || '',
+      keywords: document.getElementById('keywordFilter')?.value?.trim() || '',
+      creator: document.getElementById('creatorFilter')?.value?.trim() || '',
+      contest: document.getElementById('contestFilter')?.value || '',
+      itemType: document.getElementById('itemTypeFilter')?.value || '',
+      dateFrom: document.getElementById('dateFrom')?.value || '',
+      dateTo: document.getElementById('dateTo')?.value || ''
     };
   }
 
@@ -1619,7 +1739,7 @@ static async addSkillComment(skillId) {
   }
 
   /**
-   * Handle filter changes
+   * Handle filter changes with comprehensive filtering
    */
   static handleFilterChange() {
     if (this.itemsGrid) {
@@ -1632,360 +1752,426 @@ static async addSkillComment(skillId) {
       this.loadSkills();
     }
   }
-/**
- * Create upvote button for items
- */
-static async createItemUpvoteButton(item) {
-  const upvoteBtn = document.createElement('button');
-  upvoteBtn.className = 'card-upvote-btn';
-  upvoteBtn.style.cssText = `
-    background: linear-gradient(135deg, rgb(46, 125, 50) 0%, rgb(27, 94, 32) 100%);
-    color: white;
-    border: 2px solid rgb(76, 175, 80);
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    position: relative;
-  `;
 
-  // Check if user has already voted
-  let hasVoted = false;
-  let upvoteCount = item.upvotes || 0;
+  /**
+   * Clear all filters for current tab
+   */
+  static clearAllFilters() {
+    if (this.activeTab === 'items') {
+      // Clear item filters
+      const itemFilters = [
+        'sortBy', 'heroFilter', 'sizeFilter', 'borderFilter', 'minUpvotes', 'maxUpvotes',
+        'searchInput', 'tagFilter', 'keywordFilter', 'creatorFilter', 'contestFilter',
+        'itemTypeFilter', 'dateFrom', 'dateTo'
+      ];
+      
+      itemFilters.forEach(filterId => {
+        const element = document.getElementById(filterId);
+        if (element) {
+          if (element.type === 'number' || element.type === 'text') {
+            element.value = '';
+          } else if (element.tagName === 'SELECT') {
+            element.selectedIndex = 0;
+          }
+        }
+      });
+    } else if (this.activeTab === 'skills') {
+      // Clear skill filters
+      const skillFilters = [
+        'skillSortBy', 'rarityFilter', 'skillMinUpvotes', 'skillMaxUpvotes',
+        'skillSearchInput', 'skillKeywordFilter', 'skillCreatorFilter', 'lengthFilter',
+        'skillTypeFilter', 'effectCategoryFilter', 'skillDateFrom', 'skillDateTo'
+      ];
+      
+      skillFilters.forEach(filterId => {
+        const element = document.getElementById(filterId);
+        if (element) {
+          if (element.type === 'number' || element.type === 'text') {
+            element.value = '';
+          } else if (element.tagName === 'SELECT') {
+            element.selectedIndex = 0;
+          }
+        }
+      });
+    }
+    
+    // Reload content with cleared filters
+    this.handleFilterChange();
+  }
 
-  if (GoogleAuth && GoogleAuth.isSignedIn()) {
-    try {
-      hasVoted = await SupabaseClient.hasUserVoted(item.id);
-    } catch (error) {
-      console.warn('Error checking vote status:', error);
+  /**
+   * Toggle filters visibility
+   */
+  static toggleFilters() {
+    const controlsGrid = document.querySelector('.controls-grid');
+    if (controlsGrid) {
+      const isVisible = controlsGrid.style.display !== 'none';
+      controlsGrid.style.display = isVisible ? 'none' : 'grid';
+      
+      // Update button text for both tabs
+      const toggleBtns = document.querySelectorAll('#toggleFilters, #toggleSkillFilters');
+      toggleBtns.forEach(btn => {
+        if (btn) {
+          btn.textContent = isVisible ? '⚙️ Show Filters' : '⚙️ Hide Filters';
+        }
+      });
     }
   }
 
-  // Set button appearance based on vote status
-  if (hasVoted) {
-    upvoteBtn.innerHTML = '❤️';
-    upvoteBtn.style.background = 'linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%)';
-    upvoteBtn.style.borderColor = 'rgb(244, 67, 54)';
-    upvoteBtn.disabled = true;
-    upvoteBtn.title = 'You have already upvoted this item';
-  } else {
-    upvoteBtn.innerHTML = '👍';
-    upvoteBtn.title = `Upvote this item (${upvoteCount} votes)`;
-  }
-
-  // Add vote count display
-  if (upvoteCount > 0) {
-    const countDisplay = document.createElement('span');
-    countDisplay.style.cssText = `
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background: rgb(218, 165, 32);
-      color: rgb(37, 26, 12);
+  /**
+   * Create upvote button for items
+   */
+  static async createItemUpvoteButton(item) {
+    const upvoteBtn = document.createElement('button');
+    upvoteBtn.className = 'card-upvote-btn';
+    upvoteBtn.style.cssText = `
+      background: linear-gradient(135deg, rgb(46, 125, 50) 0%, rgb(27, 94, 32) 100%);
+      color: white;
+      border: 2px solid rgb(76, 175, 80);
       border-radius: 50%;
-      width: 18px;
-      height: 18px;
-      font-size: 10px;
+      width: 30px;
+      height: 30px;
+      font-size: 16px;
       font-weight: bold;
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      border: 1px solid rgb(37, 26, 12);
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      position: relative;
     `;
-    countDisplay.textContent = upvoteCount;
-    upvoteBtn.appendChild(countDisplay);
-  }
 
-  // Add click handler
-  upvoteBtn.onclick = async (e) => {
-    e.stopPropagation();
-    await this.handleItemUpvote(item.id, upvoteBtn);
-  };
+    // Check if user has already voted
+    let hasVoted = false;
+    let upvoteCount = item.upvotes || 0;
 
-  return upvoteBtn;
-}
-
-/**
- * Create working upvote button for skills (copied from browse page)
- */
-static async createSkillUpvoteButton(skill) {
-  const upvoteBtn = document.createElement('button');
-  upvoteBtn.className = 'skill-upvote-btn';
-  upvoteBtn.style.cssText = `
-    background: linear-gradient(135deg, rgb(46, 125, 50) 0%, rgb(27, 94, 32) 100%);
-    color: white;
-    border: 2px solid rgb(76, 175, 80);
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-    position: relative;
-  `;
-
-  // Check if user has already voted
-  let hasVoted = false;
-  let upvoteCount = skill.upvotes || 0;
-
-  if (GoogleAuth && GoogleAuth.isSignedIn()) {
-    try {
-      hasVoted = await SupabaseClient.hasUserVoted(skill.id);
-    } catch (error) {
-      console.warn('Error checking vote status:', error);
-    }
-  }
-
-  // Set button appearance based on vote status
-  if (hasVoted) {
-    upvoteBtn.innerHTML = '⚡';
-    upvoteBtn.style.background = 'linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%)';
-    upvoteBtn.style.borderColor = 'rgb(244, 67, 54)';
-    upvoteBtn.disabled = true;
-    upvoteBtn.title = 'You have already upvoted this skill';
-  } else {
-    upvoteBtn.innerHTML = '👍';
-    upvoteBtn.title = `Upvote this skill (${upvoteCount} votes)`;
-  }
-
-  // Add vote count display
-  if (upvoteCount > 0) {
-    const countDisplay = document.createElement('span');
-    countDisplay.style.cssText = `
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background: rgb(218, 165, 32);
-      color: rgb(37, 26, 12);
-      border-radius: 50%;
-      width: 18px;
-      height: 18px;
-      font-size: 10px;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border: 1px solid rgb(37, 26, 12);
-    `;
-    countDisplay.textContent = upvoteCount;
-    upvoteBtn.appendChild(countDisplay);
-  }
-
-  // Add click handler
-  upvoteBtn.onclick = async (e) => {
-    e.stopPropagation();
-    await this.handleSkillUpvote(skill.id, upvoteBtn);
-  };
-
-  return upvoteBtn;
-}
-
-/**
- * Handle item upvote
- */
-static async handleItemUpvote(itemId, button) {
-  if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
-    if (typeof Messages !== 'undefined') {
-      Messages.showError('Please sign in to vote');
-    } else {
-      alert('Please sign in to vote');
-    }
-    return;
-  }
-
-  // Show loading state
-  const originalHTML = button.innerHTML;
-  button.innerHTML = '⏳';
-  button.disabled = true;
-
-  try {
-    const result = await SupabaseClient.voteItem(itemId, 'upvote');
-    
-    if (result.success) {
-      // Update button to voted state
-      button.innerHTML = '❤️';
-      button.style.background = 'linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%)';
-      button.style.borderColor = 'rgb(244, 67, 54)';
-      button.title = 'You have upvoted this item';
-
-      // Add/update vote count display
-      let countDisplay = button.querySelector('span');
-      if (!countDisplay) {
-        countDisplay = document.createElement('span');
-        countDisplay.style.cssText = `
-          position: absolute;
-          top: -8px;
-          right: -8px;
-          background: rgb(218, 165, 32);
-          color: rgb(37, 26, 12);
-          border-radius: 50%;
-          width: 18px;
-          height: 18px;
-          font-size: 10px;
-          font-weight: bold;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid rgb(37, 26, 12);
-        `;
-        button.appendChild(countDisplay);
-      }
-      countDisplay.textContent = result.newCount;
-
-      if (typeof Messages !== 'undefined') {
-        Messages.showSuccess('Item upvoted!');
-      }
-    }
-  } catch (error) {
-    console.error('Error upvoting item:', error);
-    
-    // Reset button
-    button.innerHTML = originalHTML;
-    button.disabled = false;
-
-    if (typeof Messages !== 'undefined') {
-      Messages.showError(error.message || 'Failed to upvote item');
-    } else {
-      alert(error.message || 'Failed to upvote item');
-    }
-  }
-}
-
-/**
- * Handle skill upvote
- */
-static async handleSkillUpvote(skillId, button) {
-  if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
-    if (typeof Messages !== 'undefined') {
-      Messages.showError('Please sign in to vote');
-    } else {
-      alert('Please sign in to vote');
-    }
-    return;
-  }
-
-  // Show loading state
-  const originalHTML = button.innerHTML;
-  button.innerHTML = '⏳';
-  button.disabled = true;
-
-  try {
-    const result = await SupabaseClient.voteSkill(skillId, 'upvote');
-    
-    if (result.success) {
-      // Update button to voted state
-      button.innerHTML = '⚡';
-      button.style.background = 'linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%)';
-      button.style.borderColor = 'rgb(244, 67, 54)';
-      button.title = 'You have upvoted this skill';
-
-      // Add/update vote count display
-      let countDisplay = button.querySelector('span');
-      if (!countDisplay) {
-        countDisplay = document.createElement('span');
-        countDisplay.style.cssText = `
-          position: absolute;
-          top: -8px;
-          right: -8px;
-          background: rgb(218, 165, 32);
-          color: rgb(37, 26, 12);
-          border-radius: 50%;
-          width: 18px;
-          height: 18px;
-          font-size: 10px;
-          font-weight: bold;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 1px solid rgb(37, 26, 12);
-        `;
-        button.appendChild(countDisplay);
-      }
-      countDisplay.textContent = result.newCount;
-
-      if (typeof Messages !== 'undefined') {
-        Messages.showSuccess('Skill upvoted!');
-      }
-    }
-  } catch (error) {
-    console.error('Error upvoting skill:', error);
-    
-    // Reset button
-    button.innerHTML = originalHTML;
-    button.disabled = false;
-
-    if (typeof Messages !== 'undefined') {
-      Messages.showError(error.message || 'Failed to upvote skill');
-    } else {
-      alert(error.message || 'Failed to upvote skill');
-    }
-  }
-}
-
-/**
- * Wait for user profile to be loaded from database
- */
-static async waitForUserProfile() {
-  // Early return if user is not signed in
-  if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
-    console.log('👤 User not signed in, skipping profile loading');
-    return;
-  }
-
-  let attempts = 0;
-  const maxAttempts = 20;
-  
-  while (attempts < maxAttempts) {
-    if (SupabaseClient && SupabaseClient.isReady()) {
+    if (GoogleAuth && GoogleAuth.isSignedIn()) {
       try {
-        const userEmail = GoogleAuth.getUserEmail();
-        if (!userEmail) {
-          console.log('⚠️ No user email available, skipping profile loading');
-          return;
-        }
-        
-        console.log(`🗄️ Fetching user profile from database for: ${userEmail}`);
-        
-        const profile = await SupabaseClient.getUserProfile(userEmail);
-        if (profile && profile.alias) {
-          // Update GoogleAuth userProfile with the database data
-          GoogleAuth.userProfile = profile;
-          console.log(`✅ User profile loaded from database: ${profile.alias}`);
-          return;
-        } else {
-          console.log('⚠️ No profile found in database, using existing profile');
-          break;
-        }
+        hasVoted = await SupabaseClient.hasUserVoted(item.id);
       } catch (error) {
-        console.log(`❌ Error fetching profile from database: ${error.message}`);
+        console.warn('Error checking vote status:', error);
       }
     }
+
+    // Set button appearance based on vote status
+    if (hasVoted) {
+      upvoteBtn.innerHTML = '❤️';
+      upvoteBtn.style.background = 'linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%)';
+      upvoteBtn.style.borderColor = 'rgb(244, 67, 54)';
+      upvoteBtn.disabled = true;
+      upvoteBtn.title = 'You have already upvoted this item';
+    } else {
+      upvoteBtn.innerHTML = '👍';
+      upvoteBtn.title = `Upvote this item (${upvoteCount} votes)`;
+    }
+
+    // Add vote count display
+    if (upvoteCount > 0) {
+      const countDisplay = document.createElement('span');
+      countDisplay.style.cssText = `
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: rgb(218, 165, 32);
+        color: rgb(37, 26, 12);
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgb(37, 26, 12);
+      `;
+      countDisplay.textContent = upvoteCount;
+      upvoteBtn.appendChild(countDisplay);
+    }
+
+    // Add click handler
+    upvoteBtn.onclick = async (e) => {
+      e.stopPropagation();
+      await this.handleItemUpvote(item.id, upvoteBtn);
+    };
+
+    return upvoteBtn;
+  }
+
+  /**
+   * Create working upvote button for skills (copied from browse page)
+   */
+  static async createSkillUpvoteButton(skill) {
+    const upvoteBtn = document.createElement('button');
+    upvoteBtn.className = 'skill-upvote-btn';
+    upvoteBtn.style.cssText = `
+      background: linear-gradient(135deg, rgb(46, 125, 50) 0%, rgb(27, 94, 32) 100%);
+      color: white;
+      border: 2px solid rgb(76, 175, 80);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      position: relative;
+    `;
+
+    // Check if user has already voted
+    let hasVoted = false;
+    let upvoteCount = skill.upvotes || 0;
+
+    if (GoogleAuth && GoogleAuth.isSignedIn()) {
+      try {
+        hasVoted = await SupabaseClient.hasUserVoted(skill.id);
+      } catch (error) {
+        console.warn('Error checking vote status:', error);
+      }
+    }
+
+    // Set button appearance based on vote status
+    if (hasVoted) {
+      upvoteBtn.innerHTML = '⚡';
+      upvoteBtn.style.background = 'linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%)';
+      upvoteBtn.style.borderColor = 'rgb(244, 67, 54)';
+      upvoteBtn.disabled = true;
+      upvoteBtn.title = 'You have already upvoted this skill';
+    } else {
+      upvoteBtn.innerHTML = '👍';
+      upvoteBtn.title = `Upvote this skill (${upvoteCount} votes)`;
+    }
+
+    // Add vote count display
+    if (upvoteCount > 0) {
+      const countDisplay = document.createElement('span');
+      countDisplay.style.cssText = `
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: rgb(218, 165, 32);
+        color: rgb(37, 26, 12);
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgb(37, 26, 12);
+      `;
+      countDisplay.textContent = upvoteCount;
+      upvoteBtn.appendChild(countDisplay);
+    }
+
+    // Add click handler
+    upvoteBtn.onclick = async (e) => {
+      e.stopPropagation();
+      await this.handleSkillUpvote(skill.id, upvoteBtn);
+    };
+
+    return upvoteBtn;
+  }
+
+  /**
+   * Handle item upvote
+   */
+  static async handleItemUpvote(itemId, button) {
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('Please sign in to vote');
+      } else {
+        alert('Please sign in to vote');
+      }
+      return;
+    }
+
+    // Show loading state
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '⏳';
+    button.disabled = true;
+
+    try {
+      const result = await SupabaseClient.voteItem(itemId, 'upvote');
+      
+      if (result.success) {
+        // Update button to voted state
+        button.innerHTML = '❤️';
+        button.style.background = 'linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%)';
+        button.style.borderColor = 'rgb(244, 67, 54)';
+        button.title = 'You have upvoted this item';
+
+        // Add/update vote count display
+        let countDisplay = button.querySelector('span');
+        if (!countDisplay) {
+          countDisplay = document.createElement('span');
+          countDisplay.style.cssText = `
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: rgb(218, 165, 32);
+            color: rgb(37, 26, 12);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgb(37, 26, 12);
+          `;
+          button.appendChild(countDisplay);
+        }
+        countDisplay.textContent = result.newCount;
+
+        if (typeof Messages !== 'undefined') {
+          Messages.showSuccess('Item upvoted!');
+        }
+      }
+    } catch (error) {
+      console.error('Error upvoting item:', error);
+      
+      // Reset button
+      button.innerHTML = originalHTML;
+      button.disabled = false;
+
+      if (typeof Messages !== 'undefined') {
+        Messages.showError(error.message || 'Failed to upvote item');
+      } else {
+        alert(error.message || 'Failed to upvote item');
+      }
+    }
+  }
+
+  /**
+   * Handle skill upvote
+   */
+  static async handleSkillUpvote(skillId, button) {
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('Please sign in to vote');
+      } else {
+        alert('Please sign in to vote');
+      }
+      return;
+    }
+
+    // Show loading state
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '⏳';
+    button.disabled = true;
+
+    try {
+      const result = await SupabaseClient.voteSkill(skillId, 'upvote');
+      
+      if (result.success) {
+        // Update button to voted state
+        button.innerHTML = '⚡';
+        button.style.background = 'linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%)';
+        button.style.borderColor = 'rgb(244, 67, 54)';
+        button.title = 'You have upvoted this skill';
+
+        // Add/update vote count display
+        let countDisplay = button.querySelector('span');
+        if (!countDisplay) {
+          countDisplay = document.createElement('span');
+          countDisplay.style.cssText = `
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: rgb(218, 165, 32);
+            color: rgb(37, 26, 12);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgb(37, 26, 12);
+          `;
+          button.appendChild(countDisplay);
+        }
+        countDisplay.textContent = result.newCount;
+
+        if (typeof Messages !== 'undefined') {
+          Messages.showSuccess('Skill upvoted!');
+        }
+      }
+    } catch (error) {
+      console.error('Error upvoting skill:', error);
+      
+      // Reset button
+      button.innerHTML = originalHTML;
+      button.disabled = false;
+
+      if (typeof Messages !== 'undefined') {
+        Messages.showError(error.message || 'Failed to upvote skill');
+      } else {
+        alert(error.message || 'Failed to upvote skill');
+      }
+    }
+  }
+
+  /**
+   * Wait for user profile to be loaded from database
+   */
+  static async waitForUserProfile() {
+    // Early return if user is not signed in
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      console.log('👤 User not signed in, skipping profile loading');
+      return;
+    }
+
+    let attempts = 0;
+    const maxAttempts = 20;
     
-    console.log(`⏳ Waiting for database and user profile (attempt ${attempts + 1}/${maxAttempts})...`);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    attempts++;
+    while (attempts < maxAttempts) {
+      if (SupabaseClient && SupabaseClient.isReady()) {
+        try {
+          const userEmail = GoogleAuth.getUserEmail();
+          if (!userEmail) {
+            console.log('⚠️ No user email available, skipping profile loading');
+            return;
+          }
+          
+          console.log(`🗄️ Fetching user profile from database for: ${userEmail}`);
+          
+          const profile = await SupabaseClient.getUserProfile(userEmail);
+          if (profile && profile.alias) {
+            // Update GoogleAuth userProfile with the database data
+            GoogleAuth.userProfile = profile;
+            console.log(`✅ User profile loaded from database: ${profile.alias}`);
+            return;
+          } else {
+            console.log('⚠️ No profile found in database, using existing profile');
+            break;
+          }
+        } catch (error) {
+          console.log(`❌ Error fetching profile from database: ${error.message}`);
+        }
+      }
+      
+      console.log(`⏳ Waiting for database and user profile (attempt ${attempts + 1}/${maxAttempts})...`);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      attempts++;
+    }
+    
+    // Check if we have a valid profile from GoogleAuth
+    const userProfile = GoogleAuth.getUserProfile();
+    if (userProfile && userProfile.alias && userProfile.alias !== 'User') {
+      console.log(`✅ Using existing user profile: ${userProfile.alias}`);
+    } else {
+      console.log('⚠️ User profile not loaded after maximum attempts, proceeding anyway');
+    }
   }
-  
-  // Check if we have a valid profile from GoogleAuth
-  const userProfile = GoogleAuth.getUserProfile();
-  if (userProfile && userProfile.alias && userProfile.alias !== 'User') {
-    console.log(`✅ Using existing user profile: ${userProfile.alias}`);
-  } else {
-    console.log('⚠️ User profile not loaded after maximum attempts, proceeding anyway');
-  }
-}
 
   /**
    * Update main navigation menu to show/hide profile tab
@@ -2183,6 +2369,327 @@ static async waitForUserProfile() {
     }
 
     menu.style.display = 'block';
+  }
+
+  /**
+   * Apply comprehensive filtering to items
+   */
+  static applyItemFilters(items, filters) {
+    if (!items || !Array.isArray(items)) return [];
+    
+    let filteredItems = [...items];
+
+    // Hero filter
+    if (filters.hero) {
+      filteredItems = filteredItems.filter(item => 
+        item.item_data?.hero === filters.hero
+      );
+    }
+
+    // Size filter
+    if (filters.size) {
+      filteredItems = filteredItems.filter(item => 
+        item.item_data?.itemSize === filters.size
+      );
+    }
+
+    // Border/Rarity filter
+    if (filters.border) {
+      filteredItems = filteredItems.filter(item => 
+        item.item_data?.border === filters.border
+      );
+    }
+
+    // Upvote range filter
+    if (filters.minUpvotes > 0) {
+      filteredItems = filteredItems.filter(item => 
+        (item.upvotes || 0) >= filters.minUpvotes
+      );
+    }
+
+    if (filters.maxUpvotes && filters.maxUpvotes > 0) {
+      filteredItems = filteredItems.filter(item => 
+        (item.upvotes || 0) <= filters.maxUpvotes
+      );
+    }
+
+    // Search filter (item name)
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      filteredItems = filteredItems.filter(item => 
+        item.item_data?.itemName?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Tags filter
+    if (filters.tags) {
+      const tagList = filters.tags.split(',').map(tag => tag.trim().toLowerCase());
+      filteredItems = filteredItems.filter(item => {
+        const itemTags = item.item_data?.tags || [];
+        return tagList.some(tag => 
+          itemTags.some(itemTag => itemTag.toLowerCase().includes(tag))
+        );
+      });
+    }
+
+    // Keywords filter (effects)
+    if (filters.keywords) {
+      const keywordList = filters.keywords.split(',').map(keyword => keyword.trim().toLowerCase());
+      filteredItems = filteredItems.filter(item => {
+        const onUseEffects = item.item_data?.onUseEffects || [];
+        const passiveEffects = item.item_data?.passiveEffects || [];
+        const allEffects = [...onUseEffects, ...passiveEffects].join(' ').toLowerCase();
+        
+        return keywordList.some(keyword => allEffects.includes(keyword));
+      });
+    }
+
+    // Creator filter
+    if (filters.creator) {
+      const creatorLower = filters.creator.toLowerCase();
+      filteredItems = filteredItems.filter(item => 
+        item.user_alias?.toLowerCase().includes(creatorLower)
+      );
+    }
+
+    // Contest filter
+    if (filters.contest !== '') {
+      filteredItems = filteredItems.filter(item => 
+        item.contest === parseInt(filters.contest)
+      );
+    }
+
+    // Item type filter (single vs gallery)
+    if (filters.itemType) {
+      if (filters.itemType === 'single') {
+        filteredItems = filteredItems.filter(item => !item.item_data?.isGallery);
+      } else if (filters.itemType === 'gallery') {
+        filteredItems = filteredItems.filter(item => item.item_data?.isGallery);
+      }
+    }
+
+    // Date range filter
+    if (filters.dateFrom) {
+      const fromDate = new Date(filters.dateFrom);
+      filteredItems = filteredItems.filter(item => 
+        new Date(item.created_at) >= fromDate
+      );
+    }
+
+    if (filters.dateTo) {
+      const toDate = new Date(filters.dateTo);
+      toDate.setHours(23, 59, 59, 999); // End of day
+      filteredItems = filteredItems.filter(item => 
+        new Date(item.created_at) <= toDate
+      );
+    }
+
+    // Sort items
+    filteredItems = this.sortItems(filteredItems, filters.sortBy);
+
+    return filteredItems;
+  }
+
+  /**
+   * Apply comprehensive filtering to skills
+   */
+  static applySkillFilters(skills, filters) {
+    if (!skills || !Array.isArray(skills)) return [];
+    
+    let filteredSkills = [...skills];
+
+    // Rarity filter
+    if (filters.rarity) {
+      filteredSkills = filteredSkills.filter(skill => 
+        skill.skill_data?.rarity === filters.rarity
+      );
+    }
+
+    // Upvote range filter
+    if (filters.minUpvotes > 0) {
+      filteredSkills = filteredSkills.filter(skill => 
+        (skill.upvotes || 0) >= filters.minUpvotes
+      );
+    }
+
+    if (filters.maxUpvotes && filters.maxUpvotes > 0) {
+      filteredSkills = filteredSkills.filter(skill => 
+        (skill.upvotes || 0) <= filters.maxUpvotes
+      );
+    }
+
+    // Search filter (skill name)
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      filteredSkills = filteredSkills.filter(skill => 
+        skill.skill_data?.skillName?.toLowerCase().includes(searchLower)
+      );
+    }
+
+    // Keywords filter (effects)
+    if (filters.keywords) {
+      const keywordList = filters.keywords.split(',').map(keyword => keyword.trim().toLowerCase());
+      filteredSkills = filteredSkills.filter(skill => {
+        const effects = skill.skill_data?.effects || [];
+        const allEffects = effects.join(' ').toLowerCase();
+        
+        return keywordList.some(keyword => allEffects.includes(keyword));
+      });
+    }
+
+    // Creator filter
+    if (filters.creator) {
+      const creatorLower = filters.creator.toLowerCase();
+      filteredSkills = filteredSkills.filter(skill => 
+        skill.user_alias?.toLowerCase().includes(creatorLower)
+      );
+    }
+
+    // Effect length filter
+    if (filters.length) {
+      filteredSkills = filteredSkills.filter(skill => {
+        const effects = skill.skill_data?.effects || [];
+        const totalLength = effects.join(' ').length;
+        
+        switch (filters.length) {
+          case 'short': return totalLength <= 100;
+          case 'medium': return totalLength > 100 && totalLength <= 200;
+          case 'long': return totalLength > 200;
+          default: return true;
+        }
+      });
+    }
+
+    // Skill type filter (based on effects)
+    if (filters.skillType) {
+      filteredSkills = filteredSkills.filter(skill => {
+        const effects = skill.skill_data?.effects || [];
+        const effectsText = effects.join(' ').toLowerCase();
+        
+        switch (filters.skillType) {
+          case 'attack': return effectsText.includes('damage') || effectsText.includes('attack');
+          case 'defense': return effectsText.includes('shield') || effectsText.includes('armor') || effectsText.includes('block');
+          case 'utility': return effectsText.includes('utility') || effectsText.includes('special');
+          case 'healing': return effectsText.includes('heal') || effectsText.includes('restore');
+          case 'buff': return effectsText.includes('gain') || effectsText.includes('increase') || effectsText.includes('boost');
+          case 'debuff': return effectsText.includes('reduce') || effectsText.includes('decrease') || effectsText.includes('weaken');
+          default: return true;
+        }
+      });
+    }
+
+    // Effect category filter
+    if (filters.effectCategory) {
+      filteredSkills = filteredSkills.filter(skill => {
+        const effects = skill.skill_data?.effects || [];
+        const effectsText = effects.join(' ').toLowerCase();
+        
+        switch (filters.effectCategory) {
+          case 'damage': return effectsText.includes('damage');
+          case 'heal': return effectsText.includes('heal') || effectsText.includes('restore');
+          case 'buff': return effectsText.includes('gain') || effectsText.includes('increase');
+          case 'debuff': return effectsText.includes('reduce') || effectsText.includes('decrease');
+          case 'control': return effectsText.includes('stun') || effectsText.includes('freeze') || effectsText.includes('slow');
+          case 'utility': return effectsText.includes('utility') || effectsText.includes('special');
+          default: return true;
+        }
+      });
+    }
+
+    // Date range filter
+    if (filters.dateFrom) {
+      const fromDate = new Date(filters.dateFrom);
+      filteredSkills = filteredSkills.filter(skill => 
+        new Date(skill.created_at) >= fromDate
+      );
+    }
+
+    if (filters.dateTo) {
+      const toDate = new Date(filters.dateTo);
+      toDate.setHours(23, 59, 59, 999); // End of day
+      filteredSkills = filteredSkills.filter(skill => 
+        new Date(skill.created_at) <= toDate
+      );
+    }
+
+    // Sort skills
+    filteredSkills = this.sortSkills(filteredSkills, filters.sortBy);
+
+    return filteredSkills;
+  }
+
+  /**
+   * Sort items based on sort criteria
+   */
+  static sortItems(items, sortBy) {
+    const sortedItems = [...items];
+    
+    switch (sortBy) {
+      case 'recent':
+        return sortedItems.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      case 'oldest':
+        return sortedItems.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      case 'upvotes_desc':
+        return sortedItems.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+      case 'upvotes_asc':
+        return sortedItems.sort((a, b) => (a.upvotes || 0) - (b.upvotes || 0));
+      case 'name_asc':
+        return sortedItems.sort((a, b) => (a.item_data?.itemName || '').localeCompare(b.item_data?.itemName || ''));
+      case 'name_desc':
+        return sortedItems.sort((a, b) => (b.item_data?.itemName || '').localeCompare(a.item_data?.itemName || ''));
+      case 'creator_asc':
+        return sortedItems.sort((a, b) => (a.user_alias || '').localeCompare(b.user_alias || ''));
+      case 'creator_desc':
+        return sortedItems.sort((a, b) => (b.user_alias || '').localeCompare(a.user_alias || ''));
+      default:
+        return sortedItems;
+    }
+  }
+
+  /**
+   * Sort skills based on sort criteria
+   */
+  static sortSkills(skills, sortBy) {
+    const sortedSkills = [...skills];
+    
+    switch (sortBy) {
+      case 'recent':
+        return sortedSkills.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      case 'oldest':
+        return sortedSkills.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+      case 'upvotes_desc':
+        return sortedSkills.sort((a, b) => (b.upvotes || 0) - (a.upvotes || 0));
+      case 'upvotes_asc':
+        return sortedSkills.sort((a, b) => (a.upvotes || 0) - (b.upvotes || 0));
+      case 'name_asc':
+        return sortedSkills.sort((a, b) => (a.skill_data?.skillName || '').localeCompare(b.skill_data?.skillName || ''));
+      case 'name_desc':
+        return sortedSkills.sort((a, b) => (b.skill_data?.skillName || '').localeCompare(a.skill_data?.skillName || ''));
+      case 'creator_asc':
+        return sortedSkills.sort((a, b) => (a.user_alias || '').localeCompare(b.user_alias || ''));
+      case 'creator_desc':
+        return sortedSkills.sort((a, b) => (b.user_alias || '').localeCompare(a.user_alias || ''));
+      case 'rarity_asc':
+        return sortedSkills.sort((a, b) => this.getRarityValue(a.skill_data?.rarity) - this.getRarityValue(b.skill_data?.rarity));
+      case 'rarity_desc':
+        return sortedSkills.sort((a, b) => this.getRarityValue(b.skill_data?.rarity) - this.getRarityValue(a.skill_data?.rarity));
+      default:
+        return sortedSkills;
+    }
+  }
+
+  /**
+   * Get numeric value for rarity sorting
+   */
+  static getRarityValue(rarity) {
+    const rarityValues = {
+      'bronze': 1,
+      'silver': 2,
+      'gold': 3,
+      'diamond': 4,
+      'legendary': 5
+    };
+    return rarityValues[rarity] || 0;
   }
 }
 
