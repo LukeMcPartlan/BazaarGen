@@ -1037,8 +1037,14 @@ class ExportImport {
         font-weight: bold;
       `;
       profileOption.onclick = () => {
-        if (window.Database && window.Database.saveCard) {
-          window.Database.saveCard(itemData);
+        if (window.Database) {
+          if (type === 'skill' && window.Database.saveSkill) {
+            window.Database.saveSkill(itemData);
+          } else if (type === 'card' && window.Database.saveCard) {
+            window.Database.saveCard(itemData);
+          } else {
+            console.error('❌ Database save function not available for type:', type);
+          }
         }
         menu.style.display = 'none';
       };

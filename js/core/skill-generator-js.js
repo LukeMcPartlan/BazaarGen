@@ -206,17 +206,7 @@ class SkillGenerator {
       }
     };
 
-    // Save to database button (if signed in)
-    if (typeof GoogleAuth !== 'undefined' && GoogleAuth.isSignedIn()) {
-      const saveBtn = document.createElement('button');
-      saveBtn.className = 'skill-save-btn';
-      saveBtn.innerHTML = '🗃️';
-      saveBtn.title = 'Save to database';
-      saveBtn.onclick = function() {
-        Database.saveSkill(skillData);
-      };
-      skillControls.appendChild(saveBtn);
-    }
+    // Removed deprecated database button - now handled by export menu
     
     skillControls.appendChild(exportBtn);
     skillControls.appendChild(deleteBtn);
