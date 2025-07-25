@@ -455,11 +455,13 @@ static async createCard(options = {}) {
     const tagsContainer = document.createElement("div");
     tagsContainer.className = "tags-container";
 
-    // Always add item size as first tag
-    const itemSizeTag = document.createElement("span");
-    itemSizeTag.className = "item-tag";
-    itemSizeTag.textContent = cardData.itemSize;
-    tagsContainer.appendChild(itemSizeTag);
+    // Only add item size tag if this is not a gallery preview
+    if (!cardData.isGallery) {
+      const itemSizeTag = document.createElement("span");
+      itemSizeTag.className = "item-tag";
+      itemSizeTag.textContent = cardData.itemSize;
+      tagsContainer.appendChild(itemSizeTag);
+    }
 
     // Add additional tags
     cardData.tags.forEach(tagText => {

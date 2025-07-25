@@ -45,6 +45,10 @@ class ProfileController {
 
       this.debug('✅ Database is ready');
 
+      // Wait for user profile to be loaded
+      this.debug('👤 Waiting for user profile to be loaded...');
+      await this.waitForUserProfile();
+
       // Display user info
       this.debug('👤 Displaying user information...');
       this.displayUserInfo();
@@ -62,6 +66,28 @@ class ProfileController {
   }
 
   /**
+   * Wait for user profile to be loaded
+   */
+  static async waitForUserProfile() {
+    let attempts = 0;
+    const maxAttempts = 10;
+    
+    while (attempts < maxAttempts) {
+      const userProfile = GoogleAuth.getUserProfile();
+      if (userProfile && userProfile.alias) {
+        this.debug(`✅ User profile loaded on attempt ${attempts + 1}:`, userProfile.alias);
+        return;
+      }
+      
+      this.debug(`⏳ Waiting for user profile (attempt ${attempts + 1}/${maxAttempts})...`);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      attempts++;
+    }
+    
+    this.debug('⚠️ User profile not loaded after maximum attempts, proceeding anyway');
+  }
+
+  /**
    * Display user information
    */
   static displayUserInfo() {
@@ -73,11 +99,18 @@ class ProfileController {
     this.debug('User profile data:', {
       userProfile,
       userEmail,
-      alias: userProfile?.alias
+      alias: userProfile?.alias,
+      currentUser: GoogleAuth.currentUser,
+      currentUserName: GoogleAuth.currentUser?.name
     });
 
     const profileNameEl = document.getElementById('profileName');
     const profileEmailEl = document.getElementById('profileEmail');
+
+    this.debug('DOM elements found:', {
+      profileNameEl: !!profileNameEl,
+      profileEmailEl: !!profileEmailEl
+    });
 
     if (profileNameEl) {
       // Always use alias or fallback to email username
@@ -90,6 +123,12 @@ class ProfileController {
       }
       profileNameEl.textContent = displayedName;
       this.debug('✅ Profile name set to:', displayedName);
+      this.debug('🔍 Debug info:', {
+        userProfileAlias: userProfile?.alias,
+        userEmail: userEmail,
+        emailUsername: userEmail ? userEmail.split('@')[0] : null,
+        finalDisplayName: displayedName
+      });
     } else {
       this.debug('❌ Profile name element not found');
     }
