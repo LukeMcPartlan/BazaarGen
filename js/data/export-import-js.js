@@ -416,10 +416,32 @@ class ExportImport {
   static prepareCardForExport(cardElement) {
     const originalStyles = [];
     
-    // No styling changes needed for card export - preserve original layout
-    // The card should render exactly as it appears on the page
+    // Center only the card visual content (image section) within the card
+    const cardVisualContent = cardElement.querySelector('.card-visual-content');
+    if (cardVisualContent) {
+      originalStyles.push({
+        element: cardVisualContent,
+        property: 'display',
+        originalValue: cardVisualContent.style.display
+      });
+      originalStyles.push({
+        element: cardVisualContent,
+        property: 'justifyContent',
+        originalValue: cardVisualContent.style.justifyContent
+      });
+      originalStyles.push({
+        element: cardVisualContent,
+        property: 'alignItems',
+        originalValue: cardVisualContent.style.alignItems
+      });
+      
+      // Center the visual content horizontally
+      cardVisualContent.style.display = 'flex';
+      cardVisualContent.style.justifyContent = 'center';
+      cardVisualContent.style.alignItems = 'center';
+    }
     
-    console.log('🎨 Applied card-specific export styling (preserved original layout)');
+    console.log('🎨 Applied card-specific export styling (centered visual content)');
     return originalStyles;
   }
 
@@ -444,11 +466,11 @@ class ExportImport {
     // Create watermark text
     const watermarkText = `Created by ${creatorAlias} on BazaarGen.com`;
     
-    // Set watermark styling
-    ctx.font = '16px Arial, sans-serif';
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-    ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
-    ctx.lineWidth = 2;
+    // Set watermark styling - make it more visible
+    ctx.font = 'bold 16px Arial, sans-serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.9)';
+    ctx.lineWidth = 3;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     
@@ -457,24 +479,40 @@ class ExportImport {
     let y;
     
     if (cardElement) {
-      // Try to find the card content area to position watermark below it
-      const cardContent = cardElement.querySelector('.card-content, .skill-content, .card-body, .card-main');
-      if (cardContent) {
-        const contentRect = cardContent.getBoundingClientRect();
+      // For cards, position watermark below the card visual content (image section)
+      const cardVisualContent = cardElement.querySelector('.card-visual-content');
+      if (cardVisualContent) {
+        const visualRect = cardVisualContent.getBoundingClientRect();
         const cardRect = cardElement.getBoundingClientRect();
-        const contentBottom = contentRect.bottom - cardRect.top;
-        const contentLeft = contentRect.left - cardRect.left;
-        // Position watermark below the content, left-aligned with content
-        x = Math.max(contentLeft, 20); // Use content left edge or minimum 20px margin
-        y = Math.min(contentBottom + 5, height - 30); // 5px below content
+        const visualBottom = visualRect.bottom - cardRect.top;
+        const visualLeft = visualRect.left - cardRect.left;
+        // Position watermark below the visual content, left-aligned with visual content
+        x = Math.max(visualLeft, 20); // Use visual content left edge or minimum 20px margin
+        y = Math.min(visualBottom + 5, height - 30); // 5px below visual content
+        console.log('💧 Positioning watermark below card visual content at:', { x, y, visualBottom });
       } else {
-        // Fallback: position below the main card element
-        const cardRect = cardElement.getBoundingClientRect();
-        y = Math.min(cardRect.height + 5, height - 30);
+        // For skills, try to find skill content
+        const skillContent = cardElement.querySelector('.skill-content');
+        if (skillContent) {
+          const contentRect = skillContent.getBoundingClientRect();
+          const cardRect = cardElement.getBoundingClientRect();
+          const contentBottom = contentRect.bottom - cardRect.top;
+          const contentLeft = contentRect.left - cardRect.left;
+          // Position watermark below the skill content, left-aligned with content
+          x = Math.max(contentLeft, 20);
+          y = Math.min(contentBottom + 5, height - 30);
+          console.log('💧 Positioning watermark below skill content at:', { x, y, contentBottom });
+        } else {
+          // Fallback: position below the main card element
+          const cardRect = cardElement.getBoundingClientRect();
+          y = Math.min(cardRect.height + 5, height - 30);
+          console.log('💧 Using fallback watermark position at:', { x, y });
+        }
       }
     } else {
       // Fallback: position near bottom of canvas
       y = height - 40;
+      console.log('💧 Using canvas bottom fallback watermark position at:', { x, y });
     }
     
     // Draw watermark with outline
