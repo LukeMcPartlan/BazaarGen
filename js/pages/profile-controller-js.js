@@ -45,10 +45,6 @@ class ProfileController {
 
       this.debug('✅ Database is ready');
 
-      // Wait for user profile to be loaded
-      this.debug('👤 Waiting for user profile to be loaded...');
-      await this.waitForUserProfile();
-
       // Display user info
       this.debug('👤 Displaying user information...');
       this.displayUserInfo();
@@ -751,4 +747,271 @@ class ProfileController {
    * Switch between tabs
    */
   static switchTab(tab) {
-    this.debug(`
+    this.debug(`🔄 Switching to tab: ${tab}`);
+    
+    // Update current tab
+    this.currentTab = tab;
+    
+    // Update tab button states
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.classList.remove('active');
+    });
+    
+    // Activate the clicked tab
+    const activeButton = document.querySelector(`[onclick="ProfileController.switchTab('${tab}')"]`);
+    if (activeButton) {
+      activeButton.classList.add('active');
+    }
+    
+    // Hide all content sections
+    document.querySelectorAll('.content-section').forEach(section => {
+      section.classList.remove('active');
+    });
+    
+    // Show the selected content section
+    const targetSection = document.getElementById(`${tab}Section`);
+    if (targetSection) {
+      targetSection.classList.add('active');
+    }
+    
+    this.debug(`✅ Switched to ${tab} tab`);
+  }
+
+  /**
+   * Update statistics display
+   */
+  static updateStatistics() {
+    this.debug('📊 Updating statistics...');
+    
+    const totalCardsEl = document.getElementById('totalCards');
+    const totalSkillsEl = document.getElementById('totalSkills');
+    
+    if (totalCardsEl) {
+      const totalCards = this.userItems.length + this.userGalleries.length;
+      totalCardsEl.textContent = totalCards;
+      this.debug(`📊 Total cards & galleries: ${totalCards}`);
+    }
+    
+    if (totalSkillsEl) {
+      totalSkillsEl.textContent = this.userSkills.length;
+      this.debug(`📊 Total skills: ${this.userSkills.length}`);
+    }
+  }
+
+  /**
+   * Create comments section for items
+   */
+  static async createCommentsSection(itemId) {
+    this.debug(`💬 Creating comments section for item: ${itemId}`);
+    
+    const commentsSection = document.createElement('div');
+    commentsSection.className = 'comments-section';
+    commentsSection.style.cssText = `
+      margin-top: 15px;
+      padding: 15px;
+      background: rgba(37, 26, 12, 0.05);
+      border-radius: 8px;
+      border: 1px solid rgba(218, 165, 32, 0.2);
+    `;
+
+    // Comments toggle button
+    const toggleButton = document.createElement('button');
+    toggleButton.textContent = 'Show';
+    toggleButton.style.cssText = `
+      background: none;
+      border: 1px solid rgb(218, 165, 32);
+      color: rgb(218, 165, 32);
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-bottom: 10px;
+    `;
+
+    // Comments list container
+    const commentsList = document.createElement('div');
+    commentsList.className = 'comments-list';
+    commentsList.style.cssText = `
+      display: none;
+      margin-bottom: 15px;
+    `;
+
+    // Comment form
+    const commentForm = document.createElement('div');
+    commentForm.className = 'comment-form';
+    commentForm.style.cssText = `
+      display: none;
+      margin-top: 10px;
+    `;
+
+    const commentInput = document.createElement('textarea');
+    commentInput.placeholder = 'Add a comment...';
+    commentInput.style.cssText = `
+      width: 100%;
+      padding: 8px;
+      border: 1px solid rgb(218, 165, 32);
+      border-radius: 4px;
+      background: rgba(37, 26, 12, 0.8);
+      color: rgb(251, 225, 183);
+      font-size: 14px;
+      resize: vertical;
+      min-height: 60px;
+      margin-bottom: 8px;
+    `;
+
+    const submitButton = document.createElement('button');
+    submitButton.textContent = 'Add Comment';
+    submitButton.style.cssText = `
+      background: rgb(218, 165, 32);
+      color: rgb(37, 26, 12);
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+    `;
+
+    // Toggle functionality
+    toggleButton.addEventListener('click', () => {
+      const isHidden = commentsList.style.display === 'none';
+      commentsList.style.display = isHidden ? 'block' : 'none';
+      commentForm.style.display = isHidden ? 'block' : 'none';
+      toggleButton.textContent = isHidden ? 'Hide' : 'Show';
+    });
+
+    // Submit comment functionality
+    submitButton.addEventListener('click', async () => {
+      const commentText = commentInput.value.trim();
+      if (commentText) {
+        try {
+          await this.addComment(itemId, commentText);
+          commentInput.value = '';
+          // Reload comments
+          await this.loadComments(itemId, commentsList);
+        } catch (error) {
+          console.error('Error adding comment:', error);
+        }
+      }
+    });
+
+    commentForm.appendChild(commentInput);
+    commentForm.appendChild(submitButton);
+    commentsSection.appendChild(toggleButton);
+    commentsSection.appendChild(commentsList);
+    commentsSection.appendChild(commentForm);
+
+    // Load existing comments
+    await this.loadComments(itemId, commentsList);
+
+    this.debug(`✅ Comments section created for item: ${itemId}`);
+    return commentsSection;
+  }
+
+  /**
+   * Load comments for an item
+   */
+  static async loadComments(itemId, container) {
+    try {
+      this.debug(`📥 Loading comments for item: ${itemId}`);
+      const comments = await SupabaseClient.getComments(itemId);
+      
+      container.innerHTML = '';
+      
+      if (comments && comments.length > 0) {
+        comments.forEach(comment => {
+          const commentEl = document.createElement('div');
+          commentEl.style.cssText = `
+            padding: 10px;
+            margin-bottom: 8px;
+            background: rgba(37, 26, 12, 0.1);
+            border-radius: 4px;
+            border-left: 3px solid rgb(218, 165, 32);
+          `;
+          
+          const authorEl = document.createElement('div');
+          authorEl.textContent = comment.user_alias || 'Unknown';
+          authorEl.style.cssText = `
+            font-weight: bold;
+            color: rgb(218, 165, 32);
+            font-size: 12px;
+            margin-bottom: 4px;
+          `;
+          
+          const textEl = document.createElement('div');
+          textEl.textContent = comment.comment_text;
+          textEl.style.cssText = `
+            color: rgb(251, 225, 183);
+            font-size: 14px;
+          `;
+          
+          commentEl.appendChild(authorEl);
+          commentEl.appendChild(textEl);
+          container.appendChild(commentEl);
+        });
+      } else {
+        const noCommentsEl = document.createElement('div');
+        noCommentsEl.textContent = 'No comments yet. Be the first to comment!';
+        noCommentsEl.style.cssText = `
+          color: rgb(201, 175, 133);
+          font-style: italic;
+          text-align: center;
+          padding: 20px;
+        `;
+        container.appendChild(noCommentsEl);
+      }
+    } catch (error) {
+      this.debug(`❌ Error loading comments: ${error.message}`);
+      console.error('Error loading comments:', error);
+    }
+  }
+
+  /**
+   * Add a comment to an item
+   */
+  static async addComment(itemId, commentText) {
+    try {
+      this.debug(`💬 Adding comment to item: ${itemId}`);
+      await SupabaseClient.addComment(itemId, commentText);
+      this.debug(`✅ Comment added successfully`);
+    } catch (error) {
+      this.debug(`❌ Error adding comment: ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Delete an item
+   */
+  static async deleteItem(itemId, type, itemName) {
+    this.debug(`🗑️ Deleting ${type}: ${itemName} (ID: ${itemId})`);
+    
+    const confirmed = confirm(`Are you sure you want to delete "${itemName}"? This action cannot be undone.`);
+    
+    if (confirmed) {
+      try {
+        if (type === 'item') {
+          await SupabaseClient.deleteItem(itemId);
+        } else if (type === 'skill') {
+          await SupabaseClient.deleteSkill(itemId);
+        }
+        
+        this.debug(`✅ ${type} deleted successfully`);
+        
+        // Reload content
+        await this.loadAllContent();
+        
+        if (typeof Messages !== 'undefined') {
+          Messages.showSuccess(`${type} deleted successfully`);
+        }
+      } catch (error) {
+        this.debug(`❌ Error deleting ${type}: ${error.message}`);
+        console.error(`Error deleting ${type}:`, error);
+        
+        if (typeof Messages !== 'undefined') {
+          Messages.showError(`Failed to delete ${type}: ${error.message}`);
+        }
+      }
+    }
+  }
+}
