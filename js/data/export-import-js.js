@@ -329,9 +329,24 @@ class ExportImport {
       skillCard.style.maxWidth = '500px';
     }
     
+    // Ensure skill image container has proper positioning context
+    const imageContainer = skillElement.querySelector('.skill-image-container');
+    if (imageContainer) {
+      originalStyles.push({
+        element: imageContainer,
+        property: 'position',
+        originalValue: imageContainer.style.position
+      });
+      imageContainer.style.position = 'relative';
+      imageContainer.style.display = 'flex';
+      imageContainer.style.alignItems = 'center';
+      imageContainer.style.justifyContent = 'center';
+    }
+    
     // Fix border overlay positioning to ensure it's centered on the image
     const borderOverlay = skillElement.querySelector('.skill-border-overlay');
     if (borderOverlay) {
+      // Store all original styles
       originalStyles.push({
         element: borderOverlay,
         property: 'position',
@@ -372,27 +387,26 @@ class ExportImport {
         property: 'pointerEvents',
         originalValue: borderOverlay.style.pointerEvents
       });
-      
-      // Set proper positioning for the border overlay (maintain correct sizing)
-      borderOverlay.style.setProperty('position', 'absolute', 'important');
-      borderOverlay.style.setProperty('top', '50%', 'important');
-      borderOverlay.style.setProperty('left', '50%', 'important');
-      borderOverlay.style.setProperty('width', '113px', 'important');
-      borderOverlay.style.setProperty('height', '113px', 'important');
-      borderOverlay.style.setProperty('transform', 'translate(-50%, -50%)', 'important');
-      borderOverlay.style.setProperty('object-fit', 'cover', 'important');
-      borderOverlay.style.setProperty('pointer-events', 'none', 'important');
-    }
-    
-    // Ensure image container has proper positioning
-    const imageContainer = skillElement.querySelector('.skill-image-container');
-    if (imageContainer) {
       originalStyles.push({
-        element: imageContainer,
-        property: 'position',
-        originalValue: imageContainer.style.position
+        element: borderOverlay,
+        property: 'zIndex',
+        originalValue: borderOverlay.style.zIndex
       });
-      imageContainer.style.position = 'relative';
+      
+      // Set explicit positioning for the border overlay
+      borderOverlay.style.position = 'absolute';
+      borderOverlay.style.top = '50%';
+      borderOverlay.style.left = '50%';
+      borderOverlay.style.width = '113px';
+      borderOverlay.style.height = '113px';
+      borderOverlay.style.transform = 'translate(-50%, -50%)';
+      borderOverlay.style.objectFit = 'cover';
+      borderOverlay.style.pointerEvents = 'none';
+      borderOverlay.style.zIndex = '999';
+      borderOverlay.style.borderRadius = '50%';
+      borderOverlay.style.overflow = 'visible';
+      
+      console.log('🎨 Applied skill border overlay positioning for export');
     }
     
     // Ensure skill content has proper width (capped at 500px)
@@ -461,19 +475,20 @@ class ExportImport {
       const scale = canvas.width / cardElement.offsetWidth;
       console.log('💧 Canvas scale factor:', scale, 'Canvas size:', canvas.width, 'x', canvas.height, 'Element size:', cardElement.offsetWidth, 'x', cardElement.offsetHeight);
       
-      // For cards, position watermark below the card visual content (image section)
-      const cardVisualContent = cardElement.querySelector('.card-visual-content');
-      if (cardVisualContent) {
-        const visualRect = cardVisualContent.getBoundingClientRect();
+      // Check if this is a card (has tags container) or skill
+      const tagsContainer = cardElement.querySelector('.tags-container');
+      if (tagsContainer) {
+        // This is a card - position watermark 5 pixels above the tags
+        const tagsRect = tagsContainer.getBoundingClientRect();
         const cardRect = cardElement.getBoundingClientRect();
-        const visualBottom = (visualRect.bottom - cardRect.top) * scale;
-        const visualLeft = (visualRect.left - cardRect.left) * scale;
-        // Position watermark below the visual content, left-aligned with visual content
-        x = Math.max(visualLeft, 40); // Use visual content left edge or minimum 40px margin (scaled)
-        y = Math.min(visualBottom + 10, height - 60); // 10px below visual content (scaled)
-        console.log('💧 Positioning watermark below card visual content at:', { x, y, visualBottom, scale });
+        const tagsTop = (tagsRect.top - cardRect.top) * scale;
+        const tagsLeft = (tagsRect.left - cardRect.left) * scale;
+        // Position watermark 5 pixels above the tags, left-aligned with tags
+        x = Math.max(tagsLeft, 40); // Use tags left edge or minimum 40px margin (scaled)
+        y = Math.max(tagsTop - 10, 40); // 10px above tags (scaled from 5px), minimum 40px from top
+        console.log('💧 Positioning watermark above tags at:', { x, y, tagsTop, scale });
       } else {
-        // For skills, try to find skill content
+        // This is a skill - position watermark below the skill content
         const skillContent = cardElement.querySelector('.skill-content');
         if (skillContent) {
           const contentRect = skillContent.getBoundingClientRect();

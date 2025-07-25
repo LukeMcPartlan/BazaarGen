@@ -741,7 +741,7 @@ h1 {
 .skill-card-wrapper, 
 .profile-card-wrapper {
   flex: 0 0 auto; /* Don't grow or shrink, stay natural size */
-  width: fit-content; /* Allow cards to size naturally */
+  width: 100%; /* Use full available width */
   max-width: 500px; /* Limit maximum width to 500px */
   box-sizing: border-box;
 }
