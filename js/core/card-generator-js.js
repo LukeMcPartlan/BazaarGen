@@ -338,17 +338,6 @@ static async createCard(options = {}) {
       cardControls.appendChild(deleteBtn);
 
     } else if (mode === 'browser') {
-      // View details button
-      const viewBtn = document.createElement("button");
-      viewBtn.className = "card-view-btn";
-      viewBtn.innerHTML = "👁️";
-      viewBtn.title = "View item details";
-      viewBtn.onclick = function() {
-        if (window.viewItemDetails) {
-          window.viewItemDetails(cardData);
-        }
-      };
-
       // Upvote button
       const upvoteBtn = document.createElement("button");
       upvoteBtn.className = "card-upvote-btn";
@@ -360,7 +349,6 @@ static async createCard(options = {}) {
         }
       };
 
-      cardControls.appendChild(viewBtn);
       cardControls.appendChild(upvoteBtn);
     }
 

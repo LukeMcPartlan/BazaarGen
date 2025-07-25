@@ -80,8 +80,14 @@ class ProfileController {
     const profileEmailEl = document.getElementById('profileEmail');
 
     if (profileNameEl) {
-      // Explicitly use the alias from user profile, fallback to email if no alias
-      const displayedName = userProfile?.alias || userEmail?.split('@')[0] || 'Unknown User';
+      // Always use alias or fallback to email username
+      let displayedName = userProfile?.alias;
+      if (!displayedName && userEmail) {
+        displayedName = userEmail.split('@')[0];
+      }
+      if (!displayedName) {
+        displayedName = 'Unknown User';
+      }
       profileNameEl.textContent = displayedName;
       this.debug('✅ Profile name set to:', displayedName);
     } else {
@@ -761,7 +767,7 @@ class ProfileController {
         letter-spacing: 0.5px;
         transition: all 0.3s ease;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-      ">Show/Hide</button>
+      ">Show</button>
     `;
 
     // Comments list
@@ -778,11 +784,13 @@ class ProfileController {
       padding: 10px;
       scrollbar-width: thin;
       scrollbar-color: rgb(218, 165, 32) rgba(37, 26, 12, 0.5);
+      display: none;
     `;
 
     // Add comment form
     const commentForm = document.createElement('div');
     commentForm.className = 'comment-form';
+    commentForm.style.display = 'none';
     
     if (window.GoogleAuth && GoogleAuth.isSignedIn()) {
       commentForm.innerHTML = `
