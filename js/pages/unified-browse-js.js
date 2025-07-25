@@ -397,19 +397,32 @@ class UnifiedBrowsePageController {
     document.addEventListener('userSignedIn', () => {
       console.log('👤 User signed in, updating tabs...');
       this.updateTabsForAuthStatus();
+      this.updateMainNavigation();
     });
 
     // Listen for sign out (custom event or check periodically)
     const checkAuthStatus = () => {
       const isSignedIn = GoogleAuth && GoogleAuth.isSignedIn();
       const hasProfileTab = document.querySelector('.browse-tab[data-tab="profile"]');
+      const hasMainProfileTab = document.querySelector('#nav-menu [data-page="profile"]');
       
       if (isSignedIn && !hasProfileTab) {
         console.log('👤 User signed in but no profile tab, updating tabs...');
         this.updateTabsForAuthStatus();
+        this.updateMainNavigation();
       } else if (!isSignedIn && hasProfileTab) {
         console.log('👤 User signed out, updating tabs...');
         this.updateTabsForAuthStatus();
+        this.updateMainNavigation();
+      }
+      
+      // Check main navigation separately
+      if (isSignedIn && !hasMainProfileTab) {
+        console.log('👤 User signed in but no main profile tab, updating navigation...');
+        this.updateMainNavigation();
+      } else if (!isSignedIn && hasMainProfileTab) {
+        console.log('👤 User signed out, updating main navigation...');
+        this.updateMainNavigation();
       }
     };
 
@@ -449,15 +462,24 @@ class UnifiedBrowsePageController {
           console.log('✅ Database connected, loading initial content...');
           
           // Wait for user profile to be loaded from database
-          await this.waitForUserProfile();
-          
-          // Update tabs for current auth status
-          this.updateTabsForAuthStatus();
-          
-          // Update user display in navigation bar
-          if (GoogleAuth && GoogleAuth.updateUserDisplay) {
-            console.log('👤 Updating user display in navigation...');
-            GoogleAuth.updateUserDisplay();
+          if (GoogleAuth && GoogleAuth.isSignedIn()) {
+            await this.waitForUserProfile();
+            
+            // Update tabs for current auth status
+            this.updateTabsForAuthStatus();
+            
+            // Update main navigation
+            this.updateMainNavigation();
+            
+            // Update user display in navigation bar
+            if (GoogleAuth && GoogleAuth.updateUserDisplay) {
+              console.log('👤 Updating user display in navigation...');
+              GoogleAuth.updateUserDisplay();
+            }
+          } else {
+            console.log('👤 User not signed in, skipping profile loading');
+            // Still update main navigation to ensure profile tab is hidden
+            this.updateMainNavigation();
           }
           
           if (this.activeTab === 'items') {
@@ -1897,6 +1919,12 @@ static async handleSkillUpvote(skillId, button) {
  * Wait for user profile to be loaded from database
  */
 static async waitForUserProfile() {
+  // Early return if user is not signed in
+  if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+    console.log('👤 User not signed in, skipping profile loading');
+    return;
+  }
+
   let attempts = 0;
   const maxAttempts = 20;
   
@@ -1904,6 +1932,11 @@ static async waitForUserProfile() {
     if (SupabaseClient && SupabaseClient.isReady()) {
       try {
         const userEmail = GoogleAuth.getUserEmail();
+        if (!userEmail) {
+          console.log('⚠️ No user email available, skipping profile loading');
+          return;
+        }
+        
         console.log(`🗄️ Fetching user profile from database for: ${userEmail}`);
         
         const profile = await SupabaseClient.getUserProfile(userEmail);
@@ -1935,10 +1968,29 @@ static async waitForUserProfile() {
   }
 }
 
+  /**
+   * Update main navigation menu to show/hide profile tab
+   */
+  static updateMainNavigation() {
+    const navMenu = document.getElementById('nav-menu');
+    if (!navMenu) return;
 
+    const isSignedIn = GoogleAuth && GoogleAuth.isSignedIn();
+    const existingProfileTab = navMenu.querySelector('[data-page="profile"]');
 
-
-  
+    if (isSignedIn && !existingProfileTab) {
+      // Add profile tab
+      const profileTab = document.createElement('li');
+      profileTab.className = 'nav-item';
+      profileTab.innerHTML = '<a href="profile.html" class="nav-link" data-page="profile">Profile</a>';
+      navMenu.appendChild(profileTab);
+      console.log('👤 Profile tab added to main navigation');
+    } else if (!isSignedIn && existingProfileTab) {
+      // Remove profile tab
+      existingProfileTab.remove();
+      console.log('👤 Profile tab removed from main navigation');
+    }
+  }
 }
 
 

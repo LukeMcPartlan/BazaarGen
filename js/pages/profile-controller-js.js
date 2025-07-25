@@ -412,6 +412,14 @@ class ProfileController {
 
       this.debug('✅ Card element created successfully');
 
+      // *** ADD WORKING UPVOTE BUTTON ***
+      const upvoteButton = await this.createItemUpvoteButton(item);
+      const controlsSection = cardElement.querySelector('.card-controls');
+      if (controlsSection) {
+        controlsSection.appendChild(upvoteButton);
+        this.debug('✅ Working upvote button added to card controls');
+      }
+
       // Add gallery functionality if this is a saved gallery
       if (item.item_data?.isGallery && item.item_data?.galleryItems) {
         this.debug('🖼️ Adding gallery functionality...');
@@ -655,6 +663,14 @@ class ProfileController {
         });
         
         if (skillElement) {
+          // *** ADD WORKING UPVOTE BUTTON ***
+          const upvoteButton = await this.createSkillUpvoteButton(skill);
+          const controlsSection = skillElement.querySelector('.skill-controls');
+          if (controlsSection) {
+            controlsSection.appendChild(upvoteButton);
+            this.debug('✅ Working skill upvote button added to skill controls');
+          }
+          
           wrapper.appendChild(skillElement);
           this.debug('✅ Skill element created and added');
         } else {
@@ -1011,6 +1027,308 @@ class ProfileController {
         if (typeof Messages !== 'undefined') {
           Messages.showError(`Failed to delete ${type}: ${error.message}`);
         }
+      }
+    }
+  }
+
+  /**
+   * Create working upvote button for items (copied from browse page)
+   */
+  static async createItemUpvoteButton(item) {
+    const upvoteBtn = document.createElement('button');
+    upvoteBtn.className = 'card-upvote-btn';
+    upvoteBtn.style.cssText = `
+      background: linear-gradient(135deg, rgb(46, 125, 50) 0%, rgb(27, 94, 32) 100%);
+      color: white;
+      border: 2px solid rgb(76, 175, 80);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      position: relative;
+    `;
+
+    // Check if user has already voted
+    let hasVoted = false;
+    let upvoteCount = item.upvotes || 0;
+
+    if (GoogleAuth && GoogleAuth.isSignedIn()) {
+      try {
+        hasVoted = await SupabaseClient.hasUserVoted(item.id);
+      } catch (error) {
+        console.warn('Error checking vote status:', error);
+      }
+    }
+
+    // Set button appearance based on vote status
+    if (hasVoted) {
+      upvoteBtn.innerHTML = '❤️';
+      upvoteBtn.style.background = 'linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%)';
+      upvoteBtn.style.borderColor = 'rgb(244, 67, 54)';
+      upvoteBtn.disabled = true;
+      upvoteBtn.title = 'You have already upvoted this item';
+    } else {
+      upvoteBtn.innerHTML = '👍';
+      upvoteBtn.title = `Upvote this item (${upvoteCount} votes)`;
+    }
+
+    // Add vote count display
+    if (upvoteCount > 0) {
+      const countDisplay = document.createElement('span');
+      countDisplay.style.cssText = `
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: rgb(218, 165, 32);
+        color: rgb(37, 26, 12);
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgb(37, 26, 12);
+      `;
+      countDisplay.textContent = upvoteCount;
+      upvoteBtn.appendChild(countDisplay);
+    }
+
+    // Add click handler
+    upvoteBtn.onclick = async (e) => {
+      e.stopPropagation();
+      await this.handleItemUpvote(item.id, upvoteBtn);
+    };
+
+    return upvoteBtn;
+  }
+
+  /**
+   * Handle item upvote (copied from browse page)
+   */
+  static async handleItemUpvote(itemId, button) {
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('Please sign in to vote');
+      } else {
+        alert('Please sign in to vote');
+      }
+      return;
+    }
+
+    // Show loading state
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '⏳';
+    button.disabled = true;
+
+    try {
+      const result = await SupabaseClient.voteItem(itemId, 'upvote');
+      
+      if (result.success) {
+        // Update button to voted state
+        button.innerHTML = '❤️';
+        button.style.background = 'linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%)';
+        button.style.borderColor = 'rgb(244, 67, 54)';
+        button.title = 'You have upvoted this item';
+
+        // Add/update vote count display
+        let countDisplay = button.querySelector('span');
+        if (!countDisplay) {
+          countDisplay = document.createElement('span');
+          countDisplay.style.cssText = `
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: rgb(218, 165, 32);
+            color: rgb(37, 26, 12);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgb(37, 26, 12);
+          `;
+          button.appendChild(countDisplay);
+        }
+        countDisplay.textContent = result.newCount;
+
+        if (typeof Messages !== 'undefined') {
+          Messages.showSuccess('Item upvoted!');
+        }
+      }
+    } catch (error) {
+      console.error('Error upvoting item:', error);
+      
+      // Reset button
+      button.innerHTML = originalHTML;
+      button.disabled = false;
+
+      if (typeof Messages !== 'undefined') {
+        Messages.showError(error.message || 'Failed to upvote item');
+      } else {
+        alert(error.message || 'Failed to upvote item');
+      }
+    }
+  }
+
+  /**
+   * Create working upvote button for skills (copied from browse page)
+   */
+  static async createSkillUpvoteButton(skill) {
+    const upvoteBtn = document.createElement('button');
+    upvoteBtn.className = 'skill-upvote-btn';
+    upvoteBtn.style.cssText = `
+      background: linear-gradient(135deg, rgb(46, 125, 50) 0%, rgb(27, 94, 32) 100%);
+      color: white;
+      border: 2px solid rgb(76, 175, 80);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      position: relative;
+    `;
+
+    // Check if user has already voted
+    let hasVoted = false;
+    let upvoteCount = skill.upvotes || 0;
+
+    if (GoogleAuth && GoogleAuth.isSignedIn()) {
+      try {
+        hasVoted = await SupabaseClient.hasUserVoted(skill.id);
+      } catch (error) {
+        console.warn('Error checking vote status:', error);
+      }
+    }
+
+    // Set button appearance based on vote status
+    if (hasVoted) {
+      upvoteBtn.innerHTML = '⚡';
+      upvoteBtn.style.background = 'linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%)';
+      upvoteBtn.style.borderColor = 'rgb(244, 67, 54)';
+      upvoteBtn.disabled = true;
+      upvoteBtn.title = 'You have already upvoted this skill';
+    } else {
+      upvoteBtn.innerHTML = '👍';
+      upvoteBtn.title = `Upvote this skill (${upvoteCount} votes)`;
+    }
+
+    // Add vote count display
+    if (upvoteCount > 0) {
+      const countDisplay = document.createElement('span');
+      countDisplay.style.cssText = `
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: rgb(218, 165, 32);
+        color: rgb(37, 26, 12);
+        border-radius: 50%;
+        width: 18px;
+        height: 18px;
+        font-size: 10px;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid rgb(37, 26, 12);
+      `;
+      countDisplay.textContent = upvoteCount;
+      upvoteBtn.appendChild(countDisplay);
+    }
+
+    // Add click handler
+    upvoteBtn.onclick = async (e) => {
+      e.stopPropagation();
+      await this.handleSkillUpvote(skill.id, upvoteBtn);
+    };
+
+    return upvoteBtn;
+  }
+
+  /**
+   * Handle skill upvote (copied from browse page)
+   */
+  static async handleSkillUpvote(skillId, button) {
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('Please sign in to vote');
+      } else {
+        alert('Please sign in to vote');
+      }
+      return;
+    }
+
+    // Show loading state
+    const originalHTML = button.innerHTML;
+    button.innerHTML = '⏳';
+    button.disabled = true;
+
+    try {
+      const result = await SupabaseClient.voteSkill(skillId, 'upvote');
+      
+      if (result.success) {
+        // Update button to voted state
+        button.innerHTML = '⚡';
+        button.style.background = 'linear-gradient(135deg, rgb(244, 67, 54) 0%, rgb(211, 47, 47) 100%)';
+        button.style.borderColor = 'rgb(244, 67, 54)';
+        button.title = 'You have upvoted this skill';
+
+        // Add/update vote count display
+        let countDisplay = button.querySelector('span');
+        if (!countDisplay) {
+          countDisplay = document.createElement('span');
+          countDisplay.style.cssText = `
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: rgb(218, 165, 32);
+            color: rgb(37, 26, 12);
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgb(37, 26, 12);
+          `;
+          button.appendChild(countDisplay);
+        }
+        countDisplay.textContent = result.newCount;
+
+        if (typeof Messages !== 'undefined') {
+          Messages.showSuccess('Skill upvoted!');
+        }
+      }
+    } catch (error) {
+      console.error('Error upvoting skill:', error);
+      
+      // Reset button
+      button.innerHTML = originalHTML;
+      button.disabled = false;
+
+      if (typeof Messages !== 'undefined') {
+        Messages.showError(error.message || 'Failed to upvote skill');
+      } else {
+        alert(error.message || 'Failed to upvote skill');
       }
     }
   }

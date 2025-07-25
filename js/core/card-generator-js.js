@@ -366,18 +366,8 @@ static async createCard(options = {}) {
       cardControls.appendChild(deleteBtn);
 
     } else if (mode === 'browser') {
-      // Upvote button
-      const upvoteBtn = document.createElement("button");
-      upvoteBtn.className = "card-upvote-btn";
-      upvoteBtn.innerHTML = "👍";
-      upvoteBtn.title = "Upvote this item";
-      upvoteBtn.onclick = function() {
-        if (window.upvoteItem) {
-          window.upvoteItem(cardData.databaseId);
-        }
-      };
-
-      cardControls.appendChild(upvoteBtn);
+      // Upvote button removed - now handled by individual page controllers
+      // This prevents duplicate/non-working upvote buttons
     }
 
     return cardControls;
