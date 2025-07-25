@@ -741,8 +741,8 @@ h1 {
 .skill-card-wrapper, 
 .profile-card-wrapper {
   flex: 0 0 auto; /* Don't grow or shrink, stay natural size */
-  width: 100%; /* Changed from fit-content to 100% for consistency */
-  max-width: 100%; /* Changed from 600px to 100% for consistency */
+  width: fit-content; /* Allow cards to size naturally */
+  max-width: 600px; /* Limit maximum width */
   box-sizing: border-box;
 }
 
@@ -766,6 +766,19 @@ h1 {
 
 /* Profile-specific grid layout */
 .profile-container .items-grid {
+  justify-content: flex-start;
+  align-content: flex-start;
+}
+
+/* Browse page container - match profile page formatting */
+.browse-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+/* Browse-specific grid layout */
+.browse-container .items-grid {
   justify-content: flex-start;
   align-content: flex-start;
 }
@@ -815,7 +828,7 @@ h1 {
   .card-wrapper, 
   .skill-card-wrapper, 
   .profile-card-wrapper {
-    width: 100%; /* Full width on mobile */
+    width: fit-content; /* Keep natural sizing on mobile */
     max-width: 100%;
     box-sizing: border-box;
   }
@@ -3298,6 +3311,10 @@ h1 {
 
   .items-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .browse-container {
+    padding: 15px;
   }
 }
 
