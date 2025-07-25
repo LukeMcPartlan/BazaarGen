@@ -198,7 +198,7 @@ class GoogleAuth {
       if (typeof SupabaseClient === 'undefined') {
         this.debug('SupabaseClient not available, using fallback');
         this.userProfile = {
-          alias: this.currentUser.name || this.currentUser.email.split('@')[0],
+          alias: this.currentUser.email.split('@')[0], // Use email username, not Google name
           email: this.currentUser.email
         };
         this.updateUserDisplay();
@@ -208,7 +208,7 @@ class GoogleAuth {
       if (!SupabaseClient.isReady()) {
         this.debug('Database not ready, using fallback');
         this.userProfile = {
-          alias: this.currentUser.name || this.currentUser.email.split('@')[0],
+          alias: this.currentUser.email.split('@')[0], // Use email username, not Google name
           email: this.currentUser.email
         };
         this.updateUserDisplay();
@@ -234,10 +234,10 @@ class GoogleAuth {
       this.debug('Error fetching user profile:', error);
       console.error('Error fetching user profile:', error);
       
-      // Fallback to using name/email
+      // Fallback to using email username, never Google name
       this.debug('Using fallback profile');
       this.userProfile = {
-        alias: this.currentUser.name || this.currentUser.email.split('@')[0],
+        alias: this.currentUser.email.split('@')[0], // Use email username, not Google name
         email: this.currentUser.email
       };
       this.updateUserDisplay();
@@ -265,7 +265,7 @@ class GoogleAuth {
       title.textContent = 'Welcome to BazaarGen!';
       description.textContent = 'Choose an alias to display on the site';
       cancelBtn.style.display = 'none'; // Hide cancel for new users
-      input.value = this.currentUser.name || this.currentUser.email.split('@')[0];
+      input.value = this.currentUser.email.split('@')[0]; // Use email username, not Google name
     } else {
       title.textContent = 'Edit Your Alias';
       description.textContent = 'Change your display name';
@@ -410,8 +410,27 @@ static updateUserDisplay() {
     signInButton: !!signInButton
   });
 
-  if (userInfo && userAlias && this.userProfile) {
-    this.debug('Setting alias display:', this.userProfile.alias);
+  this.debug('Current user profile data:', {
+    userProfile: this.userProfile,
+    currentUser: this.currentUser,
+    userProfileAlias: this.userProfile?.alias,
+    currentUserName: this.currentUser?.name
+  });
+
+  if (userInfo && userAlias) {
+    // Always prioritize the alias from the database
+    let displayName = this.userProfile?.alias;
+    
+    // Only fall back to email username, never to Google account name
+    if (!displayName && this.currentUser?.email) {
+      displayName = this.currentUser.email.split('@')[0];
+    }
+    
+    if (!displayName) {
+      displayName = 'User';
+    }
+
+    this.debug('Setting display name:', displayName);
     
     userAlias.innerHTML = `
       <a href="profile.html" style="
@@ -426,9 +445,9 @@ static updateUserDisplay() {
         gap: 5px;
       " onmouseover="this.style.color='rgb(218, 165, 32)'; this.style.background='rgba(218, 165, 32, 0.1)'" 
          onmouseout="this.style.color='rgb(251, 225, 183)'; this.style.background='transparent'">
-        👤 ${this.userProfile.alias}
+        👤 ${displayName}
       </a>
-    `; // <-- THIS WAS MISSING! The closing backtick and semicolon
+    `;
     
     userInfo.style.display = 'flex';
     
@@ -438,7 +457,7 @@ static updateUserDisplay() {
 
     this.debug('User display updated successfully with clickable profile link');
   } else {
-    this.debug('Could not update user display - missing elements or profile');
+    this.debug('Could not update user display - missing elements');
   }
 }
 

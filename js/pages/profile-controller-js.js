@@ -105,11 +105,9 @@ class ProfileController {
     });
 
     const profileNameEl = document.getElementById('profileName');
-    const profileEmailEl = document.getElementById('profileEmail');
 
     this.debug('DOM elements found:', {
-      profileNameEl: !!profileNameEl,
-      profileEmailEl: !!profileEmailEl
+      profileNameEl: !!profileNameEl
     });
 
     if (profileNameEl) {
@@ -131,14 +129,6 @@ class ProfileController {
       });
     } else {
       this.debug('❌ Profile name element not found');
-    }
-
-    if (profileEmailEl) {
-      const displayedEmail = userEmail || '-';
-      profileEmailEl.textContent = displayedEmail;
-      this.debug('✅ Profile email set to:', displayedEmail);
-    } else {
-      this.debug('❌ Profile email element not found');
     }
   }
 
