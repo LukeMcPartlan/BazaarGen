@@ -416,56 +416,10 @@ class ExportImport {
   static prepareCardForExport(cardElement) {
     const originalStyles = [];
     
-    // Center the card content without changing size or rendering
-    const card = cardElement.querySelector('.card') || cardElement;
-    if (card) {
-      // Center the card content horizontally
-      originalStyles.push({
-        element: card,
-        property: 'display',
-        originalValue: card.style.display
-      });
-      originalStyles.push({
-        element: card,
-        property: 'justifyContent',
-        originalValue: card.style.justifyContent
-      });
-      originalStyles.push({
-        element: card,
-        property: 'alignItems',
-        originalValue: card.style.alignItems
-      });
-      
-      card.style.display = 'flex';
-      card.style.justifyContent = 'center';
-      card.style.alignItems = 'center';
-    }
+    // No styling changes needed for card export - preserve original layout
+    // The card should render exactly as it appears on the page
     
-    // Center card content as well
-    const cardContent = cardElement.querySelector('.card-content');
-    if (cardContent) {
-      originalStyles.push({
-        element: cardContent,
-        property: 'display',
-        originalValue: cardContent.style.display
-      });
-      originalStyles.push({
-        element: cardContent,
-        property: 'justifyContent',
-        originalValue: cardContent.style.justifyContent
-      });
-      originalStyles.push({
-        element: cardContent,
-        property: 'alignItems',
-        originalValue: cardContent.style.alignItems
-      });
-      
-      cardContent.style.display = 'flex';
-      cardContent.style.justifyContent = 'center';
-      cardContent.style.alignItems = 'center';
-    }
-    
-    console.log('🎨 Applied card-specific export styling (centered content)');
+    console.log('🎨 Applied card-specific export styling (preserved original layout)');
     return originalStyles;
   }
 
