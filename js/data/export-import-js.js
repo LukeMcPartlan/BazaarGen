@@ -317,6 +317,7 @@ class ExportImport {
    */
   static prepareSkillForExport(skillElement) {
     const originalStyles = [];
+    const originalElements = [];
     
     // Set max-width to 500px for the skill card
     const skillCard = skillElement.querySelector('.skill-card') || skillElement;
@@ -329,50 +330,70 @@ class ExportImport {
       skillCard.style.maxWidth = '500px';
     }
     
-    // BULLETPROOF: Force skill image container positioning context
+    // BULLETPROOF APPROACH: Replace the border overlay with a new one for export
     const imageContainer = skillElement.querySelector('.skill-image-container');
-    if (imageContainer) {
-      // Store all original styles
-      originalStyles.push({
-        element: imageContainer,
-        property: 'position',
-        originalValue: imageContainer.style.position
-      });
-      originalStyles.push({
-        element: imageContainer,
-        property: 'display',
-        originalValue: imageContainer.style.display
-      });
-      originalStyles.push({
-        element: imageContainer,
-        property: 'alignItems',
-        originalValue: imageContainer.style.alignItems
-      });
-      originalStyles.push({
-        element: imageContainer,
-        property: 'justifyContent',
-        originalValue: imageContainer.style.justifyContent
-      });
-      originalStyles.push({
-        element: imageContainer,
-        property: 'width',
-        originalValue: imageContainer.style.width
-      });
-      originalStyles.push({
-        element: imageContainer,
-        property: 'height',
-        originalValue: imageContainer.style.height
+    const originalBorderOverlay = skillElement.querySelector('.skill-border-overlay');
+    
+    if (imageContainer && originalBorderOverlay) {
+      // Store the original border overlay
+      originalElements.push({
+        element: originalBorderOverlay,
+        parent: imageContainer,
+        nextSibling: originalBorderOverlay.nextSibling
       });
       
-      // Force positioning context with multiple approaches
-      imageContainer.style.setProperty('position', 'relative', 'important');
-      imageContainer.style.setProperty('display', 'flex', 'important');
-      imageContainer.style.setProperty('align-items', 'center', 'important');
-      imageContainer.style.setProperty('justify-content', 'center', 'important');
-      imageContainer.style.setProperty('width', '75px', 'important');
-      imageContainer.style.setProperty('height', '75px', 'important');
+      // Remove the original border overlay
+      imageContainer.removeChild(originalBorderOverlay);
       
-      // Also set inline styles as backup
+      // Create a new border overlay specifically for export
+      const exportBorderOverlay = document.createElement('img');
+      exportBorderOverlay.className = 'skill-border-overlay-export';
+      exportBorderOverlay.src = originalBorderOverlay.src;
+      exportBorderOverlay.alt = '';
+      
+      // Set ALL positioning properties as inline styles with explicit values
+      exportBorderOverlay.style.cssText = `
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        width: 113px !important;
+        height: 113px !important;
+        max-width: 113px !important;
+        max-height: 113px !important;
+        min-width: 113px !important;
+        min-height: 113px !important;
+        border-radius: 50% !important;
+        pointer-events: none !important;
+        z-index: 999 !important;
+        overflow: visible !important;
+        object-fit: cover !important;
+        display: block !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: none !important;
+        box-sizing: border-box !important;
+      `;
+      
+      // Also set each property individually as backup
+      exportBorderOverlay.style.position = 'absolute';
+      exportBorderOverlay.style.top = '50%';
+      exportBorderOverlay.style.left = '50%';
+      exportBorderOverlay.style.width = '113px';
+      exportBorderOverlay.style.height = '113px';
+      exportBorderOverlay.style.transform = 'translate(-50%, -50%)';
+      exportBorderOverlay.style.objectFit = 'cover';
+      exportBorderOverlay.style.pointerEvents = 'none';
+      exportBorderOverlay.style.zIndex = '999';
+      exportBorderOverlay.style.borderRadius = '50%';
+      exportBorderOverlay.style.overflow = 'visible';
+      exportBorderOverlay.style.display = 'block';
+      exportBorderOverlay.style.margin = '0';
+      exportBorderOverlay.style.padding = '0';
+      exportBorderOverlay.style.border = 'none';
+      exportBorderOverlay.style.boxSizing = 'border-box';
+      
+      // Ensure the image container has proper positioning context
       imageContainer.style.position = 'relative';
       imageContainer.style.display = 'flex';
       imageContainer.style.alignItems = 'center';
@@ -380,100 +401,10 @@ class ExportImport {
       imageContainer.style.width = '75px';
       imageContainer.style.height = '75px';
       
-      console.log('🎨 Applied bulletproof skill image container positioning context for export');
-    }
-    
-    // BULLETPROOF: Force border overlay positioning with multiple approaches
-    const borderOverlay = skillElement.querySelector('.skill-border-overlay');
-    if (borderOverlay) {
-      // Store all original styles
-      originalStyles.push({
-        element: borderOverlay,
-        property: 'position',
-        originalValue: borderOverlay.style.position
-      });
-      originalStyles.push({
-        element: borderOverlay,
-        property: 'top',
-        originalValue: borderOverlay.style.top
-      });
-      originalStyles.push({
-        element: borderOverlay,
-        property: 'left',
-        originalValue: borderOverlay.style.left
-      });
-      originalStyles.push({
-        element: borderOverlay,
-        property: 'width',
-        originalValue: borderOverlay.style.width
-      });
-      originalStyles.push({
-        element: borderOverlay,
-        property: 'height',
-        originalValue: borderOverlay.style.height
-      });
-      originalStyles.push({
-        element: borderOverlay,
-        property: 'transform',
-        originalValue: borderOverlay.style.transform
-      });
-      originalStyles.push({
-        element: borderOverlay,
-        property: 'objectFit',
-        originalValue: borderOverlay.style.objectFit
-      });
-      originalStyles.push({
-        element: borderOverlay,
-        property: 'pointerEvents',
-        originalValue: borderOverlay.style.pointerEvents
-      });
-      originalStyles.push({
-        element: borderOverlay,
-        property: 'zIndex',
-        originalValue: borderOverlay.style.zIndex
-      });
-      originalStyles.push({
-        element: borderOverlay,
-        property: 'borderRadius',
-        originalValue: borderOverlay.style.borderRadius
-      });
-      originalStyles.push({
-        element: borderOverlay,
-        property: 'overflow',
-        originalValue: borderOverlay.style.overflow
-      });
+      // Add the new border overlay to the container
+      imageContainer.appendChild(exportBorderOverlay);
       
-      // APPROACH 1: setProperty with !important
-      borderOverlay.style.setProperty('position', 'absolute', 'important');
-      borderOverlay.style.setProperty('top', '50%', 'important');
-      borderOverlay.style.setProperty('left', '50%', 'important');
-      borderOverlay.style.setProperty('width', '113px', 'important');
-      borderOverlay.style.setProperty('height', '113px', 'important');
-      borderOverlay.style.setProperty('transform', 'translate(-50%, -50%)', 'important');
-      borderOverlay.style.setProperty('object-fit', 'cover', 'important');
-      borderOverlay.style.setProperty('pointer-events', 'none', 'important');
-      borderOverlay.style.setProperty('z-index', '999', 'important');
-      borderOverlay.style.setProperty('border-radius', '50%', 'important');
-      borderOverlay.style.setProperty('overflow', 'visible', 'important');
-      
-      // APPROACH 2: Direct inline styles as backup
-      borderOverlay.style.position = 'absolute';
-      borderOverlay.style.top = '50%';
-      borderOverlay.style.left = '50%';
-      borderOverlay.style.width = '113px';
-      borderOverlay.style.height = '113px';
-      borderOverlay.style.transform = 'translate(-50%, -50%)';
-      borderOverlay.style.objectFit = 'cover';
-      borderOverlay.style.pointerEvents = 'none';
-      borderOverlay.style.zIndex = '999';
-      borderOverlay.style.borderRadius = '50%';
-      borderOverlay.style.overflow = 'visible';
-      
-      // APPROACH 3: Force layout recalculation
-      borderOverlay.offsetHeight;
-      borderOverlay.offsetWidth;
-      
-      console.log('🎨 Applied bulletproof skill border overlay positioning for export with multiple approaches');
+      console.log('🎨 Created new export-specific border overlay with bulletproof positioning');
     }
     
     // Ensure skill content has proper width (capped at 500px)
@@ -487,12 +418,12 @@ class ExportImport {
       skillContent.style.maxWidth = '500px';
     }
     
-    // Force a small delay to ensure all styles are applied before html2canvas
+    // Force a longer delay to ensure all styles are applied before html2canvas
     return new Promise((resolve) => {
       setTimeout(() => {
-        console.log('🎨 Applied skill-specific export styling with delay');
-        resolve(originalStyles);
-      }, 50);
+        console.log('🎨 Applied skill-specific export styling with extended delay');
+        resolve({ originalStyles, originalElements });
+      }, 100);
     });
   }
 
@@ -908,8 +839,11 @@ class ExportImport {
       originalStyles = this.prepareElementForExport(skillElement);
       
       // Apply export-specific styling (now returns a Promise)
-      const exportStyles = await this.prepareSkillForExport(skillElement);
-      originalStyles.push(...exportStyles);
+      const exportResult = await this.prepareSkillForExport(skillElement);
+      originalStyles.push(...exportResult.originalStyles);
+      
+      // Store original elements for restoration
+      const originalElements = exportResult.originalElements;
       
       // Force reflow to ensure styles are applied
       skillElement.offsetHeight;
@@ -982,6 +916,27 @@ class ExportImport {
         setTimeout(() => {
           this.restoreElementAfterExport(originalStyles);
         }, 100);
+      }
+      
+      // Restore original border overlay elements
+      if (originalElements && originalElements.length > 0) {
+        originalElements.forEach(item => {
+          const imageContainer = skillElement.querySelector('.skill-image-container');
+          const exportBorderOverlay = imageContainer.querySelector('.skill-border-overlay-export');
+          
+          if (imageContainer && exportBorderOverlay) {
+            // Remove the export border overlay
+            imageContainer.removeChild(exportBorderOverlay);
+            
+            // Restore the original border overlay
+            if (item.nextSibling) {
+              imageContainer.insertBefore(item.element, item.nextSibling);
+            } else {
+              imageContainer.appendChild(item.element);
+            }
+          }
+        });
+        console.log('🔄 Restored original border overlay elements');
       }
       
       // Restore hidden elements
