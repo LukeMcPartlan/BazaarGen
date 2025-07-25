@@ -363,6 +363,79 @@ class ExportImport {
   }
 
   /**
+   * Prepare card element specifically for export with proper styling
+   */
+  static prepareCardForExport(cardElement) {
+    const originalStyles = [];
+    
+    // Set max-width to 500px for the card
+    const card = cardElement.querySelector('.card') || cardElement;
+    if (card) {
+      originalStyles.push({
+        element: card,
+        property: 'maxWidth',
+        originalValue: card.style.maxWidth
+      });
+      card.style.maxWidth = '500px';
+    }
+    
+    // Ensure card content has proper width
+    const cardContent = cardElement.querySelector('.card-content');
+    if (cardContent) {
+      originalStyles.push({
+        element: cardContent,
+        property: 'maxWidth',
+        originalValue: cardContent.style.maxWidth
+      });
+      cardContent.style.maxWidth = '500px';
+    }
+    
+    console.log('🎨 Applied card-specific export styling');
+    return originalStyles;
+  }
+
+  /**
+   * Add watermark to canvas with creator alias
+   */
+  static addWatermarkToCanvas(canvas) {
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    
+    // Get creator alias
+    let creatorAlias = 'Unknown';
+    try {
+      if (typeof GoogleAuth !== 'undefined' && GoogleAuth.getUserDisplayName) {
+        creatorAlias = GoogleAuth.getUserDisplayName();
+      }
+    } catch (error) {
+      console.warn('Could not get creator alias for watermark:', error);
+    }
+    
+    // Create watermark text
+    const watermarkText = `Created by ${creatorAlias} on BazaarGen.com`;
+    
+    // Set watermark styling
+    ctx.font = '16px Arial, sans-serif';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+    ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+    ctx.lineWidth = 2;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    
+    // Calculate position (bottom center with padding)
+    const x = width / 2;
+    const y = height - 20;
+    
+    // Draw watermark with outline
+    ctx.strokeText(watermarkText, x, y);
+    ctx.fillText(watermarkText, x, y);
+    
+    console.log('💧 Added watermark to canvas:', watermarkText);
+    return canvas;
+  }
+
+  /**
    * Extract a representative solid color from a CSS gradient
    */
   static extractColorFromGradient(gradientString, fallbackColor = '#f0f0f0') {
@@ -520,17 +593,34 @@ class ExportImport {
     }
 
     let originalStyles = [];
+    let hiddenElements = [];
     
     try {
-      console.log('🖼️ Starting PNG export with gradient removal...');
+      console.log('🖼️ Starting card PNG export with proper styling...');
       
       // Get card name for filename
       const cardNameElement = cardElement.querySelector('.card-name, .item-name, h3, h2');
       const cardName = cardNameElement ? cardNameElement.textContent.trim().replace(/[^a-zA-Z0-9]/g, '_') : 'card';
       const finalFilename = filename || `${cardName}-${this.getDateString()}.png`;
       
-      // Temporarily remove gradients
+      // Hide all control elements
+      const controlElements = cardElement.querySelectorAll('.card-controls, .skill-controls, .item-controls, .export-btn, .export-button, .export-menu, .delete-btn, .delete-button, .upvote-btn, .upvote-button, .save-btn, .save-button');
+      controlElements.forEach(el => {
+        if (el.style.display !== 'none') {
+          hiddenElements.push({
+            element: el,
+            originalDisplay: el.style.display
+          });
+          el.style.display = 'none';
+        }
+      });
+      
+      // Temporarily remove gradients and fix styling
       originalStyles = this.prepareElementForExport(cardElement);
+      
+      // Apply export-specific styling
+      const exportStyles = this.prepareCardForExport(cardElement);
+      originalStyles.push(...exportStyles);
       
       // Force reflow to ensure styles are applied
       cardElement.offsetHeight;
@@ -547,16 +637,25 @@ class ExportImport {
         scrollX: 0,
         scrollY: 0,
         ignoreElements: (element) => {
-          // Skip any problematic elements
+          // Skip any control elements
           return element.classList.contains('export-button') || 
-                 element.classList.contains('export-menu');
+                 element.classList.contains('export-menu') ||
+                 element.classList.contains('card-controls') ||
+                 element.classList.contains('skill-controls') ||
+                 element.classList.contains('item-controls') ||
+                 element.classList.contains('delete-btn') ||
+                 element.classList.contains('upvote-btn') ||
+                 element.classList.contains('save-btn');
         }
       });
 
-      console.log('✅ Canvas created successfully');
+      console.log('✅ Card canvas created successfully');
+      
+      // Add watermark to the canvas
+      const watermarkedCanvas = this.addWatermarkToCanvas(canvas);
       
       // Convert to blob and download
-      canvas.toBlob((blob) => {
+      watermarkedCanvas.toBlob((blob) => {
         if (blob) {
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
@@ -589,13 +688,18 @@ class ExportImport {
         alert(errorMsg);
       }
     } finally {
-      // Always restore original styles
+      // Always restore original styles and show hidden elements
       if (originalStyles.length > 0) {
         // Small delay to ensure canvas is processed before restoring
         setTimeout(() => {
           this.restoreElementAfterExport(originalStyles);
         }, 100);
       }
+      
+      // Restore hidden elements
+      hiddenElements.forEach(item => {
+        item.element.style.display = item.originalDisplay;
+      });
     }
   }
 
@@ -678,8 +782,11 @@ class ExportImport {
 
       console.log('✅ Skill canvas created successfully');
       
+      // Add watermark to the canvas
+      const watermarkedCanvas = this.addWatermarkToCanvas(canvas);
+      
       // Convert to blob and download
-      canvas.toBlob((blob) => {
+      watermarkedCanvas.toBlob((blob) => {
         if (blob) {
           const url = URL.createObjectURL(blob);
           const link = document.createElement('a');
