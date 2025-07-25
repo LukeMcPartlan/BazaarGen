@@ -374,12 +374,14 @@ static async createCard(options = {}) {
       isGallery: cardData.isGallery,
       hasGalleryItems: !!(cardData.galleryItems && cardData.galleryItems.length > 0),
       galleryItemsCount: cardData.galleryItems ? cardData.galleryItems.length : 0,
-      firstGalleryItemImage: cardData.galleryItems && cardData.galleryItems[0] ? !!cardData.galleryItems[0].imageData : false
+      firstGalleryItemImage: cardData.galleryItems && cardData.galleryItems[0] ? !!cardData.galleryItems[0].imageData : false,
+      imageDataLength: cardData.imageData ? cardData.imageData.length : 0,
+      firstGalleryItemImageLength: cardData.galleryItems && cardData.galleryItems[0] && cardData.galleryItems[0].imageData ? cardData.galleryItems[0].imageData.length : 0
     });
     
     if (!imageData && cardData.isGallery && cardData.galleryItems && cardData.galleryItems.length > 0) {
       imageData = cardData.galleryItems[0].imageData;
-      console.log('🖼️ Using first gallery item image for gallery display:', !!imageData);
+      console.log('🖼️ Using first gallery item image for gallery display:', !!imageData, 'Length:', imageData ? imageData.length : 0);
     }
 
     if (imageData) {

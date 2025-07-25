@@ -701,6 +701,16 @@ static async loadSkills(options = {}, requestOptions = {}) {
 
       if (error) throw error;
 
+      // Debug: Log the raw data returned from database
+      this.debug('Raw database items data:', data?.map(item => ({
+        id: item.id,
+        itemName: item.item_data?.itemName,
+        isGallery: item.item_data?.isGallery,
+        hasImageData: !!item.item_data?.imageData,
+        galleryItemsCount: item.item_data?.galleryItems?.length,
+        firstGalleryItemImage: item.item_data?.galleryItems && item.item_data?.galleryItems[0] ? !!item.item_data?.galleryItems[0].imageData : false
+      })));
+
       return data || [];
     } catch (error) {
       this.debug('Error fetching user items:', error);

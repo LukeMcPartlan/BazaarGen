@@ -1686,15 +1686,12 @@ h1 {
   padding: 20px;
   margin-top: -2px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-  width: 100%; /* Changed from min-width to width */
+  width: 100%;
   box-sizing: border-box;
   transition: width 0.3s ease;
 }
 
-.comments-section:has(.comments-list:not([style*="display: none"])) {
-  width: 600px;
-  max-width: 90vw;
-}
+/* Removed width change to prevent layout shifts */
 
 /* Override any inline white backgrounds */
 .comments-section div[style*="background: white"] {

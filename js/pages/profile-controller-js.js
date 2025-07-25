@@ -179,7 +179,9 @@ class ProfileController {
         id: item.id,
         itemName: item.item_data?.itemName,
         isGallery: item.item_data?.isGallery,
-        galleryItemsCount: item.item_data?.galleryItems?.length
+        galleryItemsCount: item.item_data?.galleryItems?.length,
+        hasImageData: !!item.item_data?.imageData,
+        firstGalleryItemImage: item.item_data?.galleryItems && item.item_data?.galleryItems[0] ? !!item.item_data?.galleryItems[0].imageData : false
       })));
       
       if (loadingEl) loadingEl.style.display = 'none';
