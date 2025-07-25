@@ -202,24 +202,38 @@ static async createCard(options = {}) {
     // Handle database format
     if (data.item_data) {
       const itemData = data.item_data;
-      return {
-        itemName: itemData.name || 'Unnamed Item',
+      const normalized = {
+        itemName: itemData.name || itemData.itemName || 'Unnamed Item',
         hero: itemData.hero || 'Neutral',
         cooldown: itemData.cooldown || '',
         ammo: itemData.ammo || '',
         crit: itemData.crit || '',
         multicast: itemData.multicast || '',
-        itemSize: itemData.item_size || 'Medium',
-        border: itemData.rarity || 'gold',
-        passiveEffects: itemData.passive_effects || itemData.passive_effect ? [itemData.passive_effect] : [], // Handle both formats
-        onUseEffects: itemData.on_use_effects || [],
+        itemSize: itemData.item_size || itemData.itemSize || 'Medium',
+        border: itemData.rarity || itemData.border || 'gold',
+        passiveEffects: itemData.passive_effects || itemData.passiveEffects || itemData.passive_effect ? [itemData.passive_effect] : [], // Handle both formats
+        onUseEffects: itemData.on_use_effects || itemData.onUseEffects || [],
         tags: itemData.tags || [],
-        scalingValues: itemData.scaling_values || {},
-        imageData: itemData.image_data || '',
+        scalingValues: itemData.scaling_values || itemData.scalingValues || {},
+        imageData: itemData.image_data || itemData.imageData || '',
         timestamp: data.created_at || new Date().toISOString(),
         databaseId: data.id,
-        createdBy: data.users?.alias
+        createdBy: data.users?.alias || data.user_alias
       };
+
+      // Preserve gallery-specific fields
+      if (itemData.isGallery) {
+        normalized.isGallery = true;
+        normalized.galleryItems = itemData.galleryItems || [];
+        normalized.galleryInfo = itemData.galleryInfo || {};
+        console.log('🖼️ Preserved gallery data:', {
+          isGallery: normalized.isGallery,
+          galleryItemsCount: normalized.galleryItems.length,
+          galleryInfo: normalized.galleryInfo
+        });
+      }
+
+      return normalized;
     }
 
     // Already in correct format (import or generator format)
@@ -229,7 +243,7 @@ static async createCard(options = {}) {
       passiveEffects = [data.passiveEffect];
     }
 
-    return {
+    const normalized = {
       itemName: data.itemName || '',
       hero: data.hero || 'Neutral',
       cooldown: data.cooldown || '',
@@ -247,6 +261,20 @@ static async createCard(options = {}) {
       databaseId: data.databaseId,
       createdBy: data.createdBy
     };
+
+    // Preserve gallery-specific fields
+    if (data.isGallery) {
+      normalized.isGallery = true;
+      normalized.galleryItems = data.galleryItems || [];
+      normalized.galleryInfo = data.galleryInfo || {};
+      console.log('🖼️ Preserved gallery data:', {
+        isGallery: normalized.isGallery,
+        galleryItemsCount: normalized.galleryItems.length,
+        galleryInfo: normalized.galleryInfo
+      });
+    }
+
+    return normalized;
   }
 
   /**
