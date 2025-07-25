@@ -17,25 +17,45 @@ class ExportImport {
       return;
     }
 
+    // Process cards and expand galleries into individual items
+    const processedCards = [];
+    let totalItems = 0;
+    let galleryCount = 0;
+
+    for (const cardData of cardsData) {
+      if (cardData && cardData.isGallery && cardData.galleryItems) {
+        // This is a gallery - add all individual items
+        processedCards.push(...cardData.galleryItems);
+        totalItems += cardData.galleryItems.length;
+        galleryCount++;
+        console.log(`🖼️ Expanded gallery "${cardData.itemName}" with ${cardData.galleryItems.length} items`);
+      } else {
+        // This is a regular card
+        processedCards.push(cardData);
+        totalItems++;
+      }
+    }
+
     const dataToExport = {
       version: "1.0",
       timestamp: new Date().toISOString(),
       type: "cards",
-      count: cardsData.length,
+      count: totalItems,
       collection: {
         name: `Card Collection ${this.getDateString()}`,
-        description: `${cardsData.length} cards exported from BazaarGen`,
-        created_by: (typeof GoogleAuth !== 'undefined' && GoogleAuth.getUserDisplayName()) || 'Unknown'
+        description: `${totalItems} items exported from BazaarGen (${cardsData.length} cards/galleries)`,
+        created_by: (typeof GoogleAuth !== 'undefined' && GoogleAuth.getUserDisplayName()) || 'Unknown',
+        galleries_expanded: galleryCount
       },
-      cards: cardsData
+      cards: processedCards
     };
 
     this.downloadJSON(dataToExport, `Bazaar-cards-${this.getDateString()}.json`);
     
     if (typeof Messages !== 'undefined') {
-      Messages.showSuccess(`Exported ${cardsData.length} cards successfully!`);
+      Messages.showSuccess(`Exported ${totalItems} items successfully! (${galleryCount} galleries expanded)`);
     } else {
-      alert(`Exported ${cardsData.length} cards successfully!`);
+      alert(`Exported ${totalItems} items successfully! (${galleryCount} galleries expanded)`);
     }
   }
 
@@ -138,15 +158,40 @@ class ExportImport {
       return;
     }
 
-    console.log(`🖼️ Starting bulk export of ${cardElements.length} cards...`);
+    console.log(`🖼️ Starting bulk export of ${cardElements.length} cards/galleries...`);
+
+    let totalExported = 0;
+    let galleryCount = 0;
 
     for (let i = 0; i < cardElements.length; i++) {
       try {
-        // Get card name for filename
-        const cardNameElement = cardElements[i].querySelector('.card-name, .item-name, h3, h2');
+        const cardElement = cardElements[i];
+        
+        // Check if this element represents a gallery by looking for gallery data
+        const cardWrapper = cardElement.closest('[data-item-id]');
+        if (cardWrapper) {
+          const itemId = cardWrapper.getAttribute('data-item-id');
+          // Try to get the item data from the page context
+          // This is a simplified approach - in practice, the data might be stored differently
+          const isGallery = cardElement.querySelector('.gallery-indicator') || 
+                           cardElement.getAttribute('data-is-gallery') === 'true';
+          
+          if (isGallery) {
+            // This is a gallery - we need to get the gallery data and export individual items
+            console.log(`🖼️ Detected gallery at index ${i}, will export individual items`);
+            galleryCount++;
+            // Note: For bulk export, we'd need access to the gallery data
+            // This would require additional context from the calling page
+            continue;
+          }
+        }
+        
+        // Regular card export
+        const cardNameElement = cardElement.querySelector('.card-name, .item-name, h3, h2');
         const cardName = cardNameElement ? cardNameElement.textContent.trim().replace(/[^a-zA-Z0-9]/g, '_') : `card-${i + 1}`;
         
-        await this.exportCardAsPNG(cardElements[i], `${cardName}-${this.getDateString()}.png`);
+        await this.exportCardAsPNG(cardElement, `${cardName}-${this.getDateString()}.png`);
+        totalExported++;
         
         // Small delay between exports to prevent overwhelming the browser
         await this.delay(300);
@@ -158,10 +203,13 @@ class ExportImport {
     }
 
     if (typeof Messages !== 'undefined') {
-      Messages.showSuccess(`Exported ${cardElements.length} cards as PNG!`);
+      const message = galleryCount > 0 
+        ? `Exported ${totalExported} cards as PNG! (${galleryCount} galleries detected - use individual export for galleries)`
+        : `Exported ${totalExported} cards as PNG!`;
+      Messages.showSuccess(message);
     }
     
-    console.log(`🎉 Bulk export completed: ${cardElements.length} cards`);
+    console.log(`🎉 Bulk export completed: ${totalExported} cards, ${galleryCount} galleries detected`);
   }
 
   /**
@@ -835,6 +883,165 @@ class ExportImport {
   }
 
   /**
+   * Export gallery as individual items (data)
+   */
+  static exportGalleryAsData(galleryData) {
+    if (!galleryData || !galleryData.isGallery || !galleryData.galleryItems) {
+      console.error('Invalid gallery data for export');
+      return;
+    }
+
+    const galleryName = galleryData.itemName || 'Gallery';
+    const items = galleryData.galleryItems;
+    
+    console.log(`🖼️ Exporting gallery "${galleryName}" with ${items.length} items as data...`);
+
+    // Create a collection export with all gallery items
+    const dataToExport = {
+      version: "1.0",
+      timestamp: new Date().toISOString(),
+      type: "gallery",
+      count: items.length,
+      collection: {
+        name: galleryName,
+        description: `Gallery containing ${items.length} items exported from BazaarGen`,
+        created_by: galleryData.galleryInfo?.createdBy || 'Unknown',
+        original_gallery: true
+      },
+      items: items
+    };
+
+    const fileName = `${galleryName}-Gallery-${this.getDateString()}.json`;
+    this.downloadJSON(dataToExport, fileName);
+    
+    if (typeof Messages !== 'undefined') {
+      Messages.showSuccess(`Exported gallery "${galleryName}" with ${items.length} items!`);
+    }
+    
+    console.log(`✅ Gallery export completed: ${items.length} items`);
+  }
+
+  /**
+   * Export gallery as individual PNG images
+   */
+  static async exportGalleryAsPNG(galleryData, galleryElement) {
+    if (!galleryData || !galleryData.isGallery || !galleryData.galleryItems) {
+      console.error('Invalid gallery data for PNG export');
+      return;
+    }
+
+    if (typeof html2canvas === 'undefined') {
+      const errorMsg = 'html2canvas library not loaded! Please ensure the library is included.';
+      console.error(errorMsg);
+      if (typeof Messages !== 'undefined') {
+        Messages.showError(errorMsg);
+      } else {
+        alert(errorMsg);
+      }
+      return;
+    }
+
+    const galleryName = galleryData.itemName || 'Gallery';
+    const items = galleryData.galleryItems;
+    
+    console.log(`🖼️ Starting gallery PNG export: "${galleryName}" with ${items.length} items...`);
+
+    // Create temporary container for individual items
+    const tempContainer = document.createElement('div');
+    tempContainer.style.cssText = `
+      position: fixed;
+      top: -9999px;
+      left: -9999px;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      z-index: -1;
+    `;
+    document.body.appendChild(tempContainer);
+
+    try {
+      // Create individual card elements for each gallery item
+      const cardElements = [];
+      
+      for (let i = 0; i < items.length; i++) {
+        const itemData = items[i];
+        
+        // Create card element using CardGenerator
+        if (typeof CardGenerator !== 'undefined') {
+          const cardElement = await CardGenerator.createCard({
+            data: itemData,
+            container: tempContainer,
+            mode: 'export',
+            includeControls: false,
+            skipValidation: true
+          });
+          
+          if (cardElement) {
+            cardElements.push(cardElement);
+          }
+        }
+      }
+
+      // Export each card as PNG
+      for (let i = 0; i < cardElements.length; i++) {
+        const cardElement = cardElements[i];
+        const itemData = items[i];
+        const itemName = itemData.itemName || `Item-${i + 1}`;
+        const filename = `${galleryName}-${itemName}-${this.getDateString()}.png`;
+        
+        try {
+          await this.exportCardAsPNG(cardElement, filename);
+          console.log(`✅ Exported gallery item ${i + 1}/${cardElements.length}: ${itemName}`);
+          
+          // Small delay between exports
+          await this.delay(300);
+        } catch (error) {
+          console.error(`❌ Failed to export gallery item ${i + 1}:`, error);
+        }
+      }
+
+      if (typeof Messages !== 'undefined') {
+        Messages.showSuccess(`Exported gallery "${galleryName}" with ${cardElements.length} items as PNG!`);
+      }
+      
+      console.log(`🎉 Gallery PNG export completed: ${cardElements.length} items`);
+
+    } catch (error) {
+      console.error('❌ Error exporting gallery as PNG:', error);
+      const errorMsg = `Failed to export gallery as PNG: ${error.message}`;
+      if (typeof Messages !== 'undefined') {
+        Messages.showError(errorMsg);
+      } else {
+        alert(errorMsg);
+      }
+    } finally {
+      // Clean up temporary container
+      if (tempContainer.parentNode) {
+        tempContainer.parentNode.removeChild(tempContainer);
+      }
+    }
+  }
+
+  /**
+   * Check if data represents a gallery and handle export accordingly
+   */
+  static async handleGalleryExport(itemData, element, type) {
+    // Check if this is a gallery
+    if (itemData && itemData.isGallery && itemData.galleryItems) {
+      console.log('🖼️ Detected gallery, exporting individual items...');
+      
+      if (type === 'data') {
+        this.exportGalleryAsData(itemData);
+      } else if (type === 'png') {
+        await this.exportGalleryAsPNG(itemData, element);
+      }
+      return true; // Indicates this was handled as a gallery
+    }
+    
+    return false; // Not a gallery, use normal export
+  }
+
+  /**
    * Enhanced import with bulk processing and progress tracking
    */
   static async importData(event, type) {
@@ -1252,11 +1459,17 @@ class ExportImport {
         cursor: pointer;
         border-bottom: 1px solid #eee;
       `;
-      dataOption.onclick = () => {
-        if (type === 'card') {
-          this.exportSingleCardAsData(itemData);
-        } else {
-          this.exportSingleSkillAsData(itemData);
+      dataOption.onclick = async () => {
+        // Check if this is a gallery first
+        const isGallery = await this.handleGalleryExport(itemData, button.closest('.card, .skill-card'), 'data');
+        
+        if (!isGallery) {
+          // Use normal export for non-gallery items
+          if (type === 'card') {
+            this.exportSingleCardAsData(itemData);
+          } else {
+            this.exportSingleSkillAsData(itemData);
+          }
         }
         menu.style.display = 'none';
       };
@@ -1269,12 +1482,19 @@ class ExportImport {
         cursor: pointer;
         border-bottom: 1px solid #eee;
       `;
-      pngOption.onclick = () => {
+      pngOption.onclick = async () => {
         const element = button.closest(type === 'card' ? '.card' : '.skill-card');
-        if (type === 'card') {
-          this.exportCardAsPNG(element);
-        } else {
-          this.exportSkillAsPNG(element);
+        
+        // Check if this is a gallery first
+        const isGallery = await this.handleGalleryExport(itemData, element, 'png');
+        
+        if (!isGallery) {
+          // Use normal export for non-gallery items
+          if (type === 'card') {
+            this.exportCardAsPNG(element);
+          } else {
+            this.exportSkillAsPNG(element);
+          }
         }
         menu.style.display = 'none';
       };
