@@ -434,6 +434,28 @@
         </div>
     </footer>
 
+    <!-- Initialization Script -->
+    <script>
+        // Wait for DOM to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Profile page DOM loaded, initializing...');
+            
+            // Wait for all dependencies to be loaded
+            const checkDependencies = () => {
+                if (typeof ProfileController !== 'undefined' && 
+                    typeof GoogleAuth !== 'undefined' && 
+                    typeof SupabaseClient !== 'undefined') {
+                    console.log('✅ All dependencies loaded, initializing ProfileController...');
+                    ProfileController.init();
+                } else {
+                    console.log('⏳ Waiting for dependencies...');
+                    setTimeout(checkDependencies, 100);
+                }
+            };
+            
+            checkDependencies();
+        });
+    </script>
 
 </body>
 </html>
