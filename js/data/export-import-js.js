@@ -265,6 +265,104 @@ class ExportImport {
   }
 
   /**
+   * Prepare skill element specifically for export with proper styling
+   */
+  static prepareSkillForExport(skillElement) {
+    const originalStyles = [];
+    
+    // Set max-width to 500px for the skill card
+    const skillCard = skillElement.querySelector('.skill-card') || skillElement;
+    if (skillCard) {
+      originalStyles.push({
+        element: skillCard,
+        property: 'maxWidth',
+        originalValue: skillCard.style.maxWidth
+      });
+      skillCard.style.maxWidth = '500px';
+    }
+    
+    // Fix border overlay positioning
+    const borderOverlay = skillElement.querySelector('.skill-border-overlay');
+    if (borderOverlay) {
+      originalStyles.push({
+        element: borderOverlay,
+        property: 'position',
+        originalValue: borderOverlay.style.position
+      });
+      originalStyles.push({
+        element: borderOverlay,
+        property: 'top',
+        originalValue: borderOverlay.style.top
+      });
+      originalStyles.push({
+        element: borderOverlay,
+        property: 'left',
+        originalValue: borderOverlay.style.left
+      });
+      originalStyles.push({
+        element: borderOverlay,
+        property: 'width',
+        originalValue: borderOverlay.style.width
+      });
+      originalStyles.push({
+        element: borderOverlay,
+        property: 'height',
+        originalValue: borderOverlay.style.height
+      });
+      originalStyles.push({
+        element: borderOverlay,
+        property: 'transform',
+        originalValue: borderOverlay.style.transform
+      });
+      originalStyles.push({
+        element: borderOverlay,
+        property: 'objectFit',
+        originalValue: borderOverlay.style.objectFit
+      });
+      originalStyles.push({
+        element: borderOverlay,
+        property: 'pointerEvents',
+        originalValue: borderOverlay.style.pointerEvents
+      });
+      
+      // Set proper positioning for the border overlay (override CSS !important rules)
+      borderOverlay.style.setProperty('position', 'absolute', 'important');
+      borderOverlay.style.setProperty('top', '0', 'important');
+      borderOverlay.style.setProperty('left', '0', 'important');
+      borderOverlay.style.setProperty('width', '100%', 'important');
+      borderOverlay.style.setProperty('height', '100%', 'important');
+      borderOverlay.style.setProperty('transform', 'none', 'important');
+      borderOverlay.style.setProperty('object-fit', 'cover', 'important');
+      borderOverlay.style.setProperty('pointer-events', 'none', 'important');
+    }
+    
+    // Ensure image container has proper positioning
+    const imageContainer = skillElement.querySelector('.skill-image-container');
+    if (imageContainer) {
+      originalStyles.push({
+        element: imageContainer,
+        property: 'position',
+        originalValue: imageContainer.style.position
+      });
+      imageContainer.style.position = 'relative';
+    }
+    
+    // Ensure skill content has proper width
+    const skillContent = skillElement.querySelector('.skill-content');
+    if (skillContent) {
+      originalStyles.push({
+        element: skillContent,
+        property: 'maxWidth',
+        originalValue: skillContent.style.maxWidth
+      });
+      skillContent.style.maxWidth = '500px';
+    }
+    
+    console.log('🎨 Applied skill-specific export styling');
+    return originalStyles;
+  }
+
+  /**
    * Extract a representative solid color from a CSS gradient
    */
   static extractColorFromGradient(gradientString, fallbackColor = '#f0f0f0') {
@@ -354,29 +452,50 @@ class ExportImport {
    */
   static restoreElementAfterExport(originalStyles) {
     originalStyles.forEach(styleData => {
-      const { element, originalBackgroundImage, originalBackground, originalBackgroundColor } = styleData;
-      
-      // Restore original styles in the correct order
-      if (originalBackgroundImage) {
-        element.style.backgroundImage = originalBackgroundImage;
-      } else {
-        element.style.removeProperty('background-image');
+      // Handle gradient background restoration
+      if (styleData.originalBackgroundImage !== undefined) {
+        const { element, originalBackgroundImage, originalBackground, originalBackgroundColor } = styleData;
+        
+        // Restore original styles in the correct order
+        if (originalBackgroundImage) {
+          element.style.backgroundImage = originalBackgroundImage;
+        } else {
+          element.style.removeProperty('background-image');
+        }
+        
+        if (originalBackgroundColor) {
+          element.style.backgroundColor = originalBackgroundColor;
+        } else if (!originalBackground) {
+          element.style.removeProperty('background-color');
+        }
+        
+        if (originalBackground) {
+          element.style.background = originalBackground;
+        } else if (!originalBackgroundImage && !originalBackgroundColor) {
+          element.style.removeProperty('background');
+        }
       }
       
-      if (originalBackgroundColor) {
-        element.style.backgroundColor = originalBackgroundColor;
-      } else if (!originalBackground) {
-        element.style.removeProperty('background-color');
-      }
-      
-      if (originalBackground) {
-        element.style.background = originalBackground;
-      } else if (!originalBackgroundImage && !originalBackgroundColor) {
-        element.style.removeProperty('background');
+      // Handle skill-specific style restoration
+      if (styleData.property !== undefined) {
+        const { element, property, originalValue } = styleData;
+        
+        if (originalValue) {
+          element.style[property] = originalValue;
+        } else {
+          element.style.removeProperty(property);
+        }
+        
+        // Also remove any !important inline styles we added
+        if (property === 'position' || property === 'top' || property === 'left' || 
+            property === 'width' || property === 'height' || property === 'transform' ||
+            property === 'objectFit' || property === 'pointerEvents') {
+          element.style.removeProperty(property);
+        }
       }
     });
     
-    console.log(`🔄 Restored ${originalStyles.length} gradient backgrounds`);
+    console.log(`🔄 Restored ${originalStyles.length} style properties`);
   }
 
   /**
@@ -502,17 +621,34 @@ class ExportImport {
     }
 
     let originalStyles = [];
+    let hiddenElements = [];
 
     try {
-      console.log('🖼️ Starting skill PNG export with gradient removal...');
+      console.log('🖼️ Starting skill PNG export with proper styling...');
       
       // Get skill name for filename
       const skillNameElement = skillElement.querySelector('.skill-name, .skill-title, h3, h2');
       const skillName = skillNameElement ? skillNameElement.textContent.trim().replace(/[^a-zA-Z0-9]/g, '_') : 'skill';
       const finalFilename = filename || `${skillName}-${this.getDateString()}.png`;
       
-      // Temporarily remove gradients
+      // Hide all control elements
+      const controlElements = skillElement.querySelectorAll('.skill-controls, .card-controls, .item-controls, .export-btn, .export-button, .export-menu, .delete-btn, .delete-button, .upvote-btn, .upvote-button');
+      controlElements.forEach(el => {
+        if (el.style.display !== 'none') {
+          hiddenElements.push({
+            element: el,
+            originalDisplay: el.style.display
+          });
+          el.style.display = 'none';
+        }
+      });
+      
+      // Temporarily remove gradients and fix styling
       originalStyles = this.prepareElementForExport(skillElement);
+      
+      // Apply export-specific styling
+      const exportStyles = this.prepareSkillForExport(skillElement);
+      originalStyles.push(...exportStyles);
       
       // Force reflow to ensure styles are applied
       skillElement.offsetHeight;
@@ -529,9 +665,14 @@ class ExportImport {
         scrollX: 0,
         scrollY: 0,
         ignoreElements: (element) => {
-          // Skip any problematic elements
+          // Skip any control elements
           return element.classList.contains('export-button') || 
-                 element.classList.contains('export-menu');
+                 element.classList.contains('export-menu') ||
+                 element.classList.contains('skill-controls') ||
+                 element.classList.contains('card-controls') ||
+                 element.classList.contains('item-controls') ||
+                 element.classList.contains('delete-btn') ||
+                 element.classList.contains('upvote-btn');
         }
       });
 
@@ -571,13 +712,18 @@ class ExportImport {
         alert(errorMsg);
       }
     } finally {
-      // Always restore original styles
+      // Always restore original styles and show hidden elements
       if (originalStyles.length > 0) {
         // Small delay to ensure canvas is processed before restoring
         setTimeout(() => {
           this.restoreElementAfterExport(originalStyles);
         }, 100);
       }
+      
+      // Restore hidden elements
+      hiddenElements.forEach(item => {
+        item.element.style.display = item.originalDisplay;
+      });
     }
   }
 

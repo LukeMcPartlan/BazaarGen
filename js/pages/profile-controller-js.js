@@ -26,9 +26,14 @@ class ProfileController {
     this.debug('Debug mode enabled:', this.debugMode);
     
     try {
-      // Check if user is signed in
+      // Wait for GoogleAuth to be fully initialized
+      this.debug('⏳ Waiting for GoogleAuth to be ready...');
+      await this.waitForGoogleAuth();
+      
+      // Check if user is signed in (with retry logic)
       this.debug('🔐 Checking authentication status...');
-      if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      const isSignedIn = await this.checkAuthenticationWithRetry();
+      if (!isSignedIn) {
         this.debug('❌ User not signed in, redirecting to index.html');
         window.location.href = 'index.html';
         return;
@@ -36,24 +41,23 @@ class ProfileController {
 
       this.debug('✅ User is signed in');
 
-      // Check database connection
-      this.debug('🗄️ Checking database connection...');
-      if (!SupabaseClient || !SupabaseClient.isReady()) {
-        this.debug('❌ Database not ready');
-        throw new Error('Database not available');
-      }
-
+      // Wait for database to be ready
+      this.debug('🗄️ Waiting for database connection...');
+      await this.waitForDatabase();
       this.debug('✅ Database is ready');
+
+      // Wait for user profile to be loaded
+      this.debug('👤 Waiting for user profile...');
+      await this.waitForUserProfile();
+      this.debug('✅ User profile loaded');
 
       // Display user info
       this.debug('👤 Displaying user information...');
       this.displayUserInfo();
 
-      // Update user display in navigation bar
+      // Update user display in navigation bar (after profile is loaded)
       this.debug('👤 Updating user display in navigation...');
-      if (GoogleAuth && GoogleAuth.updateUserDisplay) {
-        GoogleAuth.updateUserDisplay();
-      }
+      await this.updateNavigationDisplay();
 
       // Load user's content
       this.debug('📥 Loading user content...');
@@ -77,7 +81,102 @@ class ProfileController {
     } catch (error) {
       this.debug('❌ Initialization failed:', error);
       console.error('ProfileController initialization error:', error);
+      
+      // If it's an authentication error, redirect
+      if (error.message.includes('not signed in') || error.message.includes('authentication')) {
+        window.location.href = 'index.html';
+      }
     }
+  }
+
+  /**
+   * Wait for GoogleAuth to be fully initialized
+   */
+  static async waitForGoogleAuth() {
+    let attempts = 0;
+    const maxAttempts = 20;
+    
+    while (attempts < maxAttempts) {
+      if (GoogleAuth && GoogleAuth.isInitialized) {
+        this.debug('✅ GoogleAuth is ready');
+        return;
+      }
+      
+      this.debug(`⏳ Waiting for GoogleAuth (attempt ${attempts + 1}/${maxAttempts})...`);
+      await new Promise(resolve => setTimeout(resolve, 250));
+      attempts++;
+    }
+    
+    throw new Error('GoogleAuth failed to initialize');
+  }
+
+  /**
+   * Check authentication status with retry logic
+   */
+  static async checkAuthenticationWithRetry() {
+    let attempts = 0;
+    const maxAttempts = 10;
+    
+    while (attempts < maxAttempts) {
+      if (GoogleAuth && GoogleAuth.isSignedIn()) {
+        this.debug('✅ Authentication confirmed');
+        return true;
+      }
+      
+      this.debug(`⏳ Checking authentication (attempt ${attempts + 1}/${maxAttempts})...`);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      attempts++;
+    }
+    
+    this.debug('❌ Authentication check failed after maximum attempts');
+    return false;
+  }
+
+  /**
+   * Wait for database to be ready
+   */
+  static async waitForDatabase() {
+    let attempts = 0;
+    const maxAttempts = 20;
+    
+    while (attempts < maxAttempts) {
+      if (SupabaseClient && SupabaseClient.isReady()) {
+        this.debug('✅ Database is ready');
+        return;
+      }
+      
+      this.debug(`⏳ Waiting for database (attempt ${attempts + 1}/${maxAttempts})...`);
+      await new Promise(resolve => setTimeout(resolve, 250));
+      attempts++;
+    }
+    
+    throw new Error('Database not available');
+  }
+
+  /**
+   * Update navigation display with proper retry logic
+   */
+  static async updateNavigationDisplay() {
+    let attempts = 0;
+    const maxAttempts = 10;
+    
+    while (attempts < maxAttempts) {
+      try {
+        if (GoogleAuth && GoogleAuth.updateUserDisplay) {
+          GoogleAuth.updateUserDisplay();
+          this.debug('✅ Navigation display updated');
+          return;
+        }
+      } catch (error) {
+        this.debug(`❌ Error updating navigation display (attempt ${attempts + 1}):`, error);
+      }
+      
+      this.debug(`⏳ Retrying navigation update (attempt ${attempts + 1}/${maxAttempts})...`);
+      await new Promise(resolve => setTimeout(resolve, 500));
+      attempts++;
+    }
+    
+    this.debug('❌ Failed to update navigation display after maximum attempts');
   }
 
   /**
@@ -166,20 +265,47 @@ class ProfileController {
     this.debug('📥 Starting to load all user content...');
     
     try {
-      this.debug('�� Loading user cards and galleries...');
-      await this.loadUserCards();
+      // Load cards with error handling
+      this.debug('🎴 Loading user cards and galleries...');
+      try {
+        await this.loadUserCards();
+        this.debug('✅ Cards loaded successfully');
+      } catch (cardError) {
+        this.debug('❌ Error loading cards:', cardError);
+        console.error('Error loading cards:', cardError);
+        // Continue loading other content even if cards fail
+      }
       
+      // Load skills with error handling
       this.debug('📜 Loading user skills...');
-      await this.loadUserSkills();
+      try {
+        await this.loadUserSkills();
+        this.debug('✅ Skills loaded successfully');
+      } catch (skillError) {
+        this.debug('❌ Error loading skills:', skillError);
+        console.error('Error loading skills:', skillError);
+        // Continue even if skills fail
+      }
       
+      // Update statistics
       this.debug('📈 Updating statistics...');
-      this.updateStatistics();
+      try {
+        this.updateStatistics();
+        this.debug('✅ Statistics updated successfully');
+      } catch (statsError) {
+        this.debug('❌ Error updating statistics:', statsError);
+        console.error('Error updating statistics:', statsError);
+      }
       
-      this.debug('✅ All content loaded successfully');
+      this.debug('✅ All content loading completed');
     } catch (error) {
-      this.debug('❌ Error loading content:', error);
-      console.error('Error loading content:', error);
-      Messages.showError('Failed to load some content');
+      this.debug('❌ Critical error in loadAllContent:', error);
+      console.error('Critical error loading content:', error);
+      
+      // Show user-friendly error message
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('Some content failed to load. Please refresh the page.');
+      }
     }
   }
 
@@ -1541,10 +1667,10 @@ class ProfileController {
     this.debug('👤 Starting alias display retry logic...');
     
     let attempts = 0;
-    const maxAttempts = 10;
+    const maxAttempts = 15; // Increased attempts
     const retryInterval = 500; // 500ms between attempts
     
-    const attemptDisplayAlias = () => {
+    const attemptDisplayAlias = async () => {
       attempts++;
       this.debug(`👤 Alias display attempt ${attempts}/${maxAttempts}...`);
       
@@ -1579,20 +1705,33 @@ class ProfileController {
       // 3. Try to fetch from database if still not found
       if (!displayName && attempts >= 3) {
         this.debug('🗄️ Attempting to fetch alias from database...');
-        this.fetchAliasFromDatabase().then(alias => {
+        try {
+          const alias = await this.fetchAliasFromDatabase();
           if (alias && alias !== 'User') {
-            profileNameEl.textContent = alias;
-            this.debug('✅ Alias fetched from database and displayed:', alias);
+            displayName = alias;
+            this.debug('✅ Alias fetched from database:', displayName);
           }
-        }).catch(error => {
+        } catch (error) {
           this.debug('❌ Error fetching alias from database:', error);
-        });
+        }
       }
       
       // Set the display name if found
       if (displayName) {
         profileNameEl.textContent = displayName;
         this.debug('✅ User alias displayed successfully:', displayName);
+        
+        // Also update the navigation bar
+        this.debug('🔄 Updating navigation bar with alias...');
+        try {
+          if (GoogleAuth && GoogleAuth.updateUserDisplay) {
+            GoogleAuth.updateUserDisplay();
+            this.debug('✅ Navigation bar updated with alias');
+          }
+        } catch (navError) {
+          this.debug('❌ Error updating navigation bar:', navError);
+        }
+        
         return;
       }
       
