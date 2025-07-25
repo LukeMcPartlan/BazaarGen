@@ -742,7 +742,7 @@ h1 {
 .profile-card-wrapper {
   flex: 0 0 auto; /* Don't grow or shrink, stay natural size */
   width: fit-content; /* Allow cards to size naturally */
-  max-width: 600px; /* Limit maximum width */
+  max-width: 500px; /* Limit maximum width to 500px */
   box-sizing: border-box;
 }
 
@@ -779,7 +779,10 @@ h1 {
 
 /* Browse-specific grid layout */
 .browse-container .items-grid {
-  justify-content: flex-start;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+  gap: 30px;
+  justify-content: center;
   align-content: flex-start;
 }
 /* SKILL-SPECIFIC WIDTH FIXES */
@@ -1634,6 +1637,8 @@ h1 {
   position: absolute;
   z-index: 1;
   overflow: visible;
+  top: 50%; /* Default center position */
+  transform: translateY(-50%); /* Center vertically */
 }
 
 .cooldown-section span {
@@ -1802,12 +1807,10 @@ h1 {
 
 /* Reset cooldown and ammo to their original positioning */
 .card-wrapper .cooldown-section {
- 
   left: -30px;
-  
+  top: 50%; /* Center vertically by default */
+  transform: translateY(-50%); /* Center vertically */
   bottom: auto;
-  transform: none; /* Remove any transforms */
-
 }
 
 .card-wrapper .ammo-section {
@@ -3311,6 +3314,11 @@ h1 {
 
   .items-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .browse-container .items-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
   }
   
   .browse-container {

@@ -740,9 +740,14 @@ static async createCard(options = {}) {
       if (onUseHeight > 0 && contentHeight > 0) {
         // Elements are properly laid out, do positioning
         this.positionElementsRelativeToOnUse(content, onUseSection);
-      } else if (attempt < 3) {
-        // Retry after a longer delay
-        setTimeout(() => doPositioning(attempt + 1), 50 * (attempt + 1));
+        console.log('✅ Successfully positioned cooldown/ammo sections');
+      } else if (attempt < 5) {
+        // Retry with exponential backoff
+        const delay = 100 * Math.pow(2, attempt);
+        console.log(`🔄 Retrying positioning (attempt ${attempt + 1}/5) in ${delay}ms`);
+        setTimeout(() => doPositioning(attempt + 1), delay);
+      } else {
+        console.warn('⚠️ Failed to position cooldown/ammo sections after 5 attempts');
       }
     }
   };
@@ -755,6 +760,7 @@ static async createCard(options = {}) {
    * Position cooldown and ammo elements relative to on-use section
    */
   static positionElementsRelativeToOnUse(content, onUseSection) {
+    // Force layout recalculation
     content.offsetHeight;
     onUseSection.offsetHeight;
     
@@ -765,8 +771,13 @@ static async createCard(options = {}) {
     const cooldownSection = content.querySelector('.cooldown-section');
     const ammoSection = content.querySelector('.ammo-section');
     
-    if (cooldownSection) {
-      cooldownSection.style.top = `${onUseCenterY - 25}px`;
+    if (cooldownSection && onUseHeight > 0) {
+      // Position cooldown section at the center of the on-use section
+      const cooldownHeight = 50; // Height of cooldown section
+      const cooldownTop = onUseCenterY - (cooldownHeight / 2);
+      cooldownSection.style.top = `${cooldownTop}px`;
+      cooldownSection.style.transform = 'none'; // Remove default transform
+      console.log('🎯 Positioned cooldown section at:', cooldownTop, 'px (on-use center:', onUseCenterY, 'px)');
     }
     
     if (ammoSection) {

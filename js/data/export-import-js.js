@@ -416,31 +416,10 @@ class ExportImport {
   static prepareCardForExport(cardElement) {
     const originalStyles = [];
     
-    // Make card wrapper width match card content width
-    const cardWrapper = cardElement.closest('.card-wrapper, .skill-card-wrapper, .profile-card-wrapper');
-    const cardContent = cardElement.querySelector('.card-content, .skill-content');
+    // No card rendering changes needed - only gradient replacement is handled in prepareElementForExport
+    // The card should render exactly as it appears on the page
     
-    if (cardWrapper && cardContent) {
-      originalStyles.push({
-        element: cardWrapper,
-        property: 'width',
-        originalValue: cardWrapper.style.width
-      });
-      originalStyles.push({
-        element: cardWrapper,
-        property: 'maxWidth',
-        originalValue: cardWrapper.style.maxWidth
-      });
-      
-      // Set wrapper width to match content width
-      const contentWidth = cardContent.offsetWidth;
-      cardWrapper.style.width = `${contentWidth}px`;
-      cardWrapper.style.maxWidth = `${contentWidth}px`;
-      
-      console.log('🎨 Set card wrapper width to match content:', contentWidth + 'px');
-    }
-    
-    console.log('🎨 Applied card-specific export styling (matched wrapper width)');
+    console.log('🎨 Applied card-specific export styling (no rendering changes)');
     return originalStyles;
   }
 
@@ -473,44 +452,48 @@ class ExportImport {
     ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     
-    // Calculate position - position below card content, left-aligned
-    let x = 20; // Default left margin
+    // Calculate position - account for canvas scaling
+    let x = 40; // Default left margin (scaled)
     let y;
     
     if (cardElement) {
+      // Get the scale factor from html2canvas (usually 2)
+      const scale = canvas.width / cardElement.offsetWidth;
+      console.log('💧 Canvas scale factor:', scale, 'Canvas size:', canvas.width, 'x', canvas.height, 'Element size:', cardElement.offsetWidth, 'x', cardElement.offsetHeight);
+      
       // For cards, position watermark below the card visual content (image section)
       const cardVisualContent = cardElement.querySelector('.card-visual-content');
       if (cardVisualContent) {
         const visualRect = cardVisualContent.getBoundingClientRect();
         const cardRect = cardElement.getBoundingClientRect();
-        const visualBottom = visualRect.bottom - cardRect.top;
-        const visualLeft = visualRect.left - cardRect.left;
+        const visualBottom = (visualRect.bottom - cardRect.top) * scale;
+        const visualLeft = (visualRect.left - cardRect.left) * scale;
         // Position watermark below the visual content, left-aligned with visual content
-        x = Math.max(visualLeft, 20); // Use visual content left edge or minimum 20px margin
-        y = Math.min(visualBottom + 5, height - 30); // 5px below visual content
-        console.log('💧 Positioning watermark below card visual content at:', { x, y, visualBottom });
+        x = Math.max(visualLeft, 40); // Use visual content left edge or minimum 40px margin (scaled)
+        y = Math.min(visualBottom + 10, height - 60); // 10px below visual content (scaled)
+        console.log('💧 Positioning watermark below card visual content at:', { x, y, visualBottom, scale });
       } else {
         // For skills, try to find skill content
         const skillContent = cardElement.querySelector('.skill-content');
         if (skillContent) {
           const contentRect = skillContent.getBoundingClientRect();
           const cardRect = cardElement.getBoundingClientRect();
-          const contentBottom = contentRect.bottom - cardRect.top;
-          const contentLeft = contentRect.left - cardRect.left;
+          const contentBottom = (contentRect.bottom - cardRect.top) * scale;
+          const contentLeft = (contentRect.left - cardRect.left) * scale;
           // Position watermark below the skill content, left-aligned with content
-          x = Math.max(contentLeft, 20);
-          y = Math.min(contentBottom + 5, height - 30);
-          console.log('💧 Positioning watermark below skill content at:', { x, y, contentBottom });
+          x = Math.max(contentLeft, 40);
+          y = Math.min(contentBottom + 10, height - 60);
+          console.log('💧 Positioning watermark below skill content at:', { x, y, contentBottom, scale });
         } else {
           // Fallback: position below the main card element
-          const cardRect = cardElement.getBoundingClientRect();
-          y = Math.min(cardRect.height + 5, height - 30);
-          console.log('💧 Using fallback watermark position at:', { x, y });
+          const cardHeight = cardElement.offsetHeight * scale;
+          y = Math.min(cardHeight + 10, height - 60);
+          console.log('💧 Using fallback watermark position at:', { x, y, cardHeight, scale });
         }
       }
     } else {
       // Fallback: position near bottom of canvas
-      y = height - 40;
+      y = height - 80;
       console.log('💧 Using canvas bottom fallback watermark position at:', { x, y });
     }
     
@@ -518,7 +501,7 @@ class ExportImport {
     ctx.strokeText(watermarkText, x, y);
     ctx.fillText(watermarkText, x, y);
     
-    console.log('💧 Added watermark to canvas:', watermarkText, 'at position:', y);
+    console.log('💧 Added watermark to canvas:', watermarkText, 'at position:', { x, y });
     return canvas;
   }
 
