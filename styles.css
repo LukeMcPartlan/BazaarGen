@@ -855,6 +855,152 @@ h1 {
   box-sizing: border-box;
 }
 
+/* Profile page comments section styling */
+.profile-card-wrapper .comments-section {
+  background: linear-gradient(135deg, rgba(101, 84, 63, 0.95) 0%, rgba(89, 72, 51, 0.9) 100%);
+  border: 2px solid rgb(218, 165, 32);
+  border-radius: 0 0 12px 12px;
+  padding: 20px;
+  margin-top: -2px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  box-sizing: border-box;
+  transition: width 0.3s ease;
+}
+
+.profile-card-wrapper .comments-section h4 {
+  margin: 0;
+  color: rgb(251, 225, 183);
+  font-size: 18px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.profile-card-wrapper .toggle-comments-btn {
+  background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%) !important;
+  border: 2px solid rgb(37, 26, 12) !important;
+  padding: 6px 14px !important;
+  border-radius: 6px !important;
+  cursor: pointer;
+  font-size: 12px !important;
+  color: rgb(37, 26, 12) !important;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.profile-card-wrapper .toggle-comments-btn:hover {
+  background: linear-gradient(135deg, rgb(255, 215, 0) 0%, rgb(218, 165, 32) 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+}
+
+.profile-card-wrapper .comments-list {
+  max-height: 300px;
+  overflow-y: auto;
+  margin: 15px 0;
+  background: rgba(37, 26, 12, 0.7) !important;
+  border: 2px solid rgba(218, 165, 32, 0.3);
+  border-radius: 8px;
+  padding: 10px;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(218, 165, 32) rgba(37, 26, 12, 0.5);
+}
+
+.profile-card-wrapper .comments-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.profile-card-wrapper .comments-list::-webkit-scrollbar-track {
+  background: rgba(37, 26, 12, 0.5);
+  border-radius: 4px;
+}
+
+.profile-card-wrapper .comments-list::-webkit-scrollbar-thumb {
+  background: rgb(218, 165, 32);
+  border-radius: 4px;
+}
+
+.profile-card-wrapper .comments-list > div:not([style*="text-align: center"]) {
+  padding: 12px !important;
+  border-bottom: 1px solid rgba(218, 165, 32, 0.3) !important;
+  background: linear-gradient(135deg, rgba(74, 60, 46, 0.7) 0%, rgba(89, 72, 51, 0.6) 100%) !important;
+  margin-bottom: 8px !important;
+  border-radius: 6px !important;
+  transition: background 0.3s ease !important;
+  border: 1px solid rgba(218, 165, 32, 0.2) !important;
+}
+
+.profile-card-wrapper .comments-list > div:not([style*="text-align: center"]):hover {
+  background: linear-gradient(135deg, rgba(74, 60, 46, 0.9) 0%, rgba(89, 72, 51, 0.8) 100%) !important;
+  border-color: rgba(218, 165, 32, 0.4) !important;
+}
+
+.profile-card-wrapper .comments-list > div:last-child {
+  border-bottom: none !important;
+  margin-bottom: 0 !important;
+}
+
+.profile-card-wrapper .comments-list strong {
+  color: rgb(251, 225, 183) !important;
+  font-weight: bold;
+}
+
+.profile-card-wrapper .comments-list span {
+  color: rgb(201, 175, 133) !important;
+}
+
+.profile-card-wrapper .comment-form {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+.profile-card-wrapper .comment-form input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 2px solid rgba(218, 165, 32, 0.3);
+  border-radius: 6px;
+  background: rgba(37, 26, 12, 0.8);
+  color: rgb(251, 225, 183);
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.profile-card-wrapper .comment-form input:focus {
+  outline: none;
+  border-color: rgb(218, 165, 32);
+  background: rgba(37, 26, 12, 0.9);
+  box-shadow: 0 0 0 2px rgba(218, 165, 32, 0.2);
+}
+
+.profile-card-wrapper .comment-form input::placeholder {
+  color: rgb(150, 120, 90);
+}
+
+.profile-card-wrapper .comment-form button {
+  padding: 10px 16px;
+  background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%);
+  border: 2px solid rgb(37, 26, 12);
+  border-radius: 6px;
+  color: rgb(37, 26, 12);
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 12px;
+}
+
+.profile-card-wrapper .comment-form button:hover {
+  background: linear-gradient(135deg, rgb(255, 215, 0) 0%, rgb(218, 165, 32) 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.3);
+}
+
 
 
 /* Empty State */

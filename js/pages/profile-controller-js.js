@@ -59,6 +59,19 @@ class ProfileController {
       this.debug('📥 Loading user content...');
       await this.loadAllContent();
 
+      // Retry logic for displaying user alias (after page loads)
+      this.debug('👤 Starting alias display retry logic...');
+      this.retryDisplayUserAlias();
+
+      // Close export menus when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.card-export-btn, .skill-export-btn, .export-menu')) {
+          document.querySelectorAll('.export-menu').forEach(menu => {
+            menu.style.display = 'none';
+          });
+        }
+      });
+
       this.debug('🎉 ProfileController initialization complete');
 
     } catch (error) {
@@ -420,6 +433,13 @@ class ProfileController {
         this.debug('✅ Working upvote button added to card controls');
       }
 
+      // *** ADD EXPORT BUTTON ***
+      const exportButton = this.createItemExportButton(item);
+      if (controlsSection) {
+        controlsSection.appendChild(exportButton);
+        this.debug('✅ Export button added to card controls');
+      }
+
       // Add gallery functionality if this is a saved gallery
       if (item.item_data?.isGallery && item.item_data?.galleryItems) {
         this.debug('🖼️ Adding gallery functionality...');
@@ -669,6 +689,13 @@ class ProfileController {
           if (controlsSection) {
             controlsSection.appendChild(upvoteButton);
             this.debug('✅ Working skill upvote button added to skill controls');
+          }
+
+          // *** ADD EXPORT BUTTON ***
+          const exportButton = this.createSkillExportButton(skill);
+          if (controlsSection) {
+            controlsSection.appendChild(exportButton);
+            this.debug('✅ Export button added to skill controls');
           }
           
           wrapper.appendChild(skillElement);
@@ -1330,6 +1357,276 @@ class ProfileController {
       } else {
         alert(error.message || 'Failed to upvote skill');
       }
+    }
+  }
+
+  /**
+   * Create export button for profile page items (without "Save to Profile" option)
+   */
+  static createItemExportButton(item) {
+    const exportBtn = document.createElement('button');
+    exportBtn.className = 'card-export-btn';
+    exportBtn.innerHTML = '💾';
+    exportBtn.title = 'Export this item';
+    exportBtn.style.cssText = `
+      background: linear-gradient(135deg, rgb(33, 150, 243) 0%, rgb(30, 136, 229) 100%);
+      color: white;
+      border: 2px solid rgb(21, 101, 192);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      position: relative;
+    `;
+
+    exportBtn.onclick = (e) => {
+      e.stopPropagation();
+      this.toggleProfileExportMenu(exportBtn, item);
+    };
+
+    return exportBtn;
+  }
+
+  /**
+   * Create export button for profile page skills (without "Save to Profile" option)
+   */
+  static createSkillExportButton(skill) {
+    const exportBtn = document.createElement('button');
+    exportBtn.className = 'skill-export-btn';
+    exportBtn.innerHTML = '💾';
+    exportBtn.title = 'Export this skill';
+    exportBtn.style.cssText = `
+      background: linear-gradient(135deg, rgb(33, 150, 243) 0%, rgb(30, 136, 229) 100%);
+      color: white;
+      border: 2px solid rgb(21, 101, 192);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      position: relative;
+    `;
+
+    exportBtn.onclick = (e) => {
+      e.stopPropagation();
+      this.toggleProfileExportMenu(exportBtn, skill);
+    };
+
+    return exportBtn;
+  }
+
+  /**
+   * Toggle export menu for profile page (without "Save to Profile" option)
+   */
+  static toggleProfileExportMenu(button, itemData) {
+    this.debug('💾 [DEBUG] toggleProfileExportMenu called', {button, itemData});
+    
+    // Close all other export menus
+    document.querySelectorAll('.export-menu').forEach(menu => {
+      if (menu.parentElement !== button.parentElement) {
+        menu.classList.remove('show');
+        menu.style.display = 'none';
+      }
+    });
+
+    let menu = button.parentElement.querySelector('.export-menu');
+    if (!menu) {
+      menu = document.createElement('div');
+      menu.className = 'export-menu';
+      menu.style.cssText = `
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: linear-gradient(135deg,rgb(87, 72, 38) 0%,rgb(131, 103, 47) 100%);
+        border: 1px solid black;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        z-index: 1000;
+        min-width: 120px;
+        display: block;
+      `;
+      
+      const dataOption = document.createElement('div');
+      dataOption.className = 'export-option';
+      dataOption.textContent = 'Export as Data';
+      dataOption.style.cssText = `
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+        color: white;
+        transition: background 0.3s ease;
+      `;
+      dataOption.onmouseenter = () => {
+        dataOption.style.background = 'rgba(255, 255, 255, 0.1)';
+      };
+      dataOption.onmouseleave = () => {
+        dataOption.style.background = 'transparent';
+      };
+      dataOption.onclick = () => {
+        if (itemData.skill_data) {
+          // This is a skill
+          if (typeof ExportImport !== 'undefined') {
+            ExportImport.exportSingleSkillAsData(itemData.skill_data);
+          }
+        } else {
+          // This is an item
+          if (typeof ExportImport !== 'undefined') {
+            ExportImport.exportSingleCardAsData(itemData.item_data);
+          }
+        }
+        menu.style.display = 'none';
+      };
+      
+      const pngOption = document.createElement('div');
+      pngOption.className = 'export-option';
+      pngOption.textContent = 'Save as PNG';
+      pngOption.style.cssText = `
+        padding: 8px 12px;
+        cursor: pointer;
+        color: white;
+        transition: background 0.3s ease;
+      `;
+      pngOption.onmouseenter = () => {
+        pngOption.style.background = 'rgba(255, 255, 255, 0.1)';
+      };
+      pngOption.onmouseleave = () => {
+        pngOption.style.background = 'transparent';
+      };
+      pngOption.onclick = () => {
+        const element = button.closest('.card, .skill-card');
+        if (itemData.skill_data) {
+          // This is a skill
+          if (typeof ExportImport !== 'undefined') {
+            ExportImport.exportSkillAsPNG(element);
+          }
+        } else {
+          // This is an item
+          if (typeof ExportImport !== 'undefined') {
+            ExportImport.exportCardAsPNG(element);
+          }
+        }
+        menu.style.display = 'none';
+      };
+      
+      menu.appendChild(dataOption);
+      menu.appendChild(pngOption);
+      button.parentElement.appendChild(menu);
+      this.debug('💾 [DEBUG] Profile export menu created');
+    }
+
+    menu.style.display = 'block';
+  }
+
+  /**
+   * Retry logic for displaying user alias (after page loads)
+   */
+  static retryDisplayUserAlias() {
+    this.debug('👤 Starting alias display retry logic...');
+    
+    let attempts = 0;
+    const maxAttempts = 10;
+    const retryInterval = 500; // 500ms between attempts
+    
+    const attemptDisplayAlias = () => {
+      attempts++;
+      this.debug(`👤 Alias display attempt ${attempts}/${maxAttempts}...`);
+      
+      const profileNameEl = document.getElementById('profileName');
+      if (!profileNameEl) {
+        this.debug('❌ Profile name element not found');
+        if (attempts < maxAttempts) {
+          setTimeout(attemptDisplayAlias, retryInterval);
+        }
+        return;
+      }
+      
+      // Try multiple sources for the alias
+      let displayName = null;
+      
+      // 1. Try GoogleAuth userProfile
+      const userProfile = GoogleAuth.getUserProfile();
+      if (userProfile && userProfile.alias && userProfile.alias !== 'User') {
+        displayName = userProfile.alias;
+        this.debug('✅ Found alias from GoogleAuth userProfile:', displayName);
+      }
+      
+      // 2. Try GoogleAuth getUserDisplayName
+      if (!displayName) {
+        const displayNameFromMethod = GoogleAuth.getUserDisplayName();
+        if (displayNameFromMethod && displayNameFromMethod !== 'User') {
+          displayName = displayNameFromMethod;
+          this.debug('✅ Found alias from getUserDisplayName:', displayName);
+        }
+      }
+      
+      // 3. Try to fetch from database if still not found
+      if (!displayName && attempts >= 3) {
+        this.debug('🗄️ Attempting to fetch alias from database...');
+        this.fetchAliasFromDatabase().then(alias => {
+          if (alias && alias !== 'User') {
+            profileNameEl.textContent = alias;
+            this.debug('✅ Alias fetched from database and displayed:', alias);
+          }
+        }).catch(error => {
+          this.debug('❌ Error fetching alias from database:', error);
+        });
+      }
+      
+      // Set the display name if found
+      if (displayName) {
+        profileNameEl.textContent = displayName;
+        this.debug('✅ User alias displayed successfully:', displayName);
+        return;
+      }
+      
+      // Retry if not found and haven't exceeded max attempts
+      if (attempts < maxAttempts) {
+        this.debug(`⏳ Alias not found, retrying in ${retryInterval}ms...`);
+        setTimeout(attemptDisplayAlias, retryInterval);
+      } else {
+        this.debug('❌ Failed to find user alias after maximum attempts');
+        profileNameEl.textContent = 'User';
+      }
+    };
+    
+    // Start the retry process
+    attemptDisplayAlias();
+  }
+
+  /**
+   * Fetch user alias from database
+   */
+  static async fetchAliasFromDatabase() {
+    try {
+      const userEmail = GoogleAuth.getUserEmail();
+      if (!userEmail) {
+        throw new Error('No user email available');
+      }
+      
+      const profile = await SupabaseClient.getUserProfile(userEmail);
+      if (profile && profile.alias) {
+        // Update GoogleAuth userProfile with the database data
+        GoogleAuth.userProfile = profile;
+        return profile.alias;
+      }
+      
+      return null;
+    } catch (error) {
+      this.debug('❌ Error fetching alias from database:', error);
+      return null;
     }
   }
 }

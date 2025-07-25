@@ -400,6 +400,15 @@ class UnifiedBrowsePageController {
       this.updateMainNavigation();
     });
 
+    // Close export menus when clicking outside
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.card-export-btn, .skill-export-btn, .export-menu')) {
+        document.querySelectorAll('.export-menu').forEach(menu => {
+          menu.style.display = 'none';
+        });
+      }
+    });
+
     // Listen for sign out (custom event or check periodically)
     const checkAuthStatus = () => {
       const isSignedIn = GoogleAuth && GoogleAuth.isSignedIn();
@@ -772,6 +781,12 @@ static async createItemCard(item) {
       if (controlsSection) {
         controlsSection.appendChild(upvoteButton);
       }
+
+      // *** ADD EXPORT BUTTON ***
+      const exportButton = this.createItemExportButton(item);
+      if (controlsSection) {
+        controlsSection.appendChild(exportButton);
+      }
     }  else {
       cardElement = this.createFallbackItemCard(cardData);
     }
@@ -944,6 +959,10 @@ static async createItemCard(item) {
       skillElement.appendChild(controlsSection);
     }
     controlsSection.appendChild(upvoteButton);
+
+    // *** ADD EXPORT BUTTON ***
+    const exportButton = this.createSkillExportButton(skill);
+    controlsSection.appendChild(exportButton);
 
     console.log('✅ Skill card created with SkillGenerator');
   } catch (skillGenError) {
@@ -1694,7 +1713,7 @@ static async createItemUpvoteButton(item) {
 }
 
 /**
- * Create upvote button for skills
+ * Create working upvote button for skills (copied from browse page)
  */
 static async createSkillUpvoteButton(skill) {
   const upvoteBtn = document.createElement('button');
@@ -1723,9 +1742,9 @@ static async createSkillUpvoteButton(skill) {
 
   if (GoogleAuth && GoogleAuth.isSignedIn()) {
     try {
-      hasVoted = await SupabaseClient.hasUserVotedSkill(skill.id);
+      hasVoted = await SupabaseClient.hasUserVoted(skill.id);
     } catch (error) {
-      console.warn('Error checking skill vote status:', error);
+      console.warn('Error checking vote status:', error);
     }
   }
 
@@ -1990,6 +2009,176 @@ static async waitForUserProfile() {
       existingProfileTab.remove();
       console.log('👤 Profile tab removed from main navigation');
     }
+  }
+
+  /**
+   * Create export button for browse page items (without "Save to Profile" option)
+   */
+  static createItemExportButton(item) {
+    const exportBtn = document.createElement('button');
+    exportBtn.className = 'card-export-btn';
+    exportBtn.innerHTML = '💾';
+    exportBtn.title = 'Export this item';
+    exportBtn.style.cssText = `
+      background: linear-gradient(135deg, rgb(33, 150, 243) 0%, rgb(30, 136, 229) 100%);
+      color: white;
+      border: 2px solid rgb(21, 101, 192);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      position: relative;
+    `;
+
+    exportBtn.onclick = (e) => {
+      e.stopPropagation();
+      this.toggleBrowseExportMenu(exportBtn, item);
+    };
+
+    return exportBtn;
+  }
+
+  /**
+   * Create export button for browse page skills (without "Save to Profile" option)
+   */
+  static createSkillExportButton(skill) {
+    const exportBtn = document.createElement('button');
+    exportBtn.className = 'skill-export-btn';
+    exportBtn.innerHTML = '💾';
+    exportBtn.title = 'Export this skill';
+    exportBtn.style.cssText = `
+      background: linear-gradient(135deg, rgb(33, 150, 243) 0%, rgb(30, 136, 229) 100%);
+      color: white;
+      border: 2px solid rgb(21, 101, 192);
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      position: relative;
+    `;
+
+    exportBtn.onclick = (e) => {
+      e.stopPropagation();
+      this.toggleBrowseExportMenu(exportBtn, skill);
+    };
+
+    return exportBtn;
+  }
+
+  /**
+   * Toggle export menu for browse page (without "Save to Profile" option)
+   */
+  static toggleBrowseExportMenu(button, itemData) {
+    console.log('💾 [DEBUG] toggleBrowseExportMenu called', {button, itemData});
+    
+    // Close all other export menus
+    document.querySelectorAll('.export-menu').forEach(menu => {
+      if (menu.parentElement !== button.parentElement) {
+        menu.classList.remove('show');
+        menu.style.display = 'none';
+      }
+    });
+
+    let menu = button.parentElement.querySelector('.export-menu');
+    if (!menu) {
+      menu = document.createElement('div');
+      menu.className = 'export-menu';
+      menu.style.cssText = `
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: linear-gradient(135deg,rgb(87, 72, 38) 0%,rgb(131, 103, 47) 100%);
+        border: 1px solid black;
+        border-radius: 4px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        z-index: 1000;
+        min-width: 120px;
+        display: block;
+      `;
+      
+      const dataOption = document.createElement('div');
+      dataOption.className = 'export-option';
+      dataOption.textContent = 'Export as Data';
+      dataOption.style.cssText = `
+        padding: 8px 12px;
+        cursor: pointer;
+        border-bottom: 1px solid #eee;
+        color: white;
+        transition: background 0.3s ease;
+      `;
+      dataOption.onmouseenter = () => {
+        dataOption.style.background = 'rgba(255, 255, 255, 0.1)';
+      };
+      dataOption.onmouseleave = () => {
+        dataOption.style.background = 'transparent';
+      };
+      dataOption.onclick = () => {
+        if (itemData.skill_data) {
+          // This is a skill
+          if (typeof ExportImport !== 'undefined') {
+            ExportImport.exportSingleSkillAsData(itemData.skill_data);
+          }
+        } else {
+          // This is an item
+          if (typeof ExportImport !== 'undefined') {
+            ExportImport.exportSingleCardAsData(itemData.item_data);
+          }
+        }
+        menu.style.display = 'none';
+      };
+      
+      const pngOption = document.createElement('div');
+      pngOption.className = 'export-option';
+      pngOption.textContent = 'Save as PNG';
+      pngOption.style.cssText = `
+        padding: 8px 12px;
+        cursor: pointer;
+        color: white;
+        transition: background 0.3s ease;
+      `;
+      pngOption.onmouseenter = () => {
+        pngOption.style.background = 'rgba(255, 255, 255, 0.1)';
+      };
+      pngOption.onmouseleave = () => {
+        pngOption.style.background = 'transparent';
+      };
+      pngOption.onclick = () => {
+        const element = button.closest('.card, .skill-card');
+        if (itemData.skill_data) {
+          // This is a skill
+          if (typeof ExportImport !== 'undefined') {
+            ExportImport.exportSkillAsPNG(element);
+          }
+        } else {
+          // This is an item
+          if (typeof ExportImport !== 'undefined') {
+            ExportImport.exportCardAsPNG(element);
+          }
+        }
+        menu.style.display = 'none';
+      };
+      
+      menu.appendChild(dataOption);
+      menu.appendChild(pngOption);
+      button.parentElement.appendChild(menu);
+      console.log('💾 [DEBUG] Browse export menu created');
+    }
+
+    menu.style.display = 'block';
   }
 }
 
