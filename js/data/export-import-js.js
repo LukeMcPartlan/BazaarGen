@@ -337,10 +337,29 @@ class ExportImport {
         property: 'position',
         originalValue: imageContainer.style.position
       });
-      imageContainer.style.position = 'relative';
-      imageContainer.style.display = 'flex';
-      imageContainer.style.alignItems = 'center';
-      imageContainer.style.justifyContent = 'center';
+      originalStyles.push({
+        element: imageContainer,
+        property: 'display',
+        originalValue: imageContainer.style.display
+      });
+      originalStyles.push({
+        element: imageContainer,
+        property: 'alignItems',
+        originalValue: imageContainer.style.alignItems
+      });
+      originalStyles.push({
+        element: imageContainer,
+        property: 'justifyContent',
+        originalValue: imageContainer.style.justifyContent
+      });
+      
+      // Set positioning context with !important
+      imageContainer.style.setProperty('position', 'relative', 'important');
+      imageContainer.style.setProperty('display', 'flex', 'important');
+      imageContainer.style.setProperty('align-items', 'center', 'important');
+      imageContainer.style.setProperty('justify-content', 'center', 'important');
+      
+      console.log('🎨 Applied skill image container positioning context for export');
     }
     
     // Fix border overlay positioning to ensure it's centered on the image
@@ -393,20 +412,20 @@ class ExportImport {
         originalValue: borderOverlay.style.zIndex
       });
       
-      // Set explicit positioning for the border overlay
-      borderOverlay.style.position = 'absolute';
-      borderOverlay.style.top = '50%';
-      borderOverlay.style.left = '50%';
-      borderOverlay.style.width = '113px';
-      borderOverlay.style.height = '113px';
-      borderOverlay.style.transform = 'translate(-50%, -50%)';
-      borderOverlay.style.objectFit = 'cover';
-      borderOverlay.style.pointerEvents = 'none';
-      borderOverlay.style.zIndex = '999';
-      borderOverlay.style.borderRadius = '50%';
-      borderOverlay.style.overflow = 'visible';
+      // Set explicit positioning for the border overlay with !important to override CSS
+      borderOverlay.style.setProperty('position', 'absolute', 'important');
+      borderOverlay.style.setProperty('top', '50%', 'important');
+      borderOverlay.style.setProperty('left', '50%', 'important');
+      borderOverlay.style.setProperty('width', '113px', 'important');
+      borderOverlay.style.setProperty('height', '113px', 'important');
+      borderOverlay.style.setProperty('transform', 'translate(-50%, -50%)', 'important');
+      borderOverlay.style.setProperty('object-fit', 'cover', 'important');
+      borderOverlay.style.setProperty('pointer-events', 'none', 'important');
+      borderOverlay.style.setProperty('z-index', '999', 'important');
+      borderOverlay.style.setProperty('border-radius', '50%', 'important');
+      borderOverlay.style.setProperty('overflow', 'visible', 'important');
       
-      console.log('🎨 Applied skill border overlay positioning for export');
+      console.log('🎨 Applied skill border overlay positioning for export with !important');
     }
     
     // Ensure skill content has proper width (capped at 500px)

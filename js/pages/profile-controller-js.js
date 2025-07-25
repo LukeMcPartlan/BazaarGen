@@ -813,25 +813,37 @@ class ProfileController {
         const skillElement = SkillGenerator.createSkill({
           data: skill.skill_data,
           mode: 'browser',
-          includeControls: true,
+          includeControls: false, // Don't include default controls
           skipValidation: true // Skip validation for skills loaded from database
         });
         
         if (skillElement) {
+          // Create custom controls section
+          const controlsSection = document.createElement('div');
+          controlsSection.className = 'skill-controls';
+          controlsSection.style.cssText = `
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            margin-top: 10px;
+          `;
+
           // *** ADD WORKING UPVOTE BUTTON ***
           const upvoteButton = await this.createSkillUpvoteButton(skill);
-          const controlsSection = skillElement.querySelector('.skill-controls');
-          if (controlsSection) {
-            controlsSection.appendChild(upvoteButton);
-            this.debug('✅ Working skill upvote button added to skill controls');
-          }
+          controlsSection.appendChild(upvoteButton);
+          this.debug('✅ Working skill upvote button added to skill controls');
 
           // *** ADD EXPORT BUTTON ***
           const exportButton = this.createSkillExportButton(skill);
-          if (controlsSection) {
-            controlsSection.appendChild(exportButton);
-            this.debug('✅ Export button added to skill controls');
-          }
+          controlsSection.appendChild(exportButton);
+          this.debug('✅ Export button added to skill controls');
+          
+          // Add controls section to skill element
+          skillElement.appendChild(controlsSection);
           
           wrapper.appendChild(skillElement);
           this.debug('✅ Skill element created and added');

@@ -742,7 +742,7 @@ h1 {
 .profile-card-wrapper {
   flex: 0 0 auto; /* Don't grow or shrink, stay natural size */
   width: 100%; /* Use full available width */
-  max-width: 500px; /* Limit maximum width to 500px */
+  max-width: 700px; /* Limit maximum width to 700px */
   box-sizing: border-box;
 }
 
