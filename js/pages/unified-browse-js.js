@@ -346,13 +346,19 @@ class UnifiedBrowsePageController {
           🗑️ Clear All
         </button>
         <button id="toggleFilters" class="filter-btn toggle">
-          ⚙️ Hide Filters
+          ⚙️ Show Filters
         </button>
       </div>
     `;
 
     // Show filters by default
-    controlsGrid.style.display = 'grid';
+    controlsGrid.style.display = 'none';
+    
+    // Update toggle button text to "Show Filters" since filters are hidden by default
+    const toggleBtn = document.querySelector('#toggleFilters');
+    if (toggleBtn) {
+      toggleBtn.textContent = '⚙️ Show Filters';
+    }
     
     this.setupEventListeners();
   }
@@ -483,13 +489,19 @@ class UnifiedBrowsePageController {
           🗑️ Clear All
         </button>
         <button id="toggleSkillFilters" class="filter-btn toggle">
-          ⚙️ Hide Filters
+          ⚙️ Show Filters
         </button>
       </div>
     `;
 
     // Show filters by default
-    controlsGrid.style.display = 'grid';
+    controlsGrid.style.display = 'none';
+    
+    // Update toggle button text to "Show Filters" since filters are hidden by default
+    const toggleBtn = document.querySelector('#toggleSkillFilters');
+    if (toggleBtn) {
+      toggleBtn.textContent = '⚙️ Show Filters';
+    }
     
     this.setupEventListeners();
   }
@@ -1308,7 +1320,7 @@ if (skill.skill_data?.skills && Array.isArray(skill.skill_data.skills) && skill.
  */
 static async createSkillCommentsSection(skillId) {
   const commentsContainer = document.createElement('div');
-  commentsContainer.className = 'skill-comments-section';
+  commentsContainer.className = 'comments-section';
   commentsContainer.style.cssText = `
     background: linear-gradient(135deg, rgba(101, 84, 63, 0.95) 0%, rgba(89, 72, 51, 0.9) 100%);
     border: 2px solid rgb(218, 165, 32);
@@ -1322,7 +1334,7 @@ static async createSkillCommentsSection(skillId) {
   const header = document.createElement('div');
   header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;';
   header.innerHTML = `
-    <h4 style="margin: 0; color: rgb(251, 225, 183); font-size: 18px;">⚡ Skill Comments</h4>
+    <h4 style="margin: 0; color: rgb(251, 225, 183); font-size: 18px;">Comments</h4>
     <button class="toggle-comments-btn" style="
       background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%);
       border: 2px solid rgb(37, 26, 12);
@@ -1332,7 +1344,7 @@ static async createSkillCommentsSection(skillId) {
       font-size: 12px;
       color: rgb(37, 26, 12);
       font-weight: bold;
-    ">Show/Hide</button>
+    ">Show</button>
   `;
 
   const commentsList = document.createElement('div');
@@ -1346,10 +1358,12 @@ static async createSkillCommentsSection(skillId) {
     border: 2px solid rgba(218, 165, 32, 0.3);
     border-radius: 8px;
     padding: 10px;
+    display: none;
   `;
 
   const commentForm = document.createElement('div');
   commentForm.className = 'comment-form';
+  commentForm.style.display = 'none';
   
   if (window.GoogleAuth && GoogleAuth.isSignedIn()) {
     commentForm.innerHTML = `
@@ -1502,6 +1516,7 @@ static async addSkillComment(skillId) {
 
     const commentForm = document.createElement('div');
     commentForm.className = 'comment-form';
+    commentForm.style.display = 'none';
     
     if (window.GoogleAuth && GoogleAuth.isSignedIn()) {
       commentForm.innerHTML = `
