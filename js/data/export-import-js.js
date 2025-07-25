@@ -416,32 +416,31 @@ class ExportImport {
   static prepareCardForExport(cardElement) {
     const originalStyles = [];
     
-    // Center only the card visual content (image section) within the card
-    const cardVisualContent = cardElement.querySelector('.card-visual-content');
-    if (cardVisualContent) {
+    // Make card wrapper width match card content width
+    const cardWrapper = cardElement.closest('.card-wrapper, .skill-card-wrapper, .profile-card-wrapper');
+    const cardContent = cardElement.querySelector('.card-content, .skill-content');
+    
+    if (cardWrapper && cardContent) {
       originalStyles.push({
-        element: cardVisualContent,
-        property: 'display',
-        originalValue: cardVisualContent.style.display
+        element: cardWrapper,
+        property: 'width',
+        originalValue: cardWrapper.style.width
       });
       originalStyles.push({
-        element: cardVisualContent,
-        property: 'justifyContent',
-        originalValue: cardVisualContent.style.justifyContent
-      });
-      originalStyles.push({
-        element: cardVisualContent,
-        property: 'alignItems',
-        originalValue: cardVisualContent.style.alignItems
+        element: cardWrapper,
+        property: 'maxWidth',
+        originalValue: cardWrapper.style.maxWidth
       });
       
-      // Center the visual content horizontally
-      cardVisualContent.style.display = 'flex';
-      cardVisualContent.style.justifyContent = 'center';
-      cardVisualContent.style.alignItems = 'center';
+      // Set wrapper width to match content width
+      const contentWidth = cardContent.offsetWidth;
+      cardWrapper.style.width = `${contentWidth}px`;
+      cardWrapper.style.maxWidth = `${contentWidth}px`;
+      
+      console.log('🎨 Set card wrapper width to match content:', contentWidth + 'px');
     }
     
-    console.log('🎨 Applied card-specific export styling (centered visual content)');
+    console.log('🎨 Applied card-specific export styling (matched wrapper width)');
     return originalStyles;
   }
 
