@@ -412,28 +412,69 @@ setTimeout(() => {
      
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="top-nav">
-        <div class="nav-container">
-            <a href="index.html" class="nav-logo">⚔️ BazaarGen</a>
-            <ul class="nav-menu">
-                <li><a href="index.html" class="nav-link">Items</a></li>
-                <li><a href="skills.html" class="nav-link">Skills</a></li>
-                <li><a href="#" class="nav-link active">Browse</a></li>
-                <li><a href="contests.html" class="nav-link">Contests</a></li>
-            </ul>
-            <div class="nav-actions">
-                <!-- Google Sign-In Button (shown when not signed in) -->
-                <div id="google-signin-button"></div>
-
-                <!-- User Info (shown when signed in) -->
-                <div class="user-info" id="user-info" style="display: none;">
-                    <span class="user-alias" id="user-alias" onclick="editAlias()" title="Click to edit alias"></span>
-                    <button class="sign-out-btn" onclick="signOut()">Sign Out</button>
-                </div>
-            </div>
+  <!-- Top Navigation -->
+  <nav class="top-nav">
+    <div class="nav-container">
+      <a href="#" class="nav-logo">BazaarGen</a>
+      
+      <ul class="nav-menu" id="nav-menu">
+        <li class="nav-item">
+          <a href="index.html" class="nav-link" data-page="items">Items</a>
+        </li>
+        <li class="nav-item">
+          <a href="skills.html" class="nav-link" data-page="skills">Skills</a>
+        </li>
+        <li class="nav-item">
+          <a href="#" class="nav-link active" data-page="browse">Browse</a>
+        </li>
+        <li class="nav-item">
+          <a href="profile.html" class="nav-link" data-page="profile">Profile</a>
+        </li>
+      </ul>
+      
+      <!-- Google sign in stuff-->
+      <div class="nav-actions">
+        <!-- Google Sign-In Button (shown when not signed in) -->
+        <div id="google-signin-button"></div>
+    
+        <!-- User Info (shown when signed in) -->
+        <div class="user-info" id="user-info" style="display: none; align-items: center; gap: 10px;">
+            <span class="user-alias" id="user-alias" style="font-weight: 500; color: #333; cursor: pointer;" onclick="editAlias()" title="Click to edit alias"></span>
+            <button class="sign-out-btn" onclick="signOut()" style="background: none; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: #666; font-size: 14px;">Sign Out</button>
         </div>
-    </nav>
+      </div>
+      
+      <!-- Alias Creation Modal -->
+      <div id="alias-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+          <div style="background: white; padding: 30px; border-radius: 8px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+              <h2 id="alias-modal-title" style="margin: 0 0 10px 0; color: #333;">Welcome to BazaarGen!</h2>
+              <p id="alias-modal-description" style="color: #666; margin: 0 0 20px 0;">Choose an alias to display on the site</p>
+              
+              <input type="text" id="alias-input" placeholder="Enter your alias" 
+                     style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 16px; margin-bottom: 10px; box-sizing: border-box;">
+              
+              <div id="alias-error" style="color: #d32f2f; font-size: 14px; margin-bottom: 15px; min-height: 20px;"></div>
+              
+              <div style="display: flex; gap: 10px; justify-content: center;">
+                  <button id="alias-cancel-btn" onclick="cancelAliasCreation()" 
+                          style="padding: 10px 20px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; color: #666;">
+                      Cancel
+                  </button>
+                  <button id="alias-save-btn" onclick="saveAlias()" 
+                          style="padding: 10px 20px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer;">
+                      Save Alias
+                  </button>
+              </div>
+          </div>
+      </div>
+
+      <div class="nav-toggle" id="nav-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+      </div>
+    </div>
+  </nav>
 
     <div class="main-content">
         <!-- Header -->
@@ -532,29 +573,7 @@ setTimeout(() => {
         </div>
     </footer>
 
-    <!-- Alias Creation Modal -->
-    <div id="alias-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 10000; align-items: center; justify-content: center;">
-        <div style="background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(89, 72, 51) 100%); padding: 30px; border-radius: 12px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3); border: 2px solid rgb(218, 165, 32);">
-            <h2 id="alias-modal-title" style="margin: 0 0 10px 0; color: rgb(251, 225, 183); text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">Welcome to BazaarGen!</h2>
-            <p id="alias-modal-description" style="color: rgb(201, 175, 133); margin: 0 0 20px 0;">Choose an alias to display on the site</p>
-            
-            <input type="text" id="alias-input" placeholder="Enter your alias" 
-                   style="width: 100%; padding: 12px; border: 2px solid rgb(218, 165, 32); border-radius: 6px; font-size: 16px; margin-bottom: 10px; box-sizing: border-box; background: rgba(37, 26, 12, 0.8); color: rgb(251, 225, 183);">
-            
-            <div id="alias-error" style="color: #f44336; font-size: 14px; margin-bottom: 15px; min-height: 20px;"></div>
-            
-            <div style="display: flex; gap: 10px; justify-content: center;">
-                <button id="alias-cancel-btn" onclick="cancelAliasCreation()" 
-                        style="padding: 10px 20px; border: 2px solid rgb(218, 165, 32); background: transparent; border-radius: 6px; cursor: pointer; color: rgb(218, 165, 32); font-weight: bold;">
-                    Cancel
-                </button>
-                <button id="alias-save-btn" onclick="saveAlias()" 
-                        style="padding: 10px 20px; border: none; background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%); color: rgb(37, 26, 12); border-radius: 6px; cursor: pointer; font-weight: bold;">
-                    Save Alias
-                </button>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Additional Scripts -->
     <script>
