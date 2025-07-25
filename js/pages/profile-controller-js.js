@@ -53,6 +53,12 @@ class ProfileController {
       this.debug('👤 Displaying user information...');
       this.displayUserInfo();
 
+      // Update user display in navigation bar
+      this.debug('👤 Updating user display in navigation...');
+      if (GoogleAuth && GoogleAuth.updateUserDisplay) {
+        GoogleAuth.updateUserDisplay();
+      }
+
       // Load user's content
       this.debug('📥 Loading user content...');
       await this.loadAllContent();

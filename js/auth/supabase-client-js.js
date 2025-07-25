@@ -180,6 +180,13 @@ class SupabaseClient {
       const userEmail = GoogleAuth.getUserEmail();
       const userProfile = GoogleAuth.getUserProfile();
 
+      this.debug('Saving item with user data:', {
+        userEmail,
+        userProfile,
+        userAlias: userProfile?.alias,
+        itemName: itemData.itemName
+      });
+
       const itemRecord = {
         user_email: userEmail,
         user_alias: userProfile?.alias || 'Unknown',

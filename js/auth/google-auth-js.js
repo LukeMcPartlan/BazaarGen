@@ -655,6 +655,12 @@ static updateUserDisplay() {
    */
   static getUserProfile() {
     this.debug('Getting user profile:', this.userProfile);
+    this.debug('User profile details:', {
+      hasUserProfile: !!this.userProfile,
+      alias: this.userProfile?.alias,
+      email: this.userProfile?.email,
+      currentUser: this.currentUser
+    });
     return this.userProfile;
   }
 

@@ -397,6 +397,13 @@ class UnifiedBrowsePageController {
         const testResult = await SupabaseClient.testConnection();
         if (testResult.success) {
           console.log('✅ Database connected, loading initial content...');
+          
+          // Update user display in navigation bar
+          if (GoogleAuth && GoogleAuth.updateUserDisplay) {
+            console.log('👤 Updating user display in navigation...');
+            GoogleAuth.updateUserDisplay();
+          }
+          
           if (this.activeTab === 'items') {
             this.loadItems();
           } else {
