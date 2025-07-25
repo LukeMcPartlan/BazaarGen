@@ -318,95 +318,56 @@ class ExportImport {
   static prepareSkillForExport(skillElement) {
     const originalStyles = [];
     
-    // Set max-width to 500px for the skill card
+    // Center the skill content without changing size or rendering
     const skillCard = skillElement.querySelector('.skill-card') || skillElement;
     if (skillCard) {
+      // Center the skill content horizontally
       originalStyles.push({
         element: skillCard,
-        property: 'maxWidth',
-        originalValue: skillCard.style.maxWidth
-      });
-      skillCard.style.maxWidth = '500px';
-    }
-    
-    // Fix border overlay positioning
-    const borderOverlay = skillElement.querySelector('.skill-border-overlay');
-    if (borderOverlay) {
-      originalStyles.push({
-        element: borderOverlay,
-        property: 'position',
-        originalValue: borderOverlay.style.position
+        property: 'display',
+        originalValue: skillCard.style.display
       });
       originalStyles.push({
-        element: borderOverlay,
-        property: 'top',
-        originalValue: borderOverlay.style.top
+        element: skillCard,
+        property: 'justifyContent',
+        originalValue: skillCard.style.justifyContent
       });
       originalStyles.push({
-        element: borderOverlay,
-        property: 'left',
-        originalValue: borderOverlay.style.left
-      });
-      originalStyles.push({
-        element: borderOverlay,
-        property: 'width',
-        originalValue: borderOverlay.style.width
-      });
-      originalStyles.push({
-        element: borderOverlay,
-        property: 'height',
-        originalValue: borderOverlay.style.height
-      });
-      originalStyles.push({
-        element: borderOverlay,
-        property: 'transform',
-        originalValue: borderOverlay.style.transform
-      });
-      originalStyles.push({
-        element: borderOverlay,
-        property: 'objectFit',
-        originalValue: borderOverlay.style.objectFit
-      });
-      originalStyles.push({
-        element: borderOverlay,
-        property: 'pointerEvents',
-        originalValue: borderOverlay.style.pointerEvents
+        element: skillCard,
+        property: 'alignItems',
+        originalValue: skillCard.style.alignItems
       });
       
-      // Set proper positioning for the border overlay (override CSS !important rules)
-      borderOverlay.style.setProperty('position', 'absolute', 'important');
-      borderOverlay.style.setProperty('top', '0', 'important');
-      borderOverlay.style.setProperty('left', '0', 'important');
-      borderOverlay.style.setProperty('width', '100%', 'important');
-      borderOverlay.style.setProperty('height', '100%', 'important');
-      borderOverlay.style.setProperty('transform', 'none', 'important');
-      borderOverlay.style.setProperty('object-fit', 'cover', 'important');
-      borderOverlay.style.setProperty('pointer-events', 'none', 'important');
+      skillCard.style.display = 'flex';
+      skillCard.style.justifyContent = 'center';
+      skillCard.style.alignItems = 'center';
     }
     
-    // Ensure image container has proper positioning
-    const imageContainer = skillElement.querySelector('.skill-image-container');
-    if (imageContainer) {
-      originalStyles.push({
-        element: imageContainer,
-        property: 'position',
-        originalValue: imageContainer.style.position
-      });
-      imageContainer.style.position = 'relative';
-    }
-    
-    // Ensure skill content has proper width
+    // Center skill content as well
     const skillContent = skillElement.querySelector('.skill-content');
     if (skillContent) {
       originalStyles.push({
         element: skillContent,
-        property: 'maxWidth',
-        originalValue: skillContent.style.maxWidth
+        property: 'display',
+        originalValue: skillContent.style.display
       });
-      skillContent.style.maxWidth = '500px';
+      originalStyles.push({
+        element: skillContent,
+        property: 'justifyContent',
+        originalValue: skillContent.style.justifyContent
+      });
+      originalStyles.push({
+        element: skillContent,
+        property: 'alignItems',
+        originalValue: skillContent.style.alignItems
+      });
+      
+      skillContent.style.display = 'flex';
+      skillContent.style.justifyContent = 'center';
+      skillContent.style.alignItems = 'center';
     }
     
-    console.log('🎨 Applied skill-specific export styling');
+    console.log('🎨 Applied skill-specific export styling (centered content)');
     return originalStyles;
   }
 
@@ -416,38 +377,56 @@ class ExportImport {
   static prepareCardForExport(cardElement) {
     const originalStyles = [];
     
-    // Ensure the card maintains its natural size and content fits properly
+    // Center the card content without changing size or rendering
     const card = cardElement.querySelector('.card') || cardElement;
     if (card) {
-      // Remove any max-width constraints that might cut off content
+      // Center the card content horizontally
       originalStyles.push({
         element: card,
-        property: 'maxWidth',
-        originalValue: card.style.maxWidth
+        property: 'display',
+        originalValue: card.style.display
       });
-      card.style.maxWidth = 'none';
+      originalStyles.push({
+        element: card,
+        property: 'justifyContent',
+        originalValue: card.style.justifyContent
+      });
+      originalStyles.push({
+        element: card,
+        property: 'alignItems',
+        originalValue: card.style.alignItems
+      });
       
-      // Ensure content fits within the card
-      originalStyles.push({
-        element: card,
-        property: 'overflow',
-        originalValue: card.style.overflow
-      });
-      card.style.overflow = 'visible';
+      card.style.display = 'flex';
+      card.style.justifyContent = 'center';
+      card.style.alignItems = 'center';
     }
     
-    // Ensure card content is not constrained
+    // Center card content as well
     const cardContent = cardElement.querySelector('.card-content');
     if (cardContent) {
       originalStyles.push({
         element: cardContent,
-        property: 'maxWidth',
-        originalValue: cardContent.style.maxWidth
+        property: 'display',
+        originalValue: cardContent.style.display
       });
-      cardContent.style.maxWidth = 'none';
+      originalStyles.push({
+        element: cardContent,
+        property: 'justifyContent',
+        originalValue: cardContent.style.justifyContent
+      });
+      originalStyles.push({
+        element: cardContent,
+        property: 'alignItems',
+        originalValue: cardContent.style.alignItems
+      });
+      
+      cardContent.style.display = 'flex';
+      cardContent.style.justifyContent = 'center';
+      cardContent.style.alignItems = 'center';
     }
     
-    console.log('🎨 Applied card-specific export styling (no size constraints)');
+    console.log('🎨 Applied card-specific export styling (centered content)');
     return originalStyles;
   }
 
