@@ -642,7 +642,18 @@ static updateUserDisplay() {
    * Get current user display name
    */
   static getUserDisplayName() {
-    const displayName = this.userProfile?.alias || this.currentUser?.name || this.currentUser?.email || 'User';
+    // Always prioritize the alias from the database
+    let displayName = this.userProfile?.alias;
+    
+    // Only fall back to email username, never to Google account name
+    if (!displayName && this.currentUser?.email) {
+      displayName = this.currentUser.email.split('@')[0];
+    }
+    
+    if (!displayName) {
+      displayName = 'User';
+    }
+    
     this.debug('Getting user display name:', displayName);
     return displayName;
   }

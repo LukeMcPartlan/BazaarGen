@@ -95,10 +95,12 @@ class ProfileController {
     
     const userProfile = GoogleAuth.getUserProfile();
     const userEmail = GoogleAuth.getUserEmail();
+    const displayName = GoogleAuth.getUserDisplayName();
 
     this.debug('User profile data:', {
       userProfile,
       userEmail,
+      displayName,
       alias: userProfile?.alias,
       currentUser: GoogleAuth.currentUser,
       currentUserName: GoogleAuth.currentUser?.name
@@ -111,22 +113,8 @@ class ProfileController {
     });
 
     if (profileNameEl) {
-      // Always use alias or fallback to email username
-      let displayedName = userProfile?.alias;
-      if (!displayedName && userEmail) {
-        displayedName = userEmail.split('@')[0];
-      }
-      if (!displayedName) {
-        displayedName = 'Unknown User';
-      }
-      profileNameEl.textContent = displayedName;
-      this.debug('✅ Profile name set to:', displayedName);
-      this.debug('🔍 Debug info:', {
-        userProfileAlias: userProfile?.alias,
-        userEmail: userEmail,
-        emailUsername: userEmail ? userEmail.split('@')[0] : null,
-        finalDisplayName: displayedName
-      });
+      profileNameEl.textContent = displayName;
+      this.debug('✅ Profile name set to:', displayName);
     } else {
       this.debug('❌ Profile name element not found');
     }
