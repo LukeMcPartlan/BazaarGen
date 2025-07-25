@@ -416,26 +416,15 @@ class ExportImport {
   static prepareCardForExport(cardElement) {
     const originalStyles = [];
     
-    // Set max-width to 500px for the card
-    const card = cardElement.querySelector('.card') || cardElement;
-    if (card) {
+    // Set max-width to 500px for the card wrapper (not content)
+    const cardWrapper = cardElement.closest('.card-wrapper') || cardElement;
+    if (cardWrapper) {
       originalStyles.push({
-        element: card,
+        element: cardWrapper,
         property: 'maxWidth',
-        originalValue: card.style.maxWidth
+        originalValue: cardWrapper.style.maxWidth
       });
-      card.style.maxWidth = '500px';
-    }
-    
-    // Ensure card content has proper width
-    const cardContent = cardElement.querySelector('.card-content');
-    if (cardContent) {
-      originalStyles.push({
-        element: cardContent,
-        property: 'maxWidth',
-        originalValue: cardContent.style.maxWidth
-      });
-      cardContent.style.maxWidth = '500px';
+      cardWrapper.style.maxWidth = '500px';
     }
     
     console.log('🎨 Applied card-specific export styling');
@@ -445,7 +434,7 @@ class ExportImport {
   /**
    * Add watermark to canvas with creator alias
    */
-  static addWatermarkToCanvas(canvas) {
+  static addWatermarkToCanvas(canvas, cardElement = null) {
     const ctx = canvas.getContext('2d');
     const width = canvas.width;
     const height = canvas.height;
@@ -469,17 +458,36 @@ class ExportImport {
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
     ctx.lineWidth = 2;
     ctx.textAlign = 'center';
-    ctx.textBaseline = 'bottom';
+    ctx.textBaseline = 'top';
     
-    // Calculate position (bottom center with padding)
+    // Calculate position - try to position below card content if possible
     const x = width / 2;
-    const y = height - 20;
+    let y;
+    
+    if (cardElement) {
+      // Try to find the card content area to position watermark below it
+      const cardContent = cardElement.querySelector('.card-content, .card-body, .card-main');
+      if (cardContent) {
+        const contentRect = cardContent.getBoundingClientRect();
+        const cardRect = cardElement.getBoundingClientRect();
+        const contentBottom = contentRect.bottom - cardRect.top;
+        // Position watermark below the content with some padding
+        y = Math.min(contentBottom + 20, height - 20);
+      } else {
+        // Fallback: position below the main card element
+        const cardRect = cardElement.getBoundingClientRect();
+        y = Math.min(cardRect.height + 20, height - 20);
+      }
+    } else {
+      // Fallback: position near bottom of canvas
+      y = height - 40;
+    }
     
     // Draw watermark with outline
     ctx.strokeText(watermarkText, x, y);
     ctx.fillText(watermarkText, x, y);
     
-    console.log('💧 Added watermark to canvas:', watermarkText);
+    console.log('💧 Added watermark to canvas:', watermarkText, 'at position:', y);
     return canvas;
   }
 
@@ -700,7 +708,7 @@ class ExportImport {
       console.log('✅ Card canvas created successfully');
       
       // Add watermark to the canvas
-      const watermarkedCanvas = this.addWatermarkToCanvas(canvas);
+      const watermarkedCanvas = this.addWatermarkToCanvas(canvas, cardElement);
       
       // Convert to blob and download
       watermarkedCanvas.toBlob((blob) => {
@@ -831,7 +839,7 @@ class ExportImport {
       console.log('✅ Skill canvas created successfully');
       
       // Add watermark to the canvas
-      const watermarkedCanvas = this.addWatermarkToCanvas(canvas);
+      const watermarkedCanvas = this.addWatermarkToCanvas(canvas, skillElement);
       
       // Convert to blob and download
       watermarkedCanvas.toBlob((blob) => {
