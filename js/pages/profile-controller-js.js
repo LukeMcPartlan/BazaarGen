@@ -388,6 +388,12 @@ class ProfileController {
             if (cardWrapper && gridEl) {
               gridEl.appendChild(cardWrapper);
               this.debug(`✅ Item ${item.id} added to grid`);
+              
+              // Add a small delay between card creations to prevent race conditions
+              // This helps ensure proper rendering, especially for the first card
+              if (i < allItemsToDisplay.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+              }
             } else {
               this.debug(`❌ Failed to create or append item ${item.id}`);
             }
@@ -550,6 +556,9 @@ class ProfileController {
       }
 
       this.debug('✅ Card element created successfully');
+
+      // Small delay to ensure card is fully rendered before adding controls
+      await new Promise(resolve => setTimeout(resolve, 50));
 
       // *** ADD WORKING UPVOTE BUTTON ***
       const upvoteButton = await this.createItemUpvoteButton(item);

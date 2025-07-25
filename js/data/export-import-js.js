@@ -416,18 +416,38 @@ class ExportImport {
   static prepareCardForExport(cardElement) {
     const originalStyles = [];
     
-    // Set max-width to 500px for the card wrapper (not content)
-    const cardWrapper = cardElement.closest('.card-wrapper') || cardElement;
-    if (cardWrapper) {
+    // Ensure the card maintains its natural size and content fits properly
+    const card = cardElement.querySelector('.card') || cardElement;
+    if (card) {
+      // Remove any max-width constraints that might cut off content
       originalStyles.push({
-        element: cardWrapper,
+        element: card,
         property: 'maxWidth',
-        originalValue: cardWrapper.style.maxWidth
+        originalValue: card.style.maxWidth
       });
-      cardWrapper.style.maxWidth = '500px';
+      card.style.maxWidth = 'none';
+      
+      // Ensure content fits within the card
+      originalStyles.push({
+        element: card,
+        property: 'overflow',
+        originalValue: card.style.overflow
+      });
+      card.style.overflow = 'visible';
     }
     
-    console.log('🎨 Applied card-specific export styling');
+    // Ensure card content is not constrained
+    const cardContent = cardElement.querySelector('.card-content');
+    if (cardContent) {
+      originalStyles.push({
+        element: cardContent,
+        property: 'maxWidth',
+        originalValue: cardContent.style.maxWidth
+      });
+      cardContent.style.maxWidth = 'none';
+    }
+    
+    console.log('🎨 Applied card-specific export styling (no size constraints)');
     return originalStyles;
   }
 
