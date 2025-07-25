@@ -40,6 +40,14 @@ class SupabaseClient {
           autoRefreshToken: true,
           persistSession: true,
           detectSessionInUrl: false
+        },
+        global: {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+        db: {
+          schema: 'public'
         }
       });
 
@@ -322,14 +330,61 @@ class SupabaseClient {
         created_at: new Date().toISOString()
       };
 
-      this.debug('Saving item collection with data size:', 
-        JSON.stringify(optimizedItemData).length);
+      const dataSize = JSON.stringify(optimizedItemData).length;
+      this.debug('Saving item collection with data size:', dataSize);
 
-      const { data, error } = await this.supabase
-        .from('items')
-        .insert([itemRecord])
-        .select()
-        .single();
+      // For large galleries, we'll use a more robust approach with multiple retry strategies
+      let data = null;
+      let error = null;
+      
+      // Strategy 1: Try normal insert with select
+      try {
+        this.debug('Attempting gallery save with normal insert...');
+        const result = await this.supabase
+          .from('items')
+          .insert([itemRecord])
+          .select()
+          .single();
+        
+        data = result.data;
+        error = result.error;
+      } catch (e) {
+        error = e;
+      }
+
+      // Strategy 2: If timeout, try insert without select
+      if (error && (error.code === '57014' || error.message.includes('timeout'))) {
+        this.debug('Timeout detected, trying insert without select...');
+        try {
+          const { error: insertError } = await this.supabase
+            .from('items')
+            .insert([itemRecord]);
+            
+          if (insertError) {
+            throw insertError;
+          }
+          
+          // If insert succeeded, fetch the inserted record
+          const { data: fetchedData, error: fetchError } = await this.supabase
+            .from('items')
+            .select('*')
+            .eq('user_email', userEmail)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+            
+          if (fetchError) {
+            throw fetchError;
+          }
+          
+          data = fetchedData;
+          error = null;
+          this.debug('Gallery saved successfully with fallback method');
+        } catch (fallbackError) {
+          error = fallbackError;
+          this.debug('Fallback method also failed:', fallbackError);
+        }
+      }
 
       if (error) throw error;
 
@@ -368,7 +423,7 @@ class SupabaseClient {
         createdBy: itemData.galleryInfo?.createdBy,
         createdAt: itemData.galleryInfo?.createdAt
       },
-      // Keep all gallery items with their images
+      // Keep all gallery items with their images (as before)
       galleryItems: itemData.galleryItems.map(item => ({
         itemName: item.itemName,
         hero: item.hero,
@@ -395,20 +450,11 @@ class SupabaseClient {
     
     this.debug(`Gallery data size: ${sizeInMB.toFixed(2)}MB (${dataSize} bytes)`);
     
-    // Warning thresholds
-    if (sizeInMB > 50) {
-      return { 
-        acceptable: false, 
-        message: `Gallery too large (${sizeInMB.toFixed(1)}MB). Maximum recommended size is 50MB.` 
-      };
-    } else if (sizeInMB > 25) {
-      return { 
-        acceptable: true, 
-        warning: `Large gallery (${sizeInMB.toFixed(1)}MB). This may take longer to save.` 
-      };
-    } else {
-      return { acceptable: true };
-    }
+    // No size limits - allow any size gallery
+    return { 
+      acceptable: true,
+      info: `Gallery size: ${sizeInMB.toFixed(1)}MB`
+    };
   }
 
   /**
