@@ -771,9 +771,9 @@ h1 {
 }
 /* SKILL-SPECIFIC WIDTH FIXES */
 .skill-content {
-  width: 100%;
-  min-width: 300px;
-  max-width: none;
+  width: 400px !important;
+  min-width: 400px;
+  max-width: 400px !important;
   box-sizing: border-box;
 }
 
@@ -833,10 +833,17 @@ h1 {
     box-sizing: border-box;
   }
   
-  .card-content, .skill-content {
+  .card-content {
     width: 100%;
     min-width: auto; /* Remove minimum width on mobile */
     max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .skill-content {
+    width: 400px !important;
+    min-width: 400px;
+    max-width: 400px !important;
     box-sizing: border-box;
   }
 }

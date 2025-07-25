@@ -373,13 +373,13 @@ class ExportImport {
         originalValue: borderOverlay.style.pointerEvents
       });
       
-      // Set proper positioning for the border overlay (override CSS !important rules)
+      // Set proper positioning for the border overlay (maintain correct sizing)
       borderOverlay.style.setProperty('position', 'absolute', 'important');
-      borderOverlay.style.setProperty('top', '0', 'important');
-      borderOverlay.style.setProperty('left', '0', 'important');
-      borderOverlay.style.setProperty('width', '100%', 'important');
-      borderOverlay.style.setProperty('height', '100%', 'important');
-      borderOverlay.style.setProperty('transform', 'none', 'important');
+      borderOverlay.style.setProperty('top', '50%', 'important');
+      borderOverlay.style.setProperty('left', '50%', 'important');
+      borderOverlay.style.setProperty('width', '113px', 'important');
+      borderOverlay.style.setProperty('height', '113px', 'important');
+      borderOverlay.style.setProperty('transform', 'translate(-50%, -50%)', 'important');
       borderOverlay.style.setProperty('object-fit', 'cover', 'important');
       borderOverlay.style.setProperty('pointer-events', 'none', 'important');
     }
@@ -495,26 +495,28 @@ class ExportImport {
     ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
     ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
     ctx.lineWidth = 2;
-    ctx.textAlign = 'center';
+    ctx.textAlign = 'left';
     ctx.textBaseline = 'top';
     
-    // Calculate position - try to position below card content if possible
-    const x = width / 2;
+    // Calculate position - position below card content, left-aligned
+    let x = 20; // Default left margin
     let y;
     
     if (cardElement) {
       // Try to find the card content area to position watermark below it
-      const cardContent = cardElement.querySelector('.card-content, .card-body, .card-main');
+      const cardContent = cardElement.querySelector('.card-content, .skill-content, .card-body, .card-main');
       if (cardContent) {
         const contentRect = cardContent.getBoundingClientRect();
         const cardRect = cardElement.getBoundingClientRect();
         const contentBottom = contentRect.bottom - cardRect.top;
-        // Position watermark below the content with some padding
-        y = Math.min(contentBottom + 20, height - 20);
+        const contentLeft = contentRect.left - cardRect.left;
+        // Position watermark below the content, left-aligned with content
+        x = Math.max(contentLeft, 20); // Use content left edge or minimum 20px margin
+        y = Math.min(contentBottom + 5, height - 30); // 5px below content
       } else {
         // Fallback: position below the main card element
         const cardRect = cardElement.getBoundingClientRect();
-        y = Math.min(cardRect.height + 20, height - 20);
+        y = Math.min(cardRect.height + 5, height - 30);
       }
     } else {
       // Fallback: position near bottom of canvas
