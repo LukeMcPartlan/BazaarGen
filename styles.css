@@ -3368,3 +3368,8 @@ h1 {
 .card-wrapper .card-visual-content {
   position: relative;
 }
+
+/* Items page specific: limit card width to 700px */
+.main-container .card {
+  max-width: 700px;
+}
