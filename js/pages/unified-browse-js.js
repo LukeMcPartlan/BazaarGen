@@ -81,7 +81,30 @@ class UnifiedBrowsePageController {
     tabContainer.appendChild(itemsTab);
     tabContainer.appendChild(skillsTab);
 
+    // Add profile tab only if user is signed in
+    if (GoogleAuth && GoogleAuth.isSignedIn()) {
+      const profileTab = this.createTab('profile', '👤 Profile', false);
+      tabContainer.appendChild(profileTab);
+    }
+
     pageHeader.parentNode.insertBefore(tabContainer, pageHeader.nextSibling);
+  }
+
+  /**
+   * Update tabs when authentication status changes
+   */
+  static updateTabsForAuthStatus() {
+    const pageHeader = document.querySelector('.page-header');
+    if (!pageHeader) return;
+
+    // Remove existing tabs
+    const existingTabs = document.querySelector('.browse-tabs');
+    if (existingTabs) {
+      existingTabs.remove();
+    }
+
+    // Recreate tabs with current auth status
+    this.setupTabSystem();
   }
 
   /**
@@ -165,6 +188,10 @@ class UnifiedBrowsePageController {
       this.loadItems();
     } else if (tabId === 'skills') {
       this.loadSkills();
+    } else if (tabId === 'profile') {
+      // Redirect to profile page
+      console.log('🔄 Redirecting to profile page...');
+      window.location.href = 'profile.html';
     }
   }
 
@@ -365,6 +392,29 @@ class UnifiedBrowsePageController {
         }
       }
     });
+
+    // Listen for authentication status changes
+    document.addEventListener('userSignedIn', () => {
+      console.log('👤 User signed in, updating tabs...');
+      this.updateTabsForAuthStatus();
+    });
+
+    // Listen for sign out (custom event or check periodically)
+    const checkAuthStatus = () => {
+      const isSignedIn = GoogleAuth && GoogleAuth.isSignedIn();
+      const hasProfileTab = document.querySelector('.browse-tab[data-tab="profile"]');
+      
+      if (isSignedIn && !hasProfileTab) {
+        console.log('👤 User signed in but no profile tab, updating tabs...');
+        this.updateTabsForAuthStatus();
+      } else if (!isSignedIn && hasProfileTab) {
+        console.log('👤 User signed out, updating tabs...');
+        this.updateTabsForAuthStatus();
+      }
+    };
+
+    // Check auth status periodically
+    setInterval(checkAuthStatus, 2000);
   }
 
   /**
@@ -397,6 +447,12 @@ class UnifiedBrowsePageController {
         const testResult = await SupabaseClient.testConnection();
         if (testResult.success) {
           console.log('✅ Database connected, loading initial content...');
+          
+          // Wait for user profile to be loaded from database
+          await this.waitForUserProfile();
+          
+          // Update tabs for current auth status
+          this.updateTabsForAuthStatus();
           
           // Update user display in navigation bar
           if (GoogleAuth && GoogleAuth.updateUserDisplay) {
@@ -1834,6 +1890,48 @@ static async handleSkillUpvote(skillId, button) {
     } else {
       alert(error.message || 'Failed to upvote skill');
     }
+  }
+}
+
+/**
+ * Wait for user profile to be loaded from database
+ */
+static async waitForUserProfile() {
+  let attempts = 0;
+  const maxAttempts = 20;
+  
+  while (attempts < maxAttempts) {
+    if (SupabaseClient && SupabaseClient.isReady()) {
+      try {
+        const userEmail = GoogleAuth.getUserEmail();
+        console.log(`🗄️ Fetching user profile from database for: ${userEmail}`);
+        
+        const profile = await SupabaseClient.getUserProfile(userEmail);
+        if (profile && profile.alias) {
+          // Update GoogleAuth userProfile with the database data
+          GoogleAuth.userProfile = profile;
+          console.log(`✅ User profile loaded from database: ${profile.alias}`);
+          return;
+        } else {
+          console.log('⚠️ No profile found in database, using existing profile');
+          break;
+        }
+      } catch (error) {
+        console.log(`❌ Error fetching profile from database: ${error.message}`);
+      }
+    }
+    
+    console.log(`⏳ Waiting for database and user profile (attempt ${attempts + 1}/${maxAttempts})...`);
+    await new Promise(resolve => setTimeout(resolve, 500));
+    attempts++;
+  }
+  
+  // Check if we have a valid profile from GoogleAuth
+  const userProfile = GoogleAuth.getUserProfile();
+  if (userProfile && userProfile.alias && userProfile.alias !== 'User') {
+    console.log(`✅ Using existing user profile: ${userProfile.alias}`);
+  } else {
+    console.log('⚠️ User profile not loaded after maximum attempts, proceeding anyway');
   }
 }
 

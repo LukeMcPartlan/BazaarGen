@@ -76,21 +76,45 @@ class ProfileController {
    */
   static async waitForUserProfile() {
     let attempts = 0;
-    const maxAttempts = 10;
+    const maxAttempts = 20; // Increased attempts to wait longer
     
     while (attempts < maxAttempts) {
-      const userProfile = GoogleAuth.getUserProfile();
-      if (userProfile && userProfile.alias) {
-        this.debug(`✅ User profile loaded on attempt ${attempts + 1}:`, userProfile.alias);
-        return;
+      // First, wait for database to be ready
+      if (SupabaseClient && SupabaseClient.isReady()) {
+        this.debug(`✅ Database ready on attempt ${attempts + 1}`);
+        
+        // Now try to get the user profile from the database
+        try {
+          const userEmail = GoogleAuth.getUserEmail();
+          this.debug(`🗄️ Fetching user profile from database for: ${userEmail}`);
+          
+          const profile = await SupabaseClient.getUserProfile(userEmail);
+          if (profile && profile.alias) {
+            // Update GoogleAuth userProfile with the database data
+            GoogleAuth.userProfile = profile;
+            this.debug(`✅ User profile loaded from database: ${profile.alias}`);
+            return;
+          } else {
+            this.debug('⚠️ No profile found in database, using existing profile');
+            break;
+          }
+        } catch (error) {
+          this.debug(`❌ Error fetching profile from database: ${error.message}`);
+        }
       }
       
-      this.debug(`⏳ Waiting for user profile (attempt ${attempts + 1}/${maxAttempts})...`);
+      this.debug(`⏳ Waiting for database and user profile (attempt ${attempts + 1}/${maxAttempts})...`);
       await new Promise(resolve => setTimeout(resolve, 500));
       attempts++;
     }
     
-    this.debug('⚠️ User profile not loaded after maximum attempts, proceeding anyway');
+    // Check if we have a valid profile from GoogleAuth
+    const userProfile = GoogleAuth.getUserProfile();
+    if (userProfile && userProfile.alias && userProfile.alias !== 'User') {
+      this.debug(`✅ Using existing user profile: ${userProfile.alias}`);
+    } else {
+      this.debug('⚠️ User profile not loaded after maximum attempts, proceeding anyway');
+    }
   }
 
   /**
@@ -727,364 +751,4 @@ class ProfileController {
    * Switch between tabs
    */
   static switchTab(tab) {
-    this.debug(`🔄 Switching to tab: ${tab} (from ${this.currentTab})`);
-    
-    this.currentTab = tab;
-    
-    // Update tab buttons
-    this.debug('🔄 Updating tab button states...');
-    document.querySelectorAll('.tab-button').forEach(btn => {
-      btn.classList.remove('active');
-    });
-    event.target.classList.add('active');
-    
-    // Hide all sections
-    this.debug('🔄 Hiding all content sections...');
-    document.querySelectorAll('.content-section').forEach(section => {
-      section.classList.remove('active');
-    });
-    
-    // Show selected section
-    this.debug(`🔄 Showing ${tab} section...`);
-    switch(tab) {
-      case 'cards':
-        document.getElementById('cardsSection').classList.add('active');
-        this.debug('✅ Cards section activated');
-        break;
-      case 'skills':
-        document.getElementById('skillsSection').classList.add('active');
-        this.debug('✅ Skills section activated');
-        break;
-      default:
-        this.debug(`❌ Unknown tab: ${tab}`);
-    }
-  }
-
-  /**
-   * Update statistics
-   */
-  static updateStatistics() {
-    this.debug('📊 Updating statistics...');
-    
-    const stats = {
-      cards: this.userItems.length + this.userGalleries.length, // Include galleries in card count
-      skills: this.userSkills.length
-    };
-    
-    this.debug('📊 Stats calculated:', stats);
-    
-    // Update DOM elements
-    const totalCardsEl = document.getElementById('totalCards');
-    const totalSkillsEl = document.getElementById('totalSkills');
-    
-    if (totalCardsEl) {
-      totalCardsEl.textContent = stats.cards;
-      this.debug('✅ Cards count updated:', stats.cards);
-    } else {
-      this.debug('❌ Total cards element not found');
-    }
-    
-    if (totalSkillsEl) {
-      totalSkillsEl.textContent = stats.skills;
-      this.debug('✅ Skills count updated:', stats.skills);
-    } else {
-      this.debug('❌ Total skills element not found');
-    }
-    
-    this.debug('✅ Statistics update complete');
-  }
-
-  /**
-   * Create comments section for an item (same as browse page)
-   */
-  static async createCommentsSection(itemId) {
-    const commentsContainer = document.createElement('div');
-    commentsContainer.className = 'comments-section';
-    commentsContainer.style.cssText = `
-      background: linear-gradient(135deg, rgba(101, 84, 63, 0.95) 0%, rgba(89, 72, 51, 0.9) 100%);
-      border: 2px solid rgb(218, 165, 32);
-      border-radius: 0 0 12px 12px;
-      padding: 20px;
-      margin-top: -2px;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-      min-width: 450px;
-      transition: width 0.3s ease;
-    `;
-
-    // Comments header
-    const header = document.createElement('div');
-    header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;';
-    header.innerHTML = `
-      <h4 style="margin: 0; color: rgb(251, 225, 183); font-size: 18px; text-transform: uppercase; letter-spacing: 1px; text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);">Comments</h4>
-      <button class="toggle-comments-btn" style="
-        background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%) !important;
-        border: 2px solid rgb(37, 26, 12) !important;
-        padding: 6px 14px !important;
-        border-radius: 6px !important;
-        cursor: pointer;
-        font-size: 12px !important;
-        color: rgb(37, 26, 12) !important;
-        font-weight: bold;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-      ">Show</button>
-    `;
-
-    // Comments list
-    const commentsList = document.createElement('div');
-    commentsList.className = 'comments-list';
-    commentsList.id = `comments-${itemId}`;
-    commentsList.style.cssText = `
-      max-height: 300px; 
-      overflow-y: auto; 
-      margin: 15px 0;
-      background: rgba(37, 26, 12, 0.7) !important;
-      border: 2px solid rgba(218, 165, 32, 0.3);
-      border-radius: 8px;
-      padding: 10px;
-      scrollbar-width: thin;
-      scrollbar-color: rgb(218, 165, 32) rgba(37, 26, 12, 0.5);
-      display: none;
-    `;
-
-    // Add comment form
-    const commentForm = document.createElement('div');
-    commentForm.className = 'comment-form';
-    commentForm.style.display = 'none';
-    
-    if (window.GoogleAuth && GoogleAuth.isSignedIn()) {
-      commentForm.innerHTML = `
-        <div style="display: flex; gap: 10px; margin-top: 10px; border-top: 2px solid rgb(218, 165, 32); padding-top: 15px;">
-          <input type="text" 
-                 id="comment-input-${itemId}" 
-                 placeholder="Add a comment..." 
-                 style="flex: 1; padding: 10px 15px !important; border: 2px solid rgb(218, 165, 32) !important; border-radius: 6px !important; background-color: rgba(37, 26, 12, 0.8) !important; color: rgb(251, 225, 183) !important; font-size: 14px !important; transition: all 0.3s ease; box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);">
-          <button onclick="ProfileController.addComment('${itemId}')" 
-                  style="padding: 10px 20px !important; background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%) !important; color: rgb(37, 26, 12) !important; border: 2px solid rgb(37, 26, 12) !important; border-radius: 6px !important; cursor: pointer; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.3s ease; font-size: 14px !important; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);">
-            Post
-          </button>
-        </div>
-      `;
-    } else {
-      commentForm.innerHTML = `
-        <div style="text-align: center !important; padding: 20px !important; color: rgb(251, 225, 183) !important; font-style: italic !important; background: linear-gradient(135deg, rgba(74, 60, 46, 0.5) 0%, rgba(89, 72, 51, 0.4) 100%) !important; border-radius: 8px !important; border: 2px dashed rgba(218, 165, 32, 0.5) !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important; border-top: 2px solid rgb(218, 165, 32); margin-top: 15px;">
-          Sign in to comment
-        </div>
-      `;
-    }
-
-    // Load comments
-    await this.loadComments(itemId, commentsList);
-
-    // Toggle functionality
-    const toggleBtn = header.querySelector('.toggle-comments-btn');
-    toggleBtn.addEventListener('click', () => {
-      const isHidden = commentsList.style.display === 'none';
-      commentsList.style.display = isHidden ? 'block' : 'none';
-      commentForm.style.display = isHidden ? 'block' : 'none';
-      toggleBtn.textContent = isHidden ? 'Hide' : 'Show';
-    });
-
-    commentsContainer.appendChild(header);
-    commentsContainer.appendChild(commentsList);
-    commentsContainer.appendChild(commentForm);
-
-    return commentsContainer;
-  }
-
-  /**
-   * Load comments for an item (same as browse page)
-   */
-  static async loadComments(itemId, container) {
-    try {
-      const comments = await SupabaseClient.getComments(itemId);
-      
-      if (comments.length === 0) {
-        container.innerHTML = '<div style="padding: 30px !important; text-align: center !important; color: rgb(201, 175, 133) !important; font-style: italic !important; background: rgba(37, 26, 12, 0.3) !important; border: 2px dashed rgba(218, 165, 32, 0.3) !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important;">No comments yet</div>';
-        return;
-      }
-
-      container.innerHTML = comments.map(comment => `
-        <div style="padding: 12px !important; border-bottom: 1px solid rgba(218, 165, 32, 0.3) !important; background: linear-gradient(135deg, rgba(74, 60, 46, 0.7) 0%, rgba(89, 72, 51, 0.6) 100%) !important; margin-bottom: 8px !important; border-radius: 6px !important; transition: background 0.3s ease !important; border: 1px solid rgba(218, 165, 32, 0.2) !important;">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-            <strong style="color: rgb(251, 225, 183) !important; font-size: 14px !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important;">${comment.user_alias}</strong>
-            <span style="color: rgb(218, 165, 32) !important; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5) !important; font-size: 12px;">
-              ${new Date(comment.created_at).toLocaleDateString()}
-            </span>
-          </div>
-          <div style="color: rgb(251, 225, 183) !important; font-size: 14px !important; line-height: 1.5 !important; margin-top: 5px !important;">${comment.content}</div>
-        </div>
-      `).join('');
-    } catch (error) {
-      console.error('Error loading comments:', error);
-      container.innerHTML = '<div style="padding: 10px; color: #d32f2f;">Error loading comments</div>';
-    }
-  }
-
-  /**
-   * Add a comment to an item (same as browse page)
-   */
-  static async addComment(itemId) {
-    const input = document.getElementById(`comment-input-${itemId}`);
-    const commentText = input.value.trim();
-    
-    if (!commentText) {
-      Messages.showError('Please enter a comment');
-      return;
-    }
-
-    try {
-      await SupabaseClient.addComment(itemId, commentText);
-      
-      // Clear input
-      input.value = '';
-      
-      // Reload comments
-      const container = document.getElementById(`comments-${itemId}`);
-      await this.loadComments(itemId, container);
-      
-      Messages.showSuccess('Comment added!');
-    } catch (error) {
-      console.error('Error adding comment:', error);
-      Messages.showError('Failed to add comment');
-    }
-  }
-  static async deleteItem(itemId, type, itemName) {
-    const confirmed = confirm(`Are you sure you want to delete "${itemName}"?\n\nThis action cannot be undone and will permanently remove this ${type} from the database.`);
-    
-    if (!confirmed) return;
-
-    // Find the card wrapper that contains this item
-    const cardWrapper = document.querySelector(`[data-item-id="${itemId}"]`);
-    
-    // Show loading state
-    const deleteButton = cardWrapper ? cardWrapper.querySelector('.profile-delete-btn') : null;
-    if (deleteButton) {
-      deleteButton.disabled = true;
-      deleteButton.innerHTML = '⏳ Deleting...';
-      deleteButton.style.opacity = '0.6';
-    }
-    
-    // Add visual feedback to the card
-    if (cardWrapper) {
-      cardWrapper.style.opacity = '0.6';
-      cardWrapper.style.pointerEvents = 'none';
-    }
-    
-    try {
-      console.log(`🗑️ Attempting to delete ${type} with ID: ${itemId}, Name: "${itemName}"`);
-      Messages.showInfo(`Deleting ${type}...`);
-      
-      let result;
-      if (type === 'skill') {
-        result = await SupabaseClient.deleteSkill(itemId);
-      } else {
-        result = await SupabaseClient.deleteItem(itemId);
-      }
-      
-      console.log(`🗑️ Delete result:`, result);
-      
-      // Check for successful deletion
-      // In Supabase, success is indicated by error: null
-      if (result && (result.error === null || result.success === true)) {
-        Messages.showSuccess(`${type.charAt(0).toUpperCase() + type.slice(1)} deleted successfully`);
-        
-        // Remove the item from our local arrays
-        if (type === 'skill') {
-          this.userSkills = this.userSkills.filter(skill => skill.id !== itemId);
-        } else {
-          // Remove from both userItems and userGalleries arrays
-          this.userItems = this.userItems.filter(item => item.id !== itemId);
-          this.userGalleries = this.userGalleries.filter(gallery => gallery.id !== itemId);
-        }
-        
-        // Remove the card wrapper from the DOM with animation
-        if (cardWrapper) {
-          cardWrapper.style.transition = 'all 0.3s ease';
-          cardWrapper.style.opacity = '0';
-          cardWrapper.style.transform = 'scale(0.8)';
-          
-          setTimeout(() => {
-            if (cardWrapper.parentNode) {
-              cardWrapper.remove();
-            }
-          }, 300);
-        }
-        
-        // Update statistics
-        this.updateStatistics();
-        
-        console.log(`✅ ${type} deleted successfully from database, removing from UI...`);
-        
-        // Remove the card wrapper from the DOM with animation
-        if (cardWrapper) {
-          cardWrapper.style.transition = 'all 0.3s ease';
-          cardWrapper.style.opacity = '0';
-          cardWrapper.style.transform = 'scale(0.8)';
-          
-          setTimeout(() => {
-            if (cardWrapper.parentNode) {
-              cardWrapper.remove();
-              console.log(`🎯 Card wrapper removed from DOM for ${type} ID: ${itemId}`);
-            }
-          }, 300);
-        } else {
-          console.warn(`⚠️ Could not find card wrapper for ${type} ID: ${itemId}`);
-        }
-        
-      } else {
-        // Handle deletion failure
-        const errorMessage = result?.error?.message || result?.error || 'Delete operation failed';
-        throw new Error(errorMessage);
-      }
-      
-    } catch (error) {
-      console.error('Error deleting item:', error);
-      Messages.showError(`Failed to delete ${type}: ` + error.message);
-      
-      // Re-enable button and restore card on error
-      if (deleteButton) {
-        deleteButton.disabled = false;
-        deleteButton.innerHTML = '🗑️ Delete';
-        deleteButton.style.opacity = '1';
-      }
-      
-      if (cardWrapper) {
-        cardWrapper.style.opacity = '1';
-        cardWrapper.style.pointerEvents = 'auto';
-      }
-    }
-  }
-}
-
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', async () => {
-  // Wait for auth to be ready
-  let authCheckCount = 0;
-  const checkAuth = setInterval(() => {
-    authCheckCount++;
-    
-    if (typeof GoogleAuth !== 'undefined' && GoogleAuth.isInitialized) {
-      clearInterval(checkAuth);
-      
-      if (GoogleAuth.isSignedIn()) {
-        ProfileController.init();
-      } else {
-        console.log('User not signed in, redirecting...');
-        window.location.href = 'index.html';
-      }
-    }
-    
-    // Timeout after 5 seconds
-    if (authCheckCount > 50) {
-      clearInterval(checkAuth);
-      console.error('Auth system failed to initialize');
-      alert('Authentication system failed to load. Please refresh the page.');
-    }
-  }, 100);
-});
-
-// Make available globally
-window.ProfileController = ProfileController;
+    this.debug(`
