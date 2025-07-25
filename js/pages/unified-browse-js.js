@@ -850,19 +850,24 @@ static async createItemCard(item) {
       min-width: 450px;
     `;
 
-    const creatorAlias = item.user_alias || 'Unknown Creator';
+    const creatorAlias = item.user_alias || 'Unknown User';
     const createdDate = new Date(item.created_at).toLocaleDateString('en-US', {
-      year: 'numeric',
       month: 'short',
-      day: 'numeric'
+      day: 'numeric',
+      year: 'numeric'
     });
 
+    // Create clickable user link
+    const userLink = this.createUserLink(creatorAlias);
+    
     creatorInfo.innerHTML = `
-      <span style="font-weight: 600; color: rgb(251, 225, 183);">
-        <span style="color: rgb(218, 165, 32);">Created by:</span> ${creatorAlias}
-      </span>
-      <span style="color: rgb(201, 175, 133); font-size: 12px;">${createdDate}</span>
+      <span>Created by </span>
+      <span>${createdDate}</span>
     `;
+    
+    // Insert the clickable link
+    const createdBySpan = creatorInfo.querySelector('span');
+    createdBySpan.appendChild(userLink);
 
     // Create the card
     const cardData = item.item_data;
@@ -1001,12 +1006,24 @@ static async createItemCard(item) {
         min-width: 450px;
       `;
 
-      const creatorAlias = skill.user_alias || 'Unknown Creator';
+      const creatorAlias = skill.user_alias || 'Unknown User';
       const createdDate = new Date(skill.created_at).toLocaleDateString('en-US', {
-        year: 'numeric',
         month: 'short',
-        day: 'numeric'
+        day: 'numeric',
+        year: 'numeric'
       });
+
+      // Create clickable user link
+      const userLink = this.createUserLink(creatorAlias);
+      
+      creatorInfo.innerHTML = `
+        <span>Created by </span>
+        <span>${createdDate}</span>
+      `;
+      
+      // Insert the clickable link
+      const createdBySpan = creatorInfo.querySelector('span');
+      createdBySpan.appendChild(userLink);
 
       const skillEffect = skill.skill_data.skillEffect || '';
       const rarityColor = this.getRarityColor(skill.skill_data.border || 'gold');
@@ -2690,6 +2707,57 @@ static async addSkillComment(skillId) {
       'legendary': 5
     };
     return rarityValues[rarity] || 0;
+  }
+
+  /**
+   * Create a clickable user link
+   */
+  static createUserLink(userAlias, displayText = null) {
+    const link = document.createElement('a');
+    link.href = `profile.html?user=${encodeURIComponent(userAlias)}`;
+    link.textContent = displayText || userAlias;
+    link.style.cssText = `
+      color: rgb(218, 165, 32);
+      text-decoration: none;
+      font-weight: bold;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    `;
+    
+    link.addEventListener('mouseenter', () => {
+      link.style.color = 'rgb(251, 225, 183)';
+    });
+    
+    link.addEventListener('mouseleave', () => {
+      link.style.color = 'rgb(218, 165, 32)';
+    });
+    
+    return link;
+  }
+
+  /**
+   * Make all user aliases clickable on the page
+   */
+  static makeUserAliasesClickable() {
+    // Find all elements that contain user aliases
+    const elements = document.querySelectorAll('.creator-info, .user-alias, [data-user-alias]');
+    
+    elements.forEach(element => {
+      const text = element.textContent;
+      const userAliasMatch = text.match(/Created by ([^,\n]+)/);
+      
+      if (userAliasMatch) {
+        const userAlias = userAliasMatch[1].trim();
+        const beforeText = text.substring(0, text.indexOf('Created by'));
+        const afterText = text.substring(text.indexOf('Created by') + 'Created by '.length + userAlias.length);
+        
+        element.innerHTML = '';
+        if (beforeText) element.appendChild(document.createTextNode(beforeText));
+        element.appendChild(document.createTextNode('Created by '));
+        element.appendChild(this.createUserLink(userAlias));
+        if (afterText) element.appendChild(document.createTextNode(afterText));
+      }
+    });
   }
 }
 

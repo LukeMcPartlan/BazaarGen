@@ -1532,15 +1532,7 @@ static async getSkillUpvoteCount(skillId) {
 
       const { data, error } = await this.supabase
         .from('items')
-        .select(`
-          id,
-          user_email,
-          user_alias,
-          item_data,
-          created_at,
-          contest,
-          upvotes
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -1570,14 +1562,7 @@ static async getSkillUpvoteCount(skillId) {
 
       const { data, error } = await this.supabase
         .from('skills')
-        .select(`
-          id,
-          user_email,
-          user_alias,
-          skill_data,
-          created_at,
-          upvotes
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -1591,6 +1576,100 @@ static async getSkillUpvoteCount(skillId) {
       this.debug('Failed to load all skills:', error);
       console.error('Error loading all skills:', error);
       return [];
+    }
+  }
+
+  /**
+   * Get user items by alias (for viewing other users' profiles)
+   */
+  static async getUserItemsByAlias(userAlias) {
+    try {
+      if (!this.isReady()) {
+        throw new Error('Supabase not initialized');
+      }
+
+      this.debug(`Loading items for user alias: ${userAlias}`);
+
+      const { data, error } = await this.supabase
+        .from('items')
+        .select('*')
+        .eq('user_alias', userAlias)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        this.debug('Error loading user items by alias:', error);
+        throw error;
+      }
+
+      this.debug(`Loaded ${data?.length || 0} items for user: ${userAlias}`);
+      return data || [];
+    } catch (error) {
+      this.debug('Failed to load user items by alias:', error);
+      console.error('Error loading user items by alias:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get user skills by alias (for viewing other users' profiles)
+   */
+  static async getUserSkillsByAlias(userAlias) {
+    try {
+      if (!this.isReady()) {
+        throw new Error('Supabase not initialized');
+      }
+
+      this.debug(`Loading skills for user alias: ${userAlias}`);
+
+      const { data, error } = await this.supabase
+        .from('skills')
+        .select('*')
+        .eq('user_alias', userAlias)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        this.debug('Error loading user skills by alias:', error);
+        throw error;
+      }
+
+      this.debug(`Loaded ${data?.length || 0} skills for user: ${userAlias}`);
+      return data || [];
+    } catch (error) {
+      this.debug('Failed to load user skills by alias:', error);
+      console.error('Error loading user skills by alias:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Check if a user exists by alias
+   */
+  static async userExistsByAlias(userAlias) {
+    try {
+      if (!this.isReady()) {
+        throw new Error('Supabase not initialized');
+      }
+
+      this.debug(`Checking if user exists: ${userAlias}`);
+
+      const { data, error } = await this.supabase
+        .from('users')
+        .select('id, alias')
+        .eq('alias', userAlias)
+        .single();
+
+      if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
+        this.debug('Error checking user existence:', error);
+        throw error;
+      }
+
+      const exists = !!data;
+      this.debug(`User ${userAlias} exists:`, exists);
+      return exists;
+    } catch (error) {
+      this.debug('Failed to check user existence:', error);
+      console.error('Error checking user existence:', error);
+      return false;
     }
   }
 }
