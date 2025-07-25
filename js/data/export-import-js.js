@@ -329,9 +329,10 @@ class ExportImport {
       skillCard.style.maxWidth = '500px';
     }
     
-    // Ensure skill image container has proper positioning context
+    // BULLETPROOF: Force skill image container positioning context
     const imageContainer = skillElement.querySelector('.skill-image-container');
     if (imageContainer) {
+      // Store all original styles
       originalStyles.push({
         element: imageContainer,
         property: 'position',
@@ -352,17 +353,37 @@ class ExportImport {
         property: 'justifyContent',
         originalValue: imageContainer.style.justifyContent
       });
+      originalStyles.push({
+        element: imageContainer,
+        property: 'width',
+        originalValue: imageContainer.style.width
+      });
+      originalStyles.push({
+        element: imageContainer,
+        property: 'height',
+        originalValue: imageContainer.style.height
+      });
       
-      // Set positioning context with !important
+      // Force positioning context with multiple approaches
       imageContainer.style.setProperty('position', 'relative', 'important');
       imageContainer.style.setProperty('display', 'flex', 'important');
       imageContainer.style.setProperty('align-items', 'center', 'important');
       imageContainer.style.setProperty('justify-content', 'center', 'important');
+      imageContainer.style.setProperty('width', '75px', 'important');
+      imageContainer.style.setProperty('height', '75px', 'important');
       
-      console.log('🎨 Applied skill image container positioning context for export');
+      // Also set inline styles as backup
+      imageContainer.style.position = 'relative';
+      imageContainer.style.display = 'flex';
+      imageContainer.style.alignItems = 'center';
+      imageContainer.style.justifyContent = 'center';
+      imageContainer.style.width = '75px';
+      imageContainer.style.height = '75px';
+      
+      console.log('🎨 Applied bulletproof skill image container positioning context for export');
     }
     
-    // Fix border overlay positioning to ensure it's centered on the image
+    // BULLETPROOF: Force border overlay positioning with multiple approaches
     const borderOverlay = skillElement.querySelector('.skill-border-overlay');
     if (borderOverlay) {
       // Store all original styles
@@ -411,8 +432,18 @@ class ExportImport {
         property: 'zIndex',
         originalValue: borderOverlay.style.zIndex
       });
+      originalStyles.push({
+        element: borderOverlay,
+        property: 'borderRadius',
+        originalValue: borderOverlay.style.borderRadius
+      });
+      originalStyles.push({
+        element: borderOverlay,
+        property: 'overflow',
+        originalValue: borderOverlay.style.overflow
+      });
       
-      // Set explicit positioning for the border overlay with !important to override CSS
+      // APPROACH 1: setProperty with !important
       borderOverlay.style.setProperty('position', 'absolute', 'important');
       borderOverlay.style.setProperty('top', '50%', 'important');
       borderOverlay.style.setProperty('left', '50%', 'important');
@@ -425,7 +456,24 @@ class ExportImport {
       borderOverlay.style.setProperty('border-radius', '50%', 'important');
       borderOverlay.style.setProperty('overflow', 'visible', 'important');
       
-      console.log('🎨 Applied skill border overlay positioning for export with !important');
+      // APPROACH 2: Direct inline styles as backup
+      borderOverlay.style.position = 'absolute';
+      borderOverlay.style.top = '50%';
+      borderOverlay.style.left = '50%';
+      borderOverlay.style.width = '113px';
+      borderOverlay.style.height = '113px';
+      borderOverlay.style.transform = 'translate(-50%, -50%)';
+      borderOverlay.style.objectFit = 'cover';
+      borderOverlay.style.pointerEvents = 'none';
+      borderOverlay.style.zIndex = '999';
+      borderOverlay.style.borderRadius = '50%';
+      borderOverlay.style.overflow = 'visible';
+      
+      // APPROACH 3: Force layout recalculation
+      borderOverlay.offsetHeight;
+      borderOverlay.offsetWidth;
+      
+      console.log('🎨 Applied bulletproof skill border overlay positioning for export with multiple approaches');
     }
     
     // Ensure skill content has proper width (capped at 500px)
@@ -439,8 +487,13 @@ class ExportImport {
       skillContent.style.maxWidth = '500px';
     }
     
-    console.log('🎨 Applied skill-specific export styling');
-    return originalStyles;
+    // Force a small delay to ensure all styles are applied before html2canvas
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        console.log('🎨 Applied skill-specific export styling with delay');
+        resolve(originalStyles);
+      }, 50);
+    });
   }
 
   /**
@@ -854,8 +907,8 @@ class ExportImport {
       // Temporarily remove gradients and fix styling
       originalStyles = this.prepareElementForExport(skillElement);
       
-      // Apply export-specific styling
-      const exportStyles = this.prepareSkillForExport(skillElement);
+      // Apply export-specific styling (now returns a Promise)
+      const exportStyles = await this.prepareSkillForExport(skillElement);
       originalStyles.push(...exportStyles);
       
       // Force reflow to ensure styles are applied

@@ -1478,6 +1478,37 @@ h1 {
   overflow: visible !important;
 }
 
+/* BULLETPROOF: Additional rules to force centering during exports */
+.skill-card .skill-image-container .skill-border-overlay,
+.skill-card-wrapper .skill-image-container .skill-border-overlay,
+.profile-card-wrapper .skill-image-container .skill-border-overlay {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 113px !important;
+  height: 113px !important;
+  max-width: none !important;
+  max-height: none !important;
+  border-radius: 50% !important;
+  pointer-events: none !important;
+  z-index: 999 !important;
+  overflow: visible !important;
+}
+
+/* Force positioning context on all skill image containers */
+.skill-image-container,
+.skill-card .skill-image-container,
+.skill-card-wrapper .skill-image-container,
+.profile-card-wrapper .skill-image-container {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 75px !important;
+  height: 75px !important;
+}
+
 /* ===== CARD CONTENT STYLES ===== */
 .card-content, .skill-content {
   position: relative;

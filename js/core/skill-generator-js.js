@@ -143,6 +143,20 @@ class SkillGenerator {
       this.style.display = 'none';
     };
     imageBorderOverlay.alt = '';
+    
+    // BULLETPROOF: Set explicit positioning styles from creation
+    imageBorderOverlay.style.position = 'absolute';
+    imageBorderOverlay.style.top = '50%';
+    imageBorderOverlay.style.left = '50%';
+    imageBorderOverlay.style.width = '113px';
+    imageBorderOverlay.style.height = '113px';
+    imageBorderOverlay.style.transform = 'translate(-50%, -50%)';
+    imageBorderOverlay.style.objectFit = 'cover';
+    imageBorderOverlay.style.pointerEvents = 'none';
+    imageBorderOverlay.style.zIndex = '999';
+    imageBorderOverlay.style.borderRadius = '50%';
+    imageBorderOverlay.style.overflow = 'visible';
+    
     imageContainer.appendChild(imageBorderOverlay);
 
     // Create content section
