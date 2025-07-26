@@ -1030,108 +1030,88 @@ class ProfileController {
   static async createCommentsSection(itemId) {
     this.debug(`💬 Creating comments section for item: ${itemId}`);
     
-    const commentsSection = document.createElement('div');
-    commentsSection.className = 'comments-section';
-    commentsSection.style.cssText = `
-      margin-top: 15px;
-      padding: 15px;
-      background: rgba(37, 26, 12, 0.05);
-      border-radius: 8px;
-      border: 1px solid rgba(218, 165, 32, 0.2);
+    const commentsContainer = document.createElement('div');
+    commentsContainer.className = 'comments-section';
+    commentsContainer.style.cssText = `
+      background: linear-gradient(135deg, rgba(101, 84, 63, 0.95) 0%, rgba(89, 72, 51, 0.9) 100%);
+      border: 2px solid rgb(218, 165, 32);
+      border-radius: 0 0 12px 12px;
+      padding: 20px;
+      margin-top: -2px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      min-width: 450px;
     `;
 
-    // Comments toggle button
-    const toggleButton = document.createElement('button');
-    toggleButton.textContent = 'Show';
-    toggleButton.style.cssText = `
-      background: none;
-      border: 1px solid rgb(218, 165, 32);
-      color: rgb(218, 165, 32);
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      margin-bottom: 10px;
+    const header = document.createElement('div');
+    header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;';
+    header.innerHTML = `
+      <h4 style="margin: 0; color: rgb(251, 225, 183); font-size: 18px;">Comments</h4>
+      <button class="toggle-comments-btn" style="
+        background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%);
+        border: 2px solid rgb(37, 26, 12);
+        padding: 6px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        color: rgb(37, 26, 12);
+        font-weight: bold;
+      ">Show</button>
     `;
 
-    // Comments list container
     const commentsList = document.createElement('div');
     commentsList.className = 'comments-list';
+    commentsList.id = `comments-${itemId}`;
     commentsList.style.cssText = `
+      max-height: 300px; 
+      overflow-y: auto; 
+      margin: 15px 0;
+      background: rgba(37, 26, 12, 0.7);
+      border: 2px solid rgba(218, 165, 32, 0.3);
+      border-radius: 8px;
+      padding: 10px;
       display: none;
-      margin-bottom: 15px;
     `;
 
-    // Comment form
     const commentForm = document.createElement('div');
     commentForm.className = 'comment-form';
-    commentForm.style.cssText = `
-      display: none;
-      margin-top: 10px;
-    `;
+    commentForm.style.display = 'none';
+    
+    if (window.GoogleAuth && GoogleAuth.isSignedIn()) {
+      commentForm.innerHTML = `
+        <div style="display: flex; gap: 10px; margin-top: 10px; border-top: 2px solid rgb(218, 165, 32); padding-top: 15px;">
+          <input type="text" 
+                 id="comment-input-${itemId}" 
+                 placeholder="Add a comment..." 
+                 style="flex: 1; padding: 10px 15px; border: 2px solid rgb(218, 165, 32); border-radius: 6px; background-color: rgba(37, 26, 12, 0.8); color: rgb(251, 225, 183); font-size: 14px;">
+          <button onclick="ProfileController.addComment('${itemId}')" 
+                  style="padding: 10px 20px; background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%); color: rgb(37, 26, 12); border: 2px solid rgb(37, 26, 12); border-radius: 6px; cursor: pointer; font-weight: bold;">
+            Post
+          </button>
+        </div>
+      `;
+    } else {
+      commentForm.innerHTML = `
+        <div style="text-align: center; padding: 20px; color: rgb(251, 225, 183); font-style: italic;">
+          Sign in to comment
+        </div>
+      `;
+    }
 
-    const commentInput = document.createElement('textarea');
-    commentInput.placeholder = 'Add a comment...';
-    commentInput.style.cssText = `
-      width: 100%;
-      padding: 8px;
-      border: 1px solid rgb(218, 165, 32);
-      border-radius: 4px;
-      background: rgba(37, 26, 12, 0.8);
-      color: rgb(251, 225, 183);
-      font-size: 14px;
-      resize: vertical;
-      min-height: 60px;
-      margin-bottom: 8px;
-    `;
+    await this.loadComments(itemId, commentsList);
 
-    const submitButton = document.createElement('button');
-    submitButton.textContent = 'Add Comment';
-    submitButton.style.cssText = `
-      background: rgb(218, 165, 32);
-      color: rgb(37, 26, 12);
-      border: none;
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: bold;
-    `;
-
-    // Toggle functionality
-    toggleButton.addEventListener('click', () => {
+    const toggleBtn = header.querySelector('.toggle-comments-btn');
+    toggleBtn.addEventListener('click', () => {
       const isHidden = commentsList.style.display === 'none';
       commentsList.style.display = isHidden ? 'block' : 'none';
       commentForm.style.display = isHidden ? 'block' : 'none';
-      toggleButton.textContent = isHidden ? 'Hide' : 'Show';
+      toggleBtn.textContent = isHidden ? 'Hide' : 'Show';
     });
 
-    // Submit comment functionality
-    submitButton.addEventListener('click', async () => {
-      const commentText = commentInput.value.trim();
-      if (commentText) {
-        try {
-          await this.addComment(itemId, commentText);
-          commentInput.value = '';
-          // Reload comments
-          await this.loadComments(itemId, commentsList);
-        } catch (error) {
-          console.error('Error adding comment:', error);
-        }
-      }
-    });
+    commentsContainer.appendChild(header);
+    commentsContainer.appendChild(commentsList);
+    commentsContainer.appendChild(commentForm);
 
-    commentForm.appendChild(commentInput);
-    commentForm.appendChild(submitButton);
-    commentsSection.appendChild(toggleButton);
-    commentsSection.appendChild(commentsList);
-    commentsSection.appendChild(commentForm);
-
-    // Load existing comments
-    await this.loadComments(itemId, commentsList);
-
-    this.debug(`✅ Comments section created for item: ${itemId}`);
-    return commentsSection;
+    return commentsContainer;
   }
 
   /**
@@ -1139,70 +1119,64 @@ class ProfileController {
    */
   static async loadComments(itemId, container) {
     try {
-      this.debug(`📥 Loading comments for item: ${itemId}`);
       const comments = await SupabaseClient.getComments(itemId);
       
-      container.innerHTML = '';
-      
-      if (comments && comments.length > 0) {
-        comments.forEach(comment => {
-          const commentEl = document.createElement('div');
-          commentEl.style.cssText = `
-            padding: 10px;
-            margin-bottom: 8px;
-            background: rgba(37, 26, 12, 0.1);
-            border-radius: 4px;
-            border-left: 3px solid rgb(218, 165, 32);
-          `;
-          
-          const authorEl = document.createElement('div');
-          authorEl.textContent = comment.user_alias || 'Unknown';
-          authorEl.style.cssText = `
-            font-weight: bold;
-            color: rgb(218, 165, 32);
-            font-size: 12px;
-            margin-bottom: 4px;
-          `;
-          
-          const textEl = document.createElement('div');
-          textEl.textContent = comment.comment_text;
-          textEl.style.cssText = `
-            color: rgb(251, 225, 183);
-            font-size: 14px;
-          `;
-          
-          commentEl.appendChild(authorEl);
-          commentEl.appendChild(textEl);
-          container.appendChild(commentEl);
-        });
-      } else {
-        const noCommentsEl = document.createElement('div');
-        noCommentsEl.textContent = 'No comments yet. Be the first to comment!';
-        noCommentsEl.style.cssText = `
-          color: rgb(201, 175, 133);
-          font-style: italic;
-          text-align: center;
-          padding: 20px;
-        `;
-        container.appendChild(noCommentsEl);
+      if (comments.length === 0) {
+        container.innerHTML = '<div style="padding: 30px; text-align: center; color: rgb(201, 175, 133); font-style: italic;">No comments yet</div>';
+        return;
       }
+
+      container.innerHTML = comments.map(comment => `
+        <div style="padding: 12px; border-bottom: 1px solid rgba(218, 165, 32, 0.3); background: linear-gradient(135deg, rgba(74, 60, 46, 0.7) 0%, rgba(89, 72, 51, 0.6) 100%); margin-bottom: 8px; border-radius: 6px;">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+            <strong style="color: rgb(251, 225, 183); font-size: 14px;">${comment.user_alias}</strong>
+            <span style="color: rgb(218, 165, 32); font-size: 12px;">
+              ${new Date(comment.created_at).toLocaleDateString()}
+            </span>
+          </div>
+          <div style="color: rgb(251, 225, 183); font-size: 14px; line-height: 1.5;">${comment.content}</div>
+        </div>
+      `).join('');
     } catch (error) {
-      this.debug(`❌ Error loading comments: ${error.message}`);
       console.error('Error loading comments:', error);
+      container.innerHTML = '<div style="padding: 10px; color: #d32f2f;">Error loading comments</div>';
     }
   }
 
   /**
    * Add a comment to an item
    */
-  static async addComment(itemId, commentText) {
+  static async addComment(itemId) {
+    const input = document.getElementById(`comment-input-${itemId}`);
+    const commentText = input.value.trim();
+    
+    if (!commentText) {
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('Please enter a comment');
+      } else {
+        alert('Please enter a comment');
+      }
+      return;
+    }
+
     try {
-      this.debug(`💬 Adding comment to item: ${itemId}`);
       await SupabaseClient.addComment(itemId, commentText);
-      this.debug(`✅ Comment added successfully`);
+      
+      input.value = '';
+      
+      const container = document.getElementById(`comments-${itemId}`);
+      await this.loadComments(itemId, container);
+      
+      if (typeof Messages !== 'undefined') {
+        Messages.showSuccess('Comment added!');
+      }
     } catch (error) {
-      this.debug(`❌ Error adding comment: ${error.message}`);
-      throw error;
+      console.error('Error adding comment:', error);
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('Failed to add comment');
+      } else {
+        alert('Failed to add comment: ' + error.message);
+      }
     }
   }
 
