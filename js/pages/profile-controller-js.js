@@ -691,6 +691,15 @@ class ProfileController {
     this.debug('⚡ Loading user skills...');
     
     try {
+      // Show loading state
+      const loadingEl = document.getElementById('skillsLoading');
+      const gridEl = document.getElementById('skillsGrid');
+      const emptyEl = document.getElementById('skillsEmpty');
+      
+      if (loadingEl) loadingEl.style.display = 'block';
+      if (gridEl) gridEl.innerHTML = '';
+      if (emptyEl) emptyEl.style.display = 'none';
+      
       let skills;
       
       if (this.isOwnProfile) {
@@ -706,10 +715,13 @@ class ProfileController {
       this.userSkills = skills || [];
       this.debug(`⚡ Loaded ${this.userSkills.length} skills`);
       
-      // Clear existing skills grid
-      const skillsGrid = document.querySelector('.skills-grid');
-      if (skillsGrid) {
-        skillsGrid.innerHTML = '';
+      // Hide loading state
+      if (loadingEl) loadingEl.style.display = 'none';
+      
+      if (this.userSkills.length === 0) {
+        this.debug('📭 No skills found, showing empty state');
+        if (emptyEl) emptyEl.style.display = 'block';
+        return;
       }
       
       // Create skill cards
@@ -720,8 +732,8 @@ class ProfileController {
         
         try {
           const skillCard = await this.createProfileSkill(skill);
-          if (skillCard && skillsGrid) {
-            skillsGrid.appendChild(skillCard);
+          if (skillCard && gridEl) {
+            gridEl.appendChild(skillCard);
             this.debug(`✅ Skill ${skill.id} added to grid`);
           } else {
             this.debug(`❌ Failed to create or append skill card for skill ${skill.id}`);
@@ -737,6 +749,17 @@ class ProfileController {
     } catch (error) {
       this.debug('❌ Error loading user skills:', error);
       console.error('Error loading user skills:', error);
+      
+      // Hide loading and show error
+      const loadingEl = document.getElementById('skillsLoading');
+      const emptyEl = document.getElementById('skillsEmpty');
+      
+      if (loadingEl) loadingEl.style.display = 'none';
+      if (emptyEl) {
+        emptyEl.innerHTML = '<h3>Error Loading Skills</h3><p>Failed to load skills. Please try refreshing the page.</p>';
+        emptyEl.style.display = 'block';
+      }
+      
       throw error;
     }
   }
@@ -892,7 +915,7 @@ class ProfileController {
 
       // Create comments section for skills too
       this.debug('💬 Creating comments section for skill...');
-      const commentsSection = await this.createCommentsSection(skill.id);
+      const commentsSection = await this.createSkillCommentsSection(skill.id);
       wrapper.appendChild(commentsSection);
       this.debug('✅ Comments section added to skill');
       
