@@ -637,7 +637,6 @@ class ProfileController {
         this.debug('💬 Creating comments section...');
         const commentsSection = await this.createCommentsSection(item.id);
         if (commentsSection) {
-          cardElement.appendChild(commentsSection);
           this.debug('✅ Comments section created');
         }
 
@@ -665,6 +664,12 @@ class ProfileController {
         await positionElements();
 
         cardWrapper.appendChild(cardElement);
+        
+        // Append comments section to cardWrapper (outside the card) like on browse page
+        if (commentsSection) {
+          cardWrapper.appendChild(commentsSection);
+        }
+        
         this.debug('🔧 Assembling card wrapper...');
         this.debug('✅ Profile item card completed for ID:', item.id);
         return cardWrapper;
