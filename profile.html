@@ -138,8 +138,8 @@
         }
 
         .items-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(700px, 1fr));
+            display: grid !important;
+            grid-template-columns: repeat(auto-fill, minmax(700px, 1fr)) !important;
             gap: 30px;
             margin-top: 20px;
         }
@@ -286,7 +286,7 @@
         /* Mobile responsive adjustments */
         @media (max-width: 768px) {
             .items-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr !important;
                 gap: 20px;
             }
             

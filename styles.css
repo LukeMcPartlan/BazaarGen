@@ -448,10 +448,11 @@ h1 {
 
 /* Cards Grid */
 .cards-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(700px, 1fr));
+  gap: 30px;
   justify-content: center;
+  align-content: flex-start;
   min-height: 200px;
 }
 
@@ -3223,7 +3224,7 @@ h1 {
 /* ===== RESPONSIVE DESIGN ===== */
 @media (max-width: 1200px) {
   .cards-grid {
-    justify-content: flex-start; /* Align left when there's space */
+    grid-template-columns: repeat(auto-fill, minmax(600px, 1fr));
   }
 }
 
@@ -3390,6 +3391,11 @@ h1 {
   }
   
   .browse-container .items-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .cards-grid {
     grid-template-columns: 1fr;
     gap: 20px;
   }
