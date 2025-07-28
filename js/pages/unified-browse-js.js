@@ -40,6 +40,10 @@ class UnifiedBrowsePageController {
       this.setupTabSystem();
       this.setupDOMElements();
       this.setupEventListeners();
+      
+      // Check for contest parameter in URL
+      this.handleContestParameter();
+      
       this.initializeSupabase();
       
       // Set up initial controls for the default items tab
@@ -212,6 +216,61 @@ class UnifiedBrowsePageController {
   }
 
   /**
+   * Handle contest parameter in URL
+   */
+  static handleContestParameter() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const contestId = urlParams.get('contest');
+    
+    if (contestId) {
+      this.debug(`🔍 Contest parameter found: ${contestId}`);
+      
+      // Store contest ID to set filter after controls are loaded
+      this.pendingContestFilter = contestId;
+      
+      // Switch to items tab since contests are for items
+      this.switchTab('items');
+    }
+  }
+
+  /**
+   * Load contests and populate contest filter
+   */
+  static async loadContestsForFilter() {
+    try {
+      const contests = await SupabaseClient.getContests();
+      const contestFilter = document.getElementById('contestFilter');
+      
+      if (contestFilter && contests) {
+        // Remove loading option
+        const loadingOption = contestFilter.querySelector('option[value="loading"]');
+        if (loadingOption) {
+          loadingOption.remove();
+        }
+        
+              // Add contest options
+      contests.forEach(contest => {
+        const option = document.createElement('option');
+        option.value = contest.id;
+        option.textContent = contest.name;
+        contestFilter.appendChild(option);
+      });
+      
+      // Set contest filter if pending
+      if (this.pendingContestFilter) {
+        contestFilter.value = this.pendingContestFilter;
+        this.pendingContestFilter = null;
+        
+        // Trigger filter change
+        this.handleFilterChange();
+      }
+      }
+    } catch (error) {
+      console.error('Error loading contests for filter:', error);
+    }
+  }
+
+  /**
    * Setup comprehensive controls for items tab
    */
   static setupItemsControls() {
@@ -317,7 +376,8 @@ class UnifiedBrowsePageController {
         <label class="control-label">Contest Filter</label>
         <select id="contestFilter" class="control-select">
           <option value="">All Items</option>
-          <option value="0">General Items</option>
+          <option value="0">General Items (Not in Contest)</option>
+          <option value="loading">Loading contests...</option>
           <option value="1">Contest 1</option>
           <option value="2">Contest 2</option>
           <option value="3">Contest 3</option>
@@ -364,6 +424,9 @@ class UnifiedBrowsePageController {
     console.log('Controls grid display:', controlsGrid.style.display);
     
     this.setupEventListeners();
+    
+    // Load contests for the filter
+    this.loadContestsForFilter();
   }
 
   /**
@@ -2492,9 +2555,15 @@ static async addSkillComment(skillId) {
 
     // Contest filter
     if (filters.contest !== '') {
-      filteredItems = filteredItems.filter(item => 
-        item.contest === parseInt(filters.contest)
-      );
+      if (filters.contest === '0') {
+        // Show items not in any contest
+        filteredItems = filteredItems.filter(item => !item.in_contest);
+      } else {
+        // Show items in specific contest
+        filteredItems = filteredItems.filter(item => 
+          item.contest_id === parseInt(filters.contest)
+        );
+      }
     }
 
     // Item type filter (single vs gallery)

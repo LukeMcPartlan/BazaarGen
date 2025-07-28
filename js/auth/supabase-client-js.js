@@ -516,7 +516,10 @@ static async loadItems(options = {}, requestOptions = {}) {
 
     let query = this.supabase
       .from('items')
-      .select('*')
+      .select(`
+        *,
+        contest_submissions!left(contest_id, content_type)
+      `)
       .order('created_at', { ascending: false });
 
     // Apply hero filter
@@ -526,7 +529,13 @@ static async loadItems(options = {}, requestOptions = {}) {
 
     // Apply contest filter
     if (options.contest !== undefined && options.contest !== '') {
-      query = query.eq('contest_number', parseInt(options.contest));
+      if (options.contest === '0') {
+        // Show items not in any contest
+        query = query.is('contest_submissions.contest_id', null);
+      } else {
+        // Show items in specific contest
+        query = query.eq('contest_submissions.contest_id', parseInt(options.contest));
+      }
     }
 
     // Apply search filter
@@ -565,8 +574,18 @@ static async loadItems(options = {}, requestOptions = {}) {
 
     if (error) throw error;
 
-    this.debug('Retrieved items successfully:', data?.length || 0);
-    return data || [];
+    // Transform data to include contest information
+    const transformedData = data?.map(item => {
+      const contestSubmission = item.contest_submissions?.[0];
+      return {
+        ...item,
+        contest_id: contestSubmission?.contest_id || null,
+        in_contest: !!contestSubmission
+      };
+    }) || [];
+
+    this.debug('Retrieved items successfully:', transformedData.length);
+    return transformedData;
   } catch (error) {
     this.debug('Error loading items:', error);
     throw error;
@@ -1921,7 +1940,7 @@ static async getSkillUpvoteCount(skillId) {
   }
 
   /**
-   * Get contest winners (top 10 voted items)
+   * Get contest winners (top 10 upvoted items)
    */
   static async getContestWinners(contestId) {
     try {
@@ -1939,7 +1958,7 @@ static async getSkillUpvoteCount(skillId) {
           skills:skill_id(*)
         `)
         .eq('contest_id', contestId)
-        .order('votes', { ascending: false })
+        .order('items.upvotes', { ascending: false })
         .limit(10);
 
       if (error) {
@@ -1953,13 +1972,15 @@ static async getSkillUpvoteCount(skillId) {
           return {
             ...submission,
             item_data: submission.items,
-            content_type: 'card'
+            content_type: 'card',
+            upvotes: submission.items.upvotes || 0
           };
         } else if (submission.skills) {
           return {
             ...submission,
             skill_data: submission.skills,
-            content_type: 'skill'
+            content_type: 'skill',
+            upvotes: submission.skills.upvotes || 0
           };
         }
         return submission;

@@ -283,6 +283,13 @@ class ContestsController {
       
       actions.appendChild(submitBtn);
       actions.appendChild(viewBtn);
+      
+      // Add browse button
+      const browseBtn = document.createElement('button');
+      browseBtn.className = 'contest-btn btn-view';
+      browseBtn.textContent = '🔍 Browse Items';
+      browseBtn.onclick = () => this.viewContestInBrowse(contest.id);
+      actions.appendChild(browseBtn);
     } else {
       // Ended contest - show winners button
       const winnersBtn = document.createElement('button');
@@ -291,6 +298,13 @@ class ContestsController {
       winnersBtn.onclick = () => this.openWinnersModal(contest);
       
       actions.appendChild(winnersBtn);
+      
+      // Add browse button for ended contests too
+      const browseBtn = document.createElement('button');
+      browseBtn.className = 'contest-btn btn-view';
+      browseBtn.textContent = '🔍 Browse Items';
+      browseBtn.onclick = () => this.viewContestInBrowse(contest.id);
+      actions.appendChild(browseBtn);
     }
     
     // Assemble card
@@ -605,6 +619,17 @@ class ContestsController {
    */
   static closeSubmissionModal() {
     document.getElementById('submissionModal').style.display = 'none';
+  }
+
+  /**
+   * Navigate to browse page with contest filter
+   */
+  static viewContestInBrowse(contestId) {
+    this.debug(`🔍 Navigating to browse with contest filter: ${contestId}`);
+    
+    // Navigate to browse page with contest filter
+    const browseUrl = `browse.html?contest=${contestId}`;
+    window.location.href = browseUrl;
   }
 
   /**
