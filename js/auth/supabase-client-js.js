@@ -1676,6 +1676,37 @@ static async getSkillUpvoteCount(skillId) {
   // ===== CONTEST METHODS =====
 
   /**
+   * Check if user is authenticated with Supabase
+   */
+  static async checkAuthentication() {
+    try {
+      if (!this.isReady()) {
+        throw new Error('Supabase not initialized');
+      }
+
+      this.debug('Checking authentication status...');
+
+      const { data: { user }, error } = await this.supabase.auth.getUser();
+      
+      if (error) {
+        this.debug('Authentication check error:', error);
+        return false;
+      }
+
+      if (!user) {
+        this.debug('No authenticated user found');
+        return false;
+      }
+
+      this.debug(`User authenticated: ${user.email}`);
+      return true;
+    } catch (error) {
+      this.debug('Failed to check authentication:', error);
+      return false;
+    }
+  }
+
+  /**
    * Check if contest tables exist
    */
   static async checkContestTables() {
@@ -1797,7 +1828,19 @@ static async getSkillUpvoteCount(skillId) {
         throw new Error('Supabase not initialized');
       }
 
-      this.debug(`Submitting ${contentType} ${itemId} to contest ${contestId}`);
+      // Check authentication status
+      const { data: { user }, error: authError } = await this.supabase.auth.getUser();
+      if (authError) {
+        this.debug('Authentication error:', authError);
+        throw new Error('User not authenticated');
+      }
+      
+      if (!user) {
+        this.debug('No authenticated user found');
+        throw new Error('User not authenticated');
+      }
+
+      this.debug(`Submitting ${contentType} ${itemId} to contest ${contestId} as user: ${user.email}`);
 
       // Check if item is already submitted to any contest
       let existingSubmission = null;

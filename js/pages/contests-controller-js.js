@@ -455,6 +455,17 @@ class ContestsController {
     this.debug(`📤 Submitting ${contentType} ${itemId} to contest ${contestId}`);
     
     try {
+      // Check authentication first
+      const isAuthenticated = await SupabaseClient.checkAuthentication();
+      if (!isAuthenticated) {
+        if (typeof Messages !== 'undefined' && Messages.showError) {
+          Messages.showError('You must be signed in to submit to contests');
+        } else {
+          alert('You must be signed in to submit to contests');
+        }
+        return;
+      }
+
       await SupabaseClient.submitToContest(contestId, itemId, contentType);
       
       if (typeof Messages !== 'undefined' && Messages.showSuccess) {
@@ -471,6 +482,8 @@ class ContestsController {
       let errorMessage = 'Failed to submit item';
       if (error.message.includes('already submitted')) {
         errorMessage = 'This item has already been submitted to a contest';
+      } else if (error.message.includes('not authenticated')) {
+        errorMessage = 'You must be signed in to submit to contests';
       }
       
       if (typeof Messages !== 'undefined' && Messages.showError) {
