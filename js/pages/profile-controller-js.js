@@ -389,9 +389,29 @@ class ProfileController {
       
       this.debug('✅ All item cards created');
       
+      // Hide loading indicator and show appropriate content
+      const cardsLoading = document.getElementById('cardsLoading');
+      const cardsEmpty = document.getElementById('cardsEmpty');
+      const cardsGrid = document.getElementById('cardsGrid');
+      
+      if (cardsLoading) cardsLoading.style.display = 'none';
+      
+      if (this.userItems.length === 0) {
+        if (cardsEmpty) cardsEmpty.style.display = 'block';
+        if (cardsGrid) cardsGrid.style.display = 'none';
+      } else {
+        if (cardsEmpty) cardsEmpty.style.display = 'none';
+        if (cardsGrid) cardsGrid.style.display = 'block';
+      }
+      
     } catch (error) {
       this.debug('❌ Error loading user cards:', error);
       console.error('Error loading user cards:', error);
+      
+      // Hide loading indicator on error too
+      const cardsLoading = document.getElementById('cardsLoading');
+      if (cardsLoading) cardsLoading.style.display = 'none';
+      
       throw error;
     }
   }
@@ -916,8 +936,12 @@ class ProfileController {
       // Create comments section for skills too
       this.debug('💬 Creating comments section for skill...');
       const commentsSection = await this.createSkillCommentsSection(skill.id);
-      wrapper.appendChild(commentsSection);
-      this.debug('✅ Comments section added to skill');
+      if (commentsSection) {
+        wrapper.appendChild(commentsSection);
+        this.debug('✅ Comments section added to skill');
+      } else {
+        this.debug('⚠️ Comments section creation failed, continuing without comments');
+      }
       
       this.debug(`✅ Profile skill completed for ID: ${skill.id}`);
       return wrapper;
@@ -1135,6 +1159,166 @@ class ProfileController {
     commentsContainer.appendChild(commentForm);
 
     return commentsContainer;
+  }
+
+  /**
+   * Create comments section for skills
+   */
+  static async createSkillCommentsSection(skillId) {
+    this.debug(`💬 Creating comments section for skill: ${skillId}`);
+    
+    const commentsContainer = document.createElement('div');
+    commentsContainer.className = 'comments-section';
+    commentsContainer.style.cssText = `
+      background: linear-gradient(135deg, rgba(101, 84, 63, 0.95) 0%, rgba(89, 72, 51, 0.9) 100%);
+      border: 2px solid rgb(218, 165, 32);
+      border-radius: 0 0 12px 12px;
+      padding: 20px;
+      margin-top: -2px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+      min-width: 450px;
+    `;
+
+    const header = document.createElement('div');
+    header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;';
+    header.innerHTML = `
+      <h4 style="margin: 0; color: rgb(251, 225, 183); font-size: 18px;">Comments</h4>
+      <button class="toggle-comments-btn" style="
+        background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%);
+        border: 2px solid rgb(37, 26, 12);
+        padding: 6px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        color: rgb(37, 26, 12);
+        font-weight: bold;
+      ">Show</button>
+    `;
+
+    const commentsList = document.createElement('div');
+    commentsList.className = 'comments-list';
+    commentsList.id = `skill-comments-${skillId}`;
+    commentsList.style.cssText = `
+      max-height: 300px; 
+      overflow-y: auto; 
+      margin: 15px 0;
+      background: rgba(37, 26, 12, 0.7);
+      border: 2px solid rgba(218, 165, 32, 0.3);
+      border-radius: 8px;
+      padding: 10px;
+      display: none;
+    `;
+
+    const commentForm = document.createElement('div');
+    commentForm.className = 'comment-form';
+    commentForm.style.display = 'none';
+    
+    if (window.GoogleAuth && GoogleAuth.isSignedIn()) {
+      commentForm.innerHTML = `
+        <div style="display: flex; gap: 10px; margin-top: 10px; border-top: 2px solid rgb(218, 165, 32); padding-top: 15px;">
+          <input type="text" 
+                 id="skill-comment-input-${skillId}" 
+                 placeholder="Add a comment..." 
+                 style="flex: 1; padding: 10px 15px; border: 2px solid rgb(218, 165, 32); border-radius: 6px; background-color: rgba(37, 26, 12, 0.8); color: rgb(251, 225, 183); font-size: 14px;">
+          <button onclick="ProfileController.addSkillComment('${skillId}')" 
+                  style="padding: 10px 20px; background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%); color: rgb(37, 26, 12); border: 2px solid rgb(37, 26, 12); border-radius: 6px; cursor: pointer; font-weight: bold;">
+            Post
+          </button>
+        </div>
+      `;
+    } else {
+      commentForm.innerHTML = `
+        <div style="text-align: center; padding: 20px; color: rgb(251, 225, 183); font-style: italic;">
+          Sign in to comment
+        </div>
+      `;
+    }
+
+    await this.loadSkillComments(skillId, commentsList);
+
+    const toggleBtn = header.querySelector('.toggle-comments-btn');
+    toggleBtn.addEventListener('click', () => {
+      const isHidden = commentsList.style.display === 'none';
+      commentsList.style.display = isHidden ? 'block' : 'none';
+      commentForm.style.display = isHidden ? 'block' : 'none';
+      toggleBtn.textContent = isHidden ? 'Hide' : 'Show';
+    });
+
+    commentsContainer.appendChild(header);
+    commentsContainer.appendChild(commentsList);
+    commentsContainer.appendChild(commentForm);
+
+    return commentsContainer;
+  }
+
+  /**
+   * Load comments for a skill
+   */
+  static async loadSkillComments(skillId, container) {
+    try {
+      const comments = await SupabaseClient.getSkillComments(skillId);
+      
+      if (comments && comments.length > 0) {
+        comments.forEach(comment => {
+          const commentDiv = document.createElement('div');
+          commentDiv.style.cssText = `
+            background: white; 
+            padding: 10px; 
+            margin: 5px 0; 
+            border-radius: 6px; 
+            border-left: 4px solid rgb(218, 165, 32);
+          `;
+          
+          const userLink = this.createUserLink(comment.user_alias, comment.user_alias);
+          const timestamp = new Date(comment.created_at).toLocaleString();
+          
+          commentDiv.innerHTML = `
+            <strong>${userLink.outerHTML}</strong> 
+            <span style="color: #666; font-size: 12px;">${timestamp}</span>
+            <br>
+            <span>${comment.comment_text}</span>
+          `;
+          
+          container.appendChild(commentDiv);
+        });
+      } else {
+        const noCommentsDiv = document.createElement('div');
+        noCommentsDiv.style.cssText = 'text-align: center; color: rgb(251, 225, 183); font-style: italic; padding: 20px;';
+        noCommentsDiv.textContent = 'No comments yet. Be the first to comment!';
+        container.appendChild(noCommentsDiv);
+      }
+    } catch (error) {
+      this.debug('❌ Error loading skill comments:', error);
+      const errorDiv = document.createElement('div');
+      errorDiv.style.cssText = 'text-align: center; color: #f44336; font-style: italic; padding: 20px;';
+      errorDiv.textContent = 'Failed to load comments';
+      container.appendChild(errorDiv);
+    }
+  }
+
+  /**
+   * Add a comment to a skill
+   */
+  static async addSkillComment(skillId) {
+    const input = document.getElementById(`skill-comment-input-${skillId}`);
+    if (!input || !input.value.trim()) return;
+
+    const commentText = input.value.trim();
+    input.value = '';
+
+    try {
+      await SupabaseClient.addSkillComment(skillId, commentText);
+      
+      // Reload comments
+      const commentsContainer = document.getElementById(`skill-comments-${skillId}`);
+      if (commentsContainer) {
+        commentsContainer.innerHTML = '';
+        await this.loadSkillComments(skillId, commentsContainer);
+      }
+    } catch (error) {
+      this.debug('❌ Error adding skill comment:', error);
+      alert('Failed to add comment. Please try again.');
+    }
   }
 
   /**

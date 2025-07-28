@@ -410,6 +410,32 @@ class IndexPageController {
         this.handleFormChange();
       });
     }
+
+    // Custom hero handling
+    const heroSelect = document.getElementById('heroSelect');
+    const customHeroGroup = document.getElementById('customHeroGroup');
+    const customHeroInput = document.getElementById('customHeroInput');
+    
+    if (heroSelect) {
+      heroSelect.addEventListener('change', () => {
+        if (heroSelect.value === 'Custom') {
+          customHeroGroup.style.display = 'block';
+        } else {
+          customHeroGroup.style.display = 'none';
+          if (customHeroInput) {
+            customHeroInput.value = '';
+          }
+        }
+        this.handleFormChange();
+      });
+    }
+
+    // Custom hero image input handling
+    if (customHeroInput) {
+      customHeroInput.addEventListener('change', () => {
+        this.handleFormChange();
+      });
+    }
   }
 
   /**
@@ -613,6 +639,9 @@ class IndexPageController {
       console.log('✏️ Global editCard called');
       this.editCard(cardData);
     };
+
+    // Make Forms available globally for edit functionality
+    window.Forms = window.Forms || (typeof Forms !== 'undefined' ? Forms : null);
   }
 
   /**
@@ -884,6 +913,36 @@ class IndexPageController {
       
       if (cardData.hero) {
         document.getElementById('heroSelect').value = cardData.hero;
+        
+        // Handle custom hero image
+        if (cardData.hero === 'Custom' && cardData.customHeroImage) {
+          const customHeroGroup = document.getElementById('customHeroGroup');
+          const customHeroInput = document.getElementById('customHeroInput');
+          
+          if (customHeroGroup) {
+            customHeroGroup.style.display = 'block';
+          }
+          
+          if (customHeroInput && cardData.customHeroImage) {
+            // Create a file from the data URL
+            const base64Data = cardData.customHeroImage.split(',')[1];
+            const byteCharacters = atob(base64Data);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: 'image/png' });
+            const file = new File([blob], 'custom-hero.png', { type: 'image/png' });
+            
+            // Create a new FileList-like object
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            
+            // Set the file input
+            customHeroInput.files = dataTransfer.files;
+          }
+        }
       }
       
       if (cardData.cooldown !== undefined) {
@@ -933,14 +992,41 @@ class IndexPageController {
         // Add passive effects
         cardData.passiveEffects.forEach((effect, index) => {
           if (index === 0) {
-            // First effect goes in the existing input
-            const firstInput = passiveContainer.querySelector('input');
-            if (firstInput) {
-              firstInput.value = effect;
+            // Add first input and set its value
+            if (typeof Forms !== 'undefined' && Forms.addPassiveInput) {
+              Forms.addPassiveInput();
+            } else {
+              // Fallback: create input manually
+              const inputGroup = document.createElement("div");
+              inputGroup.className = "passive-input-group";
+              const input = document.createElement("input");
+              input.type = "text";
+              input.placeholder = "Enter passive effect description";
+              input.className = "form-input";
+              input.value = effect;
+              inputGroup.appendChild(input);
+              passiveContainer.appendChild(inputGroup);
+            }
+            const inputs = passiveContainer.querySelectorAll('input');
+            if (inputs[0]) {
+              inputs[0].value = effect;
             }
           } else {
             // Add additional inputs for other effects
-            Forms.addPassiveInput();
+            if (typeof Forms !== 'undefined' && Forms.addPassiveInput) {
+              Forms.addPassiveInput();
+            } else {
+              // Fallback: create input manually
+              const inputGroup = document.createElement("div");
+              inputGroup.className = "passive-input-group";
+              const input = document.createElement("input");
+              input.type = "text";
+              input.placeholder = "Enter passive effect description";
+              input.className = "form-input";
+              input.value = effect;
+              inputGroup.appendChild(input);
+              passiveContainer.appendChild(inputGroup);
+            }
             const inputs = passiveContainer.querySelectorAll('input');
             if (inputs[index]) {
               inputs[index].value = effect;
@@ -958,14 +1044,41 @@ class IndexPageController {
         // Add tags
         cardData.tags.forEach((tag, index) => {
           if (index === 0) {
-            // First tag goes in the existing input
-            const firstInput = tagContainer.querySelector('input');
-            if (firstInput) {
-              firstInput.value = tag;
+            // Add first input and set its value
+            if (typeof Forms !== 'undefined' && Forms.addTagInput) {
+              Forms.addTagInput();
+            } else {
+              // Fallback: create input manually
+              const inputGroup = document.createElement("div");
+              inputGroup.className = "tag-input-group";
+              const input = document.createElement("input");
+              input.type = "text";
+              input.placeholder = "Enter tag text";
+              input.className = "form-input";
+              input.value = tag;
+              inputGroup.appendChild(input);
+              tagContainer.appendChild(inputGroup);
+            }
+            const inputs = tagContainer.querySelectorAll('input');
+            if (inputs[0]) {
+              inputs[0].value = tag;
             }
           } else {
             // Add additional inputs for other tags
-            Forms.addTagInput();
+            if (typeof Forms !== 'undefined' && Forms.addTagInput) {
+              Forms.addTagInput();
+            } else {
+              // Fallback: create input manually
+              const inputGroup = document.createElement("div");
+              inputGroup.className = "tag-input-group";
+              const input = document.createElement("input");
+              input.type = "text";
+              input.placeholder = "Enter tag text";
+              input.className = "form-input";
+              input.value = tag;
+              inputGroup.appendChild(input);
+              tagContainer.appendChild(inputGroup);
+            }
             const inputs = tagContainer.querySelectorAll('input');
             if (inputs[index]) {
               inputs[index].value = tag;
@@ -983,14 +1096,41 @@ class IndexPageController {
         // Add on-use effects
         cardData.onUseEffects.forEach((effect, index) => {
           if (index === 0) {
-            // First effect goes in the existing input
-            const firstInput = onUseContainer.querySelector('input');
-            if (firstInput) {
-              firstInput.value = effect;
+            // Add first input and set its value
+            if (typeof Forms !== 'undefined' && Forms.addOnUseInput) {
+              Forms.addOnUseInput();
+            } else {
+              // Fallback: create input manually
+              const inputGroup = document.createElement("div");
+              inputGroup.className = "on-use-input-group";
+              const input = document.createElement("input");
+              input.type = "text";
+              input.placeholder = "Enter on use effect description";
+              input.className = "form-input";
+              input.value = effect;
+              inputGroup.appendChild(input);
+              onUseContainer.appendChild(inputGroup);
+            }
+            const inputs = onUseContainer.querySelectorAll('input');
+            if (inputs[0]) {
+              inputs[0].value = effect;
             }
           } else {
             // Add additional inputs for other effects
-            Forms.addOnUseInput();
+            if (typeof Forms !== 'undefined' && Forms.addOnUseInput) {
+              Forms.addOnUseInput();
+            } else {
+              // Fallback: create input manually
+              const inputGroup = document.createElement("div");
+              inputGroup.className = "on-use-input-group";
+              const input = document.createElement("input");
+              input.type = "text";
+              input.placeholder = "Enter on use effect description";
+              input.className = "form-input";
+              input.value = effect;
+              inputGroup.appendChild(input);
+              onUseContainer.appendChild(inputGroup);
+            }
             const inputs = onUseContainer.querySelectorAll('input');
             if (inputs[index]) {
               inputs[index].value = effect;

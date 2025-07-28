@@ -138,6 +138,19 @@ static async createCard(options = {}) {
     const multicast = document.getElementById("multicastInput")?.value || '';
     const itemSize = document.getElementById("itemSizeSelect")?.value || 'Medium';
     const border = document.getElementById("borderSelect")?.value || 'gold';
+    
+    // Handle custom hero image
+    let customHeroImage = null;
+    if (hero === 'Custom') {
+      const customHeroInput = document.getElementById("customHeroInput");
+      if (customHeroInput?.files?.[0]) {
+        customHeroImage = new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.readAsDataURL(customHeroInput.files[0]);
+        });
+      }
+    }
 
     console.log('📋 Basic form values extracted:', {
       itemName, hero, cooldown, ammo, crit, multicast, itemSize, border
@@ -163,11 +176,17 @@ static async createCard(options = {}) {
     console.log('  - OnUse inputs:', onUseInputs.length, 'values:', Array.from(onUseInputs).map(i => i.value));
     console.log('  - Passive inputs:', passiveInputs.length, 'values:', Array.from(passiveInputs).map(i => i.value));
 
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
       console.log('📖 Reading image file...');
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = async function(e) {
         console.log('✅ Image file read successfully');
+        
+        // Handle custom hero image if present
+        let resolvedCustomHeroImage = null;
+        if (customHeroImage) {
+          resolvedCustomHeroImage = await customHeroImage;
+        }
         
         const extractedData = {
           itemName: itemName,
@@ -183,6 +202,7 @@ static async createCard(options = {}) {
           tags: Array.from(tagInputs).map(input => input.value.trim()).filter(val => val),
           scalingValues: scalingValues,
           imageData: e.target.result,
+          customHeroImage: resolvedCustomHeroImage,
           timestamp: new Date().toISOString()
         };
         
@@ -216,6 +236,7 @@ static async createCard(options = {}) {
         tags: itemData.tags || [],
         scalingValues: itemData.scaling_values || itemData.scalingValues || {},
         imageData: itemData.image_data || itemData.imageData || '',
+        customHeroImage: itemData.custom_hero_image || itemData.customHeroImage || null,
         timestamp: data.created_at || new Date().toISOString(),
         databaseId: data.id,
         createdBy: data.users?.alias || data.user_alias
@@ -532,7 +553,14 @@ static async createCard(options = {}) {
     itemTitle.textContent = cardData.itemName;
 
     const heroImg = document.createElement("img");
-    heroImg.src = `images/${cardData.hero.toLowerCase()}.png`;
+    
+    // Handle custom hero image
+    if (cardData.hero === 'Custom' && cardData.customHeroImage) {
+      heroImg.src = cardData.customHeroImage;
+    } else {
+      heroImg.src = `images/${cardData.hero.toLowerCase()}.png`;
+    }
+    
     heroImg.alt = cardData.hero;
     heroImg.onerror = function() {
       this.style.display = 'none';

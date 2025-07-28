@@ -1672,6 +1672,278 @@ static async getSkillUpvoteCount(skillId) {
       return false;
     }
   }
+
+  // ===== CONTEST METHODS =====
+
+  /**
+   * Get all contests
+   */
+  static async getContests() {
+    try {
+      if (!this.isReady()) {
+        throw new Error('Supabase not initialized');
+      }
+
+      this.debug('Loading contests...');
+
+      const { data, error } = await this.supabase
+        .from('contests')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        this.debug('Error loading contests:', error);
+        throw error;
+      }
+
+      this.debug(`Loaded ${data?.length || 0} contests`);
+      return data || [];
+    } catch (error) {
+      this.debug('Failed to load contests:', error);
+      console.error('Error loading contests:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Get contest submissions
+   */
+  static async getContestSubmissions(contestId) {
+    try {
+      if (!this.isReady()) {
+        throw new Error('Supabase not initialized');
+      }
+
+      this.debug(`Loading submissions for contest: ${contestId}`);
+
+      const { data, error } = await this.supabase
+        .from('contest_submissions')
+        .select(`
+          *,
+          items:item_id(*),
+          skills:skill_id(*)
+        `)
+        .eq('contest_id', contestId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        this.debug('Error loading contest submissions:', error);
+        throw error;
+      }
+
+      // Transform data to have consistent structure
+      const transformedData = data.map(submission => {
+        if (submission.items) {
+          return {
+            ...submission,
+            item_data: submission.items,
+            content_type: 'card'
+          };
+        } else if (submission.skills) {
+          return {
+            ...submission,
+            skill_data: submission.skills,
+            content_type: 'skill'
+          };
+        }
+        return submission;
+      });
+
+      this.debug(`Loaded ${transformedData?.length || 0} submissions for contest: ${contestId}`);
+      return transformedData || [];
+    } catch (error) {
+      this.debug('Failed to load contest submissions:', error);
+      console.error('Error loading contest submissions:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Submit an item to a contest
+   */
+  static async submitToContest(contestId, itemId, contentType) {
+    try {
+      if (!this.isReady()) {
+        throw new Error('Supabase not initialized');
+      }
+
+      this.debug(`Submitting ${contentType} ${itemId} to contest ${contestId}`);
+
+      // Check if item is already submitted to any contest
+      const { data: existingSubmission, error: checkError } = await this.supabase
+        .from('contest_submissions')
+        .select('*')
+        .eq('item_id', itemId)
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        this.debug('Error checking existing submission:', checkError);
+        throw checkError;
+      }
+
+      if (existingSubmission) {
+        throw new Error('Item already submitted to a contest');
+      }
+
+      // Create submission
+      const submissionData = {
+        contest_id: contestId,
+        user_email: GoogleAuth.getUserEmail(),
+        user_alias: GoogleAuth.getUserAlias(),
+        content_type: contentType,
+        created_at: new Date().toISOString()
+      };
+
+      if (contentType === 'card') {
+        submissionData.item_id = itemId;
+      } else if (contentType === 'skill') {
+        submissionData.skill_id = itemId;
+      }
+
+      const { data, error } = await this.supabase
+        .from('contest_submissions')
+        .insert([submissionData])
+        .select()
+        .single();
+
+      if (error) {
+        this.debug('Error submitting to contest:', error);
+        throw error;
+      }
+
+      this.debug(`Successfully submitted ${contentType} ${itemId} to contest ${contestId}`);
+      return data;
+    } catch (error) {
+      this.debug('Failed to submit to contest:', error);
+      console.error('Error submitting to contest:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get contest winners (top 10 voted items)
+   */
+  static async getContestWinners(contestId) {
+    try {
+      if (!this.isReady()) {
+        throw new Error('Supabase not initialized');
+      }
+
+      this.debug(`Loading winners for contest: ${contestId}`);
+
+      const { data, error } = await this.supabase
+        .from('contest_submissions')
+        .select(`
+          *,
+          items:item_id(*),
+          skills:skill_id(*)
+        `)
+        .eq('contest_id', contestId)
+        .order('votes', { ascending: false })
+        .limit(10);
+
+      if (error) {
+        this.debug('Error loading contest winners:', error);
+        throw error;
+      }
+
+      // Transform data to have consistent structure
+      const transformedData = data.map(submission => {
+        if (submission.items) {
+          return {
+            ...submission,
+            item_data: submission.items,
+            content_type: 'card'
+          };
+        } else if (submission.skills) {
+          return {
+            ...submission,
+            skill_data: submission.skills,
+            content_type: 'skill'
+          };
+        }
+        return submission;
+      });
+
+      this.debug(`Loaded ${transformedData?.length || 0} winners for contest: ${contestId}`);
+      return transformedData || [];
+    } catch (error) {
+      this.debug('Failed to load contest winners:', error);
+      console.error('Error loading contest winners:', error);
+      return [];
+    }
+  }
+
+  /**
+   * Vote on a contest submission
+   */
+  static async voteContestSubmission(submissionId, voteType = 'upvote') {
+    try {
+      if (!this.isReady()) {
+        throw new Error('Supabase not initialized');
+      }
+
+      this.debug(`Voting ${voteType} on submission: ${submissionId}`);
+
+      // Check if user already voted
+      const { data: existingVote, error: checkError } = await this.supabase
+        .from('contest_votes')
+        .select('*')
+        .eq('submission_id', submissionId)
+        .eq('user_email', GoogleAuth.getUserEmail())
+        .single();
+
+      if (checkError && checkError.code !== 'PGRST116') {
+        this.debug('Error checking existing vote:', checkError);
+        throw checkError;
+      }
+
+      if (existingVote) {
+        // Update existing vote
+        const { data, error } = await this.supabase
+          .from('contest_votes')
+          .update({ vote_type: voteType, updated_at: new Date().toISOString() })
+          .eq('id', existingVote.id)
+          .select()
+          .single();
+
+        if (error) {
+          this.debug('Error updating vote:', error);
+          throw error;
+        }
+
+        this.debug(`Updated vote on submission: ${submissionId}`);
+        return data;
+      } else {
+        // Create new vote
+        const voteData = {
+          submission_id: submissionId,
+          user_email: GoogleAuth.getUserEmail(),
+          user_alias: GoogleAuth.getUserAlias(),
+          vote_type: voteType,
+          created_at: new Date().toISOString()
+        };
+
+        const { data, error } = await this.supabase
+          .from('contest_votes')
+          .insert([voteData])
+          .select()
+          .single();
+
+        if (error) {
+          this.debug('Error creating vote:', error);
+          throw error;
+        }
+
+        this.debug(`Created vote on submission: ${submissionId}`);
+        return data;
+      }
+    } catch (error) {
+      this.debug('Failed to vote on contest submission:', error);
+      console.error('Error voting on contest submission:', error);
+      throw error;
+    }
+  }
 }
 
 // Auto-initialize

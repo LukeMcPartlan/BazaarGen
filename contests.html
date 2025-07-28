@@ -1,1 +1,455 @@
-<a href = "bazzargen.com"> go back this is not ready</a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Contests - Bazaar Generator</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    
+    <!-- External Libraries -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- Core Scripts -->
+    <script src="js/core/validation-js.js"></script>
+    <script src="js/core/keyword-processor-js.js"></script>
+    <script src="js/core/card-generator-js.js"></script>
+    <script src="js/core/skill-generator-js.js"></script>
+    <script src="js/ui/messages-js.js"></script>
+    
+    <!-- Auth Scripts -->
+    <script src="js/auth/google-auth-js.js"></script>
+    <script src="js/auth/supabase-client-js.js"></script>
+    
+    <!-- UI Scripts -->
+    <script src="js/ui/gallery-modal.js"></script>
+    <script src="js/ui/navigation-js.js"></script>
+    
+    <!-- Export/Import functionality -->
+    <script src="js/data/export-import-js.js"></script>
+    
+    <!-- Contests Functionality -->
+    <script src="js/pages/contests-controller-js.js"></script>
+    
+    <!-- Core Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Contest-specific styles -->
+    <style>
+        .contests-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .contests-header {
+            background: linear-gradient(135deg, rgb(101, 84, 63) 0%, rgb(89, 72, 51) 100%);
+            border: 2px solid rgb(218, 165, 32);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .contests-header h1 {
+            margin: 0 0 10px 0;
+            color: rgb(251, 225, 183);
+            font-size: 32px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .contests-header p {
+            margin: 0;
+            color: rgb(201, 175, 133);
+            font-size: 16px;
+        }
+
+        .contest-card {
+            background: linear-gradient(135deg, rgba(101, 84, 63, 0.95) 0%, rgba(89, 72, 51, 0.9) 100%);
+            border: 2px solid rgb(218, 165, 32);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .contest-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .contest-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .contest-title {
+            color: rgb(251, 225, 183);
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .contest-status {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .contest-status.active {
+            background: linear-gradient(135deg, rgb(76, 175, 80) 0%, rgb(46, 125, 50) 100%);
+            color: white;
+        }
+
+        .contest-status.ended {
+            background: linear-gradient(135deg, rgb(158, 158, 158) 0%, rgb(97, 97, 97) 100%);
+            color: white;
+        }
+
+        .contest-description {
+            color: rgb(201, 175, 133);
+            font-size: 16px;
+            line-height: 1.5;
+            margin-bottom: 20px;
+        }
+
+        .contest-anchor {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .contest-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .contest-btn {
+            padding: 10px 20px;
+            border: 2px solid rgb(37, 26, 12);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .contest-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, rgb(76, 175, 80) 0%, rgb(46, 125, 50) 100%);
+            color: white;
+        }
+
+        .btn-view {
+            background: linear-gradient(135deg, rgb(33, 150, 243) 0%, rgb(21, 101, 192) 100%);
+            color: white;
+        }
+
+        .btn-winners {
+            background: linear-gradient(135deg, rgb(255, 193, 7) 0%, rgb(255, 152, 0) 100%);
+            color: rgb(37, 26, 12);
+        }
+
+        .contest-info {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 15px;
+            color: rgb(201, 175, 133);
+            font-size: 14px;
+        }
+
+        .contest-type {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .contest-type-icon {
+            font-size: 16px;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(218, 165, 32, 0.3);
+            border-radius: 50%;
+            border-top-color: rgb(218, 165, 32);
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgb(201, 175, 133);
+        }
+
+        .empty-state h3 {
+            color: rgb(251, 225, 183);
+            margin-bottom: 10px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, rgb(101, 84, 63) 0%, rgb(89, 72, 51) 100%);
+            margin: 5% auto;
+            padding: 30px;
+            border: 2px solid rgb(218, 165, 32);
+            border-radius: 12px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid rgb(218, 165, 32);
+            padding-bottom: 15px;
+        }
+
+        .modal-title {
+            color: rgb(251, 225, 183);
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .close {
+            color: rgb(218, 165, 32);
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: rgb(251, 225, 183);
+        }
+
+        .submissions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .submission-item {
+            background: rgba(37, 26, 12, 0.7);
+            border: 2px solid rgb(218, 165, 32);
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .submission-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .submission-item.selected {
+            border-color: rgb(76, 175, 80);
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .submission-item.already-submitted {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .submission-item.already-submitted:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .winners-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .winner-item {
+            background: rgba(255, 193, 7, 0.1);
+            border: 2px solid rgb(255, 193, 7);
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .winner-rank {
+            background: linear-gradient(135deg, rgb(255, 193, 7) 0%, rgb(255, 152, 0) 100%);
+            color: rgb(37, 26, 12);
+            font-weight: bold;
+            padding: 5px 10px;
+            border-radius: 15px;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+
+        .winner-votes {
+            color: rgb(201, 175, 133);
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-content">
+            <div class="nav-left">
+                <a href="index.html" class="nav-brand">⚔️ Bazaar Generator ⚔️</a>
+            </div>
+            <div class="nav-center">
+                <a href="index.html" class="nav-link">🎴 Create Cards</a>
+                <a href="skills.html" class="nav-link">⚡ Create Skills</a>
+                <a href="browse.html" class="nav-link">🔍 Browse</a>
+                <a href="contests.html" class="nav-link active">🏆 Contests</a>
+                <a href="profile.html" class="nav-link">👤 Profile</a>
+            </div>
+            <div class="nav-right">
+                <div id="userDisplay" class="user-display">
+                    <span id="userName">Loading...</span>
+                    <button id="signInButton" class="sign-in-btn" style="display: none;">Sign In</button>
+                    <button id="signOutButton" class="sign-out-btn" style="display: none;">Sign Out</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="contests-container">
+        <!-- Header -->
+        <div class="contests-header">
+            <h1>🏆 Contests</h1>
+            <p>Compete with other creators and showcase your best cards and skills!</p>
+        </div>
+
+        <!-- Loading State -->
+        <div id="contestsLoading" class="loading-spinner">Loading contests...</div>
+
+        <!-- Contests Grid -->
+        <div id="contestsGrid"></div>
+
+        <!-- Empty State -->
+        <div id="contestsEmpty" class="empty-state" style="display: none;">
+            <h3>No Contests Available</h3>
+            <p>Check back later for new contests!</p>
+        </div>
+    </div>
+
+    <!-- Submission Modal -->
+    <div id="submissionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Submit to Contest</h2>
+                <span class="close" onclick="ContestsController.closeSubmissionModal()">&times;</span>
+            </div>
+            <div id="submissionModalContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Winners Modal -->
+    <div id="winnersModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Contest Winners</h2>
+                <span class="close" onclick="ContestsController.closeWinnersModal()">&times;</span>
+            </div>
+            <div id="winnersModalContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-title">⚔️ Bazaar Card Generator ⚔️</div>
+            <div class="footer-description">
+                Bring your ideas to life. Shoutout to Reynad for tearing this masterpiece from the void.
+            </div>
+            
+            <div class="footer-links">
+                <a href="https://github.com/LukeMcPartlan/BazaarGen" class="footer-link">📜 Documentation</a>
+                <a href="updates.html" class="footer-link">🛡️ Updates</a>
+                <a href="skills.html" class="footer-link">⚡ Skills</a>
+                <a href="https://www.reddit.com/r/PlayTheBazaar/" class="footer-link">🏰 Community</a>
+            </div>
+            
+            <div class="footer-divider"></div>
+            
+            <div class="footer-copyright">
+                © 2025 Luke Alvarez Bazaar Generator
+            </div>
+            <div class="footer-contact">
+                Report bugs to Lukemcp45@gmail.com . Zelle me a coffee at the same email!
+            </div>
+            <div class="footer-version">
+                Version 1.0 | Built for Bazaar fans by Bazaar fans
+            </div>
+        </div>
+    </footer>
+
+    <!-- Initialization Script -->
+    <script>
+        // Wait for DOM to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Contests page DOM loaded, initializing...');
+            
+            // Wait for all dependencies to be loaded
+            const checkDependencies = () => {
+                if (typeof ContestsController !== 'undefined' && 
+                    typeof GoogleAuth !== 'undefined' && 
+                    typeof SupabaseClient !== 'undefined') {
+                    console.log('✅ All dependencies loaded, initializing ContestsController...');
+                    ContestsController.init();
+                } else {
+                    console.log('⏳ Waiting for dependencies...');
+                    setTimeout(checkDependencies, 100);
+                }
+            };
+            
+            checkDependencies();
+        });
+    </script>
+</body>
+</html>
