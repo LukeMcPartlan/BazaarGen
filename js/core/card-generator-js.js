@@ -144,10 +144,29 @@ static async createCard(options = {}) {
     if (hero === 'Custom') {
       const customHeroInput = document.getElementById("customHeroInput");
       if (customHeroInput?.files?.[0]) {
-        customHeroImage = new Promise((resolve) => {
-          const reader = new FileReader();
-          reader.onload = (e) => resolve(e.target.result);
-          reader.readAsDataURL(customHeroInput.files[0]);
+        customHeroImage = new Promise(async (resolve) => {
+          try {
+            // Try to upload to storage first
+            if (typeof ImageStorage !== 'undefined' && ImageStorage.uploadImage) {
+              const imageUrl = await ImageStorage.uploadImage(
+                customHeroInput.files[0], 
+                itemName + '-hero', 
+                'hero'
+              );
+              resolve(imageUrl);
+            } else {
+              // Fallback to base64
+              const reader = new FileReader();
+              reader.onload = (e) => resolve(e.target.result);
+              reader.readAsDataURL(customHeroInput.files[0]);
+            }
+          } catch (error) {
+            console.warn('⚠️ Failed to upload custom hero image, falling back to base64:', error);
+            // Fallback to base64
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.readAsDataURL(customHeroInput.files[0]);
+          }
         });
       }
     }
