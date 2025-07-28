@@ -1260,8 +1260,8 @@ h1 {
 }
 
 .card-delete-btn, .card-export-btn, .card-save-btn, 
-.card-view-btn, .card-upvote-btn,
-.skill-delete-btn, .skill-export-btn {
+.card-view-btn, .card-upvote-btn, .card-edit-btn,
+.skill-delete-btn, .skill-export-btn, .skill-edit-btn {
   border-radius: 50%;
   width: 30px;
   height: 30px;
@@ -1335,6 +1335,17 @@ h1 {
 
 .card-upvote-btn:hover {
   background: linear-gradient(135deg, rgb(76, 175, 80) 0%, rgb(46, 125, 50) 100%);
+  transform: scale(1.1);
+}
+
+.card-edit-btn, .skill-edit-btn {
+  background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%);
+  color: rgb(37, 26, 12);
+  border-color: rgb(218, 165, 32);
+}
+
+.card-edit-btn:hover, .skill-edit-btn:hover {
+  background: linear-gradient(135deg, rgb(255, 215, 0) 0%, rgb(218, 165, 32) 100%);
   transform: scale(1.1);
 }
 

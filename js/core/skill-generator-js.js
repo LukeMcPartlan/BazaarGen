@@ -199,6 +199,20 @@ class SkillGenerator {
     const skillControls = document.createElement('div');
     skillControls.className = 'skill-controls';
     
+    // Edit button
+    const editBtn = document.createElement('button');
+    editBtn.className = 'skill-edit-btn';
+    editBtn.innerHTML = '✏️';
+    editBtn.title = 'Edit this skill';
+    editBtn.onclick = function() {
+      console.log('✏️ [DEBUG] Edit skill button clicked');
+      if (window.editSkill) {
+        window.editSkill(skillData);
+      } else {
+        console.error('❌ [DEBUG] editSkill function not found');
+      }
+    };
+    
     // Export button
     const exportBtn = document.createElement('button');
     exportBtn.className = 'skill-export-btn';
@@ -222,6 +236,7 @@ class SkillGenerator {
 
     // Removed deprecated database button - now handled by export menu
     
+    skillControls.appendChild(editBtn);
     skillControls.appendChild(exportBtn);
     skillControls.appendChild(deleteBtn);
     

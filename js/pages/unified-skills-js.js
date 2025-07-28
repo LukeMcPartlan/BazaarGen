@@ -573,6 +573,12 @@ class UnifiedSkillsPageController {
         this.fallbackExportSingleSkill(skillData);
       }
     };
+
+    // Edit skill function
+    window.editSkill = (skillData) => {
+      this.debug('✏️ Global editSkill called');
+      this.editSkill(skillData);
+    };
   }
 
   /**
@@ -899,6 +905,71 @@ class UnifiedSkillsPageController {
       averageEffectLength: this.skillsData.length > 0 ? Math.round(totalEffectLength / this.skillsData.length) : 0,
       skillsByRarity
     };
+  }
+
+  /**
+   * Edit skill - fill form with skill data
+   */
+  static editSkill(skillData) {
+    console.log('✏️ Editing skill:', skillData.skillName);
+    
+    try {
+      // Fill in basic skill info
+      if (skillData.skillName) {
+        document.getElementById('skillNameInput').value = skillData.skillName;
+      }
+      
+      if (skillData.skillEffect) {
+        document.getElementById('skillEffectInput').value = skillData.skillEffect;
+      }
+      
+      if (skillData.border) {
+        document.getElementById('borderSelect').value = skillData.border;
+      }
+
+      // Handle image if present
+      if (skillData.imageData) {
+        // Create a file from the data URL
+        const base64Data = skillData.imageData.split(',')[1];
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'image/png' });
+        const file = new File([blob], 'skill-image.png', { type: 'image/png' });
+        
+        // Create a new FileList-like object
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        
+        // Set the file input
+        const imageInput = document.getElementById('imageInput');
+        imageInput.files = dataTransfer.files;
+        
+        // Trigger change event to update preview
+        imageInput.dispatchEvent(new Event('change'));
+      }
+
+      // Show success message
+      if (typeof Messages !== 'undefined') {
+        Messages.showSuccess(`Skill "${skillData.skillName}" loaded for editing`);
+      } else {
+        alert(`Skill "${skillData.skillName}" loaded for editing`);
+      }
+
+      // Scroll to top of form
+      document.querySelector('.form-column').scrollIntoView({ behavior: 'smooth' });
+
+    } catch (error) {
+      console.error('Error editing skill:', error);
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('Failed to load skill for editing: ' + error.message);
+      } else {
+        alert('Failed to load skill for editing: ' + error.message);
+      }
+    }
   }
 }
 

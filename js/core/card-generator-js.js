@@ -333,6 +333,20 @@ static async createCard(options = {}) {
     cardControls.className = "card-controls";
 
     if (mode === 'generator') {
+      // Edit button
+      const editBtn = document.createElement("button");
+      editBtn.className = "card-edit-btn";
+      editBtn.innerHTML = "✏️";
+      editBtn.title = "Edit this card";
+      editBtn.onclick = function() {
+        console.log('✏️ [DEBUG] Edit button clicked');
+        if (window.editCard) {
+          window.editCard(cardData);
+        } else {
+          console.error('❌ [DEBUG] editCard function not found');
+        }
+      };
+
       // Export button
       const exportBtn = document.createElement("button");
       exportBtn.className = "card-export-btn";
@@ -347,9 +361,6 @@ static async createCard(options = {}) {
         }
       };
 
-      
-      
-
       // Delete button
       const deleteBtn = document.createElement("button");
       deleteBtn.className = "card-delete-btn";
@@ -361,8 +372,8 @@ static async createCard(options = {}) {
         }
       };
 
+      cardControls.appendChild(editBtn);
       cardControls.appendChild(exportBtn);
-      
       cardControls.appendChild(deleteBtn);
 
     } else if (mode === 'browser') {

@@ -607,6 +607,12 @@ class IndexPageController {
       console.log('📋 Global showCardMenu called (legacy)');
       window.showExportMenu(button);
     };
+
+    // Edit card function
+    window.editCard = (cardData) => {
+      console.log('✏️ Global editCard called');
+      this.editCard(cardData);
+    };
   }
 
   /**
@@ -861,6 +867,189 @@ class IndexPageController {
       }
     } catch (error) {
       console.warn('Failed to restore auto-save:', error);
+    }
+  }
+
+  /**
+   * Edit card - fill form with card data
+   */
+  static editCard(cardData) {
+    console.log('✏️ Editing card:', cardData.itemName);
+    
+    try {
+      // Fill in basic card info
+      if (cardData.itemName) {
+        document.getElementById('itemNameInput').value = cardData.itemName;
+      }
+      
+      if (cardData.hero) {
+        document.getElementById('heroSelect').value = cardData.hero;
+      }
+      
+      if (cardData.cooldown !== undefined) {
+        document.getElementById('cooldownInput').value = cardData.cooldown;
+      }
+      
+      if (cardData.ammo !== undefined) {
+        document.getElementById('ammoInput').value = cardData.ammo;
+      }
+      
+      if (cardData.itemSize) {
+        document.getElementById('itemSizeSelect').value = cardData.itemSize;
+      }
+      
+      if (cardData.border) {
+        document.getElementById('borderSelect').value = cardData.border;
+      }
+
+      // Fill in scaling values
+      if (cardData.scalingValues) {
+        if (cardData.scalingValues.heal !== undefined) {
+          document.getElementById('healScalingInput').value = cardData.scalingValues.heal;
+        }
+        if (cardData.scalingValues.regen !== undefined) {
+          document.getElementById('regenScalingInput').value = cardData.scalingValues.regen;
+        }
+        if (cardData.scalingValues.shield !== undefined) {
+          document.getElementById('shieldScalingInput').value = cardData.scalingValues.shield;
+        }
+        if (cardData.scalingValues.damage !== undefined) {
+          document.getElementById('damageScalingInput').value = cardData.scalingValues.damage;
+        }
+        if (cardData.scalingValues.poison !== undefined) {
+          document.getElementById('poisonScalingInput').value = cardData.scalingValues.poison;
+        }
+        if (cardData.scalingValues.burn !== undefined) {
+          document.getElementById('burnScalingInput').value = cardData.scalingValues.burn;
+        }
+      }
+
+      // Fill in passive effects
+      if (cardData.passiveEffects && Array.isArray(cardData.passiveEffects)) {
+        // Clear existing passive inputs
+        const passiveContainer = document.getElementById('passiveInputs');
+        passiveContainer.innerHTML = '';
+        
+        // Add passive effects
+        cardData.passiveEffects.forEach((effect, index) => {
+          if (index === 0) {
+            // First effect goes in the existing input
+            const firstInput = passiveContainer.querySelector('input');
+            if (firstInput) {
+              firstInput.value = effect;
+            }
+          } else {
+            // Add additional inputs for other effects
+            Forms.addPassiveInput();
+            const inputs = passiveContainer.querySelectorAll('input');
+            if (inputs[index]) {
+              inputs[index].value = effect;
+            }
+          }
+        });
+      }
+
+      // Fill in tags
+      if (cardData.tags && Array.isArray(cardData.tags)) {
+        // Clear existing tag inputs
+        const tagContainer = document.getElementById('tagInputs');
+        tagContainer.innerHTML = '';
+        
+        // Add tags
+        cardData.tags.forEach((tag, index) => {
+          if (index === 0) {
+            // First tag goes in the existing input
+            const firstInput = tagContainer.querySelector('input');
+            if (firstInput) {
+              firstInput.value = tag;
+            }
+          } else {
+            // Add additional inputs for other tags
+            Forms.addTagInput();
+            const inputs = tagContainer.querySelectorAll('input');
+            if (inputs[index]) {
+              inputs[index].value = tag;
+            }
+          }
+        });
+      }
+
+      // Fill in on-use effects
+      if (cardData.onUseEffects && Array.isArray(cardData.onUseEffects)) {
+        // Clear existing on-use inputs
+        const onUseContainer = document.getElementById('onUseInputs');
+        onUseContainer.innerHTML = '';
+        
+        // Add on-use effects
+        cardData.onUseEffects.forEach((effect, index) => {
+          if (index === 0) {
+            // First effect goes in the existing input
+            const firstInput = onUseContainer.querySelector('input');
+            if (firstInput) {
+              firstInput.value = effect;
+            }
+          } else {
+            // Add additional inputs for other effects
+            Forms.addOnUseInput();
+            const inputs = onUseContainer.querySelectorAll('input');
+            if (inputs[index]) {
+              inputs[index].value = effect;
+            }
+          }
+        });
+      }
+
+      // Fill in crit and multicast
+      if (cardData.crit !== undefined) {
+        document.getElementById('critInput').value = cardData.crit;
+      }
+      
+      if (cardData.multicast !== undefined) {
+        document.getElementById('multicastInput').value = cardData.multicast;
+      }
+
+      // Handle image if present
+      if (cardData.imageData) {
+        // Create a file from the data URL
+        const base64Data = cardData.imageData.split(',')[1];
+        const byteCharacters = atob(base64Data);
+        const byteNumbers = new Array(byteCharacters.length);
+        for (let i = 0; i < byteCharacters.length; i++) {
+          byteNumbers[i] = byteCharacters.charCodeAt(i);
+        }
+        const byteArray = new Uint8Array(byteNumbers);
+        const blob = new Blob([byteArray], { type: 'image/png' });
+        const file = new File([blob], 'card-image.png', { type: 'image/png' });
+        
+        // Create a new FileList-like object
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        
+        // Set the file input
+        const imageInput = document.getElementById('imageInput');
+        imageInput.files = dataTransfer.files;
+        
+        // Trigger change event to update preview
+        imageInput.dispatchEvent(new Event('change'));
+      }
+
+      // Show success message
+      if (typeof Messages !== 'undefined') {
+        Messages.showSuccess(`Card "${cardData.itemName}" loaded for editing`);
+      } else {
+        alert(`Card "${cardData.itemName}" loaded for editing`);
+      }
+
+      // Scroll to top of form
+      document.querySelector('.form-column').scrollIntoView({ behavior: 'smooth' });
+
+    } catch (error) {
+      console.error('Error editing card:', error);
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('Failed to load card for editing: ' + error.message);
+      } else {
+        alert('Failed to load card for editing: ' + error.message);
+      }
     }
   }
 }
