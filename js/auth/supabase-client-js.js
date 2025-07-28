@@ -529,11 +529,14 @@ static async loadItems(options = {}, requestOptions = {}) {
 
     // Apply contest filter
     if (options.contest !== undefined && options.contest !== '') {
+      console.log('🔍 Applying contest filter:', options.contest);
       if (options.contest === '0') {
         // Show items not in any contest
+        console.log('🔍 Filtering for items NOT in any contest');
         query = query.is('contest_submissions.contest_id', null);
       } else {
         // Show items in specific contest
+        console.log('🔍 Filtering for items in contest ID:', parseInt(options.contest));
         query = query.eq('contest_submissions.contest_id', parseInt(options.contest));
       }
     }

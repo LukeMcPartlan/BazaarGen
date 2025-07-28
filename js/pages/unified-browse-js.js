@@ -240,30 +240,65 @@ class UnifiedBrowsePageController {
     try {
       const contests = await SupabaseClient.getContests();
       const contestFilter = document.getElementById('contestFilter');
+      const skillContestFilter = document.getElementById('skillContestFilter');
       
-      if (contestFilter && contests) {
-        // Remove loading option
-        const loadingOption = contestFilter.querySelector('option[value="loading"]');
-        if (loadingOption) {
-          loadingOption.remove();
+      if (contests) {
+        console.log('🔍 Loading contests for filter:', contests);
+        
+        // Update items contest filter
+        if (contestFilter) {
+          // Clear all existing options except the first two (All Items and General Items)
+          const allItemsOption = contestFilter.querySelector('option[value=""]');
+          const generalItemsOption = contestFilter.querySelector('option[value="0"]');
+          
+          // Clear the select
+          contestFilter.innerHTML = '';
+          
+          // Add back the default options
+          if (allItemsOption) contestFilter.appendChild(allItemsOption);
+          if (generalItemsOption) contestFilter.appendChild(generalItemsOption);
+          
+          // Add contest options
+          contests.forEach(contest => {
+            const option = document.createElement('option');
+            option.value = contest.id;
+            option.textContent = contest.name;
+            contestFilter.appendChild(option);
+          });
         }
         
-              // Add contest options
-      contests.forEach(contest => {
-        const option = document.createElement('option');
-        option.value = contest.id;
-        option.textContent = contest.name;
-        contestFilter.appendChild(option);
-      });
-      
-      // Set contest filter if pending
-      if (this.pendingContestFilter) {
-        contestFilter.value = this.pendingContestFilter;
-        this.pendingContestFilter = null;
+        // Update skills contest filter
+        if (skillContestFilter) {
+          // Clear all existing options except the first two (All Skills and General Skills)
+          const allSkillsOption = skillContestFilter.querySelector('option[value=""]');
+          const generalSkillsOption = skillContestFilter.querySelector('option[value="0"]');
+          
+          // Clear the select
+          skillContestFilter.innerHTML = '';
+          
+          // Add back the default options
+          if (allSkillsOption) skillContestFilter.appendChild(allSkillsOption);
+          if (generalSkillsOption) skillContestFilter.appendChild(generalSkillsOption);
+          
+          // Add contest options
+          contests.forEach(contest => {
+            const option = document.createElement('option');
+            option.value = contest.id;
+            option.textContent = contest.name;
+            skillContestFilter.appendChild(option);
+          });
+        }
         
-        // Trigger filter change
-        this.handleFilterChange();
-      }
+        // Set contest filter if pending
+        if (this.pendingContestFilter) {
+          if (contestFilter) {
+            contestFilter.value = this.pendingContestFilter;
+          }
+          this.pendingContestFilter = null;
+          
+          // Trigger filter change
+          this.handleFilterChange();
+        }
       }
     } catch (error) {
       console.error('Error loading contests for filter:', error);
@@ -378,9 +413,6 @@ class UnifiedBrowsePageController {
           <option value="">All Items</option>
           <option value="0">General Items (Not in Contest)</option>
           <option value="loading">Loading contests...</option>
-          <option value="1">Contest 1</option>
-          <option value="2">Contest 2</option>
-          <option value="3">Contest 3</option>
         </select>
       </div>
 
@@ -533,6 +565,16 @@ class UnifiedBrowsePageController {
           <option value="debuff">Debuffs</option>
           <option value="control">Control</option>
           <option value="utility">Utility</option>
+        </select>
+      </div>
+
+      <!-- Contest Filter -->
+      <div class="control-group">
+        <label class="control-label">Contest Filter</label>
+        <select id="skillContestFilter" class="control-select">
+          <option value="">All Skills</option>
+          <option value="0">General Skills (Not in Contest)</option>
+          <option value="loading">Loading contests...</option>
         </select>
       </div>
 
@@ -1724,6 +1766,9 @@ static async addSkillComment(skillId) {
    * Get skill filter values
    */
   static getSkillFilters() {
+    const skillContestValue = document.getElementById('skillContestFilter')?.value || '';
+    console.log('🔍 Skill contest filter element value:', skillContestValue);
+    
     return {
       sortBy: document.getElementById('skillSortBy')?.value || 'recent',
       rarity: document.getElementById('rarityFilter')?.value || '',
@@ -1735,6 +1780,7 @@ static async addSkillComment(skillId) {
       length: document.getElementById('lengthFilter')?.value || '',
       skillType: document.getElementById('skillTypeFilter')?.value || '',
       effectCategory: document.getElementById('effectCategoryFilter')?.value || '',
+      contest: skillContestValue,
       dateFrom: document.getElementById('skillDateFrom')?.value || '',
       dateTo: document.getElementById('skillDateTo')?.value || ''
     };
@@ -1744,6 +1790,9 @@ static async addSkillComment(skillId) {
    * Get comprehensive item filter values
    */
   static getFilters() {
+    const contestValue = document.getElementById('contestFilter')?.value || '';
+    console.log('🔍 Contest filter element value:', contestValue);
+    
     return {
       sortBy: document.getElementById('sortBy')?.value || 'recent',
       hero: document.getElementById('heroFilter')?.value || '',
@@ -1755,7 +1804,7 @@ static async addSkillComment(skillId) {
       tags: document.getElementById('tagFilter')?.value?.trim() || '',
       keywords: document.getElementById('keywordFilter')?.value?.trim() || '',
       creator: document.getElementById('creatorFilter')?.value?.trim() || '',
-      contest: document.getElementById('contestFilter')?.value || '',
+      contest: contestValue,
       itemType: document.getElementById('itemTypeFilter')?.value || '',
       dateFrom: document.getElementById('dateFrom')?.value || '',
       dateTo: document.getElementById('dateTo')?.value || ''
@@ -1766,19 +1815,25 @@ static async addSkillComment(skillId) {
    * Build query options from filters
    */
   static buildQueryOptions(filters) {
+    console.log('🔍 Building query options from filters:', filters);
+    
     const options = {
       sortBy: filters.sortBy
     };
 
     // Items-specific filters
     if (filters.hero) options.hero = filters.hero;
-    if (filters.contest !== '') options.contest = filters.contest;
+    if (filters.contest !== '') {
+      options.contest = filters.contest;
+      console.log('🔍 Contest filter value:', filters.contest);
+    }
     if (filters.search) options.search = filters.search;
     
     // Skills-specific filters
     if (filters.rarity) options.rarity = filters.rarity;
     if (filters.creator) options.creator = filters.creator;
 
+    console.log('🔍 Final query options:', options);
     return options;
   }
 
