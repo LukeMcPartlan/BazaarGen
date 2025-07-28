@@ -17,6 +17,7 @@ class UnifiedBrowsePageController {
   static isSkillsLoading = false;
   static isInitialized = false;
   static activeTab = 'items';
+  static eventListenersSetup = false;
 
   /**
    * Initialize the browse page
@@ -518,6 +519,13 @@ class UnifiedBrowsePageController {
    * Setup comprehensive event listeners
    */
   static setupEventListeners() {
+    // Prevent multiple event listener setup
+    if (this.eventListenersSetup) {
+      return;
+    }
+    
+    this.eventListenersSetup = true;
+    
     // Load more button
     this.addEventListenerIfExists('loadMoreBtn', 'click', () => {
       if (this.activeTab === 'items') {
