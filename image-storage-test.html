@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BazaarGen Image Storage Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .section h2 {
+            color: #333;
+            margin-top: 0;
+        }
+        .btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        .btn:hover {
+            background: #0056b3;
+        }
+        .btn-danger {
+            background: #dc3545;
+        }
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        .btn-success {
+            background: #28a745;
+        }
+        .btn-success:hover {
+            background: #218838;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .status.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .status.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .test-image {
+            max-width: 200px;
+            max-height: 200px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            margin: 10px;
+        }
+        .log {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🖼️ BazaarGen Image Storage Test</h1>
+        
+        <div class="section">
+            <h2>📊 Storage Status</h2>
+            <button class="btn" onclick="checkStorageStatus()">Check Storage Status</button>
+            <button class="btn" onclick="getStorageStats()">Get Storage Stats</button>
+            <div id="storage-status"></div>
+        </div>
+
+        <div class="section">
+            <h2>🔄 Migration Tools</h2>
+            <button class="btn btn-success" onclick="showMigrationUI()">Open Migration UI</button>
+            <button class="btn" onclick="migrateImages()">Migrate Base64 Images</button>
+            <button class="btn btn-danger" onclick="cleanupOrphanedImages()">Cleanup Orphaned Images</button>
+            <div id="migration-status"></div>
+        </div>
+
+        <div class="section">
+            <h2>🧪 Test Image Upload</h2>
+            <input type="file" id="testImageInput" accept="image/*" style="margin: 10px 0;">
+            <button class="btn" onclick="testImageUpload()">Test Upload</button>
+            <div id="upload-result"></div>
+            <div id="test-images"></div>
+        </div>
+
+        <div class="section">
+            <h2>📝 Console Log</h2>
+            <button class="btn" onclick="clearLog()">Clear Log</button>
+            <div id="console-log" class="log"></div>
+        </div>
+    </div>
+
+    <!-- Load required scripts -->
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="js/auth/supabase-client-js.js"></script>
+    <script src="js/data/image-storage-js.js"></script>
+    <script src="js/data/migration-js.js"></script>
+
+    <script>
+        // Override console.log to capture logs
+        const originalLog = console.log;
+        const originalError = console.error;
+        const originalWarn = console.warn;
+
+        function addToLog(message, type = 'log') {
+            const logElement = document.getElementById('console-log');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span style="color: #666;">[${timestamp}]</span> <span style="color: ${type === 'error' ? '#dc3545' : type === 'warn' ? '#ffc107' : '#007bff'};">${message}</span>`;
+            logElement.appendChild(logEntry);
+            logElement.scrollTop = logElement.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToLog(args.join(' '));
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToLog(args.join(' '), 'error');
+        };
+
+        console.warn = function(...args) {
+            originalWarn.apply(console, args);
+            addToLog(args.join(' '), 'warn');
+        };
+
+        function clearLog() {
+            document.getElementById('console-log').innerHTML = '';
+        }
+
+        async function checkStorageStatus() {
+            const statusDiv = document.getElementById('storage-status');
+            statusDiv.innerHTML = '<div class="status info">Checking storage status...</div>';
+
+            try {
+                await ImageStorage.initStorage();
+                statusDiv.innerHTML = '<div class="status success">✅ Storage is ready and accessible</div>';
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">❌ Storage error: ${error.message}</div>`;
+            }
+        }
+
+        async function getStorageStats() {
+            const statusDiv = document.getElementById('storage-status');
+            statusDiv.innerHTML = '<div class="status info">Getting storage statistics...</div>';
+
+            try {
+                const stats = await ImageStorage.getStorageStats();
+                statusDiv.innerHTML = `
+                    <div class="status success">
+                        <h3>📊 Storage Statistics</h3>
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number">${stats.totalFiles}</div>
+                                <div class="stat-label">Total Files</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${stats.totalSize.toFixed(2)} MB</div>
+                                <div class="stat-label">Total Size</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${stats.cardImages}</div>
+                                <div class="stat-label">Card Images</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${stats.skillImages}</div>
+                                <div class="stat-label">Skill Images</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number">${stats.galleryImages}</div>
+                                <div class="stat-label">Gallery Images</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">❌ Failed to get stats: ${error.message}</div>`;
+            }
+        }
+
+        async function migrateImages() {
+            const statusDiv = document.getElementById('migration-status');
+            statusDiv.innerHTML = '<div class="status info">Starting image migration...</div>';
+
+            try {
+                const results = await MigrationUtility.migrateImagesToStorage();
+                statusDiv.innerHTML = `
+                    <div class="status success">
+                        <h3>✅ Migration Completed</h3>
+                        <p>Migrated ${results.migratedItems} items and ${results.migratedSkills} skills</p>
+                        <p>Errors: ${results.errors}</p>
+                        <p>Duration: ${((results.endTime - results.startTime) / 1000).toFixed(1)} seconds</p>
+                    </div>
+                `;
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">❌ Migration failed: ${error.message}</div>`;
+            }
+        }
+
+        async function cleanupOrphanedImages() {
+            const statusDiv = document.getElementById('migration-status');
+            statusDiv.innerHTML = '<div class="status info">Cleaning up orphaned images...</div>';
+
+            try {
+                const deletedCount = await MigrationUtility.cleanupOrphanedImages();
+                statusDiv.innerHTML = `
+                    <div class="status success">
+                        <h3>✅ Cleanup Completed</h3>
+                        <p>Deleted ${deletedCount} orphaned images</p>
+                    </div>
+                `;
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="status error">❌ Cleanup failed: ${error.message}</div>`;
+            }
+        }
+
+        async function testImageUpload() {
+            const fileInput = document.getElementById('testImageInput');
+            const resultDiv = document.getElementById('upload-result');
+            const imagesDiv = document.getElementById('test-images');
+
+            if (!fileInput.files[0]) {
+                resultDiv.innerHTML = '<div class="status error">Please select an image file</div>';
+                return;
+            }
+
+            resultDiv.innerHTML = '<div class="status info">Uploading test image...</div>';
+
+            try {
+                const imageUrl = await ImageStorage.uploadImage(
+                    fileInput.files[0],
+                    'test_image',
+                    'test'
+                );
+
+                resultDiv.innerHTML = `
+                    <div class="status success">
+                        <h3>✅ Upload Successful</h3>
+                        <p>Image URL: ${imageUrl}</p>
+                    </div>
+                `;
+
+                // Display the uploaded image
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.className = 'test-image';
+                img.alt = 'Uploaded test image';
+                imagesDiv.appendChild(img);
+
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="status error">❌ Upload failed: ${error.message}</div>`;
+            }
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 Initializing BazaarGen Image Storage Test...');
+            
+            try {
+                // Initialize Supabase
+                SupabaseClient.init();
+                console.log('✅ Supabase initialized');
+                
+                // Initialize Image Storage
+                await ImageStorage.initStorage();
+                console.log('✅ Image Storage initialized');
+                
+                // Check initial status
+                await checkStorageStatus();
+                
+            } catch (error) {
+                console.error('❌ Initialization failed:', error);
+            }
+        });
+    </script>
+</body>
+</html> 

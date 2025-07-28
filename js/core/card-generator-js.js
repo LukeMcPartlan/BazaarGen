@@ -177,39 +177,68 @@ static async createCard(options = {}) {
     console.log('  - Passive inputs:', passiveInputs.length, 'values:', Array.from(passiveInputs).map(i => i.value));
 
     return new Promise(async (resolve) => {
-      console.log('📖 Reading image file...');
-      const reader = new FileReader();
-      reader.onload = async function(e) {
-        console.log('✅ Image file read successfully');
-        
-        // Handle custom hero image if present
-        let resolvedCustomHeroImage = null;
-        if (customHeroImage) {
-          resolvedCustomHeroImage = await customHeroImage;
+      console.log('📖 Processing image file...');
+      
+      // Upload image to storage if ImageStorage is available
+      let imageData = null;
+      if (typeof ImageStorage !== 'undefined' && ImageStorage.uploadImage) {
+        try {
+          console.log('📤 Uploading image to storage...');
+          imageData = await ImageStorage.uploadImage(
+            imageInput.files[0], 
+            itemName, 
+            'card'
+          );
+          console.log('✅ Image uploaded to storage:', imageData);
+        } catch (uploadError) {
+          console.warn('⚠️ Failed to upload to storage, falling back to base64:', uploadError);
+          // Fallback to base64
+          imageData = await this.readImageFile(imageInput.files[0]);
         }
-        
-        const extractedData = {
-          itemName: itemName,
-          hero: hero,
-          cooldown: cooldown,
-          ammo: ammo,
-          crit: crit,
-          multicast: multicast,
-          itemSize: itemSize,
-          border: border,
-          passiveEffects: Array.from(passiveInputs).map(input => input.value.trim()).filter(val => val), // Now array
-          onUseEffects: Array.from(onUseInputs).map(input => input.value.trim()).filter(val => val),
-          tags: Array.from(tagInputs).map(input => input.value.trim()).filter(val => val),
-          scalingValues: scalingValues,
-          imageData: e.target.result,
-          customHeroImage: resolvedCustomHeroImage,
-          timestamp: new Date().toISOString()
-        };
-        
-        console.log('📦 Final extracted data:', extractedData);
-        resolve(extractedData);
+      } else {
+        // Fallback to base64 if ImageStorage not available
+        console.log('📤 ImageStorage not available, using base64...');
+        imageData = await this.readImageFile(imageInput.files[0]);
+      }
+      
+      // Handle custom hero image if present
+      let resolvedCustomHeroImage = null;
+      if (customHeroImage) {
+        resolvedCustomHeroImage = await customHeroImage;
+      }
+      
+      const extractedData = {
+        itemName: itemName,
+        hero: hero,
+        cooldown: cooldown,
+        ammo: ammo,
+        crit: crit,
+        multicast: multicast,
+        itemSize: itemSize,
+        border: border,
+        passiveEffects: Array.from(passiveInputs).map(input => input.value.trim()).filter(val => val), // Now array
+        onUseEffects: Array.from(onUseInputs).map(input => input.value.trim()).filter(val => val),
+        tags: Array.from(tagInputs).map(input => input.value.trim()).filter(val => val),
+        scalingValues: scalingValues,
+        imageData: imageData,
+        customHeroImage: resolvedCustomHeroImage,
+        timestamp: new Date().toISOString()
       };
-      reader.readAsDataURL(imageInput.files[0]);
+      
+      console.log('📦 Final extracted data:', extractedData);
+      resolve(extractedData);
+    });
+  }
+
+  /**
+   * Read image file as data URL (fallback method)
+   */
+  static readImageFile(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => resolve(e.target.result);
+      reader.onerror = (e) => reject(new Error('Failed to read image file'));
+      reader.readAsDataURL(file);
     });
   }
 

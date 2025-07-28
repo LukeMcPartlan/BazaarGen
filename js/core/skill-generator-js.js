@@ -38,8 +38,27 @@ class SkillGenerator {
       throw new Error('Please upload an image.');
     }
 
-    // Read image data
-    const imageData = await this.readImageFile(imageInput.files[0]);
+    // Upload image to storage if ImageStorage is available
+    let imageData = null;
+    if (typeof ImageStorage !== 'undefined' && ImageStorage.uploadImage) {
+      try {
+        this.debug('📤 Uploading skill image to storage...');
+        imageData = await ImageStorage.uploadImage(
+          imageInput.files[0], 
+          skillName, 
+          'skill'
+        );
+        this.debug('✅ Skill image uploaded to storage:', imageData);
+      } catch (uploadError) {
+        this.debug('⚠️ Failed to upload to storage, falling back to base64:', uploadError);
+        // Fallback to base64
+        imageData = await this.readImageFile(imageInput.files[0]);
+      }
+    } else {
+      // Fallback to base64 if ImageStorage not available
+      this.debug('📤 ImageStorage not available, using base64...');
+      imageData = await this.readImageFile(imageInput.files[0]);
+    }
 
     const skillData = {
       skillName,
