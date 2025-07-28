@@ -516,10 +516,7 @@ static async loadItems(options = {}, requestOptions = {}) {
 
     let query = this.supabase
       .from('items')
-      .select(`
-        *,
-        contest_submissions!left(contest_id, content_type)
-      `)
+      .select('*')
       .order('created_at', { ascending: false });
 
     // Apply hero filter
@@ -533,11 +530,11 @@ static async loadItems(options = {}, requestOptions = {}) {
       if (options.contest === '0') {
         // Show items not in any contest
         console.log('🔍 Filtering for items NOT in any contest');
-        query = query.is('contest_submissions.contest_id', null);
+        query = query.is('contest_number', null);
       } else {
         // Show items in specific contest
         console.log('🔍 Filtering for items in contest ID:', parseInt(options.contest));
-        query = query.eq('contest_submissions.contest_id', parseInt(options.contest));
+        query = query.eq('contest_number', parseInt(options.contest));
       }
     }
 
@@ -579,11 +576,10 @@ static async loadItems(options = {}, requestOptions = {}) {
 
     // Transform data to include contest information
     const transformedData = data?.map(item => {
-      const contestSubmission = item.contest_submissions?.[0];
       return {
         ...item,
-        contest_id: contestSubmission?.contest_id || null,
-        in_contest: !!contestSubmission
+        contest_id: item.contest_number || null,
+        in_contest: !!item.contest_number
       };
     }) || [];
 
@@ -628,11 +624,14 @@ static async loadSkills(options = {}, requestOptions = {}) {
 
     // Apply contest filter
     if (options.contest !== undefined && options.contest !== '') {
+      console.log('🔍 Applying skills contest filter:', options.contest);
       if (options.contest === '0') {
         // Show skills not in any contest
+        console.log('🔍 Filtering for skills NOT in any contest');
         query = query.is('contest_submissions.contest_id', null);
       } else {
         // Show skills in specific contest
+        console.log('🔍 Filtering for skills in contest ID:', parseInt(options.contest));
         query = query.eq('contest_submissions.contest_id', parseInt(options.contest));
       }
     }
@@ -1956,6 +1955,22 @@ static async getSkillUpvoteCount(skillId) {
         
         throw error;
       }
+
+      // Update the item's contest_number field
+      if (contentType === 'card') {
+        const { error: updateError } = await this.supabase
+          .from('items')
+          .update({ contest_number: contestId })
+          .eq('id', itemId);
+
+        if (updateError) {
+          this.debug('Error updating item contest_number:', updateError);
+          // Don't throw error here, the submission was successful
+        } else {
+          this.debug(`Updated item ${itemId} contest_number to ${contestId}`);
+        }
+      }
+      // Note: Skills don't have a contest_number field, so we rely on contest_submissions table
 
       this.debug(`Successfully submitted ${contentType} ${itemId} to contest ${contestId}`);
       return data;
