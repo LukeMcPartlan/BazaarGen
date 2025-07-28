@@ -423,7 +423,8 @@ class UnifiedBrowsePageController {
     console.log('Controls grid innerHTML length:', controlsGrid.innerHTML.length);
     console.log('Controls grid display:', controlsGrid.style.display);
     
-    this.setupEventListeners();
+    // Setup event listeners after controls are created
+    this.setupFilterEventListeners();
     
     // Load contests for the filter
     this.loadContestsForFilter();
@@ -560,7 +561,8 @@ class UnifiedBrowsePageController {
     // Show filters by default
     controlsGrid.style.display = 'none';
     
-    this.setupEventListeners();
+    // Setup filter event listeners after controls are created
+    this.setupFilterEventListeners();
   }
 
   /**
@@ -598,52 +600,8 @@ class UnifiedBrowsePageController {
       }
     });
 
-    // Item filter event listeners
-    const itemFilterElements = [
-      'sortBy', 'heroFilter', 'sizeFilter', 'borderFilter', 'minUpvotes', 'maxUpvotes',
-      'searchInput', 'tagFilter', 'keywordFilter', 'creatorFilter', 'contestFilter',
-      'itemTypeFilter', 'dateFrom', 'dateTo'
-    ];
-
-    itemFilterElements.forEach(elementId => {
-      this.addEventListenerIfExists(elementId, 'change', () => this.handleFilterChange());
-      this.addEventListenerIfExists(elementId, 'input', () => this.handleFilterChange());
-    });
-
-    // Skill filter event listeners
-    const skillFilterElements = [
-      'skillSortBy', 'rarityFilter', 'skillMinUpvotes', 'skillMaxUpvotes',
-      'skillSearchInput', 'skillKeywordFilter', 'skillCreatorFilter', 'lengthFilter',
-      'skillTypeFilter', 'effectCategoryFilter', 'skillDateFrom', 'skillDateTo'
-    ];
-
-    skillFilterElements.forEach(elementId => {
-      this.addEventListenerIfExists(elementId, 'change', () => this.handleFilterChange());
-      this.addEventListenerIfExists(elementId, 'input', () => this.handleFilterChange());
-    });
-
-    // Filter action buttons
-    this.addEventListenerIfExists('applyFilters', 'click', () => this.handleFilterChange());
-    this.addEventListenerIfExists('clearFilters', 'click', () => this.clearAllFilters());
+    // Toggle filters button
     this.addEventListenerIfExists('toggleFiltersBtn', 'click', () => this.toggleFilters());
-    
-    this.addEventListenerIfExists('applySkillFilters', 'click', () => this.handleFilterChange());
-    this.addEventListenerIfExists('clearSkillFilters', 'click', () => this.clearAllFilters());
-
-    // Debounced search for better performance
-    let searchTimeout;
-    const debouncedSearch = (callback) => {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(callback, 300);
-    };
-
-    // Add debounced search for text inputs
-    ['searchInput', 'tagFilter', 'keywordFilter', 'creatorFilter', 
-     'skillSearchInput', 'skillKeywordFilter', 'skillCreatorFilter'].forEach(elementId => {
-      this.addEventListenerIfExists(elementId, 'input', () => {
-        debouncedSearch(() => this.handleFilterChange());
-      });
-    });
 
     // Authentication status monitoring
     if (window.GoogleAuth) {
@@ -669,6 +627,65 @@ class UnifiedBrowsePageController {
       checkAuthStatus();
       setInterval(checkAuthStatus, 5000);
     }
+  }
+
+  /**
+   * Setup filter-specific event listeners (called after controls are created)
+   */
+  static setupFilterEventListeners() {
+    console.log('🔧 Setting up filter event listeners...');
+
+    // Filter action buttons
+    this.addEventListenerIfExists('applyFilters', 'click', () => {
+      console.log('🔍 Apply filters button clicked!');
+      this.handleFilterChange();
+    });
+    this.addEventListenerIfExists('clearFilters', 'click', () => this.clearAllFilters());
+    
+    this.addEventListenerIfExists('applySkillFilters', 'click', () => {
+      console.log('🔍 Apply skill filters button clicked!');
+      this.handleFilterChange();
+    });
+    this.addEventListenerIfExists('clearSkillFilters', 'click', () => this.clearAllFilters());
+
+    // Item filter event listeners
+    const itemFilterElements = [
+      'sortBy', 'heroFilter', 'sizeFilter', 'borderFilter', 'minUpvotes', 'maxUpvotes',
+      'searchInput', 'tagFilter', 'keywordFilter', 'creatorFilter', 'contestFilter',
+      'itemTypeFilter', 'dateFrom', 'dateTo'
+    ];
+
+    itemFilterElements.forEach(elementId => {
+      this.addEventListenerIfExists(elementId, 'change', () => this.handleFilterChange());
+      this.addEventListenerIfExists(elementId, 'input', () => this.handleFilterChange());
+    });
+
+    // Skill filter event listeners
+    const skillFilterElements = [
+      'skillSortBy', 'rarityFilter', 'skillMinUpvotes', 'skillMaxUpvotes',
+      'skillSearchInput', 'skillKeywordFilter', 'skillCreatorFilter', 'lengthFilter',
+      'skillTypeFilter', 'effectCategoryFilter', 'skillDateFrom', 'skillDateTo'
+    ];
+
+    skillFilterElements.forEach(elementId => {
+      this.addEventListenerIfExists(elementId, 'change', () => this.handleFilterChange());
+      this.addEventListenerIfExists(elementId, 'input', () => this.handleFilterChange());
+    });
+
+    // Debounced search for better performance
+    let searchTimeout;
+    const debouncedSearch = (callback) => {
+      clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(callback, 300);
+    };
+
+    // Add debounced search for text inputs
+    ['searchInput', 'tagFilter', 'keywordFilter', 'creatorFilter', 
+     'skillSearchInput', 'skillKeywordFilter', 'skillCreatorFilter'].forEach(elementId => {
+      this.addEventListenerIfExists(elementId, 'input', () => {
+        debouncedSearch(() => this.handleFilterChange());
+      });
+    });
   }
 
   /**
@@ -1849,13 +1866,18 @@ static async addSkillComment(skillId) {
    * Handle filter changes with comprehensive filtering
    */
   static handleFilterChange() {
+    console.log('🔍 handleFilterChange() called!');
+    console.log('🔍 Active tab:', this.activeTab);
+    
     if (this.itemsGrid) {
       this.itemsGrid.innerHTML = '';
     }
     
     if (this.activeTab === 'items') {
+      console.log('🔍 Loading items with filters...');
       this.loadItems();
     } else if (this.activeTab === 'skills') {
+      console.log('🔍 Loading skills with filters...');
       this.loadSkills();
     }
   }
