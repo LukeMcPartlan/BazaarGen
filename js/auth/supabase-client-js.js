@@ -1676,7 +1676,7 @@ static async getSkillUpvoteCount(skillId) {
   // ===== CONTEST METHODS =====
 
   /**
-   * Check if user is authenticated with Supabase
+   * Check if user is authenticated with Google Auth
    */
   static async checkAuthentication() {
     try {
@@ -1686,19 +1686,25 @@ static async getSkillUpvoteCount(skillId) {
 
       this.debug('Checking authentication status...');
 
-      const { data: { user }, error } = await this.supabase.auth.getUser();
-      
-      if (error) {
-        this.debug('Authentication check error:', error);
+      // Check if GoogleAuth is available and user is signed in
+      if (typeof GoogleAuth === 'undefined' || !GoogleAuth.isInitialized) {
+        this.debug('GoogleAuth not available');
         return false;
       }
 
-      if (!user) {
-        this.debug('No authenticated user found');
+      const isSignedIn = GoogleAuth.isSignedIn();
+      if (!isSignedIn) {
+        this.debug('User not signed in with Google Auth');
         return false;
       }
 
-      this.debug(`User authenticated: ${user.email}`);
+      const userEmail = GoogleAuth.getUserEmail();
+      if (!userEmail) {
+        this.debug('No user email found');
+        return false;
+      }
+
+      this.debug(`User authenticated with Google Auth: ${userEmail}`);
       return true;
     } catch (error) {
       this.debug('Failed to check authentication:', error);
@@ -1828,19 +1834,22 @@ static async getSkillUpvoteCount(skillId) {
         throw new Error('Supabase not initialized');
       }
 
-      // Check authentication status
-      const { data: { user }, error: authError } = await this.supabase.auth.getUser();
-      if (authError) {
-        this.debug('Authentication error:', authError);
-        throw new Error('User not authenticated');
+      // Check authentication status using Google Auth
+      if (typeof GoogleAuth === 'undefined' || !GoogleAuth.isInitialized) {
+        throw new Error('Google Auth not available');
       }
-      
-      if (!user) {
-        this.debug('No authenticated user found');
+
+      const isSignedIn = GoogleAuth.isSignedIn();
+      if (!isSignedIn) {
         throw new Error('User not authenticated');
       }
 
-      this.debug(`Submitting ${contentType} ${itemId} to contest ${contestId} as user: ${user.email}`);
+      const userEmail = GoogleAuth.getUserEmail();
+      if (!userEmail) {
+        throw new Error('User not authenticated');
+      }
+
+      this.debug(`Submitting ${contentType} ${itemId} to contest ${contestId} as user: ${userEmail}`);
 
       // Check if item is already submitted to any contest
       let existingSubmission = null;
