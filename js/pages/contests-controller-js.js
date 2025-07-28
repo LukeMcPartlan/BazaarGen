@@ -362,8 +362,14 @@ class ContestsController {
         </div>
         <div class="submissions-grid">
           ${availableContent.map(item => {
-            const isSubmitted = submittedIds.includes(item.id);
             const isCard = item.contentType === 'card';
+            let isSubmitted = submittedIds.includes(item.id);
+            
+            // For cards, also check contest_number field
+            if (isCard && item.contest_number) {
+              isSubmitted = true;
+            }
+            
             const itemName = isCard ? item.item_data?.itemName : item.skill_data?.skillName;
             
             return `

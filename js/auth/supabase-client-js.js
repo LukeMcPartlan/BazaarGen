@@ -1897,6 +1897,25 @@ static async getSkillUpvoteCount(skillId) {
       this.debug(`Submitting ${contentType} ${itemId} to contest ${contestId} as user: ${userEmail}`);
 
       // Check if item is already submitted to any contest
+      if (contentType === 'card') {
+        // For items, check the contest_number field first
+        const { data: itemData, error: itemError } = await this.supabase
+          .from('items')
+          .select('contest_number')
+          .eq('id', itemId)
+          .maybeSingle();
+
+        if (itemError) {
+          this.debug('Error checking item contest_number:', itemError);
+          throw new Error('Failed to check item status');
+        }
+
+        if (itemData && itemData.contest_number) {
+          throw new Error('This item has already been submitted to a contest');
+        }
+      }
+
+      // Also check contest_submissions table for additional validation
       let existingSubmission = null;
       try {
         const { data, error } = await this.supabase
