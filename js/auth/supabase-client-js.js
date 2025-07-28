@@ -603,7 +603,10 @@ static async loadSkills(options = {}, requestOptions = {}) {
 
     let query = this.supabase
       .from('skills')
-      .select('*');
+      .select(`
+        *,
+        contest_submissions!left(contest_id, content_type)
+      `);
 
     // Apply rarity filter
     if (options.rarity) {
@@ -618,6 +621,17 @@ static async loadSkills(options = {}, requestOptions = {}) {
     // Apply creator filter
     if (options.creator) {
       query = query.filter('user_alias', 'ilike', `%${options.creator}%`);
+    }
+
+    // Apply contest filter
+    if (options.contest !== undefined && options.contest !== '') {
+      if (options.contest === '0') {
+        // Show skills not in any contest
+        query = query.is('contest_submissions.contest_id', null);
+      } else {
+        // Show skills in specific contest
+        query = query.eq('contest_submissions.contest_id', parseInt(options.contest));
+      }
     }
 
     // Apply sorting
@@ -657,7 +671,17 @@ static async loadSkills(options = {}, requestOptions = {}) {
 
     if (error) throw error;
 
-    let filteredSkills = data || [];
+    // Transform data to include contest information
+    const transformedData = data?.map(skill => {
+      const contestSubmission = skill.contest_submissions?.[0];
+      return {
+        ...skill,
+        contest_id: contestSubmission?.contest_id || null,
+        in_contest: !!contestSubmission
+      };
+    }) || [];
+
+    let filteredSkills = transformedData || [];
 
     // Apply client-side filters for complex operations
     if (options.keywords) {

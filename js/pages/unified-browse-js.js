@@ -750,12 +750,15 @@ class UnifiedBrowsePageController {
     this.hideMessages();
 
     try {
-      // Get all items from database
-      const items = await SupabaseClient.getAllItems();
+      // Get filter options
+      const filters = this.getFilters();
+      const queryOptions = this.buildQueryOptions(filters);
+      
+      // Get items from database with filters applied
+      const items = await SupabaseClient.loadItems(queryOptions);
       this.allItems = items || [];
 
-      // Apply comprehensive filtering
-      const filters = this.getFilters();
+      // Apply additional client-side filtering
       this.displayedItems = this.applyItemFilters(this.allItems, filters);
 
       // Reset pagination
@@ -807,12 +810,15 @@ class UnifiedBrowsePageController {
     this.hideMessages();
 
     try {
-      // Get all skills from database
-      const skills = await SupabaseClient.getAllSkills();
+      // Get filter options
+      const filters = this.getSkillFilters();
+      const queryOptions = this.buildQueryOptions(filters);
+      
+      // Get skills from database with filters applied
+      const skills = await SupabaseClient.loadSkills(queryOptions);
       this.allSkills = skills || [];
 
-      // Apply comprehensive filtering
-      const filters = this.getSkillFilters();
+      // Apply additional client-side filtering
       this.displayedSkills = this.applySkillFilters(this.allSkills, filters);
 
       // Reset pagination
@@ -1747,9 +1753,14 @@ static async addSkillComment(skillId) {
       sortBy: filters.sortBy
     };
 
+    // Items-specific filters
     if (filters.hero) options.hero = filters.hero;
     if (filters.contest !== '') options.contest = filters.contest;
     if (filters.search) options.search = filters.search;
+    
+    // Skills-specific filters
+    if (filters.rarity) options.rarity = filters.rarity;
+    if (filters.creator) options.creator = filters.creator;
 
     return options;
   }
@@ -2650,6 +2661,19 @@ static async addSkillComment(skillId) {
       filteredSkills = filteredSkills.filter(skill => 
         skill.user_alias?.toLowerCase().includes(creatorLower)
       );
+    }
+
+    // Contest filter
+    if (filters.contest !== '') {
+      if (filters.contest === '0') {
+        // Show skills not in any contest
+        filteredSkills = filteredSkills.filter(skill => !skill.in_contest);
+      } else {
+        // Show skills in specific contest
+        filteredSkills = filteredSkills.filter(skill => 
+          skill.contest_id === parseInt(filters.contest)
+        );
+      }
     }
 
     // Effect length filter
