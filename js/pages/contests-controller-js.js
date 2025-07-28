@@ -26,6 +26,9 @@ class ContestsController {
       // Wait for database
       await this.waitForDatabase();
       
+      // Wait for Messages module
+      await this.waitForMessages();
+      
       // Load contests
       await this.loadContests();
       
@@ -48,7 +51,7 @@ class ContestsController {
     
     return new Promise((resolve) => {
       const checkAuth = () => {
-        if (typeof GoogleAuth !== 'undefined' && GoogleAuth.isInitialized()) {
+        if (typeof GoogleAuth !== 'undefined' && GoogleAuth.isInitialized) {
           this.debug('✅ GoogleAuth ready');
           resolve();
         } else {
@@ -67,7 +70,7 @@ class ContestsController {
     
     return new Promise((resolve) => {
       const checkDatabase = () => {
-        if (typeof SupabaseClient !== 'undefined' && SupabaseClient.isInitialized()) {
+        if (typeof SupabaseClient !== 'undefined' && SupabaseClient.isInitialized) {
           this.debug('✅ SupabaseClient ready');
           resolve();
         } else {
@@ -75,6 +78,25 @@ class ContestsController {
         }
       };
       checkDatabase();
+    });
+  }
+
+  /**
+   * Wait for Messages module to be ready
+   */
+  static async waitForMessages() {
+    this.debug('⏳ Waiting for Messages module...');
+    
+    return new Promise((resolve) => {
+      const checkMessages = () => {
+        if (typeof Messages !== 'undefined' && Messages.showSuccess && Messages.showError) {
+          this.debug('✅ Messages module ready');
+          resolve();
+        } else {
+          setTimeout(checkMessages, 100);
+        }
+      };
+      checkMessages();
     });
   }
 
@@ -340,7 +362,7 @@ class ContestsController {
       
     } catch (error) {
       this.debug('❌ Error opening submission modal:', error);
-      if (typeof Messages !== 'undefined') {
+      if (typeof Messages !== 'undefined' && Messages.showError) {
         Messages.showError('Failed to load submission options');
       } else {
         alert('Failed to load submission options');
@@ -399,7 +421,7 @@ class ContestsController {
   static async submitToContest(contestId) {
     const selectedItem = document.querySelector('.submission-item.selected');
     if (!selectedItem) {
-      if (typeof Messages !== 'undefined') {
+      if (typeof Messages !== 'undefined' && Messages.showError) {
         Messages.showError('Please select an item to submit');
       } else {
         alert('Please select an item to submit');
@@ -415,7 +437,7 @@ class ContestsController {
     try {
       await SupabaseClient.submitToContest(contestId, itemId, contentType);
       
-      if (typeof Messages !== 'undefined') {
+      if (typeof Messages !== 'undefined' && Messages.showSuccess) {
         Messages.showSuccess('Item submitted successfully!');
       } else {
         alert('Item submitted successfully!');
@@ -431,7 +453,7 @@ class ContestsController {
         errorMessage = 'This item has already been submitted to a contest';
       }
       
-      if (typeof Messages !== 'undefined') {
+      if (typeof Messages !== 'undefined' && Messages.showError) {
         Messages.showError(errorMessage);
       } else {
         alert(errorMessage);
@@ -484,7 +506,7 @@ class ContestsController {
       
     } catch (error) {
       this.debug('❌ Error opening entries modal:', error);
-      if (typeof Messages !== 'undefined') {
+      if (typeof Messages !== 'undefined' && Messages.showError) {
         Messages.showError('Failed to load contest entries');
       } else {
         alert('Failed to load contest entries');
@@ -537,7 +559,7 @@ class ContestsController {
       
     } catch (error) {
       this.debug('❌ Error opening winners modal:', error);
-      if (typeof Messages !== 'undefined') {
+      if (typeof Messages !== 'undefined' && Messages.showError) {
         Messages.showError('Failed to load contest winners');
       } else {
         alert('Failed to load contest winners');
