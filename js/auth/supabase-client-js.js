@@ -1676,6 +1676,36 @@ static async getSkillUpvoteCount(skillId) {
   // ===== CONTEST METHODS =====
 
   /**
+   * Check if contest tables exist
+   */
+  static async checkContestTables() {
+    try {
+      if (!this.isReady()) {
+        throw new Error('Supabase not initialized');
+      }
+
+      this.debug('Checking if contest tables exist...');
+
+      // Try to query the contests table
+      const { data, error } = await this.supabase
+        .from('contests')
+        .select('id')
+        .limit(1);
+
+      if (error) {
+        this.debug('Contest tables do not exist:', error);
+        return false;
+      }
+
+      this.debug('Contest tables exist');
+      return true;
+    } catch (error) {
+      this.debug('Failed to check contest tables:', error);
+      return false;
+    }
+  }
+
+  /**
    * Get all contests
    */
   static async getContests() {
@@ -1770,15 +1800,23 @@ static async getSkillUpvoteCount(skillId) {
       this.debug(`Submitting ${contentType} ${itemId} to contest ${contestId}`);
 
       // Check if item is already submitted to any contest
-      const { data: existingSubmission, error: checkError } = await this.supabase
-        .from('contest_submissions')
-        .select('*')
-        .eq('item_id', itemId)
-        .single();
+      let existingSubmission = null;
+      try {
+        const { data, error } = await this.supabase
+          .from('contest_submissions')
+          .select('*')
+          .eq('item_id', itemId)
+          .maybeSingle();
 
-      if (checkError && checkError.code !== 'PGRST116') {
-        this.debug('Error checking existing submission:', checkError);
-        throw checkError;
+        if (error) {
+          this.debug('Error checking existing submission:', error);
+          // Continue anyway, the insert will fail if there's a constraint violation
+        } else {
+          existingSubmission = data;
+        }
+      } catch (error) {
+        this.debug('Exception checking existing submission:', error);
+        // Continue anyway
       }
 
       if (existingSubmission) {
@@ -1789,7 +1827,7 @@ static async getSkillUpvoteCount(skillId) {
       const submissionData = {
         contest_id: contestId,
         user_email: GoogleAuth.getUserEmail(),
-        user_alias: GoogleAuth.getUserAlias(),
+        user_alias: GoogleAuth.getUserDisplayName(),
         content_type: contentType,
         created_at: new Date().toISOString()
       };
@@ -1804,10 +1842,20 @@ static async getSkillUpvoteCount(skillId) {
         .from('contest_submissions')
         .insert([submissionData])
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) {
         this.debug('Error submitting to contest:', error);
+        
+        // Check for specific constraint violations
+        if (error.code === '23505') { // Unique constraint violation
+          if (error.message.includes('item_id')) {
+            throw new Error('This item has already been submitted to a contest');
+          } else if (error.message.includes('skill_id')) {
+            throw new Error('This skill has already been submitted to a contest');
+          }
+        }
+        
         throw error;
       }
 
@@ -1919,7 +1967,7 @@ static async getSkillUpvoteCount(skillId) {
         const voteData = {
           submission_id: submissionId,
           user_email: GoogleAuth.getUserEmail(),
-          user_alias: GoogleAuth.getUserAlias(),
+          user_alias: GoogleAuth.getUserDisplayName(),
           vote_type: voteType,
           created_at: new Date().toISOString()
         };

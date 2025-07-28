@@ -116,6 +116,26 @@ class ContestsController {
       if (gridEl) gridEl.innerHTML = '';
       if (emptyEl) emptyEl.style.display = 'none';
       
+      // Check if contest tables exist
+      const tablesExist = await SupabaseClient.checkContestTables();
+      if (!tablesExist) {
+        this.debug('❌ Contest tables do not exist');
+        if (loadingEl) loadingEl.style.display = 'none';
+        if (emptyEl) {
+          emptyEl.innerHTML = `
+            <h3>Database Setup Required</h3>
+            <p>The contest system requires database tables to be set up.</p>
+            <p>Please run the database setup script in your Supabase SQL editor:</p>
+            <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 15px 0; font-family: monospace; font-size: 12px; text-align: left;">
+              Copy and paste the contents of <strong>database-setup-contests.sql</strong> into your Supabase SQL editor and run it.
+            </div>
+            <p>After running the script, refresh this page.</p>
+          `;
+          emptyEl.style.display = 'block';
+        }
+        return;
+      }
+      
       // Fetch contests from database
       const contests = await SupabaseClient.getContests();
       this.contests = contests || [];
