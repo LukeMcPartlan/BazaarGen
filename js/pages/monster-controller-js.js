@@ -634,7 +634,7 @@ class MonsterController {
                         ${itemData.itemName || 'Unknown Item'}
                     </div>
                     <div style="font-size: 14px; color: rgb(201, 175, 133);">
-                        ${size} (${slotsUsed} slots)
+                        ${size.toUpperCase()} (${slotsUsed} slots)
                     </div>
                     <div style="font-size: 12px; color: rgb(184, 134, 11); margin-top: 5px;">
                         ${itemData.hero || 'No Hero'} • ${itemData.border || 'Gold'} Border
@@ -1182,7 +1182,7 @@ class MonsterController {
                             <img src="${itemData.imageData || 'images/default.png'}" style="width: 200px; height: 200px; object-fit: cover; border-radius: 10px; border: 3px solid rgb(218, 165, 32); margin-bottom: 15px;">
                             <h4>${itemData.itemName || 'Unknown Item'}</h4>
                             <p><strong>Hero:</strong> ${itemData.hero || 'None'}</p>
-                            <p><strong>Size:</strong> ${itemData.itemSize || 'Medium'}</p>
+                            <p><strong>Size:</strong> ${(itemData.itemSize || 'Medium').toUpperCase()}</p>
                             <p><strong>Border:</strong> ${itemData.border || 'Gold'}</p>
                         </div>
                     `;

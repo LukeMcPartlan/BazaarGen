@@ -529,7 +529,7 @@ static async createCard(options = {}) {
     if (!cardData.isGallery) {
       const itemSizeTag = document.createElement("span");
       itemSizeTag.className = "item-tag";
-      itemSizeTag.textContent = cardData.itemSize;
+      itemSizeTag.textContent = cardData.itemSize.toUpperCase();
       tagsContainer.appendChild(itemSizeTag);
     }
 
