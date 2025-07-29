@@ -276,13 +276,7 @@ class ContestsController {
       submitBtn.textContent = '📤 Submit Entry';
       submitBtn.onclick = () => this.openSubmissionModal(contest);
       
-      const viewBtn = document.createElement('button');
-      viewBtn.className = 'contest-btn btn-view';
-      viewBtn.textContent = '👁️ View Entries';
-      viewBtn.onclick = () => this.openEntriesModal(contest);
-      
       actions.appendChild(submitBtn);
-      actions.appendChild(viewBtn);
       
       // Add browse button
       const browseBtn = document.createElement('button');

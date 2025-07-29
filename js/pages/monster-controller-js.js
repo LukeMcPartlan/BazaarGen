@@ -924,47 +924,14 @@ class MonsterController {
         }
 
         const exportSection = document.getElementById('exportSection');
-        const itemsGrid = document.getElementById('exportItemsGrid');
-        const skillsGrid = document.getElementById('exportSkillsGrid');
+        const exportPreview = document.getElementById('exportMonsterPreview');
 
-        if (exportSection && itemsGrid && skillsGrid) {
+        if (exportSection && exportPreview) {
             // Clear previous content
-            itemsGrid.innerHTML = '';
-            skillsGrid.innerHTML = '';
+            exportPreview.innerHTML = '';
 
-            // Add items to export grid
-            this.currentMonster.items.forEach((item, index) => {
-                if (item) {
-                    const itemCard = document.createElement('div');
-                    itemCard.className = 'export-item-card';
-                    itemCard.onclick = () => this.showItemDetails(item.id);
-                    
-                    itemCard.innerHTML = `
-                        <div style="text-align: center;">
-                            <img src="${item.image}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; border: 2px solid rgb(218, 165, 32); margin-bottom: 10px;">
-                            <div style="font-weight: bold; margin-bottom: 5px;">${item.name}</div>
-                            <div style="font-size: 0.8em; color: rgb(201, 175, 133);">${item.size} (${item.slotsUsed} slots)</div>
-                        </div>
-                    `;
-                    
-                    itemsGrid.appendChild(itemCard);
-                }
-            });
-
-            // Add skills to export grid
-            this.currentMonster.skills.forEach((skill, index) => {
-                if (skill) {
-                    const skillCard = document.createElement('div');
-                    skillCard.className = 'export-skill-card';
-                    skillCard.onclick = () => this.showSkillDetails(skill.id);
-                    
-                    skillCard.innerHTML = `
-                        <img src="${skill.image}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%;">
-                    `;
-                    
-                    skillsGrid.appendChild(skillCard);
-                }
-            });
+            // Create the same monster preview structure as the main preview
+            this.createExportMonsterPreview(exportPreview);
 
             // Show export section
             exportSection.classList.add('active');
@@ -972,6 +939,195 @@ class MonsterController {
             if (typeof Messages !== 'undefined') {
                 Messages.showSuccess('Monster prepared for export!');
             }
+        }
+    }
+
+    /**
+     * Create export monster preview (same as main preview)
+     */
+    static createExportMonsterPreview(container) {
+        if (!this.currentMonster) return;
+
+        // Create monster frame and image
+        const frameContainer = document.createElement('div');
+        frameContainer.className = 'monster-frame-container';
+        
+        const frame = document.createElement('div');
+        frame.className = 'monster-frame';
+        frame.id = 'exportMonsterFrame';
+        
+        const image = document.createElement('img');
+        image.className = 'monster-image';
+        image.id = 'exportMonsterImage';
+        image.src = this.currentMonster.image || 'images/default.png';
+        image.alt = 'Monster';
+        
+        frame.appendChild(image);
+        frameContainer.appendChild(frame);
+
+        // Create skill slots container
+        const skillContainer = document.createElement('div');
+        skillContainer.className = 'skill-slots-container';
+        
+        // Create 6 skill slots (3 left, 3 right)
+        for (let i = 0; i < 6; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'skill-slot';
+            slot.dataset.skillIndex = i;
+            
+            const skill = this.currentMonster.skills[i];
+            if (skill) {
+                slot.className = 'skill-slot filled';
+                slot.innerHTML = `<img src="${skill.image}" alt="${skill.name}">`;
+                slot.onclick = () => this.showSkillDetails(skill.id);
+            } else {
+                slot.innerHTML = '⚡';
+            }
+            
+            skillContainer.appendChild(slot);
+        }
+
+        // Create health bar
+        const healthContainer = document.createElement('div');
+        healthContainer.className = 'health-bar-container';
+        
+        const healthBar = document.createElement('div');
+        healthBar.className = 'health-bar';
+        healthBar.id = 'exportHealthBar';
+        
+        const healthFill = document.createElement('div');
+        healthFill.className = 'health-fill';
+        healthFill.id = 'exportHealthFill';
+        healthFill.style.width = '100%';
+        
+        const healthText = document.createElement('div');
+        healthText.className = 'health-text';
+        healthText.id = 'exportHealthText';
+        healthText.textContent = `${this.currentMonster.health}/${this.currentMonster.maxHealth}`;
+        
+        // Create coin and exp displays
+        const coinDisplay = document.createElement('div');
+        coinDisplay.className = 'coin-display';
+        coinDisplay.id = 'exportCoinDisplay';
+        
+        const expDisplay = document.createElement('div');
+        expDisplay.className = 'exp-display';
+        expDisplay.id = 'exportExpDisplay';
+        
+        healthBar.appendChild(healthFill);
+        healthBar.appendChild(healthText);
+        healthBar.appendChild(coinDisplay);
+        healthBar.appendChild(expDisplay);
+        healthContainer.appendChild(healthBar);
+
+        // Create item board
+        const boardContainer = document.createElement('div');
+        boardContainer.className = 'item-board-container';
+        
+        const board = document.createElement('div');
+        board.className = 'item-board';
+        board.id = 'exportItemBoard';
+
+        // Create 10 board slots
+        for (let i = 0; i < 10; i++) {
+            const slot = document.createElement('div');
+            slot.className = 'board-slot';
+            slot.dataset.slotIndex = i;
+            
+            const item = this.currentMonster.items[i];
+            if (item && !item.isPartOfMultiSlot) {
+                slot.className = 'board-slot filled';
+                
+                const itemElement = document.createElement('img');
+                itemElement.src = item.image;
+                itemElement.alt = item.name;
+                itemElement.className = `board-item ${item.size.toLowerCase()}`;
+                itemElement.style.cursor = 'pointer';
+                itemElement.onclick = () => this.showItemDetails(item.id);
+                
+                slot.innerHTML = '';
+                slot.appendChild(itemElement);
+            } else if (item && item.isPartOfMultiSlot) {
+                // Don't display items that are part of multi-slot items
+                slot.className = 'board-slot filled';
+                slot.innerHTML = '';
+            } else {
+                slot.innerHTML = `Slot ${i + 1}`;
+            }
+            
+            board.appendChild(slot);
+        }
+
+        boardContainer.appendChild(board);
+
+        // Insert elements into export preview
+        container.insertBefore(frameContainer, container.firstChild);
+        container.insertBefore(skillContainer, frameContainer.nextSibling);
+        container.insertBefore(healthContainer, skillContainer.nextSibling);
+        container.insertBefore(boardContainer, healthContainer.nextSibling);
+
+        // Update coin and exp displays
+        this.updateExportCoinDisplay();
+        this.updateExportExpDisplay();
+    }
+
+    /**
+     * Update export coin display
+     */
+    static updateExportCoinDisplay() {
+        if (!this.currentMonster) return;
+
+        const coinDisplay = document.getElementById('exportCoinDisplay');
+        if (!coinDisplay) return;
+
+        coinDisplay.innerHTML = '';
+        
+        // Create coin nodes (2 empty nodes + coin count)
+        const totalNodes = this.currentMonster.gold + 2;
+        
+        for (let i = 0; i < totalNodes; i++) {
+            const node = document.createElement('div');
+            node.className = 'coin-node';
+            
+            if (i > 0 && i < totalNodes - 1) {
+                // This is a coin position
+                const coin = document.createElement('img');
+                coin.src = 'images/value.png'; // Using value.png as placeholder
+                coin.alt = 'Coin';
+                node.appendChild(coin);
+            }
+            
+            coinDisplay.appendChild(node);
+        }
+    }
+
+    /**
+     * Update export exp display
+     */
+    static updateExportExpDisplay() {
+        if (!this.currentMonster) return;
+
+        const expDisplay = document.getElementById('exportExpDisplay');
+        if (!expDisplay) return;
+
+        expDisplay.innerHTML = '';
+        
+        // Create exp nodes (2 empty nodes + exp count)
+        const totalNodes = this.currentMonster.exp + 2;
+        
+        for (let i = 0; i < totalNodes; i++) {
+            const node = document.createElement('div');
+            node.className = 'exp-node';
+            
+            if (i > 0 && i < totalNodes - 1) {
+                // This is an exp position
+                const exp = document.createElement('img');
+                exp.src = 'images/charge.png'; // Using charge.png as placeholder
+                exp.alt = 'Experience';
+                node.appendChild(exp);
+            }
+            
+            expDisplay.appendChild(node);
         }
     }
 

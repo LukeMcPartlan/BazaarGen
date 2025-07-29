@@ -316,6 +316,16 @@ class UnifiedBrowsePageController {
     if (!controlsGrid) return;
 
     controlsGrid.innerHTML = `
+      <!-- Contest Filter - Highlighted Box -->
+      <div class="control-group contest-filter-highlight">
+        <label class="control-label">🏆 Contest Filter</label>
+        <select id="contestFilter" class="control-select">
+          <option value="">All Items</option>
+          <option value="0">General Items (Not in Contest)</option>
+          <option value="loading">Loading contests...</option>
+        </select>
+      </div>
+
       <!-- Sort Options -->
       <div class="control-group">
         <label class="control-label">Sort By</label>
@@ -406,16 +416,6 @@ class UnifiedBrowsePageController {
         <input type="text" id="creatorFilter" class="control-input" placeholder="Search by creator...">
       </div>
 
-      <!-- Contest Filter -->
-      <div class="control-group">
-        <label class="control-label">Contest Filter</label>
-        <select id="contestFilter" class="control-select">
-          <option value="">All Items</option>
-          <option value="0">General Items (Not in Contest)</option>
-          <option value="loading">Loading contests...</option>
-        </select>
-      </div>
-
       <!-- Gallery Filter -->
       <div class="control-group">
         <label class="control-label">Item Type</label>
@@ -470,6 +470,16 @@ class UnifiedBrowsePageController {
     if (!controlsGrid) return;
 
     controlsGrid.innerHTML = `
+      <!-- Contest Filter - Highlighted Box -->
+      <div class="control-group contest-filter-highlight">
+        <label class="control-label">🏆 Contest Filter</label>
+        <select id="skillContestFilter" class="control-select">
+          <option value="">All Skills</option>
+          <option value="0">General Skills (Not in Contest)</option>
+          <option value="loading">Loading contests...</option>
+        </select>
+      </div>
+
       <!-- Sort Options -->
       <div class="control-group">
         <label class="control-label">Sort By</label>
@@ -565,16 +575,6 @@ class UnifiedBrowsePageController {
           <option value="debuff">Debuffs</option>
           <option value="control">Control</option>
           <option value="utility">Utility</option>
-        </select>
-      </div>
-
-      <!-- Contest Filter -->
-      <div class="control-group">
-        <label class="control-label">Contest Filter</label>
-        <select id="skillContestFilter" class="control-select">
-          <option value="">All Skills</option>
-          <option value="0">General Skills (Not in Contest)</option>
-          <option value="loading">Loading contests...</option>
         </select>
       </div>
 
