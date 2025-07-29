@@ -167,8 +167,8 @@ class SkillGenerator {
     imageBorderOverlay.style.position = 'absolute';
     imageBorderOverlay.style.top = '50%';
     imageBorderOverlay.style.left = '50%';
-    imageBorderOverlay.style.width = '113px';
-    imageBorderOverlay.style.height = '113px';
+    imageBorderOverlay.style.width = '169.5px';
+    imageBorderOverlay.style.height = '169.5px';
     imageBorderOverlay.style.transform = 'translate(-50%, -50%)';
     imageBorderOverlay.style.objectFit = 'cover';
     imageBorderOverlay.style.pointerEvents = 'none';

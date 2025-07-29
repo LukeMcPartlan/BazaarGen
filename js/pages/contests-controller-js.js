@@ -274,7 +274,7 @@ class ContestsController {
       const submitBtn = document.createElement('button');
       submitBtn.className = 'contest-btn btn-submit';
       submitBtn.textContent = '📤 Submit Entry';
-      submitBtn.onclick = () => this.openSubmissionModal(contest);
+      submitBtn.onclick = () => this.handleSubmitEntry(contest);
       
       actions.appendChild(submitBtn);
       
@@ -313,6 +313,28 @@ class ContestsController {
     card.appendChild(actions);
     
     return card;
+  }
+
+  /**
+   * Handle submit entry button click with authentication check
+   */
+  static async handleSubmitEntry(contest) {
+    this.debug(`📤 Handling submit entry for contest: ${contest.name}`);
+    
+    // Check if user is signed in
+    if (!GoogleAuth || !GoogleAuth.isSignedIn()) {
+      this.debug('❌ User not signed in, showing error message');
+      if (typeof Messages !== 'undefined') {
+        Messages.showError('You must be signed in to submit a contest entry from your profile');
+      } else {
+        // Fallback if Messages module is not available
+        alert('You must be signed in to submit a contest entry from your profile');
+      }
+      return;
+    }
+    
+    // User is signed in, proceed with submission modal
+    await this.openSubmissionModal(contest);
   }
 
   /**

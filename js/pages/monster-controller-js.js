@@ -1245,7 +1245,7 @@ class MonsterController {
                 if (content) {
                     content.innerHTML = `
                         <div style="text-align: center; color: rgb(251, 225, 183);">
-                            <img src="${skillData.imageData || 'images/default.png'}" style="width: 150px; height: 150px; object-fit: cover; border-radius: 50%; border: 3px solid rgb(218, 165, 32); margin-bottom: 15px;">
+                            <img src="${skillData.imageData || 'images/default.png'}" style="width: 225px; height: 225px; object-fit: cover; border-radius: 50%; border: 3px solid rgb(218, 165, 32); margin-bottom: 15px;">
                             <h4>${skillData.skillName || 'Unknown Skill'}</h4>
                             <p><strong>Effect:</strong> ${skillData.skillEffect || 'None'}</p>
                             <p><strong>Border:</strong> ${skillData.border || 'Gold'}</p>

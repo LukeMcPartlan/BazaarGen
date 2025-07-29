@@ -237,7 +237,7 @@ static async createCard(options = {}) {
         border: border,
         passiveEffects: Array.from(passiveInputs).map(input => input.value.trim()).filter(val => val), // Now array
         onUseEffects: Array.from(onUseInputs).map(input => input.value.trim()).filter(val => val),
-        tags: Array.from(tagInputs).map(input => input.value.trim()).filter(val => val),
+        tags: Array.from(tagInputs).map(input => input.value.trim().toUpperCase()).filter(val => val),
         scalingValues: scalingValues,
         imageData: imageData,
         customHeroImage: resolvedCustomHeroImage,
@@ -539,7 +539,7 @@ static async createCard(options = {}) {
         console.log('🏷️ Adding tag:', tagText);
         const tag = document.createElement("span");
         tag.className = "item-tag";
-        tag.textContent = tagText.trim();
+        tag.textContent = tagText.trim().toUpperCase();
         tagsContainer.appendChild(tag);
       }
     });
@@ -806,7 +806,7 @@ static async createCard(options = {}) {
         widthRatio = 1.5;
       }
 
-      const containerWidth = 150 * widthRatio;
+      const containerWidth = 225 * widthRatio;
       imageContainer.style.width = containerWidth + "px";
 
       const img = imageContainer.querySelector('.uploaded-image');

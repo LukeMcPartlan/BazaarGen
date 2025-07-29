@@ -398,8 +398,8 @@ class ExportImport {
       imageContainer.style.display = 'flex';
       imageContainer.style.alignItems = 'center';
       imageContainer.style.justifyContent = 'center';
-      imageContainer.style.width = '75px';
-      imageContainer.style.height = '75px';
+      imageContainer.style.width = '112.5px';
+      imageContainer.style.height = '112.5px';
       
       // Add the new border overlay to the container
       imageContainer.appendChild(exportBorderOverlay);

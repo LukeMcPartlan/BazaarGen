@@ -1225,7 +1225,7 @@ class Forms {
 
     // Get dynamic inputs (including auto-added weapon tag)
     const tagInputs = document.querySelectorAll('#tagInputs input');
-    formData.tags = Array.from(tagInputs).map(input => input.value.trim()).filter(val => val);
+    formData.tags = Array.from(tagInputs).map(input => input.value.trim().toUpperCase()).filter(val => val);
 
     const onUseInputs = document.querySelectorAll('#onUseInputs input');
     formData.onUseEffects = Array.from(onUseInputs).map(input => input.value.trim()).filter(val => val);
