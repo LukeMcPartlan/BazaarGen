@@ -18,6 +18,7 @@ class UnifiedBrowsePageController {
   static isInitialized = false;
   static activeTab = 'items';
   static eventListenersSetup = false;
+  static controlsSetup = false;
   static debugMode = true;
 
   static debug(message, data = null) {
@@ -215,6 +216,8 @@ class UnifiedBrowsePageController {
    * Update controls panel based on active tab
    */
   static updateControlsForTab(tabId) {
+    console.log(`🔧 Updating controls for tab: ${tabId}`);
+    
     if (tabId === 'items') {
       this.setupItemsControls();
     } else if (tabId === 'skills') {
@@ -347,6 +350,19 @@ class UnifiedBrowsePageController {
     console.log('Controls grid found:', !!controlsGrid);
     
     if (!controlsGrid) return;
+    
+    // Check if controls are already set up to avoid recreating them
+    if (this.controlsSetup) {
+      console.log('🔧 Items controls already set up, skipping');
+      return;
+    }
+    
+    const existingContestFilter = document.getElementById('contestFilter');
+    if (existingContestFilter) {
+      console.log('🔧 Items controls already exist, skipping setup');
+      this.controlsSetup = true;
+      return;
+    }
 
     controlsGrid.innerHTML = `
       <!-- Contest Filter - Highlighted Box -->
@@ -493,6 +509,21 @@ class UnifiedBrowsePageController {
     
     // Load contests for the filter
     this.loadContestsForFilter();
+    
+    // Mark controls as set up
+    this.controlsSetup = true;
+    
+    // If we have a pending contest filter, set it after a short delay
+    if (this.pendingContestFilter) {
+      setTimeout(() => {
+        const contestFilter = document.getElementById('contestFilter');
+        if (contestFilter) {
+          contestFilter.value = this.pendingContestFilter;
+          console.log(`🔍 Set contest filter after controls setup: ${this.pendingContestFilter}`);
+          this.handleFilterChange();
+        }
+      }, 200);
+    }
   }
 
   /**
