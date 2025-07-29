@@ -35,6 +35,12 @@ class MonsterController {
             createBtn.addEventListener('click', () => this.createMonster());
         }
 
+        // Prepare export button
+        const exportBtn = document.getElementById('prepareExportBtn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => this.prepareForExport());
+        }
+
         // Monster image input
         const imageInput = document.getElementById('monsterImageInput');
         if (imageInput) {
@@ -569,8 +575,10 @@ class MonsterController {
                     <h4>Select an Item (${availableSlots} slots available)</h4>
                     <div style="display: flex; gap: 10px; margin-bottom: 10px;">
                         <input type="text" id="itemSearchInput" placeholder="Search items..." 
-                               style="flex: 1; padding: 8px; border-radius: 5px; border: 1px solid rgb(218, 165, 32); background: rgb(37, 26, 12); color: rgb(251, 225, 183);">
-                        <select id="itemFilterSelect" style="padding: 8px; border-radius: 5px; border: 1px solid rgb(218, 165, 32); background: rgb(37, 26, 12); color: rgb(251, 225, 183);">
+                               style="width: 100%; padding: 12px; border-radius: 5px; border: 1px solid rgb(218, 165, 32); background: rgb(37, 26, 12); color: rgb(251, 225, 183); font-size: 14px;">
+                    </div>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <select id="itemFilterSelect" style="flex: 1; padding: 12px; border-radius: 5px; border: 1px solid rgb(218, 165, 32); background: rgb(37, 26, 12); color: rgb(251, 225, 183); font-size: 14px;">
                             <option value="">All Items</option>
                             <option value="Small">Small Items</option>
                             <option value="Medium">Medium Items</option>
@@ -578,7 +586,7 @@ class MonsterController {
                         </select>
                     </div>
                 </div>
-                <div id="itemBrowseGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+                <div id="itemBrowseGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;">
                     ${items.map(item => this.createItemCard(item)).join('')}
                 </div>
             </div>
@@ -594,9 +602,9 @@ class MonsterController {
                 <div style="margin-bottom: 15px; color: rgb(251, 225, 183);">
                     <h4>Select a Skill</h4>
                     <input type="text" id="skillSearchInput" placeholder="Search skills..." 
-                           style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid rgb(218, 165, 32); background: rgb(37, 26, 12); color: rgb(251, 225, 183); margin-bottom: 10px;">
+                           style="width: 100%; padding: 12px; border-radius: 5px; border: 1px solid rgb(218, 165, 32); background: rgb(37, 26, 12); color: rgb(251, 225, 183); font-size: 14px; margin-bottom: 10px;">
                 </div>
-                <div id="skillBrowseGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
+                <div id="skillBrowseGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px;">
                     ${skills.map(skill => this.createSkillCard(skill)).join('')}
                 </div>
             </div>
@@ -614,18 +622,23 @@ class MonsterController {
         return `
             <div class="item-card" data-item-id="${item.id}" data-slots="${slotsUsed}" 
                  style="background: linear-gradient(135deg, rgb(101, 84, 63) 0%, rgb(89, 72, 51) 100%); 
-                        border: 2px solid rgb(218, 165, 32); border-radius: 8px; padding: 10px; 
-                        cursor: pointer; transition: all 0.2s ease; color: rgb(251, 225, 183);"
+                        border: 2px solid rgb(218, 165, 32); border-radius: 8px; padding: 15px; 
+                        cursor: pointer; transition: all 0.2s ease; color: rgb(251, 225, 183); display: flex; align-items: center; gap: 15px;"
                  onclick="MonsterController.selectItem('${item.id}', ${slotsUsed})">
-                <div style="text-align: center; margin-bottom: 8px;">
+                <div style="flex-shrink: 0;">
                     <img src="${itemData.imageData || 'images/default.png'}" 
-                         style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; border: 2px solid rgb(218, 165, 32);">
+                         style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 2px solid rgb(218, 165, 32);">
                 </div>
-                <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">
-                    ${itemData.itemName || 'Unknown Item'}
-                </div>
-                <div style="text-align: center; font-size: 0.8em; color: rgb(201, 175, 133);">
-                    ${size} (${slotsUsed} slots)
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px;">
+                        ${itemData.itemName || 'Unknown Item'}
+                    </div>
+                    <div style="font-size: 14px; color: rgb(201, 175, 133);">
+                        ${size} (${slotsUsed} slots)
+                    </div>
+                    <div style="font-size: 12px; color: rgb(184, 134, 11); margin-top: 5px;">
+                        ${itemData.hero || 'No Hero'} • ${itemData.border || 'Gold'} Border
+                    </div>
                 </div>
             </div>
         `;
@@ -640,12 +653,21 @@ class MonsterController {
         return `
             <div class="skill-card" data-skill-id="${skill.id}" 
                  style="background: linear-gradient(135deg, rgb(101, 84, 63) 0%, rgb(89, 72, 51) 100%); 
-                        border: 2px solid rgb(218, 165, 32); border-radius: 50%; width: 80px; height: 80px; 
-                        display: flex; align-items: center; justify-content: center; cursor: pointer; 
-                        transition: all 0.2s ease; margin: 0 auto;"
+                        border: 2px solid rgb(218, 165, 32); border-radius: 8px; padding: 15px; 
+                        cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 15px;"
                  onclick="MonsterController.selectSkill('${skill.id}')">
-                <img src="${skillData.imageData || 'images/default.png'}" 
-                     style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%;">
+                <div style="flex-shrink: 0;">
+                    <img src="${skillData.imageData || 'images/default.png'}" 
+                         style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid rgb(218, 165, 32);">
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; font-size: 16px; margin-bottom: 8px;">
+                        ${skillData.skillName || 'Unknown Skill'}
+                    </div>
+                    <div style="font-size: 12px; color: rgb(184, 134, 11);">
+                        ${skillData.border || 'Gold'} Border
+                    </div>
+                </div>
             </div>
         `;
     }
@@ -721,6 +743,11 @@ class MonsterController {
             return;
         }
         
+        // Check if adjacent slots are available for multi-slot items
+        if (!this.canPlaceItemAtSlot(this.selectedSlot, slotsUsed)) {
+            return;
+        }
+        
         // Add the item to the monster
         this.addItemToMonster(itemId, slotsUsed);
         this.closeItemModal();
@@ -752,6 +779,7 @@ class MonsterController {
             }
             
             const itemData = data.item_data || {};
+            const size = itemData.itemSize || 'Medium';
             
             // Add to monster
             this.currentMonster.items[this.selectedSlot] = {
@@ -759,19 +787,69 @@ class MonsterController {
                 name: itemData.itemName || 'Unknown Item',
                 image: itemData.imageData || 'images/default.png',
                 border: itemData.border || 'gold',
-                size: itemData.itemSize || 'Medium',
-                slotsUsed: slotsUsed
+                size: size,
+                slotsUsed: slotsUsed,
+                data: itemData // Store full data for export
             };
             
             this.currentMonster.boardSlotsUsed += slotsUsed;
             
-            // Update the board slot
+            // Update the board slot with proper sizing
             const slot = this.boardSlots[this.selectedSlot];
             if (slot) {
                 slot.element.className = 'board-slot filled';
-                slot.element.innerHTML = `<img src="${itemData.imageData || 'images/default.png'}" class="board-item" alt="${itemData.itemName || 'Unknown Item'}">`;
+                
+                // Create item with proper sizing and remove button
+                const itemElement = document.createElement('img');
+                itemElement.src = itemData.imageData || 'images/default.png';
+                itemElement.alt = itemData.itemName || 'Unknown Item';
+                itemElement.className = `board-item ${size.toLowerCase()}`;
+                itemElement.style.cursor = 'pointer';
+                itemElement.onclick = () => this.showItemDetails(itemId);
+                
+                // Create remove button
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'remove-item-btn';
+                removeBtn.innerHTML = '×';
+                removeBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    this.removeItemFromSlot(this.selectedSlot);
+                };
+                
+                slot.element.innerHTML = '';
+                slot.element.appendChild(itemElement);
+                slot.element.appendChild(removeBtn);
                 slot.item = this.currentMonster.items[this.selectedSlot];
                 slot.slotsUsed = slotsUsed;
+                
+                // Mark adjacent slots as occupied for multi-slot items
+                if (slotsUsed > 1) {
+                    for (let i = 1; i < slotsUsed; i++) {
+                        const adjacentSlotIndex = this.selectedSlot + i;
+                        if (adjacentSlotIndex < 10) {
+                            this.currentMonster.items[adjacentSlotIndex] = {
+                                id: itemId,
+                                name: itemData.itemName || 'Unknown Item',
+                                image: itemData.imageData || 'images/default.png',
+                                border: itemData.border || 'gold',
+                                size: size,
+                                slotsUsed: slotsUsed,
+                                data: itemData,
+                                isPartOfMultiSlot: true,
+                                mainSlot: this.selectedSlot
+                            };
+                            
+                            // Update adjacent slot display
+                            const adjacentSlot = this.boardSlots[adjacentSlotIndex];
+                            if (adjacentSlot) {
+                                adjacentSlot.element.className = 'board-slot filled';
+                                adjacentSlot.element.innerHTML = '';
+                                adjacentSlot.item = this.currentMonster.items[adjacentSlotIndex];
+                                adjacentSlot.slotsUsed = 0; // Don't count this slot's usage
+                            }
+                        }
+                    }
+                }
             }
             
             if (typeof Messages !== 'undefined') {
@@ -809,7 +887,8 @@ class MonsterController {
                 id: skillId,
                 name: skillData.skillName || 'Unknown Skill',
                 image: skillData.imageData || 'images/default.png',
-                border: skillData.border || 'gold'
+                border: skillData.border || 'gold',
+                data: skillData // Store full data for export
             };
             
             // Update the skill slot
@@ -817,6 +896,7 @@ class MonsterController {
             if (slot) {
                 slot.element.className = 'skill-slot filled';
                 slot.element.innerHTML = `<img src="${skillData.imageData || 'images/default.png'}" alt="${skillData.skillName || 'Unknown Skill'}">`;
+                slot.element.onclick = () => this.showSkillDetails(skillId);
                 slot.skill = this.currentMonster.skills[this.selectedSlot];
             }
             
@@ -829,6 +909,318 @@ class MonsterController {
             if (typeof Messages !== 'undefined') {
                 Messages.showError('Failed to add skill to monster');
             }
+        }
+    }
+
+    /**
+     * Prepare monster for export
+     */
+    static prepareForExport() {
+        if (!this.currentMonster) {
+            if (typeof Messages !== 'undefined') {
+                Messages.showError('Please create a monster first!');
+            }
+            return;
+        }
+
+        const exportSection = document.getElementById('exportSection');
+        const itemsGrid = document.getElementById('exportItemsGrid');
+        const skillsGrid = document.getElementById('exportSkillsGrid');
+
+        if (exportSection && itemsGrid && skillsGrid) {
+            // Clear previous content
+            itemsGrid.innerHTML = '';
+            skillsGrid.innerHTML = '';
+
+            // Add items to export grid
+            this.currentMonster.items.forEach((item, index) => {
+                if (item) {
+                    const itemCard = document.createElement('div');
+                    itemCard.className = 'export-item-card';
+                    itemCard.onclick = () => this.showItemDetails(item.id);
+                    
+                    itemCard.innerHTML = `
+                        <div style="text-align: center;">
+                            <img src="${item.image}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; border: 2px solid rgb(218, 165, 32); margin-bottom: 10px;">
+                            <div style="font-weight: bold; margin-bottom: 5px;">${item.name}</div>
+                            <div style="font-size: 0.8em; color: rgb(201, 175, 133);">${item.size} (${item.slotsUsed} slots)</div>
+                        </div>
+                    `;
+                    
+                    itemsGrid.appendChild(itemCard);
+                }
+            });
+
+            // Add skills to export grid
+            this.currentMonster.skills.forEach((skill, index) => {
+                if (skill) {
+                    const skillCard = document.createElement('div');
+                    skillCard.className = 'export-skill-card';
+                    skillCard.onclick = () => this.showSkillDetails(skill.id);
+                    
+                    skillCard.innerHTML = `
+                        <img src="${skill.image}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%;">
+                    `;
+                    
+                    skillsGrid.appendChild(skillCard);
+                }
+            });
+
+            // Show export section
+            exportSection.classList.add('active');
+            
+            if (typeof Messages !== 'undefined') {
+                Messages.showSuccess('Monster prepared for export!');
+            }
+        }
+    }
+
+    /**
+     * Show item details (full card generator logic)
+     */
+    static async showItemDetails(itemId) {
+        try {
+            // Get item data from database
+            const { data, error } = await SupabaseClient.supabase
+                .from('items')
+                .select('*')
+                .eq('id', itemId)
+                .single();
+                
+            if (error || !data) {
+                throw new Error('Failed to load item data');
+            }
+
+            // Create modal for item details
+            const modal = document.createElement('div');
+            modal.className = 'monster-modal';
+            modal.style.display = 'flex';
+            
+            const itemData = data.item_data || {};
+            
+            modal.innerHTML = `
+                <div class="monster-modal-content" style="max-width: 800px;">
+                    <button class="monster-modal-close" onclick="this.parentElement.parentElement.remove()">&times;</button>
+                    <h3 style="color: rgb(251, 225, 183); margin-bottom: 20px;">${itemData.itemName || 'Unknown Item'}</h3>
+                    <div id="itemDetailsContent">
+                        <!-- Item details will be loaded here using card generator logic -->
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Use card generator logic to display the item
+            if (typeof CardGenerator !== 'undefined') {
+                const cardHtml = await CardGenerator.createCard(itemData);
+                const content = modal.querySelector('#itemDetailsContent');
+                if (content) {
+                    content.innerHTML = cardHtml;
+                }
+            } else {
+                // Fallback display
+                const content = modal.querySelector('#itemDetailsContent');
+                if (content) {
+                    content.innerHTML = `
+                        <div style="text-align: center; color: rgb(251, 225, 183);">
+                            <img src="${itemData.imageData || 'images/default.png'}" style="width: 200px; height: 200px; object-fit: cover; border-radius: 10px; border: 3px solid rgb(218, 165, 32); margin-bottom: 15px;">
+                            <h4>${itemData.itemName || 'Unknown Item'}</h4>
+                            <p><strong>Hero:</strong> ${itemData.hero || 'None'}</p>
+                            <p><strong>Size:</strong> ${itemData.itemSize || 'Medium'}</p>
+                            <p><strong>Border:</strong> ${itemData.border || 'Gold'}</p>
+                        </div>
+                    `;
+                }
+            }
+            
+        } catch (error) {
+            console.error('Failed to show item details:', error);
+            if (typeof Messages !== 'undefined') {
+                Messages.showError('Failed to load item details');
+            }
+        }
+    }
+
+    /**
+     * Show skill details (full card generator logic)
+     */
+    static async showSkillDetails(skillId) {
+        try {
+            // Get skill data from database
+            const { data, error } = await SupabaseClient.supabase
+                .from('skills')
+                .select('*')
+                .eq('id', skillId)
+                .single();
+                
+            if (error || !data) {
+                throw new Error('Failed to load skill data');
+            }
+
+            // Create modal for skill details
+            const modal = document.createElement('div');
+            modal.className = 'monster-modal';
+            modal.style.display = 'flex';
+            
+            const skillData = data.skill_data || {};
+            
+            modal.innerHTML = `
+                <div class="monster-modal-content" style="max-width: 600px;">
+                    <button class="monster-modal-close" onclick="this.parentElement.parentElement.remove()">&times;</button>
+                    <h3 style="color: rgb(251, 225, 183); margin-bottom: 20px;">${skillData.skillName || 'Unknown Skill'}</h3>
+                    <div id="skillDetailsContent">
+                        <!-- Skill details will be loaded here using skill generator logic -->
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Use skill generator logic to display the skill
+            if (typeof SkillGenerator !== 'undefined') {
+                const skillHtml = await SkillGenerator.createSkill(skillData);
+                const content = modal.querySelector('#skillDetailsContent');
+                if (content) {
+                    content.innerHTML = skillHtml;
+                }
+            } else {
+                // Fallback display
+                const content = modal.querySelector('#skillDetailsContent');
+                if (content) {
+                    content.innerHTML = `
+                        <div style="text-align: center; color: rgb(251, 225, 183);">
+                            <img src="${skillData.imageData || 'images/default.png'}" style="width: 150px; height: 150px; object-fit: cover; border-radius: 50%; border: 3px solid rgb(218, 165, 32); margin-bottom: 15px;">
+                            <h4>${skillData.skillName || 'Unknown Skill'}</h4>
+                            <p><strong>Effect:</strong> ${skillData.skillEffect || 'None'}</p>
+                            <p><strong>Border:</strong> ${skillData.border || 'Gold'}</p>
+                        </div>
+                    `;
+                }
+            }
+            
+        } catch (error) {
+            console.error('Failed to show skill details:', error);
+            if (typeof Messages !== 'undefined') {
+                Messages.showError('Failed to load skill details');
+            }
+        }
+    }
+
+    /**
+     * Check if an item can be placed at a specific slot
+     */
+    static canPlaceItemAtSlot(slotIndex, slotsUsed) {
+        if (!this.currentMonster) return false;
+        
+        // Check if the selected slot is empty
+        if (this.currentMonster.items[slotIndex]) {
+            if (typeof Messages !== 'undefined') {
+                Messages.showError('This slot is already occupied!');
+            }
+            return false;
+        }
+        
+        // For single slot items, just check if the slot is empty
+        if (slotsUsed === 1) {
+            return true;
+        }
+        
+        // For medium items (2 slots), check if the slot to the right is empty
+        if (slotsUsed === 2) {
+            if (slotIndex + 1 >= 10) {
+                if (typeof Messages !== 'undefined') {
+                    Messages.showError('Medium items need an empty slot to the right!');
+                }
+                return false;
+            }
+            
+            if (this.currentMonster.items[slotIndex + 1]) {
+                if (typeof Messages !== 'undefined') {
+                    Messages.showError('Medium items need an empty slot to the right!');
+                }
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // For large items (3 slots), check if both adjacent slots are empty
+        if (slotsUsed === 3) {
+            if (slotIndex + 2 >= 10) {
+                if (typeof Messages !== 'undefined') {
+                    Messages.showError('Large items need two empty slots to the right!');
+                }
+                return false;
+            }
+            
+            if (this.currentMonster.items[slotIndex + 1] || this.currentMonster.items[slotIndex + 2]) {
+                if (typeof Messages !== 'undefined') {
+                    Messages.showError('Large items need two empty slots to the right!');
+                }
+                return false;
+            }
+            
+            return true;
+        }
+        
+        return true;
+    }
+
+    /**
+     * Remove item from slot
+     */
+    static removeItemFromSlot(slotIndex) {
+        if (!this.currentMonster || !this.currentMonster.items[slotIndex]) {
+            return;
+        }
+
+        const item = this.currentMonster.items[slotIndex];
+        
+        // Handle multi-slot items
+        if (item.isPartOfMultiSlot) {
+            // This is a part of a multi-slot item, find the main slot
+            const mainSlot = item.mainSlot;
+            const mainItem = this.currentMonster.items[mainSlot];
+            if (mainItem) {
+                this.removeItemFromSlot(mainSlot);
+            }
+            return;
+        }
+        
+        // Remove the main item
+        this.currentMonster.boardSlotsUsed -= item.slotsUsed;
+        this.currentMonster.items[slotIndex] = null;
+
+        // Reset the main board slot
+        const slot = this.boardSlots[slotIndex];
+        if (slot) {
+            slot.element.className = 'board-slot';
+            slot.element.innerHTML = `Slot ${slotIndex + 1}`;
+            slot.item = null;
+            slot.slotsUsed = 0;
+        }
+        
+        // Clear adjacent slots if this was a multi-slot item
+        if (item.slotsUsed > 1) {
+            for (let i = 1; i < item.slotsUsed; i++) {
+                const adjacentSlotIndex = slotIndex + i;
+                if (adjacentSlotIndex < 10) {
+                    this.currentMonster.items[adjacentSlotIndex] = null;
+                    
+                    // Reset adjacent slot display
+                    const adjacentSlot = this.boardSlots[adjacentSlotIndex];
+                    if (adjacentSlot) {
+                        adjacentSlot.element.className = 'board-slot';
+                        adjacentSlot.element.innerHTML = `Slot ${adjacentSlotIndex + 1}`;
+                        adjacentSlot.item = null;
+                        adjacentSlot.slotsUsed = 0;
+                    }
+                }
+            }
+        }
+
+        if (typeof Messages !== 'undefined') {
+            Messages.showSuccess('Item removed from monster!');
         }
     }
 

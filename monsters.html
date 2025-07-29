@@ -300,6 +300,145 @@
         }
 
         .board-slot {
+            background-color: rgba(218, 165, 32, 0.1);
+            border: 1px dashed rgb(218, 165, 32);
+            border-radius: 5px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: rgb(201, 175, 133);
+            font-size: 0.9em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .board-slot:hover {
+            background-color: rgba(218, 165, 32, 0.3);
+        }
+
+        .board-slot.filled {
+            border: 1px solid rgb(218, 165, 32);
+            background-color: rgba(218, 165, 32, 0.4);
+            cursor: pointer;
+        }
+
+        .board-item {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            cursor: pointer;
+        }
+
+        .board-item.small {
+            width: 80px;
+            height: 80px;
+        }
+
+        .board-item.medium {
+            width: 160px;
+            height: 80px;
+            grid-column: span 2;
+        }
+
+        .board-item.large {
+            width: 240px;
+            height: 80px;
+            grid-column: span 3;
+        }
+
+        .remove-item-btn {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #d32f2f;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            display: none;
+            z-index: 10;
+        }
+
+        .board-slot.filled:hover .remove-item-btn {
+            display: block;
+        }
+
+        /* Export Section */
+        .export-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, rgb(101, 84, 63) 0%, rgb(89, 72, 51) 100%);
+            border: 2px solid rgb(218, 165, 32);
+            border-radius: 15px;
+            display: none;
+        }
+
+        .export-section.active {
+            display: block;
+        }
+
+        .export-preview {
+            background: rgba(37, 26, 12, 0.8);
+            border: 2px solid rgb(218, 165, 32);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .export-items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .export-item-card {
+            background: linear-gradient(135deg, rgb(101, 84, 63) 0%, rgb(89, 72, 51) 100%);
+            border: 2px solid rgb(218, 165, 32);
+            border-radius: 8px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
+            color: rgb(251, 225, 183);
+        }
+
+        .export-item-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(218, 165, 32, 0.3);
+        }
+
+        .export-skill-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .export-skill-card {
+            background: linear-gradient(135deg, rgb(101, 84, 63) 0%, rgb(89, 72, 51) 100%);
+            border: 2px solid rgb(218, 165, 32);
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin: 0 auto;
+        }
+
+        .export-skill-card:hover {
+            transform: scale(1.1);
+        }
+
+        .board-slot {
             width: 100px;
             height: 100px;
             border: 2px dashed rgb(218, 165, 32);
@@ -532,6 +671,26 @@
                 
                 <div class="monster-preview" id="monsterPreview">
                     <!-- Monster content will be generated here -->
+                </div>
+                
+                <button id="prepareExportBtn" class="monster-form-button" style="margin-top: 20px; width: 100%;">
+                    Prepare for Export
+                </button>
+            </div>
+
+            <!-- Export Section -->
+            <div class="export-section" id="exportSection">
+                <h2 class="section-title">Monster Export Preview</h2>
+                <div class="export-preview">
+                    <h3 style="color: rgb(251, 225, 183); margin-bottom: 15px;">Monster Items</h3>
+                    <div class="export-items-grid" id="exportItemsGrid">
+                        <!-- Export items will be added here -->
+                    </div>
+                    
+                    <h3 style="color: rgb(251, 225, 183); margin-bottom: 15px; margin-top: 30px;">Monster Skills</h3>
+                    <div class="export-skill-grid" id="exportSkillsGrid">
+                        <!-- Export skills will be added here -->
+                    </div>
                 </div>
             </div>
         </div>
