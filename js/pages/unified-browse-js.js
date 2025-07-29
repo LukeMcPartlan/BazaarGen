@@ -18,6 +18,13 @@ class UnifiedBrowsePageController {
   static isInitialized = false;
   static activeTab = 'items';
   static eventListenersSetup = false;
+  static debugMode = true;
+
+  static debug(message, data = null) {
+    if (this.debugMode) {
+      console.log(`[UnifiedBrowsePageController] ${message}`, data || '');
+    }
+  }
 
   /**
    * Initialize the browse page
@@ -230,6 +237,16 @@ class UnifiedBrowsePageController {
       
       // Switch to items tab since contests are for items
       this.switchTab('items');
+      
+      // Also try to set the filter immediately if the element exists
+      setTimeout(() => {
+        const contestFilter = document.getElementById('contestFilter');
+        if (contestFilter && this.pendingContestFilter) {
+          contestFilter.value = this.pendingContestFilter;
+          console.log(`🔍 Set contest filter immediately to: ${this.pendingContestFilter}`);
+          this.handleFilterChange();
+        }
+      }, 500);
     }
   }
 
@@ -293,11 +310,14 @@ class UnifiedBrowsePageController {
         if (this.pendingContestFilter) {
           if (contestFilter) {
             contestFilter.value = this.pendingContestFilter;
+            console.log(`🔍 Set contest filter to: ${this.pendingContestFilter}`);
           }
           this.pendingContestFilter = null;
           
-          // Trigger filter change
-          this.handleFilterChange();
+          // Trigger filter change after a short delay to ensure controls are ready
+          setTimeout(() => {
+            this.handleFilterChange();
+          }, 100);
         }
       }
     } catch (error) {
@@ -761,6 +781,11 @@ class UnifiedBrowsePageController {
         if (testResult.success) {
           console.log('✅ Database connected, loading initial content...');
           
+          // Load contests for filter first if we have a pending contest filter
+          if (this.pendingContestFilter) {
+            await this.loadContestsForFilter();
+          }
+          
           // Wait for user profile to be loaded from database
           if (GoogleAuth && GoogleAuth.isSignedIn()) {
             await this.waitForUserProfile();
@@ -811,14 +836,17 @@ class UnifiedBrowsePageController {
     try {
       // Get filter options
       const filters = this.getFilters();
+      this.debug('🔍 Loading items with filters:', filters);
       const queryOptions = this.buildQueryOptions(filters);
       
       // Get items from database with filters applied
       const items = await SupabaseClient.loadItems(queryOptions);
       this.allItems = items || [];
+      this.debug(`🔍 Loaded ${this.allItems.length} items from database`);
 
       // Apply additional client-side filtering
       this.displayedItems = this.applyItemFilters(this.allItems, filters);
+      this.debug(`🔍 After client-side filtering: ${this.displayedItems.length} items`);
 
       // Reset pagination
       this.currentPage = 0;
