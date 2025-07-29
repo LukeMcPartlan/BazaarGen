@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Monster Creator - BazaarGen</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    
+    <!-- External Libraries -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- Core Scripts -->
+    <script src="js/core/validation-js.js"></script>
+    <script src="js/core/keyword-processor-js.js"></script>
+    <script src="js/core/card-generator-js.js"></script>
+    <script src="js/core/skill-generator-js.js"></script>
+    <script src="js/ui/messages-js.js"></script>
+    
+    <!-- Auth Scripts -->
+    <script src="js/auth/google-auth-js.js"></script>
+    <script src="js/auth/supabase-client-js.js"></script>
+    
+    <!-- Image Storage System -->
+    <script src="js/data/image-storage-js.js"></script>
+    <script src="js/data/migration-js.js"></script>
+    
+    <!-- UI Scripts -->
+    <script src="js/ui/gallery-modal.js"></script>
+    
+    <!-- Export/Import functionality -->
+    <script src="js/data/export-import-js.js"></script>
+    
+    <!-- Monster functionality -->
+    <script src="js/pages/monster-controller-js.js"></script>
+    
+    <!-- Core Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Monster-specific styles -->
+    <style>
+        /* Construction Banner */
+        .construction-banner {
+            background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-weight: bold;
+            font-size: 18px;
+            border-bottom: 3px solid #990000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Monster Creator Container */
+        .monster-creator-container {
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Monster Form */
+        .monster-form {
+            background: linear-gradient(135deg, rgb(101, 84, 63) 0%, rgb(89, 72, 51) 100%);
+            border: 2px solid rgb(218, 165, 32);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .monster-form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .monster-form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .monster-form-label {
+            color: rgb(251, 225, 183);
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .monster-form-input {
+            padding: 12px 15px;
+            border: 2px solid rgb(74, 60, 46);
+            border-radius: 8px;
+            background-color: rgb(37, 26, 12);
+            color: rgb(251, 225, 183);
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .monster-form-input:focus {
+            outline: none;
+            border-color: gold;
+            box-shadow: 0 0 0 2px rgba(255, 215, 0, 0.2);
+        }
+
+        .monster-form-button {
+            background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%);
+            color: rgb(37, 26, 12);
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .monster-form-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(218, 165, 32, 0.4);
+        }
+
+        /* Monster Preview */
+        .monster-preview-container {
+            background: linear-gradient(135deg, rgb(101, 84, 63) 0%, rgb(89, 72, 51) 100%);
+            border: 2px solid rgb(218, 165, 32);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .monster-preview {
+            width: 100%;
+            min-height: 600px;
+            background: linear-gradient(135deg, rgb(74, 60, 46) 0%, rgb(89, 72, 51) 100%);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Monster Frame and Image */
+        .monster-frame-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            margin: 20px auto;
+        }
+
+        .monster-frame {
+            width: 100%;
+            height: 100%;
+            border: 4px solid rgb(218, 165, 32);
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .monster-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        /* Skill Slots */
+        .skill-slots-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            padding: 0 50px;
+        }
+
+        .skill-slot {
+            width: 80px;
+            height: 80px;
+            border: 3px dashed rgb(218, 165, 32);
+            border-radius: 50%;
+            background: rgba(37, 26, 12, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgb(218, 165, 32);
+            font-size: 24px;
+        }
+
+        .skill-slot:hover {
+            background: rgba(218, 165, 32, 0.2);
+            transform: scale(1.1);
+        }
+
+        .skill-slot.filled {
+            border: 3px solid rgb(218, 165, 32);
+            background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%);
+        }
+
+        .skill-slot img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        /* Health Bar */
+        .health-bar-container {
+            margin: 20px 0;
+            padding: 0 50px;
+        }
+
+        .health-bar {
+            width: 100%;
+            height: 60px;
+            background: linear-gradient(135deg, rgb(37, 26, 12) 0%, rgb(74, 60, 46) 100%);
+            border: 3px solid rgb(218, 165, 32);
+            border-radius: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            transition: width 0.3s ease;
+        }
+
+        .health-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+        }
+
+        /* Coin and EXP Display */
+        .coin-display {
+            position: absolute;
+            top: 10px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .exp-display {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+
+        .coin-node, .exp-node {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .coin-node img, .exp-node img {
+            width: 20px;
+            height: 20px;
+        }
+
+        /* Item Board */
+        .item-board-container {
+            margin: 20px 0;
+            padding: 0 50px;
+        }
+
+        .item-board {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 10px;
+            background: rgba(37, 26, 12, 0.8);
+            border: 2px solid rgb(218, 165, 32);
+            border-radius: 12px;
+            padding: 20px;
+            min-height: 120px;
+        }
+
+        .board-slot {
+            width: 100px;
+            height: 100px;
+            border: 2px dashed rgb(218, 165, 32);
+            border-radius: 8px;
+            background: rgba(37, 26, 12, 0.5);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgb(218, 165, 32);
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .board-slot:hover {
+            background: rgba(218, 165, 32, 0.2);
+            transform: scale(1.05);
+        }
+
+        .board-slot.filled {
+            border: 2px solid rgb(218, 165, 32);
+            background: linear-gradient(135deg, rgb(218, 165, 32) 0%, rgb(184, 134, 11) 100%);
+        }
+
+        .board-item {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 6px;
+            cursor: grab;
+        }
+
+        .board-item:active {
+            cursor: grabbing;
+        }
+
+        /* Modal Styles */
+        .monster-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .monster-modal-content {
+            background: linear-gradient(135deg, rgb(101, 84, 63) 0%, rgb(89, 72, 51) 100%);
+            border: 3px solid rgb(218, 165, 32);
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 90%;
+            max-height: 90%;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .monster-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            color: rgb(218, 165, 32);
+            font-size: 24px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .monster-modal-close:hover {
+            color: rgb(251, 225, 183);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .monster-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .skill-slots-container {
+                padding: 0 20px;
+            }
+
+            .skill-slot {
+                width: 60px;
+                height: 60px;
+            }
+
+            .item-board {
+                grid-template-columns: repeat(5, 1fr);
+                gap: 5px;
+                padding: 10px;
+            }
+
+            .board-slot {
+                width: 60px;
+                height: 60px;
+            }
+
+            .monster-frame-container {
+                width: 200px;
+                height: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Construction Banner -->
+    <div class="construction-banner">
+        🚧 UNDER CONSTRUCTION - Monster Creator is in development 🚧
+    </div>
+
+    <!-- Top Navigation -->
+    <nav class="top-nav">
+        <div class="nav-container">
+            <a href="#" class="nav-logo">BazaarGen</a>
+            
+            <ul class="nav-menu" id="nav-menu">
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link" data-page="items">Items</a>
+                </li>
+                <li class="nav-item">
+                    <a href="skills.html" class="nav-link" data-page="skills">Skills</a>
+                </li>
+                <li class="nav-item">
+                    <a href="monsters.html" class="nav-link active" data-page="monsters">Monsters</a>
+                </li>
+                <li class="nav-item">
+                    <a href="browse.html" class="nav-link" data-page="browse">Browse</a>
+                </li>
+                <li class="nav-item">
+                    <a href="contests.html" class="nav-link" data-page="contests">Contests</a>
+                </li>
+                <li class="nav-item">
+                    <a href="profile.html" class="nav-link" data-page="profile">Profile</a>
+                </li>
+            </ul>
+            
+            <!-- Google sign in stuff-->
+            <div class="nav-actions">
+                <!-- Google Sign-In Button (shown when not signed in) -->
+                <div id="google-signin-button"></div>
+            
+                <!-- User Info (shown when signed in) -->
+                <div class="user-info" id="user-info" style="display: none; align-items: center; gap: 10px;">
+                    <span class="user-alias" id="user-alias" style="font-weight: 500; color: #333; cursor: pointer;" onclick="editAlias()" title="Click to edit alias"></span>
+                    <button class="sign-out-btn" onclick="signOut()" style="background: none; border: 1px solid #ddd; padding: 6px 12px; border-radius: 4px; cursor: pointer; color: #666; font-size: 14px;">Sign Out</button>
+                </div>
+            </div>
+            
+            <!-- Alias Creation Modal -->
+            <div id="alias-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center;">
+                <div style="background: white; padding: 30px; border-radius: 8px; max-width: 400px; width: 90%; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.15);">
+                    <h2 id="alias-modal-title" style="margin: 0 0 10px 0; color: #333;">Welcome to BazaarGen!</h2>
+                    <p id="alias-modal-description" style="color: #666; margin: 0 0 20px 0;">Choose an alias to display on the site</p>
+                    
+                    <input type="text" id="alias-input" placeholder="Enter your alias" 
+                           style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 4px; font-size: 16px; margin-bottom: 10px; box-sizing: border-box;">
+                    
+                    <div id="alias-error" style="color: #d32f2f; font-size: 14px; margin-bottom: 15px; min-height: 20px;"></div>
+                    
+                    <div style="display: flex; gap: 10px; justify-content: center;">
+                        <button id="alias-cancel-btn" onclick="cancelAliasCreation()" 
+                                style="padding: 10px 20px; border: 1px solid #ddd; background: white; border-radius: 4px; cursor: pointer; color: #666;">
+                            Cancel
+                        </button>
+                        <button id="alias-save-btn" onclick="saveAlias()" 
+                                style="padding: 10px 20px; border: none; background: #007bff; color: white; border-radius: 4px; cursor: pointer;">
+                            Save Alias
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-toggle" id="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-content">
+        <div class="monster-creator-container">
+            <!-- Monster Form -->
+            <div class="monster-form">
+                <h2 style="color: rgb(251, 225, 183); margin-bottom: 20px; text-align: center;">🐉 Monster Creator</h2>
+                
+                <div class="monster-form-grid">
+                    <div class="monster-form-group">
+                        <label class="monster-form-label">Monster Name</label>
+                        <input type="text" id="monsterNameInput" class="monster-form-input" placeholder="Enter monster name">
+                    </div>
+                    
+                    <div class="monster-form-group">
+                        <label class="monster-form-label">Monster Image</label>
+                        <input type="file" id="monsterImageInput" class="monster-form-input" accept="image/*">
+                    </div>
+                    
+                    <div class="monster-form-group">
+                        <label class="monster-form-label">Health</label>
+                        <input type="number" id="monsterHealthInput" class="monster-form-input" placeholder="100" value="100">
+                    </div>
+                    
+                    <div class="monster-form-group">
+                        <label class="monster-form-label">Gold</label>
+                        <input type="number" id="monsterGoldInput" class="monster-form-input" placeholder="0" value="0">
+                    </div>
+                    
+                    <div class="monster-form-group">
+                        <label class="monster-form-label">Experience</label>
+                        <input type="number" id="monsterExpInput" class="monster-form-input" placeholder="0" value="0">
+                    </div>
+                    
+                    <div class="monster-form-group">
+                        <label class="monster-form-label">Actions</label>
+                        <button type="button" id="createMonsterBtn" class="monster-form-button">Create Monster</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monster Preview -->
+            <div class="monster-preview-container">
+                <h3 style="color: rgb(251, 225, 183); margin-bottom: 20px; text-align: center;">Monster Preview</h3>
+                
+                <div class="monster-preview" id="monsterPreview">
+                    <!-- Monster content will be generated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Item Selection Modal -->
+    <div id="itemSelectionModal" class="monster-modal">
+        <div class="monster-modal-content">
+            <button class="monster-modal-close" onclick="closeItemModal()">&times;</button>
+            <h3 style="color: rgb(251, 225, 183); margin-bottom: 20px;">Select Item</h3>
+            <div id="itemSelectionContent">
+                <!-- Item selection content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Skill Selection Modal -->
+    <div id="skillSelectionModal" class="monster-modal">
+        <div class="monster-modal-content">
+            <button class="monster-modal-close" onclick="closeSkillModal()">&times;</button>
+            <h3 style="color: rgb(251, 225, 183); margin-bottom: 20px;">Select Skill</h3>
+            <div id="skillSelectionContent">
+                <!-- Skill selection content will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-title">⚔️ Bazaar Card Generator ⚔️</div>
+            <div class="footer-description">
+                Bring your ideas to life. Shoutout to Reynad for tearing this masterpeice from the void. 
+            </div>
+            
+            <div class="footer-links">
+                <a href="https://github.com/LukeMcPartlan/BazaarGen" class="footer-link">📜 Documentation</a>
+                <a href="updates.html" class="footer-link">🛡️ Updates</a>
+                <a href="skills.html" class="footer-link">⚡ Skills</a>
+                <a href="https://www.reddit.com/r/PlayTheBazaar/" class="footer-link">🏰 Community</a>
+            </div>
+            
+            <div class="footer-divider"></div>
+            
+            <div class="footer-copyright">
+                © 2025 Luke Alvarez Bazaar Generator
+            </div>
+            <div class="footer-contact">
+                Report bugs to Lukemcp45@gmail.com . Zelle me a coffe at the same email!
+            </div>
+            <div class="footer-version">
+                Version 1.0 | Built for Bazaar fans by Bazaar fans
+            </div>
+        </div>
+    </footer>
+
+    <!-- Initialization Script -->
+    <script>
+        // Wait for DOM to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Monster page DOM loaded, initializing...');
+            
+            // Wait for all dependencies to be loaded
+            const checkDependencies = () => {
+                if (typeof MonsterController !== 'undefined' && 
+                    typeof GoogleAuth !== 'undefined' && 
+                    typeof SupabaseClient !== 'undefined') {
+                    console.log('✅ All dependencies loaded, initializing MonsterController...');
+                    MonsterController.init();
+                } else {
+                    console.log('⏳ Waiting for dependencies...');
+                    setTimeout(checkDependencies, 100);
+                }
+            };
+            
+            checkDependencies();
+        });
+    </script>
+</body>
+</html> 
