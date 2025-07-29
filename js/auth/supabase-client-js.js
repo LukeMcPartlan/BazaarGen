@@ -527,15 +527,19 @@ static async loadItems(options = {}, requestOptions = {}) {
     // Apply contest filter
     if (options.contest !== undefined && options.contest !== '') {
       console.log('🔍 Applying contest filter:', options.contest);
+      console.log('🔍 Contest filter type:', typeof options.contest);
       if (options.contest === '0') {
         // Show items not in any contest
         console.log('🔍 Filtering for items NOT in any contest');
         query = query.is('contest_number', null);
       } else {
         // Show items in specific contest
-        console.log('🔍 Filtering for items in contest ID:', parseInt(options.contest));
-        query = query.eq('contest_number', parseInt(options.contest));
+        const contestId = parseInt(options.contest);
+        console.log('🔍 Filtering for items in contest ID:', contestId);
+        query = query.eq('contest_number', contestId);
       }
+    } else {
+      console.log('🔍 No contest filter applied');
     }
 
     // Apply search filter

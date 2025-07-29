@@ -244,7 +244,11 @@ class UnifiedBrowsePageController {
         if (contestFilter && this.pendingContestFilter) {
           contestFilter.value = this.pendingContestFilter;
           console.log(`🔍 Set contest filter immediately to: ${this.pendingContestFilter}`);
+          console.log(`🔍 Contest filter element value after immediate set: ${contestFilter.value}`);
           this.handleFilterChange();
+        } else {
+          console.log('❌ Contest filter element not found for immediate set');
+          console.log('🔍 Pending contest filter:', this.pendingContestFilter);
         }
       }, 500);
     }
@@ -255,9 +259,13 @@ class UnifiedBrowsePageController {
    */
   static async loadContestsForFilter() {
     try {
+      console.log('🔍 Starting to load contests for filter...');
       const contests = await SupabaseClient.getContests();
       const contestFilter = document.getElementById('contestFilter');
       const skillContestFilter = document.getElementById('skillContestFilter');
+      
+      console.log('🔍 Contests loaded:', contests?.length || 0);
+      console.log('🔍 Contest filter element found:', !!contestFilter);
       
       if (contests) {
         console.log('🔍 Loading contests for filter:', contests);
@@ -281,6 +289,7 @@ class UnifiedBrowsePageController {
             option.value = contest.id;
             option.textContent = contest.name;
             contestFilter.appendChild(option);
+            console.log(`🔍 Added contest option: ${contest.id} - ${contest.name}`);
           });
         }
         
@@ -311,11 +320,15 @@ class UnifiedBrowsePageController {
           if (contestFilter) {
             contestFilter.value = this.pendingContestFilter;
             console.log(`🔍 Set contest filter to: ${this.pendingContestFilter}`);
+            console.log(`🔍 Contest filter element value after setting: ${contestFilter.value}`);
+          } else {
+            console.log('❌ Contest filter element not found when trying to set pending filter');
           }
           this.pendingContestFilter = null;
           
           // Trigger filter change after a short delay to ensure controls are ready
           setTimeout(() => {
+            console.log('🔍 Triggering filter change after setting contest filter');
             this.handleFilterChange();
           }, 100);
         }
@@ -1818,8 +1831,11 @@ static async addSkillComment(skillId) {
    * Get comprehensive item filter values
    */
   static getFilters() {
-    const contestValue = document.getElementById('contestFilter')?.value || '';
+    const contestFilterElement = document.getElementById('contestFilter');
+    const contestValue = contestFilterElement?.value || '';
+    console.log('🔍 Contest filter element found:', !!contestFilterElement);
     console.log('🔍 Contest filter element value:', contestValue);
+    console.log('🔍 Contest filter element options:', contestFilterElement?.options?.length);
     
     return {
       sortBy: document.getElementById('sortBy')?.value || 'recent',
