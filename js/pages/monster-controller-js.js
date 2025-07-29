@@ -349,7 +349,7 @@ class MonsterController {
     /**
      * Open item selection modal
      */
-    static openItemSelection(slotIndex) {
+    static async openItemSelection(slotIndex) {
         this.selectedSlot = slotIndex;
         
         // Check if slot can accept items
@@ -365,48 +365,75 @@ class MonsterController {
         const content = document.getElementById('itemSelectionContent');
         
         if (modal && content) {
-            // For now, show a simple message
-            content.innerHTML = `
-                <div style="text-align: center; color: rgb(251, 225, 183);">
-                    <p>Item selection will be implemented with browse integration.</p>
-                    <p>Available slots: ${availableSlots}</p>
-                    <button onclick="MonsterController.addTestItem(${slotIndex})" 
-                            style="background: rgb(218, 165, 32); color: rgb(37, 26, 12); 
-                                   padding: 10px 20px; border: none; border-radius: 5px; 
-                                   cursor: pointer; font-weight: bold;">
-                        Add Test Item
-                    </button>
-                </div>
-            `;
-            
+            // Show loading
+            content.innerHTML = '<div style="text-align: center; color: rgb(251, 225, 183);">Loading items...</div>';
             modal.style.display = 'flex';
+            
+            try {
+                // Load items from database
+                const items = await this.loadItemsForSelection();
+                
+                // Create browse interface
+                content.innerHTML = this.createItemBrowseInterface(items, availableSlots);
+                
+                // Setup browse functionality
+                this.setupItemBrowseFunctionality();
+                
+            } catch (error) {
+                console.error('Failed to load items:', error);
+                content.innerHTML = `
+                    <div style="text-align: center; color: rgb(251, 225, 183);">
+                        <p>Failed to load items. Please try again.</p>
+                        <button onclick="MonsterController.addTestItem(${slotIndex})" 
+                                style="background: rgb(218, 165, 32); color: rgb(37, 26, 12); 
+                                       padding: 10px 20px; border: none; border-radius: 5px; 
+                                       cursor: pointer; font-weight: bold;">
+                            Add Test Item
+                        </button>
+                    </div>
+                `;
+            }
         }
     }
 
     /**
      * Open skill selection modal
      */
-    static openSkillSelection(skillIndex) {
+    static async openSkillSelection(skillIndex) {
         this.selectedSlot = skillIndex;
         
         const modal = document.getElementById('skillSelectionModal');
         const content = document.getElementById('skillSelectionContent');
         
         if (modal && content) {
-            // For now, show a simple message
-            content.innerHTML = `
-                <div style="text-align: center; color: rgb(251, 225, 183);">
-                    <p>Skill selection will be implemented with browse integration.</p>
-                    <button onclick="MonsterController.addTestSkill(${skillIndex})" 
-                            style="background: rgb(218, 165, 32); color: rgb(37, 26, 12); 
-                                   padding: 10px 20px; border: none; border-radius: 5px; 
-                                   cursor: pointer; font-weight: bold;">
-                        Add Test Skill
-                    </button>
-                </div>
-            `;
-            
+            // Show loading
+            content.innerHTML = '<div style="text-align: center; color: rgb(251, 225, 183);">Loading skills...</div>';
             modal.style.display = 'flex';
+            
+            try {
+                // Load skills from database
+                const skills = await this.loadSkillsForSelection();
+                
+                // Create browse interface
+                content.innerHTML = this.createSkillBrowseInterface(skills);
+                
+                // Setup browse functionality
+                this.setupSkillBrowseFunctionality();
+                
+            } catch (error) {
+                console.error('Failed to load skills:', error);
+                content.innerHTML = `
+                    <div style="text-align: center; color: rgb(251, 225, 183);">
+                        <p>Failed to load skills. Please try again.</p>
+                        <button onclick="MonsterController.addTestSkill(${skillIndex})" 
+                                style="background: rgb(218, 165, 32); color: rgb(37, 26, 12); 
+                                       padding: 10px 20px; border: none; border-radius: 5px; 
+                                       cursor: pointer; font-weight: bold;">
+                            Add Test Skill
+                        </button>
+                    </div>
+                `;
+            }
         }
     }
 
@@ -489,6 +516,319 @@ class MonsterController {
         const modal = document.getElementById('itemSelectionModal');
         if (modal) {
             modal.style.display = 'none';
+        }
+    }
+
+    /**
+     * Load items for selection
+     */
+    static async loadItemsForSelection() {
+        if (typeof SupabaseClient === 'undefined') {
+            throw new Error('SupabaseClient not available');
+        }
+        
+        const { data, error } = await SupabaseClient.supabase
+            .from('items')
+            .select('*')
+            .order('created_at', { ascending: false });
+            
+        if (error) {
+            throw error;
+        }
+        
+        return data || [];
+    }
+
+    /**
+     * Load skills for selection
+     */
+    static async loadSkillsForSelection() {
+        if (typeof SupabaseClient === 'undefined') {
+            throw new Error('SupabaseClient not available');
+        }
+        
+        const { data, error } = await SupabaseClient.supabase
+            .from('skills')
+            .select('*')
+            .order('created_at', { ascending: false });
+            
+        if (error) {
+            throw error;
+        }
+        
+        return data || [];
+    }
+
+    /**
+     * Create item browse interface
+     */
+    static createItemBrowseInterface(items, availableSlots) {
+        return `
+            <div style="max-height: 500px; overflow-y: auto;">
+                <div style="margin-bottom: 15px; color: rgb(251, 225, 183);">
+                    <h4>Select an Item (${availableSlots} slots available)</h4>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                        <input type="text" id="itemSearchInput" placeholder="Search items..." 
+                               style="flex: 1; padding: 8px; border-radius: 5px; border: 1px solid rgb(218, 165, 32); background: rgb(37, 26, 12); color: rgb(251, 225, 183);">
+                        <select id="itemFilterSelect" style="padding: 8px; border-radius: 5px; border: 1px solid rgb(218, 165, 32); background: rgb(37, 26, 12); color: rgb(251, 225, 183);">
+                            <option value="">All Items</option>
+                            <option value="Small">Small Items</option>
+                            <option value="Medium">Medium Items</option>
+                            <option value="Large">Large Items</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="itemBrowseGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+                    ${items.map(item => this.createItemCard(item)).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Create skill browse interface
+     */
+    static createSkillBrowseInterface(skills) {
+        return `
+            <div style="max-height: 500px; overflow-y: auto;">
+                <div style="margin-bottom: 15px; color: rgb(251, 225, 183);">
+                    <h4>Select a Skill</h4>
+                    <input type="text" id="skillSearchInput" placeholder="Search skills..." 
+                           style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid rgb(218, 165, 32); background: rgb(37, 26, 12); color: rgb(251, 225, 183); margin-bottom: 10px;">
+                </div>
+                <div id="skillBrowseGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
+                    ${skills.map(skill => this.createSkillCard(skill)).join('')}
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Create item card for browse
+     */
+    static createItemCard(item) {
+        const itemData = item.item_data || {};
+        const size = itemData.itemSize || 'Medium';
+        const slotsUsed = size === 'Small' ? 1 : size === 'Medium' ? 2 : 3;
+        
+        return `
+            <div class="item-card" data-item-id="${item.id}" data-slots="${slotsUsed}" 
+                 style="background: linear-gradient(135deg, rgb(101, 84, 63) 0%, rgb(89, 72, 51) 100%); 
+                        border: 2px solid rgb(218, 165, 32); border-radius: 8px; padding: 10px; 
+                        cursor: pointer; transition: all 0.2s ease; color: rgb(251, 225, 183);"
+                 onclick="MonsterController.selectItem('${item.id}', ${slotsUsed})">
+                <div style="text-align: center; margin-bottom: 8px;">
+                    <img src="${itemData.imageData || 'images/default.png'}" 
+                         style="width: 60px; height: 60px; object-fit: cover; border-radius: 5px; border: 2px solid rgb(218, 165, 32);">
+                </div>
+                <div style="text-align: center; font-weight: bold; margin-bottom: 5px;">
+                    ${itemData.itemName || 'Unknown Item'}
+                </div>
+                <div style="text-align: center; font-size: 0.8em; color: rgb(201, 175, 133);">
+                    ${size} (${slotsUsed} slots)
+                </div>
+            </div>
+        `;
+    }
+
+    /**
+     * Create skill card for browse
+     */
+    static createSkillCard(skill) {
+        const skillData = skill.skill_data || {};
+        
+        return `
+            <div class="skill-card" data-skill-id="${skill.id}" 
+                 style="background: linear-gradient(135deg, rgb(101, 84, 63) 0%, rgb(89, 72, 51) 100%); 
+                        border: 2px solid rgb(218, 165, 32); border-radius: 50%; width: 80px; height: 80px; 
+                        display: flex; align-items: center; justify-content: center; cursor: pointer; 
+                        transition: all 0.2s ease; margin: 0 auto;"
+                 onclick="MonsterController.selectSkill('${skill.id}')">
+                <img src="${skillData.imageData || 'images/default.png'}" 
+                     style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%;">
+            </div>
+        `;
+    }
+
+    /**
+     * Setup item browse functionality
+     */
+    static setupItemBrowseFunctionality() {
+        const searchInput = document.getElementById('itemSearchInput');
+        const filterSelect = document.getElementById('itemFilterSelect');
+        
+        if (searchInput) {
+            searchInput.addEventListener('input', () => this.filterItems());
+        }
+        
+        if (filterSelect) {
+            filterSelect.addEventListener('change', () => this.filterItems());
+        }
+    }
+
+    /**
+     * Setup skill browse functionality
+     */
+    static setupSkillBrowseFunctionality() {
+        const searchInput = document.getElementById('skillSearchInput');
+        
+        if (searchInput) {
+            searchInput.addEventListener('input', () => this.filterSkills());
+        }
+    }
+
+    /**
+     * Filter items
+     */
+    static filterItems() {
+        const searchTerm = document.getElementById('itemSearchInput')?.value.toLowerCase() || '';
+        const filterValue = document.getElementById('itemFilterSelect')?.value || '';
+        const cards = document.querySelectorAll('#itemBrowseGrid .item-card');
+        
+        cards.forEach(card => {
+            const itemName = card.querySelector('div:nth-child(2)')?.textContent.toLowerCase() || '';
+            const size = card.querySelector('div:nth-child(3)')?.textContent || '';
+            const matchesSearch = itemName.includes(searchTerm);
+            const matchesFilter = !filterValue || size.includes(filterValue);
+            
+            card.style.display = matchesSearch && matchesFilter ? 'block' : 'none';
+        });
+    }
+
+    /**
+     * Filter skills
+     */
+    static filterSkills() {
+        const searchTerm = document.getElementById('skillSearchInput')?.value.toLowerCase() || '';
+        const cards = document.querySelectorAll('#skillBrowseGrid .skill-card');
+        
+        cards.forEach(card => {
+            const skillName = card.querySelector('img')?.alt || '';
+            const matchesSearch = skillName.toLowerCase().includes(searchTerm);
+            card.style.display = matchesSearch ? 'block' : 'none';
+        });
+    }
+
+    /**
+     * Select an item
+     */
+    static selectItem(itemId, slotsUsed) {
+        // Check if we have enough space
+        if (this.currentMonster && this.currentMonster.boardSlotsUsed + slotsUsed > 10) {
+            if (typeof Messages !== 'undefined') {
+                Messages.showError('Not enough space on the board!');
+            }
+            return;
+        }
+        
+        // Add the item to the monster
+        this.addItemToMonster(itemId, slotsUsed);
+        this.closeItemModal();
+    }
+
+    /**
+     * Select a skill
+     */
+    static selectSkill(skillId) {
+        // Add the skill to the monster
+        this.addSkillToMonster(skillId);
+        this.closeSkillModal();
+    }
+
+    /**
+     * Add item to monster
+     */
+    static async addItemToMonster(itemId, slotsUsed) {
+        try {
+            // Get item data from database
+            const { data, error } = await SupabaseClient.supabase
+                .from('items')
+                .select('*')
+                .eq('id', itemId)
+                .single();
+                
+            if (error || !data) {
+                throw new Error('Failed to load item data');
+            }
+            
+            const itemData = data.item_data || {};
+            
+            // Add to monster
+            this.currentMonster.items[this.selectedSlot] = {
+                id: itemId,
+                name: itemData.itemName || 'Unknown Item',
+                image: itemData.imageData || 'images/default.png',
+                border: itemData.border || 'gold',
+                size: itemData.itemSize || 'Medium',
+                slotsUsed: slotsUsed
+            };
+            
+            this.currentMonster.boardSlotsUsed += slotsUsed;
+            
+            // Update the board slot
+            const slot = this.boardSlots[this.selectedSlot];
+            if (slot) {
+                slot.element.className = 'board-slot filled';
+                slot.element.innerHTML = `<img src="${itemData.imageData || 'images/default.png'}" class="board-item" alt="${itemData.itemName || 'Unknown Item'}">`;
+                slot.item = this.currentMonster.items[this.selectedSlot];
+                slot.slotsUsed = slotsUsed;
+            }
+            
+            if (typeof Messages !== 'undefined') {
+                Messages.showSuccess('Item added to monster!');
+            }
+            
+        } catch (error) {
+            console.error('Failed to add item to monster:', error);
+            if (typeof Messages !== 'undefined') {
+                Messages.showError('Failed to add item to monster');
+            }
+        }
+    }
+
+    /**
+     * Add skill to monster
+     */
+    static async addSkillToMonster(skillId) {
+        try {
+            // Get skill data from database
+            const { data, error } = await SupabaseClient.supabase
+                .from('skills')
+                .select('*')
+                .eq('id', skillId)
+                .single();
+                
+            if (error || !data) {
+                throw new Error('Failed to load skill data');
+            }
+            
+            const skillData = data.skill_data || {};
+            
+            // Add to monster
+            this.currentMonster.skills[this.selectedSlot] = {
+                id: skillId,
+                name: skillData.skillName || 'Unknown Skill',
+                image: skillData.imageData || 'images/default.png',
+                border: skillData.border || 'gold'
+            };
+            
+            // Update the skill slot
+            const slot = this.skillSlots[this.selectedSlot];
+            if (slot) {
+                slot.element.className = 'skill-slot filled';
+                slot.element.innerHTML = `<img src="${skillData.imageData || 'images/default.png'}" alt="${skillData.skillName || 'Unknown Skill'}">`;
+                slot.skill = this.currentMonster.skills[this.selectedSlot];
+            }
+            
+            if (typeof Messages !== 'undefined') {
+                Messages.showSuccess('Skill added to monster!');
+            }
+            
+        } catch (error) {
+            console.error('Failed to add skill to monster:', error);
+            if (typeof Messages !== 'undefined') {
+                Messages.showError('Failed to add skill to monster');
+            }
         }
     }
 

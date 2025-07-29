@@ -249,22 +249,24 @@
         /* Coin and EXP Display */
         .coin-display {
             position: absolute;
-            top: 10px;
+            top: -15px; /* Align with top of health bar */
             left: 0;
             right: 0;
             display: flex;
             justify-content: space-between;
             padding: 0 20px;
+            align-items: center;
         }
 
         .exp-display {
             position: absolute;
-            bottom: 10px;
+            bottom: -15px; /* Align with bottom of health bar */
             left: 0;
             right: 0;
             display: flex;
             justify-content: space-between;
             padding: 0 20px;
+            align-items: center;
         }
 
         .coin-node, .exp-node {
