@@ -1255,12 +1255,16 @@ h1 {
   margin: 0; /* Remove margin for grid layout */
   position: relative;
   flex: 0 0 auto; /* Don't grow/shrink, stay auto size */
+  width: fit-content;
+  min-width: fit-content;
+  max-width: calc(100% + 200px); /* Allow stretching up to 200px extra */
 }
 
 .card-visual-content {
   display: flex;
   align-items: flex-start;
   width: fit-content;
+  min-width: fit-content;
   position: relative;
   padding: 20px;
   border-radius: 10px;
@@ -1559,7 +1563,7 @@ h1 {
   flex-direction: column;
   border: 3px solid gold;
   border-radius: 10px;
-  max-width: 400px;
+  max-width: calc(400px + 200px); /* Allow stretching up to 200px extra */
   min-width: 300px;
   width: fit-content;
   background: radial-gradient(ellipse at center, rgb(60, 45, 30) 0%, rgb(45, 35, 22) 40%, rgb(25, 18, 10) 100%);
@@ -1585,7 +1589,9 @@ h1 {
   margin-bottom: 5px;
   padding: 0;
   background: transparent;
-  width: 300px;
+  width: fit-content;
+  min-width: 300px;
+  max-width: calc(300px + 200px); /* Allow stretching up to 200px extra */
 }
 
 .item-tag {
@@ -1634,6 +1640,9 @@ h1 {
   align-items: center;
   justify-content: space-between;
   position: relative;
+  width: fit-content;
+  min-width: fit-content;
+  max-width: calc(100% + 100px); /* Allow stretching up to 100px extra */
 }
 
 .item-title, .skill-title {
