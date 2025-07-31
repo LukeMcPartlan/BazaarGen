@@ -1655,6 +1655,15 @@ h1 {
   margin: 0 2px;
 }
 
+.skill-effect .skill-effect-text {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  margin: 0 1px; /* Add small margin around text content */
+  max-width: 100%; /* Constrain to parent width */
+  display: inline-block; /* Allow the span to be constrained */
+}
+
 .hero-header {
   display: flex;
   align-items: center;

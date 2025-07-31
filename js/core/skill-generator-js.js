@@ -199,7 +199,50 @@ class SkillGenerator {
     effectSection.className = 'skill-effect';
     effectSection.style.borderTop = `2px solid ${borderColor}`;
     effectSection.style.borderBottom = `2px solid ${borderColor}`;
-    effectSection.innerHTML = KeywordProcessor.processKeywordText(skillData.skillEffect);
+    
+    // Process the skill effect text with keywords
+    if (typeof KeywordProcessor !== 'undefined') {
+      effectSection.innerHTML = KeywordProcessor.processKeywordText(skillData.skillEffect);
+      
+      // Wrap every word in its own span for better control
+      const textNodes = [];
+      const walker = document.createTreeWalker(
+        effectSection,
+        NodeFilter.SHOW_TEXT,
+        null,
+        false
+      );
+      
+      let node;
+      while (node = walker.nextNode()) {
+        if (node.textContent.trim()) {
+          textNodes.push(node);
+        }
+      }
+      
+      textNodes.forEach(textNode => {
+        const words = textNode.textContent.split(/\s+/);
+        const fragment = document.createDocumentFragment();
+        
+        words.forEach(word => {
+          if (word.trim()) {
+            const span = document.createElement('span');
+            span.className = 'skill-effect-text';
+            span.textContent = word;
+            fragment.appendChild(span);
+            // Add a space after each word except the last one
+            if (word !== words[words.length - 1]) {
+              fragment.appendChild(document.createTextNode(' '));
+            }
+          }
+        });
+        
+        textNode.parentNode.replaceChild(fragment, textNode);
+      });
+    } else {
+      console.warn('⚠️ KeywordProcessor not available, using plain text');
+      effectSection.textContent = skillData.skillEffect;
+    }
 
     content.appendChild(headerSection);
     content.appendChild(effectSection);
