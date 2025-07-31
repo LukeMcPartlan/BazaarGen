@@ -1257,6 +1257,8 @@ h1 {
   flex: 0 0 auto; /* Don't grow/shrink, stay auto size */
   width: fit-content;
   min-width: fit-content;
+  flex-wrap: nowrap; /* Prevent wrapping */
+  white-space: nowrap; /* Prevent text wrapping */
 }
 
 .card-visual-content {
@@ -1267,6 +1269,8 @@ h1 {
   position: relative;
   padding: 20px;
   border-radius: 10px;
+  flex-wrap: nowrap; /* Prevent wrapping */
+  white-space: nowrap; /* Prevent text wrapping */
 }
 
 .card-controls, .skill-controls {
@@ -1657,6 +1661,7 @@ h1 {
   font-family: 'Roboto', Arial, sans-serif; 
   flex: 1; /* Allow title to grow and take available space */
   min-width: 0; /* Allow text to shrink if needed */
+  max-width: 350px; /* Cap at 350px */
   overflow-wrap: break-word; /* Break long words if needed */
   word-wrap: break-word; /* For older browsers */
   
@@ -1829,7 +1834,7 @@ h1 {
   padding: 15px;
   margin-top: 10px;
   width: 100%; /* Match hero header width */
-  max-width: 300px; /* Cap at 300px */
+  max-width: 350px; /* Cap at 350px */
   box-sizing: border-box; /* Include padding in width calculation */
   overflow-wrap: break-word; /* Break long words if needed */
   word-wrap: break-word; /* For older browsers */
@@ -1878,8 +1883,7 @@ h1 {
 /* ===== COMMENTS SECTION STYLES - COMPLETE FIX ===== */
 .card-wrapper {
   margin-bottom: 30px;
-  width: 100%; /* Changed from fit-content to 100% for consistency */
-  max-width: 100%;
+  width: fit-content; /* Size to fit the card content */
   position: relative;
   z-index: 1;
   box-sizing: border-box;
