@@ -1613,7 +1613,7 @@ h1 {
   color: rgb(251, 225, 183);
   font-family: 'Roboto', Arial, sans-serif; 
   width: 100%; /* Match hero header width */
-  max-width: 400px; /* Cap at 400px */
+  max-width: 300px; /* Cap at 300px */
   box-sizing: border-box; /* Include padding in width calculation */
   overflow-wrap: break-word; /* Break long words if needed */
   word-wrap: break-word; /* For older browsers */
@@ -1829,7 +1829,7 @@ h1 {
   padding: 15px;
   margin-top: 10px;
   width: 100%; /* Match hero header width */
-  max-width: 400px; /* Cap at 400px */
+  max-width: 300px; /* Cap at 300px */
   box-sizing: border-box; /* Include padding in width calculation */
   overflow-wrap: break-word; /* Break long words if needed */
   word-wrap: break-word; /* For older browsers */
