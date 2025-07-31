@@ -1682,6 +1682,9 @@ h1 {
   align-items: center;
   margin-bottom: 4px;
   margin-left: 40px;
+  flex-wrap: wrap; /* Allow content to wrap */
+  width: 100%; /* Constrain to container width */
+  box-sizing: border-box; /* Include padding in width calculation */
 }
 
 .crit-line {
@@ -1846,6 +1849,7 @@ h1 {
 .tag-input-group input, .on-use-input-group input, .passive-input-group input {
   flex: 1;
   min-width: 0; /* Allow input to shrink below its natural width */
+  max-width: 100%; /* Wrap based on current container width */
   box-sizing: border-box; /* Include padding in width calculation */
 }
 
