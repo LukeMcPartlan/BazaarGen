@@ -764,9 +764,9 @@ h1 {
 
 /* Browse page specific card width */
 .browse-container .card-wrapper {
-  width: 700px;
-  max-width: 700px;
-  flex: 0 0 700px;
+  width: fit-content;
+  max-width: none;
+  flex: 0 0 auto;
 }
 
 /* Ensure cards themselves fit content */
@@ -846,11 +846,11 @@ h1 {
     justify-content: center; /* Center when less space */
   }
   
-  /* Ensure browse page cards maintain 700px width */
+  /* Ensure browse page cards fit content */
   .browse-container .card-wrapper {
-    width: 700px !important;
-    max-width: 700px !important;
-    flex: 0 0 700px !important;
+    width: fit-content !important;
+    max-width: none !important;
+    flex: 0 0 auto !important;
   }
 }
 
@@ -3416,11 +3416,11 @@ h1 {
     padding: 15px;
   }
   
-  /* Ensure browse page cards maintain 700px width on mobile */
+  /* Ensure browse page cards fit content on mobile */
   .browse-container .card-wrapper {
-    width: 700px !important;
-    max-width: 700px !important;
-    flex: 0 0 700px !important;
+    width: fit-content !important;
+    max-width: none !important;
+    flex: 0 0 auto !important;
   }
 }
 
@@ -3436,9 +3436,9 @@ h1 {
   position: relative;
 }
 
-/* Items page specific: limit card width to 700px */
+/* Items page specific: allow card width to fit content */
 .main-container .card {
-  width: 700px !important;
-  max-width: 700px !important;
-  flex: 0 0 700px !important;
+  width: fit-content !important;
+  max-width: none !important;
+  flex: 0 0 auto !important;
 }
