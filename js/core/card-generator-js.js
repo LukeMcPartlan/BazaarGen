@@ -644,7 +644,7 @@ static async createCard(options = {}) {
         if (typeof KeywordProcessor !== 'undefined') {
           text.innerHTML = KeywordProcessor.processKeywordText(effect);
           
-          // Wrap any remaining text nodes in spans for proper CSS control
+          // Wrap every word in its own span for better control
           const textNodes = [];
           const walker = document.createTreeWalker(
             text,
@@ -661,10 +661,22 @@ static async createCard(options = {}) {
           }
           
           textNodes.forEach(textNode => {
-            const span = document.createElement('span');
-            span.className = 'on-use-text';
-            span.textContent = textNode.textContent;
-            textNode.parentNode.replaceChild(span, textNode);
+            const words = textNode.textContent.split(/(\s+)/);
+            const fragment = document.createDocumentFragment();
+            
+            words.forEach(word => {
+              if (word.trim()) {
+                const span = document.createElement('span');
+                span.className = 'on-use-text';
+                span.textContent = word;
+                fragment.appendChild(span);
+              } else if (word) {
+                // Preserve whitespace
+                fragment.appendChild(document.createTextNode(word));
+              }
+            });
+            
+            textNode.parentNode.replaceChild(fragment, textNode);
           });
         } else {
           console.warn('⚠️ KeywordProcessor not available, using plain text');
@@ -763,7 +775,7 @@ static async createCard(options = {}) {
         if (typeof KeywordProcessor !== 'undefined') {
           effectLine.innerHTML = KeywordProcessor.processKeywordText(effect.trim());
           
-          // Wrap any remaining text nodes in spans for proper CSS control
+          // Wrap every word in its own span for better control
           const textNodes = [];
           const walker = document.createTreeWalker(
             effectLine,
@@ -780,10 +792,22 @@ static async createCard(options = {}) {
           }
           
           textNodes.forEach(textNode => {
-            const span = document.createElement('span');
-            span.className = 'passive-text';
-            span.textContent = textNode.textContent;
-            textNode.parentNode.replaceChild(span, textNode);
+            const words = textNode.textContent.split(/(\s+)/);
+            const fragment = document.createDocumentFragment();
+            
+            words.forEach(word => {
+              if (word.trim()) {
+                const span = document.createElement('span');
+                span.className = 'passive-text';
+                span.textContent = word;
+                fragment.appendChild(span);
+              } else if (word) {
+                // Preserve whitespace
+                fragment.appendChild(document.createTextNode(word));
+              }
+            });
+            
+            textNode.parentNode.replaceChild(fragment, textNode);
           });
         } else {
           console.warn('⚠️ KeywordProcessor not available, using plain text');
