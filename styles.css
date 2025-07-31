@@ -1572,9 +1572,9 @@ h1 {
 }
 
 .skill-content {
-  width: 100%;
+  width: 300px;
   min-width: 300px;
-  max-width: none;
+  max-width: 300px;
   box-sizing: border-box;
 }
 
