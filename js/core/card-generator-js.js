@@ -643,6 +643,29 @@ static async createCard(options = {}) {
         const text = document.createElement("span");
         if (typeof KeywordProcessor !== 'undefined') {
           text.innerHTML = KeywordProcessor.processKeywordText(effect);
+          
+          // Wrap any remaining text nodes in spans for proper CSS control
+          const textNodes = [];
+          const walker = document.createTreeWalker(
+            text,
+            NodeFilter.SHOW_TEXT,
+            null,
+            false
+          );
+          
+          let node;
+          while (node = walker.nextNode()) {
+            if (node.textContent.trim()) {
+              textNodes.push(node);
+            }
+          }
+          
+          textNodes.forEach(textNode => {
+            const span = document.createElement('span');
+            span.className = 'on-use-text';
+            span.textContent = textNode.textContent;
+            textNode.parentNode.replaceChild(span, textNode);
+          });
         } else {
           console.warn('⚠️ KeywordProcessor not available, using plain text');
           text.textContent = effect;
