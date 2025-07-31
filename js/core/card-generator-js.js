@@ -384,45 +384,16 @@ static async createCard(options = {}) {
     
     card.appendChild(visualContent);
 
-    // Apply dynamic width constraints after the card is built
-    this.applyDynamicWidthConstraints(card);
-
     console.log('✅ Card element built successfully');
     return card;
   }
 
-  /**
-   * Apply dynamic width constraints based on hero header width
-   */
-  static applyDynamicWidthConstraints(cardElement) {
-    // Use setTimeout to ensure the card is fully rendered
-    setTimeout(() => {
-      const heroHeader = cardElement.querySelector('.hero-header');
-      if (!heroHeader) {
-        console.warn('⚠️ Hero header not found, skipping width constraints');
-        return;
-      }
 
-      // Get the hero header width
-      const heroWidth = heroHeader.offsetWidth;
-      console.log('📏 Hero header width:', heroWidth);
 
-      // Apply the width constraint to the card visual content
-      const visualContent = cardElement.querySelector('.card-visual-content');
-      if (visualContent) {
-        visualContent.style.maxWidth = `${heroWidth}px`;
-        console.log('🔒 Applied max-width constraint:', heroWidth + 'px');
-      }
 
-      // Also apply to the card wrapper for consistency
-      const cardWrapper = cardElement.querySelector('.card-wrapper');
-      if (cardWrapper) {
-        cardWrapper.style.maxWidth = `${heroWidth}px`;
-      }
 
-    }, 100); // Small delay to ensure rendering is complete
-  }
 
+  
   /**
    * Create card control buttons based on mode
    */

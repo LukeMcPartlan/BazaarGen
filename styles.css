@@ -1887,7 +1887,6 @@ h1 {
   position: relative;
   z-index: 1;
   box-sizing: border-box;
-  /* max-width will be set by JavaScript based on hero header width */
 }
 
 /* Reset positioning for browse page cards to match index.html */
@@ -1900,7 +1899,6 @@ h1 {
   width: 100%;
   min-width: fit-content; /* Allow shrinking to fit content */
   box-sizing: border-box;
-  /* max-width will be set by JavaScript based on hero header width */
 }
 
 .card-wrapper .card-content {
