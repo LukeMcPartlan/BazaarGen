@@ -757,8 +757,8 @@ h1 {
 .skill-card-wrapper, 
 .profile-card-wrapper {
   flex: 0 0 auto; /* Don't grow or shrink, stay natural size */
-  width: 100%; /* Use full available width */
-  max-width: 700px; /* Limit maximum width to 700px */
+  width: fit-content; /* Size to fit content */
+  max-width: none; /* Allow stretching to fit content */
   box-sizing: border-box;
 }
 
@@ -1766,7 +1766,7 @@ h1 {
 .on-use-line img {
   width: 16px;
   height: 18px;
-  margin-right: 8px;
+  margin: 0;
 }
 
 .passive-effect-line {
