@@ -1587,13 +1587,13 @@ h1 {
   clip-path: polygon(
     4% 0,          /* Top-left: cut 4% from left (increased by 1%) */
     96% 0,         /* Top-right: cut 4% from right (increased by 1%) */
-    100% 6%,       /* Top-right: cut 6% from top (doubled from 3%) */
-    100% 94%,      /* Bottom-right: cut 6% from bottom (doubled from 3%) */
+    100% 8%,       /* Top-right: cut 8% from top (increased by 2 more units) */
+    100% 92%,      /* Bottom-right: cut 8% from bottom (increased by 2 more units) */
     96% 100%,      /* Bottom-right: cut 4% from right (increased by 1%) */
     4% 100%,       /* Bottom-left: cut 4% from left (increased by 1%) */
-    0 94%,         /* Bottom-left: cut 6% from bottom (doubled from 3%) */
-    0 6%           /* Top-left: cut 6% from top (doubled from 3%) */
-  ); /* Increased horizontal cuts by 1% and doubled vertical cuts */
+    0 92%,         /* Bottom-left: cut 8% from bottom (increased by 2 more units) */
+    0 8%           /* Top-left: cut 8% from top (increased by 2 more units) */
+  ); /* Increased horizontal cuts by 1% and vertical cuts by 2 more units */
 }
 
 .card-wrapper {
