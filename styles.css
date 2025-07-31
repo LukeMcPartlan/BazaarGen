@@ -1613,6 +1613,7 @@ h1 {
   color: rgb(251, 225, 183);
   font-family: 'Roboto', Arial, sans-serif; 
   width: 100%; /* Match hero header width */
+  max-width: 400px; /* Cap at 400px */
   box-sizing: border-box; /* Include padding in width calculation */
   overflow-wrap: break-word; /* Break long words if needed */
   word-wrap: break-word; /* For older browsers */
@@ -1643,7 +1644,7 @@ h1 {
   align-items: center;
   justify-content: space-between;
   position: relative;
-  width: fit-content; /* Size to its content (title + icon) */
+  width: 100%; /* Always match card content width */
   min-width: fit-content;
   box-sizing: border-box; /* Include padding in width calculation */
   overflow-wrap: break-word; /* Break long words if needed */
@@ -1828,6 +1829,7 @@ h1 {
   padding: 15px;
   margin-top: 10px;
   width: 100%; /* Match hero header width */
+  max-width: 400px; /* Cap at 400px */
   box-sizing: border-box; /* Include padding in width calculation */
   overflow-wrap: break-word; /* Break long words if needed */
   word-wrap: break-word; /* For older browsers */
