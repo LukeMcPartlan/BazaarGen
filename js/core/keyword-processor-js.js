@@ -74,9 +74,10 @@ class KeywordProcessor {
     processedText = this.replaceIconPlaceholders(processedText);
     
     // Wrap all remaining text content in spans for consistency
-    processedText = processedText.replace(/([^<>\s]+)/g, (match, text) => {
+    // Only process text that's not already in HTML tags and looks like actual words
+    processedText = processedText.replace(/(?<!<)([a-zA-Z0-9]+)(?!>)/g, (match, text) => {
       // Skip if it's already wrapped in a tag or is just whitespace
-      if (text.trim() === '' || text.startsWith('<') || text.endsWith('>')) {
+      if (text.trim() === '' || text.startsWith('<') || text.endsWith('>') || text.includes('=') || text.includes('"')) {
         return match;
       }
       return `<span class="text-content">${text}</span>`;

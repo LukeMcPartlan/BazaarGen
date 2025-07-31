@@ -1764,6 +1764,9 @@ h1 {
 
 .passive-effect-line .text-content {
   margin: 0 1px; /* Add small margin around regular text content */
+  overflow-wrap: break-word; /* Break long words if needed */
+  word-wrap: break-word; /* For older browsers */
+  word-break: break-word; /* Break long words */
 }
 
 .cooldown-section {
