@@ -1839,10 +1839,14 @@ h1 {
   margin-bottom: 10px;
   gap: 10px;
   flex-wrap: wrap; /* Allow content to wrap */
+  width: 100%; /* Constrain to container width */
+  box-sizing: border-box; /* Include padding in width calculation */
 }
 
 .tag-input-group input, .on-use-input-group input, .passive-input-group input {
   flex: 1;
+  min-width: 0; /* Allow input to shrink below its natural width */
+  box-sizing: border-box; /* Include padding in width calculation */
 }
 
 .export-import-section {
