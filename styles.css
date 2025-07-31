@@ -1699,7 +1699,7 @@ h1 {
   align-items: flex-start;
   margin-bottom: 4px;
   margin-left: 40px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap; /* Prevent wrapping - keep arrow and text together */
   overflow-wrap: break-word;
   word-wrap: break-word;
   word-break: break-word;
