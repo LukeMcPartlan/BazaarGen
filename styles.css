@@ -1672,6 +1672,35 @@ h1 {
   display: inline-block; /* Allow the span to be constrained */
 }
 
+/* Skill frame and divider styling */
+.skill-frame-container {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 5px;
+  width: 100%;
+}
+
+.skill-frame {
+  width: 100%;
+  height: auto;
+  max-width: 300px;
+  object-fit: contain;
+}
+
+.skill-divider-container {
+  display: flex;
+  justify-content: center;
+  margin: 5px 0;
+  width: 100%;
+}
+
+.skill-divider {
+  width: 100%;
+  height: auto;
+  max-width: 300px;
+  object-fit: contain;
+}
+
 .hero-header {
   display: flex;
   align-items: center;
