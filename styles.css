@@ -785,6 +785,7 @@ h1 {
   width: 100%; /* Changed from fit-content to 100% */
   max-width: 100%; /* Changed from 600px to 100% */
   box-sizing: border-box;
+  overflow: visible; /* Allow skill content frames to overflow */
 }
 
 /* Profile-specific grid layout */
@@ -823,6 +824,7 @@ h1 {
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  overflow: visible; /* Allow skill content frames to overflow */
 }
 
 /* Fix skill fallback cards */
@@ -1589,6 +1591,7 @@ h1 {
   min-width: 300px;
   max-width: 300px;
   box-sizing: border-box;
+  overflow: visible; /* Allow frame to overflow beyond container */
   clip-path: polygon(
     4% 0,          /* Top-left: cut 4% from left (increased by 1%) */
     96% 0,         /* Top-right: cut 4% from right (increased by 1%) */
@@ -1694,10 +1697,10 @@ h1 {
 /* Skill frame and divider styling */
 .skill-frame {
   position: absolute;
-  top: -10px; /* Allow frame to overflow above container */
-  left: -10px; /* Allow frame to overflow left of container */
-  width: calc(100% + 20px); /* Extend width to allow overflow */
-  height: calc(100% + 20px); /* Extend height to allow overflow */
+  top: -20px; /* Allow frame to overflow above container */
+  left: -20px; /* Allow frame to overflow left of container */
+  width: calc(100% + 40px); /* Extend width to allow overflow */
+  height: calc(100% + 40px); /* Extend height to allow overflow */
   object-fit: fill;
   z-index: 10; /* Higher z-index to appear on top of borders */
   pointer-events: none; /* Allow clicks to pass through to content */
