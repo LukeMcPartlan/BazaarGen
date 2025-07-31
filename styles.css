@@ -1660,8 +1660,7 @@ h1 {
   align-items: center;
   justify-content: space-between;
   position: relative;
-  width: 100%; /* Always match card content width */
-  min-width: fit-content;
+  width: 350px; /* Fixed width of 350px */
   box-sizing: border-box; /* Include padding in width calculation */
   overflow-wrap: break-word; /* Break long words if needed */
   word-wrap: break-word; /* For older browsers */
@@ -1671,9 +1670,7 @@ h1 {
   font-size: 2em;
   margin: 0;
   font-family: 'Roboto', Arial, sans-serif; 
-  flex: 1; /* Allow title to grow and take available space */
-  min-width: 0; /* Allow text to shrink if needed */
-  max-width: 350px; /* Cap at 350px */
+  width: 350px; /* Fixed width of 350px */
   overflow-wrap: break-word; /* Break long words if needed */
   word-wrap: break-word; /* For older browsers */
   
@@ -1697,16 +1694,22 @@ h1 {
 
 .on-use-line {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 4px;
   margin-left: 40px;
+  flex-wrap: wrap;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .crit-line {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 4px;
   margin-left: 40px;
+  flex-wrap: wrap;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .crit-line-hr {
@@ -1845,13 +1848,18 @@ h1 {
   border-radius: 8px;
   padding: 15px;
   margin-top: 10px;
-  width: 100%; /* Match hero header width */
-  max-width: 350px; /* Cap at 350px */
+  width: 350px; /* Fixed width of 350px */
   box-sizing: border-box; /* Include padding in width calculation */
   overflow-wrap: break-word; /* Break long words if needed */
   word-wrap: break-word; /* For older browsers */
   display: flex;
   flex-direction: column;
+}
+
+.on-use-effects *, .tag-effects * {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  max-width: 100%;
 }
 
 .tag-input-group, .on-use-input-group, .passive-input-group {
