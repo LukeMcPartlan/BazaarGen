@@ -196,13 +196,16 @@ class SkillGenerator {
     frameImage.alt = '';
     frameImage.onerror = function() {
       this.style.display = 'none';
+      // Add fallback borders when frame fails to load
+      headerSection.style.borderTop = `2px solid ${borderColor}`;
+      effectSection.style.borderBottom = `2px solid ${borderColor}`;
     };
     content.appendChild(frameImage);
 
     // Header section
     const headerSection = document.createElement('div');
     headerSection.className = 'skill-header';
-    headerSection.style.borderTop = `2px solid ${borderColor}`;
+    headerSection.style.borderTop = 'none'; // Remove border, will show as fallback if frame fails
     headerSection.style.borderBottom = 'none'; // Remove bottom border
     
     const skillTitle = document.createElement('div');
@@ -219,8 +222,8 @@ class SkillGenerator {
     dividerImage.src = `images/tooltip-borders/${skillData.border}_divider.png`;
     dividerImage.alt = '';
     dividerImage.onerror = function() {
-      // Replace with silver line if image fails to load
-      dividerContainer.innerHTML = '<div class="skill-divider-fallback"></div>';
+      // Replace with colored line if image fails to load
+      dividerContainer.innerHTML = `<div class="skill-divider-fallback" style="background-color: ${borderColor};"></div>`;
     };
     dividerContainer.appendChild(dividerImage);
 
@@ -228,7 +231,7 @@ class SkillGenerator {
     const effectSection = document.createElement('div');
     effectSection.className = 'skill-effect';
     effectSection.style.borderTop = 'none'; // Remove top border
-    effectSection.style.borderBottom = `2px solid ${borderColor}`;
+    effectSection.style.borderBottom = 'none'; // Remove border, will show as fallback if frame fails
     
     // Process the skill effect text with keywords
     if (typeof KeywordProcessor !== 'undefined') {

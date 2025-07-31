@@ -1497,11 +1497,11 @@ h1 {
 
 /* ===== SKILL-SPECIFIC IMAGE STYLES ===== */
 .skill-image-container {
-  border: 3px solid gold;
+  border: none; /* Hide colored borders */
   padding: 5px;
   margin-right: 20px;
   border-radius: 50%;
-  overflow: visible;
+  overflow: visible; /* Allow images to be seen outside container */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1584,6 +1584,7 @@ h1 {
   min-width: 300px;
   max-width: 300px;
   box-sizing: border-box;
+  border-radius: 8px; /* Add slight radius to skill content */
 }
 
 .card-wrapper {
@@ -1684,8 +1685,9 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: fill;
-  z-index: 1;
+  z-index: 10; /* Higher z-index to appear on top of borders */
   pointer-events: none; /* Allow clicks to pass through to content */
+  overflow: visible; /* Allow frame to be seen outside container */
 }
 
 .skill-divider-container {
@@ -1701,12 +1703,13 @@ h1 {
   width: 100%;
   height: auto;
   object-fit: contain;
+  z-index: 15; /* Higher z-index to appear on top of borders */
+  position: relative;
 }
 
 .skill-divider-fallback {
   width: 100%;
   height: 2px;
-  background-color: silver;
   border-radius: 1px;
 }
 
@@ -1722,7 +1725,7 @@ h1 {
 }
 
 .item-title, .skill-title {
-  font-size: 2em;
+  font-size: 1.8em;
   margin: 0;
   font-family: 'Roboto', Arial, sans-serif; 
   width: 300px; /* Fixed width of 300px */
