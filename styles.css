@@ -1522,7 +1522,7 @@ h1 {
   border-radius: 50%;
 }
 
-.skill-image-container .skill-border-overlay {
+.skill-image-container .skill-icon-overlay-border {
   position: absolute !important;
   top: 50% !important;
   left: 50% !important;
@@ -1538,9 +1538,9 @@ h1 {
 }
 
 /* BULLETPROOF: Additional rules to force centering during exports */
-.skill-card .skill-image-container .skill-border-overlay,
-.skill-card-wrapper .skill-image-container .skill-border-overlay,
-.profile-card-wrapper .skill-image-container .skill-border-overlay {
+.skill-card .skill-image-container .skill-icon-overlay-border,
+.skill-card-wrapper .skill-image-container .skill-icon-overlay-border,
+.profile-card-wrapper .skill-image-container .skill-icon-overlay-border {
   position: absolute !important;
   top: 50% !important;
   left: 50% !important;
@@ -1585,7 +1585,6 @@ h1 {
   min-width: 300px;
   max-width: 300px;
   box-sizing: border-box;
-  overflow: visible; /* Allow frame to overflow outside the container */
   clip-path: polygon(
     4% 0,          /* Top-left: cut 4% from left (increased by 1%) */
     96% 0,         /* Top-right: cut 4% from right (increased by 1%) */
@@ -1691,12 +1690,12 @@ h1 {
 /* Skill frame and divider styling */
 .skill-frame {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: -10px; /* Allow frame to overflow above container */
+  left: -10px; /* Allow frame to overflow left of container */
+  width: calc(100% + 20px); /* Extend width to allow overflow */
+  height: calc(100% + 20px); /* Extend height to allow overflow */
   object-fit: fill;
-  z-index: 999; /* Much higher z-index to appear on top of everything */
+  z-index: 10; /* Higher z-index to appear on top of borders */
   pointer-events: none; /* Allow clicks to pass through to content */
   overflow: visible; /* Allow frame to be seen outside container */
 }
@@ -3589,7 +3588,7 @@ h1 {
     margin-bottom: 20px;
   }
 
-  .skill-border-overlay {
+  .skill-icon-overlay-border {
     width: 273px;
     height: 273px;
   }

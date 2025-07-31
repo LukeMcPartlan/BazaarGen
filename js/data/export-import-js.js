@@ -332,7 +332,7 @@ class ExportImport {
     
     // BULLETPROOF APPROACH: Replace the border overlay with a new one for export
     const imageContainer = skillElement.querySelector('.skill-image-container');
-    const originalBorderOverlay = skillElement.querySelector('.skill-border-overlay');
+    const originalBorderOverlay = skillElement.querySelector('.skill-icon-overlay-border');
     
     if (imageContainer && originalBorderOverlay) {
       // Store the original border overlay
@@ -347,7 +347,7 @@ class ExportImport {
       
       // Create a new border overlay specifically for export
       const exportBorderOverlay = document.createElement('img');
-      exportBorderOverlay.className = 'skill-border-overlay-export';
+      exportBorderOverlay.className = 'skill-icon-overlay-border-export';
       exportBorderOverlay.src = originalBorderOverlay.src;
       exportBorderOverlay.alt = '';
       
@@ -922,7 +922,7 @@ class ExportImport {
       if (originalElements && originalElements.length > 0) {
         originalElements.forEach(item => {
           const imageContainer = skillElement.querySelector('.skill-image-container');
-          const exportBorderOverlay = imageContainer.querySelector('.skill-border-overlay-export');
+          const exportBorderOverlay = imageContainer.querySelector('.skill-icon-overlay-border-export');
           
           if (imageContainer && exportBorderOverlay) {
             // Remove the export border overlay

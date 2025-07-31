@@ -159,29 +159,29 @@ class SkillGenerator {
     img.alt = skillData.skillName;
     imageContainer.appendChild(img);
 
-    // Add border overlay
-    const imageBorderOverlay = document.createElement('img');
-    imageBorderOverlay.className = 'skill-border-overlay';
-    imageBorderOverlay.src = `images/${skillData.border}_skill_border.png`;
-    imageBorderOverlay.onerror = function() {
+    // Add icon overlay border
+    const iconOverlayBorder = document.createElement('img');
+    iconOverlayBorder.className = 'skill-icon-overlay-border';
+    iconOverlayBorder.src = `images/frames/Skill_Frame_${skillData.border.charAt(0).toUpperCase() + skillData.border.slice(1)}.png`;
+    iconOverlayBorder.onerror = function() {
       this.style.display = 'none';
     };
-    imageBorderOverlay.alt = '';
+    iconOverlayBorder.alt = '';
     
     // BULLETPROOF: Set explicit positioning styles from creation
-    imageBorderOverlay.style.position = 'absolute';
-    imageBorderOverlay.style.top = '50%';
-    imageBorderOverlay.style.left = '50%';
-    imageBorderOverlay.style.width = '169.5px';
-    imageBorderOverlay.style.height = '169.5px';
-    imageBorderOverlay.style.transform = 'translate(-50%, -50%)';
-    imageBorderOverlay.style.objectFit = 'cover';
-    imageBorderOverlay.style.pointerEvents = 'none';
-    imageBorderOverlay.style.zIndex = '999';
-    imageBorderOverlay.style.borderRadius = '50%';
-    imageBorderOverlay.style.overflow = 'visible';
+    iconOverlayBorder.style.position = 'absolute';
+    iconOverlayBorder.style.top = '50%';
+    iconOverlayBorder.style.left = '50%';
+    iconOverlayBorder.style.width = '169.5px';
+    iconOverlayBorder.style.height = '169.5px';
+    iconOverlayBorder.style.transform = 'translate(-50%, -50%)';
+    iconOverlayBorder.style.objectFit = 'cover';
+    iconOverlayBorder.style.pointerEvents = 'none';
+    iconOverlayBorder.style.zIndex = '999';
+    iconOverlayBorder.style.borderRadius = '50%';
+    iconOverlayBorder.style.overflow = 'visible';
     
-    imageContainer.appendChild(imageBorderOverlay);
+    imageContainer.appendChild(iconOverlayBorder);
 
     // Create content section
     const content = document.createElement('div');
@@ -192,7 +192,7 @@ class SkillGenerator {
     // Add frame inside skill content as background overlay
     const frameImage = document.createElement('img');
     frameImage.className = 'skill-frame';
-    frameImage.src = `images/frames/Skill_Frame_${skillData.border.charAt(0).toUpperCase() + skillData.border.slice(1)}.png`;
+    frameImage.src = `images/frames/${skillData.border}_m_frame.png`;
     frameImage.alt = '';
     frameImage.onerror = function() {
       this.style.display = 'none';
