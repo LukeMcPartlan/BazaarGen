@@ -1590,7 +1590,8 @@ h1 {
   margin-bottom: 5px;
   padding: 0;
   background: transparent;
-  width: 100%; /* Match hero header width */
+  width: fit-content; /* Size to content */
+  max-width: 100%; /* Don't exceed hero header width */
 }
 
 .item-tag {
