@@ -1282,6 +1282,14 @@ h1 {
   gap: 5px;
 }
 
+.skill-card-wrapper .skill-controls {
+  position: static;
+  top: auto;
+  right: auto;
+  margin-bottom: 10px;
+  justify-content: flex-end;
+}
+
 .card-delete-btn, .card-export-btn, .card-save-btn, 
 .card-view-btn, .card-upvote-btn, .card-edit-btn,
 .skill-delete-btn, .skill-export-btn, .skill-edit-btn {

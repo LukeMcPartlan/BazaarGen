@@ -135,14 +135,19 @@ class SkillGenerator {
     this.debug('Building skill element...');
 
     const borderColor = this.getBorderColor(skillData.border);
-    const skillCard = document.createElement('div');
-    skillCard.className = 'skill-card';
-
-    // Add controls if needed
+    
+    // Create wrapper for skill card and controls
+    const skillWrapper = document.createElement('div');
+    skillWrapper.className = 'skill-card-wrapper';
+    
+    // Add controls above skill card if needed
     if (includeControls && mode === 'generator') {
       const skillControls = this.createSkillControls(skillData);
-      skillCard.appendChild(skillControls);
+      skillWrapper.appendChild(skillControls);
     }
+    
+    const skillCard = document.createElement('div');
+    skillCard.className = 'skill-card';
 
     // Create image container
     const imageContainer = document.createElement('div');
@@ -249,9 +254,12 @@ class SkillGenerator {
 
     skillCard.appendChild(imageContainer);
     skillCard.appendChild(content);
+    
+    // Add skill card to wrapper
+    skillWrapper.appendChild(skillCard);
 
     this.debug('Skill element built successfully');
-    return skillCard;
+    return skillWrapper;
   }
 
   /**
@@ -290,9 +298,9 @@ class SkillGenerator {
     deleteBtn.innerHTML = '×';
     deleteBtn.title = 'Delete this skill';
     deleteBtn.onclick = function() {
-      const skillCard = this.closest('.skill-card');
-      if (skillCard) {
-        window.clearSkill(skillCard);
+      const skillWrapper = this.closest('.skill-card-wrapper');
+      if (skillWrapper) {
+        window.clearSkill(skillWrapper);
       }
     };
 
