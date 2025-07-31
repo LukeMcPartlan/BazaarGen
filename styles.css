@@ -1563,7 +1563,7 @@ h1 {
   border: 3px solid gold;
   border-radius: 10px;
   min-width: 300px;
-  width: fit-content;
+  width: fit-content; /* Size to fit content */
   background: radial-gradient(ellipse at center, rgb(60, 45, 30) 0%, rgb(45, 35, 22) 40%, rgb(25, 18, 10) 100%);
 }
 
@@ -1643,7 +1643,7 @@ h1 {
   align-items: center;
   justify-content: space-between;
   position: relative;
-  width: 100%; /* Always match card content width */
+  width: fit-content; /* Size to its content (title + icon) */
   min-width: fit-content;
   box-sizing: border-box; /* Include padding in width calculation */
   overflow-wrap: break-word; /* Break long words if needed */
@@ -1682,9 +1682,6 @@ h1 {
   align-items: center;
   margin-bottom: 4px;
   margin-left: 40px;
-  flex-wrap: wrap; /* Allow content to wrap */
-  width: 100%; /* Constrain to container width */
-  box-sizing: border-box; /* Include padding in width calculation */
 }
 
 .crit-line {
@@ -1834,6 +1831,8 @@ h1 {
   box-sizing: border-box; /* Include padding in width calculation */
   overflow-wrap: break-word; /* Break long words if needed */
   word-wrap: break-word; /* For older browsers */
+  display: flex;
+  flex-direction: column;
 }
 
 .tag-input-group, .on-use-input-group, .passive-input-group {
@@ -1842,15 +1841,10 @@ h1 {
   margin-bottom: 10px;
   gap: 10px;
   flex-wrap: wrap; /* Allow content to wrap */
-  width: 100%; /* Constrain to container width */
-  box-sizing: border-box; /* Include padding in width calculation */
 }
 
 .tag-input-group input, .on-use-input-group input, .passive-input-group input {
   flex: 1;
-  min-width: 0; /* Allow input to shrink below its natural width */
-  max-width: 100%; /* Wrap based on current container width */
-  box-sizing: border-box; /* Include padding in width calculation */
 }
 
 .export-import-section {
