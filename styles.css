@@ -1702,6 +1702,19 @@ h1 {
   flex-wrap: wrap;
   overflow-wrap: break-word;
   word-wrap: break-word;
+  word-break: break-word;
+  width: 100%;
+  box-sizing: border-box;
+  gap: 4px; /* Add consistent spacing between elements */
+}
+
+.on-use-line > span {
+  flex: 1; /* Allow text content to take remaining space */
+  min-width: 0; /* Allow text to shrink */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: calc(100% - 24px); /* Account for arrow width and margin */
 }
 
 .crit-line {
@@ -1892,6 +1905,13 @@ h1 {
   overflow-wrap: break-word;
   word-wrap: break-word;
   max-width: 100%;
+}
+
+.on-use-effects {
+  width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .passive-effects-container {
