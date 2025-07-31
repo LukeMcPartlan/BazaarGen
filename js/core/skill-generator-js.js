@@ -186,7 +186,7 @@ class SkillGenerator {
     // Create content section
     const content = document.createElement('div');
     content.className = 'skill-content';
-    content.style.border = `3px solid ${borderColor}`;
+    content.style.border = 'none'; // Remove colored border
     content.style.position = 'relative'; // Enable positioning for frame overlay
 
     // Add frame inside skill content as background overlay
