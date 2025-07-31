@@ -1613,6 +1613,9 @@ h1 {
   color: rgb(251, 225, 183);
   font-family: 'Roboto', Arial, sans-serif; 
   width: 100%; /* Match hero header width */
+  box-sizing: border-box; /* Include padding in width calculation */
+  overflow-wrap: break-word; /* Break long words if needed */
+  word-wrap: break-word; /* For older browsers */
   
   text-shadow: 
     1px 1px 0 black,               /* Main shadow */
@@ -1642,6 +1645,9 @@ h1 {
   position: relative;
   width: 100%; /* Always match card content width */
   min-width: fit-content;
+  box-sizing: border-box; /* Include padding in width calculation */
+  overflow-wrap: break-word; /* Break long words if needed */
+  word-wrap: break-word; /* For older browsers */
 }
 
 .item-title, .skill-title {
@@ -1650,6 +1656,8 @@ h1 {
   font-family: 'Roboto', Arial, sans-serif; 
   flex: 1; /* Allow title to grow and take available space */
   min-width: 0; /* Allow text to shrink if needed */
+  overflow-wrap: break-word; /* Break long words if needed */
+  word-wrap: break-word; /* For older browsers */
   
   text-shadow: 
     2px 2px 0 black,
@@ -1820,6 +1828,9 @@ h1 {
   padding: 15px;
   margin-top: 10px;
   width: 100%; /* Match hero header width */
+  box-sizing: border-box; /* Include padding in width calculation */
+  overflow-wrap: break-word; /* Break long words if needed */
+  word-wrap: break-word; /* For older browsers */
 }
 
 .tag-input-group, .on-use-input-group, .passive-input-group {
@@ -1827,6 +1838,7 @@ h1 {
   align-items: center;
   margin-bottom: 10px;
   gap: 10px;
+  flex-wrap: wrap; /* Allow content to wrap */
 }
 
 .tag-input-group input, .on-use-input-group input, .passive-input-group input {
