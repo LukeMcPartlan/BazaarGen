@@ -781,7 +781,7 @@ h1 {
 /* Fix skill card content to fit properly */
 .skill-card {
   display: flex;
-  align-items: flex-start;
+  align-items: center; /* Changed from flex-start to center to vertically center the icon */
   width: 100%; /* Changed from fit-content to 100% */
   max-width: 100%; /* Changed from 600px to 100% */
   box-sizing: border-box;
@@ -1585,15 +1585,15 @@ h1 {
   max-width: 300px;
   box-sizing: border-box;
   clip-path: polygon(
-    3% 0,          /* Top-left: cut 3% from left */
-    97% 0,         /* Top-right: cut 3% from right */
-    100% 3%,       /* Top-right: cut 3% from top */
-    100% 97%,      /* Bottom-right: cut 3% from bottom */
-    97% 100%,      /* Bottom-right: cut 3% from right */
-    3% 100%,       /* Bottom-left: cut 3% from left */
-    0 97%,         /* Bottom-left: cut 3% from bottom */
-    0 3%           /* Top-left: cut 3% from top */
-  ); /* Larger consistent angular cuts on all four corners */
+    4% 0,          /* Top-left: cut 4% from left (increased by 1%) */
+    96% 0,         /* Top-right: cut 4% from right (increased by 1%) */
+    100% 6%,       /* Top-right: cut 6% from top (doubled from 3%) */
+    100% 94%,      /* Bottom-right: cut 6% from bottom (doubled from 3%) */
+    96% 100%,      /* Bottom-right: cut 4% from right (increased by 1%) */
+    4% 100%,       /* Bottom-left: cut 4% from left (increased by 1%) */
+    0 94%,         /* Bottom-left: cut 6% from bottom (doubled from 3%) */
+    0 6%           /* Top-left: cut 6% from top (doubled from 3%) */
+  ); /* Increased horizontal cuts by 1% and doubled vertical cuts */
 }
 
 .card-wrapper {
