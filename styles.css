@@ -1585,15 +1585,15 @@ h1 {
   max-width: 300px;
   box-sizing: border-box;
   clip-path: polygon(
-    1% 0,          /* Top-left: cut 1% from left */
-    99% 0,         /* Top-right: cut 1% from right */
-    100% 1%,       /* Top-right: cut 1% from top */
-    100% 99%,      /* Bottom-right: cut 1% from bottom */
-    99% 100%,      /* Bottom-right: cut 1% from right */
-    1% 100%,       /* Bottom-left: cut 1% from left */
-    0 99%,         /* Bottom-left: cut 1% from bottom */
-    0 1%           /* Top-left: cut 1% from top */
-  ); /* Small consistent angular cuts on all four corners */
+    3% 0,          /* Top-left: cut 3% from left */
+    97% 0,         /* Top-right: cut 3% from right */
+    100% 3%,       /* Top-right: cut 3% from top */
+    100% 97%,      /* Bottom-right: cut 3% from bottom */
+    97% 100%,      /* Bottom-right: cut 3% from right */
+    3% 100%,       /* Bottom-left: cut 3% from left */
+    0 97%,         /* Bottom-left: cut 3% from bottom */
+    0 3%           /* Top-left: cut 3% from top */
+  ); /* Larger consistent angular cuts on all four corners */
 }
 
 .card-wrapper {
