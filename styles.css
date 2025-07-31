@@ -1649,11 +1649,7 @@ h1 {
   z-index: 2; /* Ensure content appears above the frame overlay */
 }
 
-.skill-header {
-  display: flex;
-  flex-direction: column;
-  min-height: 0; /* Allow header to shrink */
-}
+
 
 .skill-effect {
   line-height: 1.4;
@@ -1695,18 +1691,23 @@ h1 {
 .skill-divider-container {
   display: flex;
   justify-content: center;
-  margin: 0;
+  margin: 5px 0;
   width: 100%;
   position: relative;
   z-index: 2; /* Ensure divider appears above the frame overlay */
-  align-self: flex-end; /* Align to bottom of header */
-  margin-top: auto; /* Push to bottom of header */
 }
 
 .skill-divider {
   width: 100%;
   height: auto;
   object-fit: contain;
+}
+
+.skill-divider-fallback {
+  width: 100%;
+  height: 2px;
+  background-color: silver;
+  border-radius: 1px;
 }
 
 .hero-header {

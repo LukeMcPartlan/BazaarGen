@@ -203,14 +203,14 @@ class SkillGenerator {
     const headerSection = document.createElement('div');
     headerSection.className = 'skill-header';
     headerSection.style.borderTop = `2px solid ${borderColor}`;
-    headerSection.style.borderBottom = `2px solid ${borderColor}`;
+    headerSection.style.borderBottom = 'none'; // Remove bottom border
     
     const skillTitle = document.createElement('div');
     skillTitle.className = 'skill-title';
     skillTitle.textContent = skillData.skillName;
     headerSection.appendChild(skillTitle);
 
-    // Add divider inside header section, aligned to bottom
+    // Add divider below header section
     const dividerContainer = document.createElement('div');
     dividerContainer.className = 'skill-divider-container';
     
@@ -219,15 +219,15 @@ class SkillGenerator {
     dividerImage.src = `images/tooltip-borders/${skillData.border}_divider.png`;
     dividerImage.alt = '';
     dividerImage.onerror = function() {
-      this.style.display = 'none';
+      // Replace with silver line if image fails to load
+      dividerContainer.innerHTML = '<div class="skill-divider-fallback"></div>';
     };
     dividerContainer.appendChild(dividerImage);
-    headerSection.appendChild(dividerContainer);
 
     // Effect section
     const effectSection = document.createElement('div');
     effectSection.className = 'skill-effect';
-    effectSection.style.borderTop = `2px solid ${borderColor}`;
+    effectSection.style.borderTop = 'none'; // Remove top border
     effectSection.style.borderBottom = `2px solid ${borderColor}`;
     
     // Process the skill effect text with keywords
@@ -275,6 +275,7 @@ class SkillGenerator {
     }
 
     content.appendChild(headerSection);
+    content.appendChild(dividerContainer);
     content.appendChild(effectSection);
 
     skillCard.appendChild(imageContainer);
