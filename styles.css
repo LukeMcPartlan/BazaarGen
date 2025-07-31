@@ -1743,6 +1743,7 @@ h1 {
   flex-wrap: wrap;
   overflow-wrap: break-word;
   word-wrap: break-word;
+  word-break: break-word;
   width: 100%;
   box-sizing: border-box;
   gap: 4px; /* Add consistent spacing between elements */
@@ -1762,12 +1763,7 @@ h1 {
   margin: 0 2px; /* Add small margin around keyword icons */
 }
 
-.passive-effect-line .text-content {
-  margin: 0 1px; /* Add small margin around regular text content */
-  overflow-wrap: break-word; /* Break long words if needed */
-  word-wrap: break-word; /* For older browsers */
-  word-break: break-word; /* Break long words */
-}
+
 
 .cooldown-section {
   left: -30px;
