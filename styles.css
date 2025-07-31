@@ -1507,7 +1507,7 @@ h1 {
   padding: 5px;
   margin-right: 20px;
   border-radius: 50%;
-  overflow: visible; /* Allow images to be seen outside container */
+  overflow: hidden; /* Clip skill icon to container bounds */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1526,6 +1526,9 @@ h1 {
   object-fit: cover;
   object-position: center;
   border-radius: 50%;
+  max-width: 100%;
+  max-height: 100%;
+  overflow: hidden;
 }
 
 .skill-image-container .skill-icon-overlay-border {
@@ -1535,8 +1538,8 @@ h1 {
   transform: translate(-50%, -50%) !important;
   width: var(--skill-icon-overlay-size) !important;
   height: var(--skill-icon-overlay-size) !important;
-  max-width: none !important;
-  max-height: none !important;
+  max-width: var(--skill-icon-overlay-size) !important;
+  max-height: var(--skill-icon-overlay-size) !important;
   border-radius: 50% !important;
   pointer-events: none !important;
   z-index: 999 !important;
@@ -1553,8 +1556,8 @@ h1 {
   transform: translate(-50%, -50%) !important;
   width: var(--skill-icon-overlay-size) !important;
   height: var(--skill-icon-overlay-size) !important;
-  max-width: none !important;
-  max-height: none !important;
+  max-width: var(--skill-icon-overlay-size) !important;
+  max-height: var(--skill-icon-overlay-size) !important;
   border-radius: 50% !important;
   pointer-events: none !important;
   z-index: 999 !important;
@@ -1592,6 +1595,8 @@ h1 {
   max-width: 300px;
   box-sizing: border-box;
   overflow: visible; /* Allow frame to overflow beyond container */
+  padding: 50px; /* Add padding to accommodate frame overflow */
+  margin: -50px; /* Negative margin to maintain original size */
   clip-path: polygon(
     4% 0,          /* Top-left: cut 4% from left (increased by 1%) */
     96% 0,         /* Top-right: cut 4% from right (increased by 1%) */
@@ -1697,10 +1702,10 @@ h1 {
 /* Skill frame and divider styling */
 .skill-frame {
   position: absolute;
-  top: -20px; /* Allow frame to overflow above container */
-  left: -20px; /* Allow frame to overflow left of container */
-  width: calc(100% + 40px); /* Extend width to allow overflow */
-  height: calc(100% + 40px); /* Extend height to allow overflow */
+  top: -50px; /* Allow frame to overflow above container */
+  left: -50px; /* Allow frame to overflow left of container */
+  width: calc(100% + 100px); /* Extend width to allow overflow */
+  height: calc(100% + 100px); /* Extend height to allow overflow */
   object-fit: fill;
   z-index: 10; /* Higher z-index to appear on top of borders */
   pointer-events: none; /* Allow clicks to pass through to content */
