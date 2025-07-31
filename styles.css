@@ -1726,6 +1726,18 @@ h1 {
   display: inline-block; /* Allow the span to be constrained */
 }
 
+.on-use-line .on-use-content {
+  flex: 1; /* Allow text content to take remaining space */
+  min-width: 0; /* Allow text to shrink */
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  max-width: 220px; /* Limit text content width */
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1px; /* Small gap between words */
+}
+
 .crit-line {
   display: flex;
   align-items: flex-start;
@@ -1783,7 +1795,7 @@ h1 {
 }
 
 .passive-effect-line .keyword-icon {
-  margin: 0 2px; /* Add small margin around keyword icons */
+  margin: 0; /* Remove extra margin around keyword icons */
 }
 
 .passive-effect-line .passive-text {

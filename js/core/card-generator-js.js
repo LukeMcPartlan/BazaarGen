@@ -641,6 +641,7 @@ static async createCard(options = {}) {
         icon.onerror = function() { this.style.display = 'none'; };
 
         const text = document.createElement("span");
+        text.className = "on-use-content";
         if (typeof KeywordProcessor !== 'undefined') {
           text.innerHTML = KeywordProcessor.processKeywordText(effect);
           
@@ -661,7 +662,7 @@ static async createCard(options = {}) {
           }
           
           textNodes.forEach(textNode => {
-            const words = textNode.textContent.split(/(\s+)/);
+            const words = textNode.textContent.split(/\s+/);
             const fragment = document.createDocumentFragment();
             
             words.forEach(word => {
@@ -670,9 +671,10 @@ static async createCard(options = {}) {
                 span.className = 'on-use-text';
                 span.textContent = word;
                 fragment.appendChild(span);
-              } else if (word) {
-                // Preserve whitespace
-                fragment.appendChild(document.createTextNode(word));
+                // Add a space after each word except the last one
+                if (word !== words[words.length - 1]) {
+                  fragment.appendChild(document.createTextNode(' '));
+                }
               }
             });
             
@@ -792,7 +794,7 @@ static async createCard(options = {}) {
           }
           
           textNodes.forEach(textNode => {
-            const words = textNode.textContent.split(/(\s+)/);
+            const words = textNode.textContent.split(/\s+/);
             const fragment = document.createDocumentFragment();
             
             words.forEach(word => {
@@ -801,9 +803,10 @@ static async createCard(options = {}) {
                 span.className = 'passive-text';
                 span.textContent = word;
                 fragment.appendChild(span);
-              } else if (word) {
-                // Preserve whitespace
-                fragment.appendChild(document.createTextNode(word));
+                // Add a space after each word except the last one
+                if (word !== words[words.length - 1]) {
+                  fragment.appendChild(document.createTextNode(' '));
+                }
               }
             });
             
