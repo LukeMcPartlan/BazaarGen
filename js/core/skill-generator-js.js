@@ -187,11 +187,9 @@ class SkillGenerator {
     const content = document.createElement('div');
     content.className = 'skill-content';
     content.style.border = `3px solid ${borderColor}`;
+    content.style.position = 'relative'; // Enable positioning for frame overlay
 
-    // Add frame above skill content
-    const frameContainer = document.createElement('div');
-    frameContainer.className = 'skill-frame-container';
-    
+    // Add frame inside skill content as background overlay
     const frameImage = document.createElement('img');
     frameImage.className = 'skill-frame';
     frameImage.src = `images/tooltip-borders/${skillData.border}_frame.png`;
@@ -199,7 +197,7 @@ class SkillGenerator {
     frameImage.onerror = function() {
       this.style.display = 'none';
     };
-    frameContainer.appendChild(frameImage);
+    content.appendChild(frameImage);
 
     // Header section
     const headerSection = document.createElement('div');
@@ -211,6 +209,20 @@ class SkillGenerator {
     skillTitle.className = 'skill-title';
     skillTitle.textContent = skillData.skillName;
     headerSection.appendChild(skillTitle);
+
+    // Add divider inside header section, aligned to bottom
+    const dividerContainer = document.createElement('div');
+    dividerContainer.className = 'skill-divider-container';
+    
+    const dividerImage = document.createElement('img');
+    dividerImage.className = 'skill-divider';
+    dividerImage.src = `images/tooltip-borders/${skillData.border}_divider.png`;
+    dividerImage.alt = '';
+    dividerImage.onerror = function() {
+      this.style.display = 'none';
+    };
+    dividerContainer.appendChild(dividerImage);
+    headerSection.appendChild(dividerContainer);
 
     // Effect section
     const effectSection = document.createElement('div');
@@ -262,25 +274,10 @@ class SkillGenerator {
       effectSection.textContent = skillData.skillEffect;
     }
 
-    // Add divider between header and effect sections
-    const dividerContainer = document.createElement('div');
-    dividerContainer.className = 'skill-divider-container';
-    
-    const dividerImage = document.createElement('img');
-    dividerImage.className = 'skill-divider';
-    dividerImage.src = `images/tooltip-borders/${skillData.border}_divider.png`;
-    dividerImage.alt = '';
-    dividerImage.onerror = function() {
-      this.style.display = 'none';
-    };
-    dividerContainer.appendChild(dividerImage);
-
     content.appendChild(headerSection);
-    content.appendChild(dividerContainer);
     content.appendChild(effectSection);
 
     skillCard.appendChild(imageContainer);
-    skillCard.appendChild(frameContainer);
     skillCard.appendChild(content);
     
     // Add skill card to wrapper

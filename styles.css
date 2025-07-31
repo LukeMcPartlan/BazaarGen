@@ -1645,6 +1645,14 @@ h1 {
   padding: 15px;
   text-shadow: 1px 1px 2px black;
   text-align: left;
+  position: relative;
+  z-index: 2; /* Ensure content appears above the frame overlay */
+}
+
+.skill-header {
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* Allow header to shrink */
 }
 
 .skill-effect {
@@ -1673,31 +1681,31 @@ h1 {
 }
 
 /* Skill frame and divider styling */
-.skill-frame-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 5px;
-  width: 100%;
-}
-
 .skill-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: auto;
-  max-width: 300px;
-  object-fit: contain;
+  height: 100%;
+  object-fit: fill;
+  z-index: 1;
+  pointer-events: none; /* Allow clicks to pass through to content */
 }
 
 .skill-divider-container {
   display: flex;
   justify-content: center;
-  margin: 5px 0;
+  margin: 0;
   width: 100%;
+  position: relative;
+  z-index: 2; /* Ensure divider appears above the frame overlay */
+  align-self: flex-end; /* Align to bottom of header */
+  margin-top: auto; /* Push to bottom of header */
 }
 
 .skill-divider {
   width: 100%;
   height: auto;
-  max-width: 300px;
   object-fit: contain;
 }
 
