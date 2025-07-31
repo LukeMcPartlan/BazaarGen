@@ -1673,6 +1673,8 @@ h1 {
   width: 350px; /* Fixed width of 350px */
   overflow-wrap: break-word; /* Break long words if needed */
   word-wrap: break-word; /* For older browsers */
+  white-space: normal; /* Allow text to wrap */
+  line-height: 1.2; /* Tighter line height for better wrapping */
   
   text-shadow: 
     2px 2px 0 black,
@@ -1731,6 +1733,24 @@ h1 {
   width: 16px;
   height: 18px;
   margin-right: 8px;
+}
+
+.passive-effect-line {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 4px;
+  margin-left: 40px;
+  flex-wrap: wrap;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.passive-effect-line * {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  max-width: 100%;
 }
 
 .cooldown-section {
