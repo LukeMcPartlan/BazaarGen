@@ -1687,7 +1687,7 @@ h1 {
   font-size: 2em;
   margin: 0;
   font-family: 'Roboto', Arial, sans-serif; 
-  width: 350px; /* Fixed width of 350px */
+  width: 300px; /* Fixed width of 300px */
   overflow-wrap: break-word; /* Break long words if needed */
   word-wrap: break-word; /* For older browsers */
   white-space: normal; /* Allow text to wrap */
