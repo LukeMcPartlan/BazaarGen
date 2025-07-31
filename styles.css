@@ -1585,6 +1585,7 @@ h1 {
   min-width: 300px;
   max-width: 300px;
   box-sizing: border-box;
+  overflow: visible; /* Allow frame to overflow outside the container */
   clip-path: polygon(
     4% 0,          /* Top-left: cut 4% from left (increased by 1%) */
     96% 0,         /* Top-right: cut 4% from right (increased by 1%) */
@@ -1695,7 +1696,7 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: fill;
-  z-index: 10; /* Higher z-index to appear on top of borders */
+  z-index: 999; /* Much higher z-index to appear on top of everything */
   pointer-events: none; /* Allow clicks to pass through to content */
   overflow: visible; /* Allow frame to be seen outside container */
 }

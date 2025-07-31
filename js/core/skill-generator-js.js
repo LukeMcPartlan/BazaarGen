@@ -192,7 +192,7 @@ class SkillGenerator {
     // Add frame inside skill content as background overlay
     const frameImage = document.createElement('img');
     frameImage.className = 'skill-frame';
-    frameImage.src = `images/tooltip-borders/${skillData.border}_frame.png`;
+    frameImage.src = `images/frames/Skill_Frame_${skillData.border.charAt(0).toUpperCase() + skillData.border.slice(1)}.png`;
     frameImage.alt = '';
     frameImage.onerror = function() {
       this.style.display = 'none';
