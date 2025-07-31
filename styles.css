@@ -1641,6 +1641,18 @@ h1 {
 
 .skill-effect {
   line-height: 1.4;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+
+.skill-effect img {
+  margin: 0 2px;
+}
+
+.skill-effect .key-text {
+  margin: 0 2px;
 }
 
 .hero-header {
@@ -1883,7 +1895,7 @@ h1 {
 /* ===== COMMENTS SECTION STYLES - COMPLETE FIX ===== */
 .card-wrapper {
   margin-bottom: 30px;
-  width: fit-content; /* Size to fit the card content */
+  width: fit-content; /* Size gito fit the card content */
   position: relative;
   z-index: 1;
   box-sizing: border-box;
