@@ -1714,7 +1714,7 @@ h1 {
   overflow-wrap: break-word;
   word-wrap: break-word;
   word-break: break-word;
-  max-width: calc(100% - 24px); /* Account for arrow width and margin */
+  max-width: 220px; /* Limit text content width */
 }
 
 .crit-line {
@@ -1758,6 +1758,7 @@ h1 {
   word-wrap: break-word;
   word-break: break-word;
   width: 100%;
+  max-width: 250px; /* Limit passive effect line width */
   box-sizing: border-box;
   gap: 4px; /* Add consistent spacing between elements */
 }
@@ -1774,6 +1775,13 @@ h1 {
 
 .passive-effect-line .keyword-icon {
   margin: 0 2px; /* Add small margin around keyword icons */
+}
+
+.passive-effect-line .passive-text {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+  margin: 0 1px; /* Add small margin around text content */
 }
 
 

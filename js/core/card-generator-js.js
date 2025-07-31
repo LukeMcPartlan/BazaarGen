@@ -739,6 +739,29 @@ static async createCard(options = {}) {
         
         if (typeof KeywordProcessor !== 'undefined') {
           effectLine.innerHTML = KeywordProcessor.processKeywordText(effect.trim());
+          
+          // Wrap any remaining text nodes in spans for proper CSS control
+          const textNodes = [];
+          const walker = document.createTreeWalker(
+            effectLine,
+            NodeFilter.SHOW_TEXT,
+            null,
+            false
+          );
+          
+          let node;
+          while (node = walker.nextNode()) {
+            if (node.textContent.trim()) {
+              textNodes.push(node);
+            }
+          }
+          
+          textNodes.forEach(textNode => {
+            const span = document.createElement('span');
+            span.className = 'passive-text';
+            span.textContent = textNode.textContent;
+            textNode.parentNode.replaceChild(span, textNode);
+          });
         } else {
           console.warn('⚠️ KeywordProcessor not available, using plain text');
           effectLine.textContent = effect.trim();
