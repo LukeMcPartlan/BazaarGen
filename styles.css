@@ -1496,6 +1496,10 @@ h1 {
 }
 
 /* ===== SKILL-SPECIFIC IMAGE STYLES ===== */
+:root {
+  --skill-icon-overlay-size: 130px;
+}
+
 .skill-image-container {
   border: none; /* Hide colored borders */
   padding: 5px;
@@ -1527,8 +1531,8 @@ h1 {
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
-  width: 169.5px !important;
-  height: 169.5px !important;
+  width: var(--skill-icon-overlay-size) !important;
+  height: var(--skill-icon-overlay-size) !important;
   max-width: none !important;
   max-height: none !important;
   border-radius: 50% !important;
@@ -1545,8 +1549,8 @@ h1 {
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
-  width: 169.5px !important;
-  height: 169.5px !important;
+  width: var(--skill-icon-overlay-size) !important;
+  height: var(--skill-icon-overlay-size) !important;
   max-width: none !important;
   max-height: none !important;
   border-radius: 50% !important;
@@ -3589,8 +3593,8 @@ h1 {
   }
 
   .skill-icon-overlay-border {
-    width: 273px;
-    height: 273px;
+    width: var(--skill-icon-overlay-size);
+    height: var(--skill-icon-overlay-size);
   }
 
   .footer-links {

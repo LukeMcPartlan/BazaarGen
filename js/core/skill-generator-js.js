@@ -172,8 +172,8 @@ class SkillGenerator {
     iconOverlayBorder.style.position = 'absolute';
     iconOverlayBorder.style.top = '50%';
     iconOverlayBorder.style.left = '50%';
-    iconOverlayBorder.style.width = '169.5px';
-    iconOverlayBorder.style.height = '169.5px';
+    iconOverlayBorder.style.width = '130px';
+    iconOverlayBorder.style.height = '130px';
     iconOverlayBorder.style.transform = 'translate(-50%, -50%)';
     iconOverlayBorder.style.objectFit = 'cover';
     iconOverlayBorder.style.pointerEvents = 'none';
