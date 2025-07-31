@@ -1572,7 +1572,7 @@ h1 {
   position: relative;
   display: flex;
   flex-direction: column;
-  border: 3px solid gold;
+  border: none; /* Remove border from skill content */
   border-radius: 10px;
   min-width: 300px;
   width: fit-content; /* Size to fit content */
@@ -1584,7 +1584,16 @@ h1 {
   min-width: 300px;
   max-width: 300px;
   box-sizing: border-box;
-  border-radius: 8px; /* Add slight radius to skill content */
+  clip-path: polygon(
+    1% 0,          /* Top-left: cut 1% from left */
+    99% 0,         /* Top-right: cut 1% from right */
+    100% 1%,       /* Top-right: cut 1% from top */
+    100% 99%,      /* Bottom-right: cut 1% from bottom */
+    99% 100%,      /* Bottom-right: cut 1% from right */
+    1% 100%,       /* Bottom-left: cut 1% from left */
+    0 99%,         /* Bottom-left: cut 1% from bottom */
+    0 1%           /* Top-left: cut 1% from top */
+  ); /* Small consistent angular cuts on all four corners */
 }
 
 .card-wrapper {
