@@ -73,10 +73,20 @@ class KeywordProcessor {
     // Finally, replace all placeholders with actual images
     processedText = this.replaceIconPlaceholders(processedText);
     
+    // Wrap all remaining text content in spans for consistency
+    processedText = processedText.replace(/([^<>\s]+)/g, (match, text) => {
+      // Skip if it's already wrapped in a tag or is just whitespace
+      if (text.trim() === '' || text.startsWith('<') || text.endsWith('>')) {
+        return match;
+      }
+      return `<span class="text-content">${text}</span>`;
+    });
+    
     // Add line breaks between different keywords for better wrapping
     // This will help the skill effects wrap properly within their container
-    processedText = processedText.replace(/(<\/span>)(<img)/g, '$1<br>$2');
-    processedText = processedText.replace(/(<\/span>)(<span)/g, '$1<br>$2');
+    // Note: Removed for passive effects to maintain proper spacing
+    // processedText = processedText.replace(/(<\/span>)(<img)/g, '$1<br>$2');
+    // processedText = processedText.replace(/(<\/span>)(<span)/g, '$1<br>$2');
     
     return processedText;
   }

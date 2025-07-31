@@ -1745,12 +1745,25 @@ h1 {
   word-wrap: break-word;
   width: 100%;
   box-sizing: border-box;
+  gap: 4px; /* Add consistent spacing between elements */
 }
 
 .passive-effect-line * {
   overflow-wrap: break-word;
   word-wrap: break-word;
   max-width: 100%;
+}
+
+.passive-effect-line .key-text {
+  margin: 0 2px; /* Add small margin around keyword text */
+}
+
+.passive-effect-line .keyword-icon {
+  margin: 0 2px; /* Add small margin around keyword icons */
+}
+
+.passive-effect-line .text-content {
+  margin: 0 1px; /* Add small margin around regular text content */
 }
 
 .cooldown-section {
@@ -1882,6 +1895,13 @@ h1 {
   max-width: 100%;
 }
 
+.passive-effects-container {
+  width: 100%;
+  box-sizing: border-box;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
 .tag-input-group, .on-use-input-group, .passive-input-group {
   display: flex;
   align-items: center;
@@ -1923,7 +1943,7 @@ h1 {
 /* ===== COMMENTS SECTION STYLES - COMPLETE FIX ===== */
 .card-wrapper {
   margin-bottom: 30px;
-  width: fit-content; /* Size gito fit the card content */
+  width: fit-content; /* Size to fit the card content */
   position: relative;
   z-index: 1;
   box-sizing: border-box;
