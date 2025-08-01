@@ -200,7 +200,8 @@ class SkillGenerator {
       headerSection.style.borderTop = `2px solid ${borderColor}`;
       effectSection.style.borderBottom = `2px solid ${borderColor}`;
     };
-    content.appendChild(frameImage);
+    // Move frame to skill-card level instead of skill-content level
+    skillCard.appendChild(frameImage);
 
     // Header section
     const headerSection = document.createElement('div');

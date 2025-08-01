@@ -1697,12 +1697,12 @@ h1 {
 /* Skill frame and divider styling */
 .skill-frame {
   position: absolute;
-  top: -20px; /* Allow frame to overflow above container */
-  left: -20px; /* Allow frame to overflow left of container */
-  width: calc(100% + 40px); /* Extend width to allow overflow */
-  height: calc(100% + 40px); /* Extend height to allow overflow */
+  top: 0; /* Position relative to skill-card */
+  left: 0; /* Position relative to skill-card */
+  width: 100%; /* Full width of skill-card */
+  height: 100%; /* Full height of skill-card */
   object-fit: fill;
-  z-index: 10; /* Higher z-index to appear on top of borders */
+  z-index: 10; /* Keep on top of content */
   pointer-events: none; /* Allow clicks to pass through to content */
   overflow: visible; /* Allow frame to be seen outside container */
 }
