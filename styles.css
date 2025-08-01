@@ -786,6 +786,7 @@ h1 {
   max-width: 100%; /* Changed from 600px to 100% */
   box-sizing: border-box;
   overflow: visible; /* Allow skill content frames to overflow */
+  flex-wrap: nowrap; /* Prevent wrapping - keep as row */
 }
 
 /* Profile-specific grid layout */
@@ -1698,8 +1699,8 @@ h1 {
 .skill-frame {
   position: absolute;
   bottom: 5px; /* 5px padding from bottom */
-  right: 12px; /* 12px padding from right (increased by 2px) */
-  width: calc(var(--skill-icon-overlay-size) + 8px); /* 8px + the variable size */
+  right: 13px; /* 13px padding from right */
+  width: 307px; /* Fixed width */
   height: calc(100% - 10px); /* Full height minus top/bottom padding */
   object-fit: fill;
   z-index: 10; /* Keep on top of content */
