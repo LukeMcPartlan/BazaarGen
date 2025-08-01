@@ -308,12 +308,28 @@ class SkillGenerator {
 
     // Now that all content is added, calculate and set frame height
     const updateFrameHeight = () => {
+      // Force a reflow to ensure content is fully rendered
+      content.offsetHeight;
+      contentAndFrameContainer.offsetHeight;
+      
       const contentHeight = content.offsetHeight;
-      frameImage.style.height = (contentHeight + 10) + 'px';
+      const containerHeight = contentAndFrameContainer.offsetHeight;
+      const frameHeight = Math.max(contentHeight + 10, containerHeight + 10, 100); // Minimum height of 100px
+      frameImage.style.height = frameHeight + 'px';
+      console.log('Frame height updated:', frameHeight, 'px (content height:', contentHeight, 'px, container height:', containerHeight, 'px)');
+      console.log('Content structure:', content.innerHTML);
     };
     
     // Update frame height after content is fully rendered
     setTimeout(updateFrameHeight, 0);
+    
+    // Also update after a longer delay to ensure all content is rendered
+    setTimeout(updateFrameHeight, 100);
+    
+    // Use requestAnimationFrame for more reliable timing
+    requestAnimationFrame(() => {
+      setTimeout(updateFrameHeight, 0);
+    });
 
     skillCard.appendChild(imageContainer);
     skillCard.appendChild(contentAndFrameContainer);
