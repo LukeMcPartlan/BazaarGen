@@ -313,10 +313,9 @@ class SkillGenerator {
       contentAndFrameContainer.offsetHeight;
       
       const contentHeight = content.offsetHeight;
-      const containerHeight = contentAndFrameContainer.offsetHeight;
-      const frameHeight = Math.max(contentHeight + 30, containerHeight + 30, 100); // Increased by 20px vertically (10 + 20)
+      const frameHeight = contentHeight + 30; // Simple: content height + 30px
       frameImage.style.height = frameHeight + 'px';
-      console.log('Frame height updated:', frameHeight, 'px (content height:', contentHeight, 'px, container height:', containerHeight, 'px)');
+      console.log('Frame height updated:', frameHeight, 'px (content height:', contentHeight, 'px)');
       console.log('Content structure:', content.innerHTML);
     };
     
