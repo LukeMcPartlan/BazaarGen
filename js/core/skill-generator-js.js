@@ -200,8 +200,20 @@ class SkillGenerator {
       headerSection.style.borderTop = `2px solid ${borderColor}`;
       effectSection.style.borderBottom = `2px solid ${borderColor}`;
     };
-    // Move frame to skill-card level instead of skill-content level
-    skillCard.appendChild(frameImage);
+    
+    // BULLETPROOF: Set explicit positioning styles from creation
+    frameImage.style.position = 'absolute';
+    frameImage.style.top = '50%';
+    frameImage.style.left = '50%';
+    frameImage.style.width = '307px';
+    frameImage.style.transform = 'translate(-50%, -50%)';
+    frameImage.style.objectFit = 'fill';
+    frameImage.style.pointerEvents = 'none';
+    frameImage.style.zIndex = '10';
+    frameImage.style.overflow = 'visible';
+    
+    // Add frame to skill-content level so it's positioned relative to the content
+    content.appendChild(frameImage);
     
     // Set frame height to match skill-content height plus 10px
     const updateFrameHeight = () => {
