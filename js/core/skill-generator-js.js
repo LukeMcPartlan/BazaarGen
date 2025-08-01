@@ -208,7 +208,7 @@ class SkillGenerator {
     frameImage.style.position = 'absolute';
     frameImage.style.top = '50%';
     frameImage.style.left = '50%';
-    frameImage.style.width = '307px';
+    frameImage.style.width = (300 + 17) + 'px'; // Container width (300px) + 17px
     frameImage.style.transform = 'translate(-50%, -50%)';
     frameImage.style.objectFit = 'fill';
     frameImage.style.pointerEvents = 'none';
@@ -314,7 +314,7 @@ class SkillGenerator {
       
       const contentHeight = content.offsetHeight;
       const containerHeight = contentAndFrameContainer.offsetHeight;
-      const frameHeight = Math.max(contentHeight + 10, containerHeight + 10, 100); // Minimum height of 100px
+      const frameHeight = Math.max(contentHeight + 30, containerHeight + 30, 100); // Increased by 20px vertically (10 + 20)
       frameImage.style.height = frameHeight + 'px';
       console.log('Frame height updated:', frameHeight, 'px (content height:', contentHeight, 'px, container height:', containerHeight, 'px)');
       console.log('Content structure:', content.innerHTML);

@@ -1702,8 +1702,8 @@ h1 {
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
-  width: 307px; /* Fixed width */
-  /* Height will be set by JavaScript to match skill-content + 10px */
+  width: calc(300px + 17px); /* Container width + 17px */
+  /* Height will be set by JavaScript to match skill-content + 30px */
   object-fit: fill;
   z-index: 10; /* Keep on top of content */
   pointer-events: none; /* Allow clicks to pass through to content */
@@ -1718,7 +1718,7 @@ h1 {
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
-  width: 307px !important;
+  width: calc(300px + 17px) !important;
   object-fit: fill !important;
   pointer-events: none !important;
   z-index: 10 !important;
