@@ -1697,9 +1697,9 @@ h1 {
 /* Skill frame and divider styling */
 .skill-frame {
   position: absolute;
-  top: 5px; /* 5px padding from top */
-  right: 10px; /* 10px padding from right, positioned on right side */
-  width: calc(100% - 10px); /* Full width minus right padding */
+  bottom: 5px; /* 5px padding from bottom */
+  right: 12px; /* 12px padding from right (increased by 2px) */
+  width: calc(var(--skill-icon-overlay-size) + 8px); /* 8px + the variable size */
   height: calc(100% - 10px); /* Full height minus top/bottom padding */
   object-fit: fill;
   z-index: 10; /* Keep on top of content */
