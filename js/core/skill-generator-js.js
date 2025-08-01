@@ -204,25 +204,8 @@ class SkillGenerator {
       effectSection.style.borderBottom = `2px solid ${borderColor}`;
     };
     
-    // BULLETPROOF: Set explicit positioning styles from creation
-    frameImage.style.position = 'absolute';
-    frameImage.style.top = '50%';
-    frameImage.style.left = '50%';
-    frameImage.style.width = (300 + 17) + 'px'; // Container width (300px) + 17px
-    frameImage.style.transform = 'translate(-50%, -50%)';
-    frameImage.style.objectFit = 'fill';
-    frameImage.style.pointerEvents = 'none';
-    frameImage.style.zIndex = '10';
-    frameImage.style.overflow = 'visible';
-    
     // Add frame to content-and-frame container
     contentAndFrameContainer.appendChild(frameImage);
-    
-    // Update frame height on window resize
-    window.addEventListener('resize', () => {
-      const contentHeight = content.offsetHeight;
-      frameImage.style.height = (contentHeight + 10) + 'px';
-    });
 
     // Header section
     const headerSection = document.createElement('div');
@@ -305,30 +288,6 @@ class SkillGenerator {
 
     // Add content to the content-and-frame container
     contentAndFrameContainer.appendChild(content);
-
-    // Now that all content is added, calculate and set frame height
-    const updateFrameHeight = () => {
-      // Force a reflow to ensure content is fully rendered
-      content.offsetHeight;
-      contentAndFrameContainer.offsetHeight;
-      
-      const contentHeight = content.offsetHeight;
-      const frameHeight = contentHeight + 30; // Simple: content height + 30px
-      frameImage.style.height = frameHeight + 'px';
-      console.log('Frame height updated:', frameHeight, 'px (content height:', contentHeight, 'px)');
-      console.log('Content structure:', content.innerHTML);
-    };
-    
-    // Update frame height after content is fully rendered
-    setTimeout(updateFrameHeight, 0);
-    
-    // Also update after a longer delay to ensure all content is rendered
-    setTimeout(updateFrameHeight, 100);
-    
-    // Use requestAnimationFrame for more reliable timing
-    requestAnimationFrame(() => {
-      setTimeout(updateFrameHeight, 0);
-    });
 
     skillCard.appendChild(imageContainer);
     skillCard.appendChild(contentAndFrameContainer);
