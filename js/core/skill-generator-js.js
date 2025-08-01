@@ -206,6 +206,42 @@ class SkillGenerator {
     
     // Add frame to content-and-frame container
     contentAndFrameContainer.appendChild(frameImage);
+    
+    // Function to force frame reload and resize after content is rendered
+    const forceFrameReload = () => {
+      // Force container to recalculate size
+      contentAndFrameContainer.offsetHeight;
+      content.offsetHeight;
+      
+      // Get container dimensions
+      const containerWidth = contentAndFrameContainer.offsetWidth;
+      const containerHeight = contentAndFrameContainer.offsetHeight;
+      
+      // Set frame dimensions: container + 3px width, container + 30px height
+      frameImage.style.width = (containerWidth + 3) + 'px';
+      frameImage.style.height = (containerHeight + 30) + 'px';
+      
+      // Center the frame over the container
+      frameImage.style.position = 'absolute';
+      frameImage.style.top = '50%';
+      frameImage.style.left = '50%';
+      frameImage.style.transform = 'translate(-50%, -50%)';
+      frameImage.style.objectFit = 'fill';
+      frameImage.style.pointerEvents = 'none';
+      frameImage.style.zIndex = '10';
+      frameImage.style.overflow = 'visible';
+      
+      console.log('Frame reloaded - Width:', containerWidth + 3, 'px, Height:', containerHeight + 30, 'px');
+    };
+    
+    // Call the function after content is added
+    setTimeout(forceFrameReload, 0);
+    
+    // Also call after a longer delay to ensure everything is rendered
+    setTimeout(forceFrameReload, 100);
+    
+    // Call when image loads
+    frameImage.onload = forceFrameReload;
 
     // Header section
     const headerSection = document.createElement('div');
