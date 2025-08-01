@@ -1697,10 +1697,10 @@ h1 {
 /* Skill frame and divider styling */
 .skill-frame {
   position: absolute;
-  top: 0; /* Position relative to skill-card */
-  left: 0; /* Position relative to skill-card */
-  width: 100%; /* Full width of skill-card */
-  height: 100%; /* Full height of skill-card */
+  top: 5px; /* 5px padding from top */
+  right: 10px; /* 10px padding from right, positioned on right side */
+  width: calc(100% - 10px); /* Full width minus right padding */
+  height: calc(100% - 10px); /* Full height minus top/bottom padding */
   object-fit: fill;
   z-index: 10; /* Keep on top of content */
   pointer-events: none; /* Allow clicks to pass through to content */
