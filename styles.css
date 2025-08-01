@@ -780,13 +780,14 @@ h1 {
 
 /* Fix skill card content to fit properly */
 .skill-card {
-  display: flex;
-  align-items: center; /* Changed from flex-start to center to vertically center the icon */
+  display: grid;
+  grid-template-columns: auto 1fr; /* Icon column + content column */
+  gap: 15px;
+  align-items: start; /* Align items to top */
   width: 100%; /* Changed from fit-content to 100% */
   max-width: 100%; /* Changed from 600px to 100% */
   box-sizing: border-box;
   overflow: visible; /* Allow skill content frames to overflow */
-  flex-wrap: nowrap; /* Prevent wrapping - keep as row */
 }
 
 /* Profile-specific grid layout */
@@ -1588,11 +1589,14 @@ h1 {
 }
 
 .skill-content {
+  grid-row: 1;
+  grid-column: 1;
   width: 300px;
   min-width: 300px;
   max-width: 300px;
   box-sizing: border-box;
   overflow: visible; /* Allow frame to overflow beyond container */
+  z-index: 20; /* Above the frame */
   clip-path: polygon(
     4% 0,          /* Top-left: cut 4% from left (increased by 1%) */
     96% 0,         /* Top-right: cut 4% from right (increased by 1%) */
@@ -1696,16 +1700,21 @@ h1 {
 }
 
 /* Skill frame and divider styling */
+.skill-content-area {
+  display: grid;
+  grid-template-rows: 1fr; /* Single row that expands to content height */
+  position: relative;
+}
+
 .skill-frame {
-  position: absolute;
-  bottom: 5px; /* 5px padding from bottom */
-  right: 13px; /* 13px padding from right */
+  grid-row: 1;
+  grid-column: 1;
   width: 307px; /* Fixed width */
-  height: calc(100% - 10px); /* Full height minus top/bottom padding */
+  height: 100%; /* Automatically matches the grid cell height */
   object-fit: fill;
-  z-index: 10; /* Keep on top of content */
-  pointer-events: none; /* Allow clicks to pass through to content */
-  overflow: visible; /* Allow frame to be seen outside container */
+  z-index: 10;
+  pointer-events: none;
+  overflow: visible;
 }
 
 .skill-divider-container {

@@ -189,7 +189,11 @@ class SkillGenerator {
     content.style.border = 'none'; // Remove colored border
     content.style.position = 'relative'; // Enable positioning for frame overlay
 
-    // Add frame inside skill content as background overlay
+    // Create content area wrapper for grid layout
+    const contentArea = document.createElement('div');
+    contentArea.className = 'skill-content-area';
+
+    // Add frame to content area
     const frameImage = document.createElement('img');
     frameImage.className = 'skill-frame';
     frameImage.src = `images/frames/${skillData.border}_m_frame.png`;
@@ -200,8 +204,7 @@ class SkillGenerator {
       headerSection.style.borderTop = `2px solid ${borderColor}`;
       effectSection.style.borderBottom = `2px solid ${borderColor}`;
     };
-    // Move frame to skill-card level instead of skill-content level
-    skillCard.appendChild(frameImage);
+    contentArea.appendChild(frameImage);
 
     // Header section
     const headerSection = document.createElement('div');
@@ -282,8 +285,11 @@ class SkillGenerator {
     content.appendChild(dividerContainer);
     content.appendChild(effectSection);
 
+    // Add content to content area
+    contentArea.appendChild(content);
+
     skillCard.appendChild(imageContainer);
-    skillCard.appendChild(content);
+    skillCard.appendChild(contentArea);
     
     // Add skill card to wrapper
     skillWrapper.appendChild(skillCard);
