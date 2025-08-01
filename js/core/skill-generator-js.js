@@ -183,13 +183,16 @@ class SkillGenerator {
     
     imageContainer.appendChild(iconOverlayBorder);
 
+    // Create skill-content-and-frame container
+    const contentAndFrameContainer = document.createElement('div');
+    contentAndFrameContainer.className = 'skill-content-and-frame';
+    
     // Create content section
     const content = document.createElement('div');
     content.className = 'skill-content';
     content.style.border = 'none'; // Remove colored border
-    content.style.position = 'relative'; // Enable positioning for frame overlay
-
-    // Add frame inside skill content as background overlay
+    
+    // Add frame image to the content-and-frame container
     const frameImage = document.createElement('img');
     frameImage.className = 'skill-frame';
     frameImage.src = `images/frames/${skillData.border}_m_frame.png`;
@@ -212,20 +215,14 @@ class SkillGenerator {
     frameImage.style.zIndex = '10';
     frameImage.style.overflow = 'visible';
     
-    // Add frame to skill-content level so it's positioned relative to the content
-    content.appendChild(frameImage);
+    // Add frame to content-and-frame container
+    contentAndFrameContainer.appendChild(frameImage);
     
-    // Set frame height to match skill-content height plus 10px
-    const updateFrameHeight = () => {
+    // Update frame height on window resize
+    window.addEventListener('resize', () => {
       const contentHeight = content.offsetHeight;
       frameImage.style.height = (contentHeight + 10) + 'px';
-    };
-    
-    // Update frame height after content is fully rendered
-    setTimeout(updateFrameHeight, 0);
-    
-    // Update on window resize
-    window.addEventListener('resize', updateFrameHeight);
+    });
 
     // Header section
     const headerSection = document.createElement('div');
@@ -306,8 +303,20 @@ class SkillGenerator {
     content.appendChild(dividerContainer);
     content.appendChild(effectSection);
 
+    // Add content to the content-and-frame container
+    contentAndFrameContainer.appendChild(content);
+
+    // Now that all content is added, calculate and set frame height
+    const updateFrameHeight = () => {
+      const contentHeight = content.offsetHeight;
+      frameImage.style.height = (contentHeight + 10) + 'px';
+    };
+    
+    // Update frame height after content is fully rendered
+    setTimeout(updateFrameHeight, 0);
+
     skillCard.appendChild(imageContainer);
-    skillCard.appendChild(content);
+    skillCard.appendChild(contentAndFrameContainer);
     
     // Add skill card to wrapper
     skillWrapper.appendChild(skillCard);
