@@ -1578,6 +1578,14 @@ h1 {
 /* Diamond skill icon border positioning */
 .skill-image-container .skill-icon-overlay-border[src*="diamond"] {
   transform: translate(calc(-50% - 7px), calc(-50% - 4px)) !important;
+  width: 140px !important;
+  height: 140px !important;
+}
+
+/* Legendary skill icon border sizing */
+.skill-image-container .skill-icon-overlay-border[src*="legendary"] {
+  width: 140px !important;
+  height: 140px !important;
 }
 
 /* ===== CARD CONTENT STYLES ===== */
