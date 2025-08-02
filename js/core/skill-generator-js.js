@@ -196,7 +196,7 @@ class SkillGenerator {
     
     // Define border-image configurations for each frame type
     const frameConfigs = {
-      legendary: { slice: '25 25 25 25', width: '32.5px' }, // 30% wider (25px * 1.3)
+      legendary: { slice: '25 25 25 25', width: '40px' }, // 60% wider (25px * 1.6)
       gold: { slice: '30 30 30 30', width: '30px' },
       silver: { slice: '20 20 20 20', width: '20px' },
       bronze: { slice: '15 15 15 15', width: '15px' },
