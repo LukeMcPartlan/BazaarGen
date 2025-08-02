@@ -1696,22 +1696,17 @@ h1 {
   display: inline-block; /* Allow the span to be constrained */
 }
 
-/* Skill frame and divider styling */
-.skill-frame {
-  /* Styles will be set by JavaScript after content is rendered */
-  z-index: 10; /* Keep on top of content */
-  pointer-events: none; /* Allow clicks to pass through to content */
-  overflow: visible; /* Allow frame to be seen outside container */
+/* Skill frame styling - now using border-image */
+.skill-content {
+  /* Border-image will be applied via JavaScript */
+  box-sizing: border-box;
 }
 
-/* BULLETPROOF: Additional rules to force positioning during exports */
-.skill-card .skill-content-and-frame .skill-frame,
-.skill-card-wrapper .skill-content-and-frame .skill-frame,
-.profile-card-wrapper .skill-content-and-frame .skill-frame {
-  /* Styles will be set by JavaScript after content is rendered */
-  pointer-events: none !important;
-  z-index: 10 !important;
-  overflow: visible !important;
+/* BULLETPROOF: Additional rules for border-image during exports */
+.skill-card .skill-content,
+.skill-card-wrapper .skill-content,
+.profile-card-wrapper .skill-content {
+  box-sizing: border-box !important;
 }
 
 /* Skill content and frame container */

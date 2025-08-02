@@ -192,89 +192,26 @@ class SkillGenerator {
     content.className = 'skill-content';
     content.style.border = 'none'; // Remove colored border
     
-    // Add frame image to the content-and-frame container
-    const frameImage = document.createElement('img');
-    frameImage.className = 'skill-frame';
-    frameImage.src = `images/frames/${skillData.border}_m_frame.png`;
-    frameImage.alt = '';
-    frameImage.onerror = function() {
-      this.style.display = 'none';
-      // Add fallback borders when frame fails to load
-      headerSection.style.borderTop = `2px solid ${borderColor}`;
-      effectSection.style.borderBottom = `2px solid ${borderColor}`;
+    // Frame will be applied via border-image to the content
+    
+    // Define border-image configurations for each frame type
+    const frameConfigs = {
+      legendary: { slice: '25 25 25 25', width: '25px' },
+      gold: { slice: '30 30 30 30', width: '30px' },
+      silver: { slice: '20 20 20 20', width: '20px' },
+      bronze: { slice: '15 15 15 15', width: '15px' },
+      diamond: { slice: '22 22 22 22', width: '22px' }
     };
     
-    // Add frame to content-and-frame container
-    contentAndFrameContainer.appendChild(frameImage);
+    // Apply border-image to the content
+    const config = frameConfigs[skillData.border] || frameConfigs.bronze;
+    content.style.borderImage = `url('images/frames/${skillData.border}_m_frame.png') ${config.slice} / ${config.width} / 0 stretch`;
+    content.style.borderImageSlice = config.slice;
+    content.style.borderImageWidth = config.width;
+    content.style.borderImageOutset = '0';
+    content.style.borderImageRepeat = 'stretch';
     
-    // Function to force frame reload and resize after content is rendered
-    const forceFrameReload = () => {
-      // Force container to recalculate size
-      contentAndFrameContainer.offsetHeight;
-      content.offsetHeight;
-      
-      // Get container dimensions
-      const containerWidth = contentAndFrameContainer.offsetWidth;
-      const containerHeight = contentAndFrameContainer.offsetHeight;
-      
-      // Bespoke frame settings based on rarity
-      let frameWidth, frameHeight, frameTop;
-      
-      switch(skillData.border) {
-        case 'legendary':
-          // Legendary: don't cut bottom right corner, standard sizing
-          frameWidth = containerWidth + 3;
-          frameHeight = containerHeight + 30;
-          frameTop = '50%';
-          break;
-          
-        case 'gold':
-          // Gold: no corner cuts, +10 width, +100 height, 20px top padding
-          frameWidth = containerWidth + 10;
-          frameHeight = containerHeight + 100;
-          frameTop = 'calc(50% + 20px)';
-          break;
-          
-        case 'silver':
-          // Silver: +10 width, +80 height, 18px top padding
-          frameWidth = containerWidth + 10;
-          frameHeight = containerHeight + 80;
-          frameTop = 'calc(50% + 18px)';
-          break;
-          
-        default:
-          // Default: standard sizing
-          frameWidth = containerWidth + 3;
-          frameHeight = containerHeight + 30;
-          frameTop = '50%';
-          break;
-      }
-      
-      // Set frame dimensions
-      frameImage.style.width = frameWidth + 'px';
-      frameImage.style.height = frameHeight + 'px';
-      
-      // Position the frame
-      frameImage.style.position = 'absolute';
-      frameImage.style.top = frameTop;
-      frameImage.style.left = '50%';
-      frameImage.style.transform = 'translate(-50%, -50%)';
-      frameImage.style.objectFit = 'fill';
-      frameImage.style.pointerEvents = 'none';
-      frameImage.style.zIndex = '10';
-      frameImage.style.overflow = 'visible';
-      
-      console.log('Frame reloaded - Rarity:', skillData.border, 'Width:', frameWidth, 'px, Height:', frameHeight, 'px, Top:', frameTop);
-    };
-    
-    // Call the function after content is added
-    setTimeout(forceFrameReload, 0);
-    
-    // Also call after a longer delay to ensure everything is rendered
-    setTimeout(forceFrameReload, 100);
-    
-    // Call when image loads
-    frameImage.onload = forceFrameReload;
+    console.log('Border-image applied - Rarity:', skillData.border, 'Slice:', config.slice, 'Width:', config.width);
 
     // Header section
     const headerSection = document.createElement('div');
