@@ -1575,6 +1575,11 @@ h1 {
   height: 112.5px !important;
 }
 
+/* Diamond skill icon border positioning */
+.skill-image-container .skill-icon-overlay-border[src*="diamond"] {
+  transform: translate(calc(-50% - 7px), calc(-50% - 4px)) !important;
+}
+
 /* ===== CARD CONTENT STYLES ===== */
 .card-content, .skill-content {
   position: relative;
