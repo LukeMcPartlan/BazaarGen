@@ -196,11 +196,11 @@ class SkillGenerator {
     
     // Define border-image configurations for each frame type
     const frameConfigs = {
-      legendary: { slice: '25 25 25 25', width: '40px' }, // 60% wider (25px * 1.6)
-      gold: { slice: '30 30 30 30', width: '30px' },
-      silver: { slice: '20 20 20 20', width: '20px' },
-      bronze: { slice: '15 15 15 15', width: '15px' },
-      diamond: { slice: '22 22 22 22', width: '22px' }
+      legendary: { slice: '50 50 50 50', width: '40px' }, // Doubled corners (25*2)
+      gold: { slice: '60 60 60 60', width: '30px' }, // Doubled corners (30*2)
+      silver: { slice: '40 40 40 40', width: '20px' }, // Doubled corners (20*2)
+      bronze: { slice: '30 30 30 30', width: '15px' }, // Doubled corners (15*2)
+      diamond: { slice: '44 44 44 44', width: '22px' } // Doubled corners (22*2)
     };
     
     // Apply border-image to the content
