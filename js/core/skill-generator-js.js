@@ -211,7 +211,13 @@ class SkillGenerator {
     content.style.borderImageOutset = '0';
     content.style.borderImageRepeat = 'stretch';
     
-    console.log('Border-image applied - Rarity:', skillData.border, 'Slice:', config.slice, 'Width:', config.width);
+    // Apply mask to clip content to frame shape
+    content.style.maskImage = `url('images/tooltip-borders/${skillData.border}_frame.png')`;
+    content.style.maskSize = '100% 100%';
+    content.style.maskRepeat = 'no-repeat';
+    content.style.maskPosition = 'center';
+    
+    console.log('Border-image and mask applied - Rarity:', skillData.border, 'Slice:', config.slice, 'Width:', config.width);
 
     // Header section
     const headerSection = document.createElement('div');
