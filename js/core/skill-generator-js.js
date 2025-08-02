@@ -181,13 +181,6 @@ class SkillGenerator {
     iconOverlayBorder.style.borderRadius = '50%';
     iconOverlayBorder.style.overflow = 'visible';
     
-    // Normalize legendary icon border size (100x135 -> 100x100)
-    if (skillData.border === 'legendary') {
-      iconOverlayBorder.style.objectFit = 'contain';
-      iconOverlayBorder.style.width = '100px';
-      iconOverlayBorder.style.height = '100px';
-    }
-    
     imageContainer.appendChild(iconOverlayBorder);
 
     // Create skill-content-and-frame container
@@ -203,7 +196,7 @@ class SkillGenerator {
     
     // Define border-image configurations for each frame type
     const frameConfigs = {
-      legendary: { slice: '25 25 25 25', width: '25px' },
+      legendary: { slice: '25 25 25 25', width: '32.5px' }, // 30% wider (25px * 1.3)
       gold: { slice: '30 30 30 30', width: '30px' },
       silver: { slice: '20 20 20 20', width: '20px' },
       bronze: { slice: '15 15 15 15', width: '15px' },
