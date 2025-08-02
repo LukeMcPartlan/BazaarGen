@@ -205,7 +205,7 @@ class SkillGenerator {
     
     // Apply border-image to the content
     const config = frameConfigs[skillData.border] || frameConfigs.bronze;
-    content.style.borderImage = `url('images/frames/${skillData.border}_m_frame.png') ${config.slice} / ${config.width} / 0 stretch`;
+    content.style.borderImage = `url('images/tooltip-borders/${skillData.border}_frame.png') ${config.slice} / ${config.width} / 0 stretch`;
     content.style.borderImageSlice = config.slice;
     content.style.borderImageWidth = config.width;
     content.style.borderImageOutset = '0';
