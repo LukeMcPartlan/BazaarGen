@@ -1576,16 +1576,30 @@ h1 {
 }
 
 /* Diamond skill icon border positioning */
-.skill-image-container .skill-icon-overlay-border[src*="diamond"] {
+.skill-image-container .skill-icon-overlay-border[src*="diamond"],
+.skill-card .skill-image-container .skill-icon-overlay-border[src*="diamond"],
+.skill-card-wrapper .skill-image-container .skill-icon-overlay-border[src*="diamond"],
+.profile-card-wrapper .skill-image-container .skill-icon-overlay-border[src*="diamond"] {
   transform: translate(calc(-50% - 7px), calc(-50% - 4px)) !important;
   width: 140px !important;
   height: 140px !important;
+  max-width: 140px !important;
+  max-height: 140px !important;
+  min-width: 140px !important;
+  min-height: 140px !important;
 }
 
 /* Legendary skill icon border sizing */
-.skill-image-container .skill-icon-overlay-border[src*="legendary"] {
+.skill-image-container .skill-icon-overlay-border[src*="legendary"],
+.skill-card .skill-image-container .skill-icon-overlay-border[src*="legendary"],
+.skill-card-wrapper .skill-image-container .skill-icon-overlay-border[src*="legendary"],
+.profile-card-wrapper .skill-image-container .skill-icon-overlay-border[src*="legendary"] {
   width: 140px !important;
   height: 140px !important;
+  max-width: 140px !important;
+  max-height: 140px !important;
+  min-width: 140px !important;
+  min-height: 140px !important;
 }
 
 /* ===== CARD CONTENT STYLES ===== */

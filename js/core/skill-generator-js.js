@@ -179,6 +179,8 @@ class SkillGenerator {
       overlaySize = '140px'; // Larger size for diamond and legendary
     }
     
+    console.log(`Setting overlay size for ${skillData.border} border: ${overlaySize}`);
+    
     iconOverlayBorder.style.width = overlaySize;
     iconOverlayBorder.style.height = overlaySize;
     iconOverlayBorder.style.transform = 'translate(-50%, -50%)';
