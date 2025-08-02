@@ -217,13 +217,46 @@ class SkillGenerator {
       const containerWidth = contentAndFrameContainer.offsetWidth;
       const containerHeight = contentAndFrameContainer.offsetHeight;
       
-      // Set frame dimensions: container + 3px width, container + 30px height
-      frameImage.style.width = (containerWidth + 3) + 'px';
-      frameImage.style.height = (containerHeight + 30) + 'px';
+      // Bespoke frame settings based on rarity
+      let frameWidth, frameHeight, frameTop;
       
-      // Center the frame over the container
+      switch(skillData.border) {
+        case 'legendary':
+          // Legendary: don't cut bottom right corner, standard sizing
+          frameWidth = containerWidth + 3;
+          frameHeight = containerHeight + 30;
+          frameTop = '50%';
+          break;
+          
+        case 'gold':
+          // Gold: no corner cuts, +10 width, +100 height, 20px top padding
+          frameWidth = containerWidth + 10;
+          frameHeight = containerHeight + 100;
+          frameTop = 'calc(50% + 20px)';
+          break;
+          
+        case 'silver':
+          // Silver: +10 width, +80 height, 18px top padding
+          frameWidth = containerWidth + 10;
+          frameHeight = containerHeight + 80;
+          frameTop = 'calc(50% + 18px)';
+          break;
+          
+        default:
+          // Default: standard sizing
+          frameWidth = containerWidth + 3;
+          frameHeight = containerHeight + 30;
+          frameTop = '50%';
+          break;
+      }
+      
+      // Set frame dimensions
+      frameImage.style.width = frameWidth + 'px';
+      frameImage.style.height = frameHeight + 'px';
+      
+      // Position the frame
       frameImage.style.position = 'absolute';
-      frameImage.style.top = '50%';
+      frameImage.style.top = frameTop;
       frameImage.style.left = '50%';
       frameImage.style.transform = 'translate(-50%, -50%)';
       frameImage.style.objectFit = 'fill';
@@ -231,7 +264,7 @@ class SkillGenerator {
       frameImage.style.zIndex = '10';
       frameImage.style.overflow = 'visible';
       
-      console.log('Frame reloaded - Width:', containerWidth + 3, 'px, Height:', containerHeight + 30, 'px');
+      console.log('Frame reloaded - Rarity:', skillData.border, 'Width:', frameWidth, 'px, Height:', frameHeight, 'px, Top:', frameTop);
     };
     
     // Call the function after content is added
