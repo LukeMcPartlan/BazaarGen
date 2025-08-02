@@ -1595,15 +1595,29 @@ h1 {
   overflow: visible; /* Allow frame to overflow beyond container */
   position: relative; /* Enable positioning context for frame overlay */
   clip-path: polygon(
-    2% 0,          /* Top-left: cut 2% from left (reduced from 4%) */
-    98% 0,         /* Top-right: cut 2% from right (reduced from 4%) */
+    3% 0,          /* Top-left: cut 3% from left (increased by 1%) */
+    97% 0,         /* Top-right: cut 3% from right (increased by 1%) */
     100% 4%,       /* Top-right: cut 4% from top (reduced from 8%) */
     100% 96%,      /* Bottom-right: cut 4% from bottom (reduced from 8%) */
-    98% 100%,      /* Bottom-right: cut 2% from right (reduced from 4%) */
-    2% 100%,       /* Bottom-left: cut 2% from left (reduced from 4%) */
+    97% 100%,      /* Bottom-right: cut 3% from right (increased by 1%) */
+    3% 100%,       /* Bottom-left: cut 3% from left (increased by 1%) */
     0 96%,         /* Bottom-left: cut 4% from bottom (reduced from 8%) */
     0 4%           /* Top-left: cut 4% from top (reduced from 8%) */
-  ); /* Reduced horizontal cuts by 2% and vertical cuts by 4% */
+  ); /* Increased horizontal cuts by 1% and kept vertical cuts at 4% */
+}
+
+/* Legendary cards: no bottom corner cuts */
+.skill-content.legendary {
+  clip-path: polygon(
+    3% 0,          /* Top-left: cut 3% from left */
+    97% 0,         /* Top-right: cut 3% from right */
+    100% 4%,       /* Top-right: cut 4% from top */
+    100% 100%,     /* Bottom-right: no cut */
+    97% 100%,      /* Bottom-right: cut 3% from right */
+    3% 100%,       /* Bottom-left: cut 3% from left */
+    0 100%,        /* Bottom-left: no cut */
+    0 4%           /* Top-left: cut 4% from top */
+  );
 }
 
 .card-wrapper {
@@ -1667,6 +1681,14 @@ h1 {
   text-align: left;
   position: relative;
   z-index: 2; /* Ensure content appears above the frame overlay */
+}
+
+.skill-header {
+  padding-bottom: 0; /* Remove bottom padding from header */
+}
+
+.skill-effect {
+  padding-top: 0; /* Remove top padding from effect */
 }
 
 

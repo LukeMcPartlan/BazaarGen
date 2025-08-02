@@ -181,6 +181,13 @@ class SkillGenerator {
     iconOverlayBorder.style.borderRadius = '50%';
     iconOverlayBorder.style.overflow = 'visible';
     
+    // Normalize legendary icon border size (100x135 -> 100x100)
+    if (skillData.border === 'legendary') {
+      iconOverlayBorder.style.objectFit = 'contain';
+      iconOverlayBorder.style.width = '100px';
+      iconOverlayBorder.style.height = '100px';
+    }
+    
     imageContainer.appendChild(iconOverlayBorder);
 
     // Create skill-content-and-frame container
@@ -210,6 +217,11 @@ class SkillGenerator {
     content.style.borderImageWidth = config.width;
     content.style.borderImageOutset = '0';
     content.style.borderImageRepeat = 'stretch';
+    
+    // Add legendary class for special corner cutting
+    if (skillData.border === 'legendary') {
+      content.classList.add('legendary');
+    }
     
     // Note: clip-path with images has limited browser support
     // For now, we'll just use border-image without clipping
