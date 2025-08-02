@@ -1534,8 +1534,8 @@ h1 {
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
-  width: var(--skill-icon-overlay-size) !important;
-  height: var(--skill-icon-overlay-size) !important;
+  width: var(--skill-icon-overlay-size);
+  height: var(--skill-icon-overlay-size);
   max-width: none !important;
   max-height: none !important;
   border-radius: 50% !important;
@@ -1552,8 +1552,8 @@ h1 {
   top: 50% !important;
   left: 50% !important;
   transform: translate(-50%, -50%) !important;
-  width: var(--skill-icon-overlay-size) !important;
-  height: var(--skill-icon-overlay-size) !important;
+  width: var(--skill-icon-overlay-size);
+  height: var(--skill-icon-overlay-size);
   max-width: none !important;
   max-height: none !important;
   border-radius: 50% !important;
@@ -1594,6 +1594,27 @@ h1 {
 .skill-card .skill-image-container .skill-icon-overlay-border[src*="legendary"],
 .skill-card-wrapper .skill-image-container .skill-icon-overlay-border[src*="legendary"],
 .profile-card-wrapper .skill-image-container .skill-icon-overlay-border[src*="legendary"] {
+  width: 140px !important;
+  height: 140px !important;
+  max-width: 140px !important;
+  max-height: 140px !important;
+  min-width: 140px !important;
+  min-height: 140px !important;
+}
+
+/* ULTRA SPECIFIC OVERRIDE - Force diamond and legendary sizes */
+img.skill-icon-overlay-border[src*="diamond"],
+img.skill-icon-overlay-border[src*="legendary"] {
+  width: 140px !important;
+  height: 140px !important;
+  max-width: 140px !important;
+  max-height: 140px !important;
+  min-width: 140px !important;
+  min-height: 140px !important;
+}
+
+/* Class-based override for large overlay borders */
+.skill-icon-overlay-border-large {
   width: 140px !important;
   height: 140px !important;
   max-width: 140px !important;

@@ -162,6 +162,12 @@ class SkillGenerator {
     // Add icon overlay border
     const iconOverlayBorder = document.createElement('img');
     iconOverlayBorder.className = 'skill-icon-overlay-border';
+    
+    // Add specific class for diamond and legendary borders
+    if (skillData.border === 'diamond' || skillData.border === 'legendary') {
+      iconOverlayBorder.className += ' skill-icon-overlay-border-large';
+    }
+    
     iconOverlayBorder.src = `images/skill-frames/icon-overlays/Skill_Frame_${skillData.border.charAt(0).toUpperCase() + skillData.border.slice(1)}.png`;
     iconOverlayBorder.onerror = function() {
       this.style.display = 'none';
