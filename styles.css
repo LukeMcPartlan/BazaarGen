@@ -3683,6 +3683,17 @@ h1 {
     width: var(--skill-icon-overlay-size);
     height: var(--skill-icon-overlay-size);
   }
+  
+  /* Override for diamond and legendary borders even on mobile */
+  .skill-icon-overlay-border[src*="diamond"],
+  .skill-icon-overlay-border[src*="legendary"] {
+    width: 140px !important;
+    height: 140px !important;
+    max-width: 140px !important;
+    max-height: 140px !important;
+    min-width: 140px !important;
+    min-height: 140px !important;
+  }
 
   .footer-links {
     flex-direction: column;
