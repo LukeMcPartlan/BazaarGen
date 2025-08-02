@@ -211,11 +211,8 @@ class SkillGenerator {
     content.style.borderImageOutset = '0';
     content.style.borderImageRepeat = 'stretch';
     
-    // Apply mask to clip content to frame shape
-    content.style.maskImage = `url('images/tooltip-borders/${skillData.border}_frame.png')`;
-    content.style.maskSize = '100% 100%';
-    content.style.maskRepeat = 'no-repeat';
-    content.style.maskPosition = 'center';
+    // Note: clip-path with images has limited browser support
+    // For now, we'll just use border-image without clipping
     
     console.log('Border-image and mask applied - Rarity:', skillData.border, 'Slice:', config.slice, 'Width:', config.width);
 

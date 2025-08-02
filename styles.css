@@ -1594,7 +1594,16 @@ h1 {
   box-sizing: border-box;
   overflow: visible; /* Allow frame to overflow beyond container */
   position: relative; /* Enable positioning context for frame overlay */
-  /* Mask will be applied via JavaScript based on rarity */
+  clip-path: polygon(
+    2% 0,          /* Top-left: cut 2% from left (reduced from 4%) */
+    98% 0,         /* Top-right: cut 2% from right (reduced from 4%) */
+    100% 4%,       /* Top-right: cut 4% from top (reduced from 8%) */
+    100% 96%,      /* Bottom-right: cut 4% from bottom (reduced from 8%) */
+    98% 100%,      /* Bottom-right: cut 2% from right (reduced from 4%) */
+    2% 100%,       /* Bottom-left: cut 2% from left (reduced from 4%) */
+    0 96%,         /* Bottom-left: cut 4% from bottom (reduced from 8%) */
+    0 4%           /* Top-left: cut 4% from top (reduced from 8%) */
+  ); /* Reduced horizontal cuts by 2% and vertical cuts by 4% */
 }
 
 .card-wrapper {
