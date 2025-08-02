@@ -111,7 +111,7 @@ class MonsterController {
         const image = document.createElement('img');
         image.className = 'monster-image';
         image.id = 'monsterImage';
-        image.src = 'images/default.png';
+        image.src = 'images/characters/default.png';
         image.alt = 'Monster';
         
         frame.appendChild(image);
@@ -313,7 +313,7 @@ class MonsterController {
             if (i > 0 && i < totalNodes - 1) {
                 // This is a coin position
                 const coin = document.createElement('img');
-                coin.src = 'images/value.png'; // Using value.png as placeholder
+                coin.src = 'images/keywords/effects/value.PNG'; // Using value.png as placeholder
                 coin.alt = 'Coin';
                 node.appendChild(coin);
             }
@@ -343,7 +343,7 @@ class MonsterController {
             if (i > 0 && i < totalNodes - 1) {
                 // This is an exp position
                 const exp = document.createElement('img');
-                exp.src = 'images/charge.png'; // Using charge.png as placeholder
+                exp.src = 'images/keywords/effects/charge.PNG'; // Using charge.png as placeholder
                 exp.alt = 'Experience';
                 node.appendChild(exp);
             }
@@ -451,7 +451,7 @@ class MonsterController {
 
         const item = {
             name: 'Test Item',
-            image: 'images/default.png',
+            image: 'images/characters/default.png',
             border: 'gold',
             size: 'Medium', // 2 slots
             slotsUsed: 2
@@ -493,7 +493,7 @@ class MonsterController {
 
         const skill = {
             name: 'Test Skill',
-            image: 'images/default.png',
+            image: 'images/characters/default.png',
             border: 'gold'
         };
 
@@ -626,7 +626,7 @@ class MonsterController {
                         cursor: pointer; transition: all 0.2s ease; color: rgb(251, 225, 183); display: flex; align-items: center; gap: 15px;"
                  onclick="MonsterController.selectItem('${item.id}', ${slotsUsed})">
                 <div style="flex-shrink: 0;">
-                    <img src="${itemData.imageData || 'images/default.png'}" 
+                    <img src="${itemData.imageData || 'images/characters/default.png'}" 
                          style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px; border: 2px solid rgb(218, 165, 32);">
                 </div>
                 <div style="flex: 1;">
@@ -657,7 +657,7 @@ class MonsterController {
                         cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 15px;"
                  onclick="MonsterController.selectSkill('${skill.id}')">
                 <div style="flex-shrink: 0;">
-                    <img src="${skillData.imageData || 'images/default.png'}" 
+                    <img src="${skillData.imageData || 'images/characters/default.png'}" 
                          style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid rgb(218, 165, 32);">
                 </div>
                 <div style="flex: 1;">
@@ -785,7 +785,7 @@ class MonsterController {
             this.currentMonster.items[this.selectedSlot] = {
                 id: itemId,
                 name: itemData.itemName || 'Unknown Item',
-                image: itemData.imageData || 'images/default.png',
+                image: itemData.imageData || 'images/characters/default.png',
                 border: itemData.border || 'gold',
                 size: size,
                 slotsUsed: slotsUsed,
@@ -801,7 +801,7 @@ class MonsterController {
                 
                 // Create item with proper sizing and remove button
                 const itemElement = document.createElement('img');
-                itemElement.src = itemData.imageData || 'images/default.png';
+                itemElement.src = itemData.imageData || 'images/characters/default.png';
                 itemElement.alt = itemData.itemName || 'Unknown Item';
                 itemElement.className = `board-item ${size.toLowerCase()}`;
                 itemElement.style.cursor = 'pointer';
@@ -830,7 +830,7 @@ class MonsterController {
                             this.currentMonster.items[adjacentSlotIndex] = {
                                 id: itemId,
                                 name: itemData.itemName || 'Unknown Item',
-                                image: itemData.imageData || 'images/default.png',
+                                image: itemData.imageData || 'images/characters/default.png',
                                 border: itemData.border || 'gold',
                                 size: size,
                                 slotsUsed: slotsUsed,
@@ -886,7 +886,7 @@ class MonsterController {
             this.currentMonster.skills[this.selectedSlot] = {
                 id: skillId,
                 name: skillData.skillName || 'Unknown Skill',
-                image: skillData.imageData || 'images/default.png',
+                image: skillData.imageData || 'images/characters/default.png',
                 border: skillData.border || 'gold',
                 data: skillData // Store full data for export
             };
@@ -895,7 +895,7 @@ class MonsterController {
             const slot = this.skillSlots[this.selectedSlot];
             if (slot) {
                 slot.element.className = 'skill-slot filled';
-                slot.element.innerHTML = `<img src="${skillData.imageData || 'images/default.png'}" alt="${skillData.skillName || 'Unknown Skill'}">`;
+                slot.element.innerHTML = `<img src="${skillData.imageData || 'images/characters/default.png'}" alt="${skillData.skillName || 'Unknown Skill'}">`;
                 slot.element.onclick = () => this.showSkillDetails(skillId);
                 slot.skill = this.currentMonster.skills[this.selectedSlot];
             }
@@ -959,7 +959,7 @@ class MonsterController {
         const image = document.createElement('img');
         image.className = 'monster-image';
         image.id = 'exportMonsterImage';
-        image.src = this.currentMonster.image || 'images/default.png';
+        image.src = this.currentMonster.image || 'images/characters/default.png';
         image.alt = 'Monster';
         
         frame.appendChild(image);
@@ -1092,7 +1092,7 @@ class MonsterController {
             if (i > 0 && i < totalNodes - 1) {
                 // This is a coin position
                 const coin = document.createElement('img');
-                coin.src = 'images/value.png'; // Using value.png as placeholder
+                coin.src = 'images/keywords/effects/value.PNG'; // Using value.png as placeholder
                 coin.alt = 'Coin';
                 node.appendChild(coin);
             }
@@ -1122,7 +1122,7 @@ class MonsterController {
             if (i > 0 && i < totalNodes - 1) {
                 // This is an exp position
                 const exp = document.createElement('img');
-                exp.src = 'images/charge.png'; // Using charge.png as placeholder
+                exp.src = 'images/keywords/effects/charge.PNG'; // Using charge.png as placeholder
                 exp.alt = 'Experience';
                 node.appendChild(exp);
             }
@@ -1179,7 +1179,7 @@ class MonsterController {
                 if (content) {
                     content.innerHTML = `
                         <div style="text-align: center; color: rgb(251, 225, 183);">
-                            <img src="${itemData.imageData || 'images/default.png'}" style="width: 200px; height: 200px; object-fit: cover; border-radius: 10px; border: 3px solid rgb(218, 165, 32); margin-bottom: 15px;">
+                            <img src="${itemData.imageData || 'images/characters/default.png'}" style="width: 200px; height: 200px; object-fit: cover; border-radius: 10px; border: 3px solid rgb(218, 165, 32); margin-bottom: 15px;">
                             <h4>${itemData.itemName || 'Unknown Item'}</h4>
                             <p><strong>Hero:</strong> ${itemData.hero || 'None'}</p>
                             <p><strong>Size:</strong> ${(itemData.itemSize || 'Medium').toUpperCase()}</p>
@@ -1245,7 +1245,7 @@ class MonsterController {
                 if (content) {
                     content.innerHTML = `
                         <div style="text-align: center; color: rgb(251, 225, 183);">
-                            <img src="${skillData.imageData || 'images/default.png'}" style="width: 225px; height: 225px; object-fit: cover; border-radius: 50%; border: 3px solid rgb(218, 165, 32); margin-bottom: 15px;">
+                            <img src="${skillData.imageData || 'images/characters/default.png'}" style="width: 225px; height: 225px; object-fit: cover; border-radius: 50%; border: 3px solid rgb(218, 165, 32); margin-bottom: 15px;">
                             <h4>${skillData.skillName || 'Unknown Skill'}</h4>
                             <p><strong>Effect:</strong> ${skillData.skillEffect || 'None'}</p>
                             <p><strong>Border:</strong> ${skillData.border || 'Gold'}</p>

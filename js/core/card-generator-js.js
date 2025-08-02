@@ -606,7 +606,7 @@ static async createCard(options = {}) {
     if (cardData.hero === 'Custom' && cardData.customHeroImage) {
       heroImg.src = cardData.customHeroImage;
     } else {
-      heroImg.src = `images/${cardData.hero.toLowerCase()}.png`;
+      heroImg.src = `images/characters/${cardData.hero.toLowerCase()}.png`;
     }
     
     heroImg.alt = cardData.hero;
@@ -636,7 +636,7 @@ static async createCard(options = {}) {
         effectLine.className = "on-use-line";
 
         const icon = document.createElement("img");
-        icon.src = "images/use-arrow.png";
+        icon.src = "images/ui/arrows/use-arrow.png";
         icon.alt = "-";
         icon.onerror = function() { this.style.display = 'none'; };
 
@@ -698,7 +698,7 @@ static async createCard(options = {}) {
       effectLine.className = "on-use-line";
 
       const icon = document.createElement("img");
-      icon.src = "images/use-arrow.png";
+      icon.src = "images/ui/arrows/use-arrow.png";
       icon.alt = "-";
       icon.onerror = function() { this.style.display = 'none'; };
 
@@ -850,7 +850,7 @@ static async createCard(options = {}) {
     ammoDiv.style.border = `3px solid ${borderColor}`;
     
     const ammoImg = document.createElement("img");
-    ammoImg.src = "images/ammo.png";
+    ammoImg.src = "images/keywords/effects/ammo.png";
     ammoImg.alt = "Ammo";
     ammoImg.onerror = function() { this.style.display = 'none'; };
     ammoDiv.appendChild(ammoImg);
@@ -967,7 +967,7 @@ static async createCard(options = {}) {
     frameDiv.className = "card-frame";
     
     const frameImg = document.createElement("img");
-    frameImg.src = `images/frames/${frameQuality}_${frameSize}_frame.png`;
+    frameImg.src = `images/skill-content/skill-borders/${frameQuality}/${frameQuality}_${frameSize}_frame.png`;
     frameImg.alt = `${quality} ${size} frame`;
     frameImg.onerror = function() {
       frameDiv.style.display = 'none';
@@ -989,7 +989,7 @@ static async createCard(options = {}) {
     borderDiv.style.cssText = `
       position: absolute; top: 50%; left: 50%; width: 130%; height: 130%;
       transform: translate(calc(-50% + 2px), -50%); pointer-events: none; z-index: 0;
-      background-image: url('images/cooldown/${mappedQuality}_cooldown.png');
+      background-image: url('images/skill-content/cooldown/${mappedQuality}_Cooldown.png');
       background-size: 100% 100%; background-repeat: no-repeat; background-position: center;
     `;
     

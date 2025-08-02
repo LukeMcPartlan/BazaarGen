@@ -162,7 +162,7 @@ class SkillGenerator {
     // Add icon overlay border
     const iconOverlayBorder = document.createElement('img');
     iconOverlayBorder.className = 'skill-icon-overlay-border';
-    iconOverlayBorder.src = `images/frames/Skill_Frame_${skillData.border.charAt(0).toUpperCase() + skillData.border.slice(1)}.png`;
+    iconOverlayBorder.src = `images/skill-frames/icon-overlays/Skill_Frame_${skillData.border.charAt(0).toUpperCase() + skillData.border.slice(1)}.png`;
     iconOverlayBorder.onerror = function() {
       this.style.display = 'none';
     };
@@ -205,7 +205,7 @@ class SkillGenerator {
     
     // Apply border-image to the content
     const config = frameConfigs[skillData.border] || frameConfigs.bronze;
-    content.style.borderImage = `url('images/tooltip-borders/${skillData.border}_frame.png') ${config.slice} / ${config.width} / 0 stretch`;
+    content.style.borderImage = `url('images/skill-frames/borders/${skillData.border}_frame.png') ${config.slice} / ${config.width} / 0 stretch`;
     content.style.borderImageSlice = config.slice;
     content.style.borderImageWidth = config.width;
     content.style.borderImageOutset = '0';
@@ -238,7 +238,7 @@ class SkillGenerator {
     
     const dividerImage = document.createElement('img');
     dividerImage.className = 'skill-divider';
-    dividerImage.src = `images/tooltip-borders/${skillData.border}_divider.png`;
+    dividerImage.src = `images/skill-frames/dividers/${skillData.border}_divider.png`;
     dividerImage.alt = '';
     dividerImage.onerror = function() {
       // Replace with colored line if image fails to load

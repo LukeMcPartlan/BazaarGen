@@ -92,23 +92,23 @@ class KeywordProcessor {
    */
   static replaceIconPlaceholders(text) {
     const iconReplacements = {
-      '[SLOW_ICON]': '<img src="images/KeyText/slow.png" alt="slow" class="keyword-icon">',
-      '[HASTE_ICON]': '<img src="images/KeyText/haste.png" alt="haste" class="keyword-icon">',
-      '[HEAL_ICON]': '<img src="images/KeyText/heal.png" alt="heal" class="keyword-icon">',
-      '[REGEN_ICON]': '<img src="images/KeyText/regen.png" alt="regen" class="keyword-icon">',
-      '[POISON_ICON]': '<img src="images/KeyText/poison.png" alt="poison" class="keyword-icon">',
-      '[BURN_ICON]': '<img src="images/KeyText/burn.png" alt="burn" class="keyword-icon">',
-      '[CHARGE_ICON]': '<img src="images/KeyText/charge.png" alt="charge" class="keyword-icon">',
-      '[COOLDOWN_ICON]': '<img src="images/KeyText/cooldown.png" alt="cooldown" class="keyword-icon">',
-      '[CRIT_ICON]': '<img src="images/KeyText/crit.png" alt="crit" class="keyword-icon">',
-      '[DAMAGE_ICON]': '<img src="images/KeyText/damage.png" alt="damage" class="keyword-icon">',
-      '[DESTROY_ICON]': '<img src="images/KeyText/destroy.png" alt="destroy" class="keyword-icon">',
-      '[FREEZE_ICON]': '<img src="images/KeyText/freeze.png" alt="freeze" class="keyword-icon">',
-      '[LIFESTEAL_ICON]': '<img src="images/KeyText/lifesteal.png" alt="lifesteal" class="keyword-icon">',
-      '[VALUE_ICON]': '<img src="images/KeyText/value.png" alt="value" class="keyword-icon">',
-      '[TRANSFORM_ICON]': '<img src="images/KeyText/transform.png" alt="transform" class="keyword-icon">',
-      '[SHEILD_ICON]': '<img src="images/KeyText/sheild.png" alt="sheild" class="keyword-icon">',
-      '[MAXHEALTH_ICON]': '<img src="images/KeyText/maxhealth.png" alt="maxhealth" class="keyword-icon">'
+          '[SLOW_ICON]': '<img src="images/keywords/keytext/slow.png" alt="slow" class="keyword-icon">',
+    '[HASTE_ICON]': '<img src="images/keywords/keytext/haste.png" alt="haste" class="keyword-icon">',
+    '[HEAL_ICON]': '<img src="images/keywords/keytext/heal.png" alt="heal" class="keyword-icon">',
+    '[REGEN_ICON]': '<img src="images/keywords/keytext/regen.png" alt="regen" class="keyword-icon">',
+    '[POISON_ICON]': '<img src="images/keywords/keytext/poison.png" alt="poison" class="keyword-icon">',
+    '[BURN_ICON]': '<img src="images/keywords/keytext/burn.png" alt="burn" class="keyword-icon">',
+    '[CHARGE_ICON]': '<img src="images/keywords/keytext/charge.png" alt="charge" class="keyword-icon">',
+    '[COOLDOWN_ICON]': '<img src="images/keywords/keytext/cooldown.png" alt="cooldown" class="keyword-icon">',
+    '[CRIT_ICON]': '<img src="images/keywords/keytext/crit.png" alt="crit" class="keyword-icon">',
+    '[DAMAGE_ICON]': '<img src="images/keywords/keytext/damage.png" alt="damage" class="keyword-icon">',
+    '[DESTROY_ICON]': '<img src="images/keywords/keytext/destroy.png" alt="destroy" class="keyword-icon">',
+    '[FREEZE_ICON]': '<img src="images/keywords/keytext/freeze.png" alt="freeze" class="keyword-icon">',
+    '[LIFESTEAL_ICON]': '<img src="images/keywords/keytext/lifesteal.png" alt="lifesteal" class="keyword-icon">',
+    '[VALUE_ICON]': '<img src="images/keywords/keytext/value.png" alt="value" class="keyword-icon">',
+    '[TRANSFORM_ICON]': '<img src="images/keywords/keytext/transform.png" alt="transform" class="keyword-icon">',
+    '[SHEILD_ICON]': '<img src="images/keywords/keytext/sheild.png" alt="sheild" class="keyword-icon">',
+    '[MAXHEALTH_ICON]': '<img src="images/keywords/keytext/maxhealth.png" alt="maxhealth" class="keyword-icon">'
     };
 
     let processedText = text;
@@ -154,7 +154,7 @@ class KeywordProcessor {
     return shortcuts.map(shortcut => `
       <div class="shortcut-item">
         <span class="shortcut-key">${shortcut.key}</span> 
-        <img src="images/KeyText/${shortcut.icon}" alt="${shortcut.keyword}" class="keyword-preview"> 
+        <img src="images/keywords/keytext/${shortcut.icon}" alt="${shortcut.keyword}" class="keyword-preview"> 
         <span style="color: ${shortcut.color}; font-weight: bold;" class="key-text">${shortcut.keyword}</span>
       </div>
     `).join('');
