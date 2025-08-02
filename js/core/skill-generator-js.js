@@ -172,8 +172,15 @@ class SkillGenerator {
     iconOverlayBorder.style.position = 'absolute';
     iconOverlayBorder.style.top = '50%';
     iconOverlayBorder.style.left = '50%';
-    iconOverlayBorder.style.width = '130px';
-    iconOverlayBorder.style.height = '130px';
+    
+    // Set size based on border type
+    let overlaySize = '130px'; // Default size
+    if (skillData.border === 'diamond' || skillData.border === 'legendary') {
+      overlaySize = '140px'; // Larger size for diamond and legendary
+    }
+    
+    iconOverlayBorder.style.width = overlaySize;
+    iconOverlayBorder.style.height = overlaySize;
     iconOverlayBorder.style.transform = 'translate(-50%, -50%)';
     iconOverlayBorder.style.objectFit = 'cover';
     iconOverlayBorder.style.pointerEvents = 'none';
