@@ -1600,28 +1600,28 @@ h1 {
   overflow: visible; /* Allow frame to overflow beyond container */
   position: relative; /* Enable positioning context for frame overlay */
   clip-path: polygon(
-    10px 0,        /* Top-left: cut 10px from left */
-    290px 0,       /* Top-right: cut 10px from right */
-    300px 18px,    /* Top-right: cut 18px from top */
-    300px calc(100% - 18px),   /* Bottom-right: cut 18px from bottom */
-    290px 100%,    /* Bottom-right: cut 10px from right */
-    10px 100%,     /* Bottom-left: cut 10px from left */
-    0 calc(100% - 18px),       /* Bottom-left: cut 18px from bottom */
-    0 18px         /* Top-left: cut 18px from top */
-  ); /* Horizontal cuts at 10px and vertical cuts at 18px */
+    7px 0,         /* Top-left: cut 7px from left (reduced by 3px) */
+    293px 0,       /* Top-right: cut 7px from right (reduced by 3px) */
+    300px 15px,    /* Top-right: cut 15px from top (reduced by 3px) */
+    300px calc(100% - 15px),   /* Bottom-right: cut 15px from bottom (reduced by 3px) */
+    293px 100%,    /* Bottom-right: cut 7px from right (reduced by 3px) */
+    7px 100%,      /* Bottom-left: cut 7px from left (reduced by 3px) */
+    0 calc(100% - 15px),       /* Bottom-left: cut 15px from bottom (reduced by 3px) */
+    0 15px         /* Top-left: cut 15px from top (reduced by 3px) */
+  ); /* Horizontal cuts at 7px and vertical cuts at 15px */
 }
 
 /* Legendary cards: no bottom corner cuts */
 .skill-content.legendary {
   clip-path: polygon(
-    10px 0,        /* Top-left: cut 10px from left */
-    290px 0,       /* Top-right: cut 10px from right */
-    300px 18px,    /* Top-right: cut 18px from top */
+    7px 0,         /* Top-left: cut 7px from left (reduced by 3px) */
+    293px 0,       /* Top-right: cut 7px from right (reduced by 3px) */
+    300px 15px,    /* Top-right: cut 15px from top (reduced by 3px) */
     300px 100%,    /* Bottom-right: no cut */
-    290px 100%,    /* Bottom-right: cut 10px from right */
-    10px 100%,     /* Bottom-left: cut 10px from left */
+    293px 100%,    /* Bottom-right: cut 7px from right (reduced by 3px) */
+    7px 100%,      /* Bottom-left: cut 7px from left (reduced by 3px) */
     0 100%,        /* Bottom-left: no cut */
-    0 18px         /* Top-left: cut 18px from top */
+    0 15px         /* Top-left: cut 15px from top (reduced by 3px) */
   );
 }
 
