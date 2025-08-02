@@ -1602,13 +1602,13 @@ h1 {
   clip-path: polygon(
     4px 0,         /* Top-left: cut 4px from left (reduced by 3px) */
     296px 0,       /* Top-right: cut 4px from right (reduced by 3px) */
-    300px 8px,     /* Top-right: cut 8px from top (reduced by 2px) */
-    300px calc(100% - 8px),    /* Bottom-right: cut 8px from bottom (reduced by 2px) */
+    300px 6px,     /* Top-right: cut 6px from top (reduced by 4px) */
+    300px calc(100% - 6px),    /* Bottom-right: cut 6px from bottom (reduced by 4px) */
     296px 100%,    /* Bottom-right: cut 4px from right (reduced by 3px) */
     4px 100%,      /* Bottom-left: cut 4px from left (reduced by 3px) */
-    0 calc(100% - 8px),        /* Bottom-left: cut 8px from bottom (reduced by 2px) */
-    0 8px          /* Top-left: cut 8px from top (reduced by 2px) */
-  ); /* Horizontal cuts at 4px and vertical cuts at 8px */
+    0 calc(100% - 6px),        /* Bottom-left: cut 6px from bottom (reduced by 4px) */
+    0 6px          /* Top-left: cut 6px from top (reduced by 4px) */
+  ); /* Horizontal cuts at 4px and vertical cuts at 6px */
 }
 
 /* Legendary cards: no bottom corner cuts */
@@ -1616,12 +1616,12 @@ h1 {
   clip-path: polygon(
     4px 0,         /* Top-left: cut 4px from left (reduced by 3px) */
     296px 0,       /* Top-right: cut 4px from right (reduced by 3px) */
-    300px 8px,     /* Top-right: cut 8px from top (reduced by 2px) */
+    300px 6px,     /* Top-right: cut 6px from top (reduced by 4px) */
     300px 100%,    /* Bottom-right: no cut */
     296px 100%,    /* Bottom-right: cut 4px from right (reduced by 3px) */
     4px 100%,      /* Bottom-left: cut 4px from left (reduced by 3px) */
     0 100%,        /* Bottom-left: no cut */
-    0 8px          /* Top-left: cut 8px from top (reduced by 2px) */
+    0 6px          /* Top-left: cut 6px from top (reduced by 4px) */
   );
 }
 
