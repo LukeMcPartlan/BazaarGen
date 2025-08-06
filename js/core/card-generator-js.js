@@ -782,11 +782,11 @@ static async createCard(options = {}) {
       const activeFrameImage = activeFrameMap[cardData.border] || 'Tooltip_Bronze_Frame_Active_TUI.png';
       
       // Apply border image with proper stretching like card content
-      onUseSection.style.borderImage = `url('images/skill-frames/Active/${activeFrameImage}') 15 fill / 5px / 0 round`;
+      onUseSection.style.borderImage = `url('images/skill-frames/Active/${activeFrameImage}') 15 fill / 5px / 0 stretch`;
       onUseSection.style.borderImageSlice = '15 fill';
       onUseSection.style.borderImageWidth = '5px';
       onUseSection.style.borderImageOutset = '0';
-      onUseSection.style.borderImageRepeat = 'round';
+      onUseSection.style.borderImageRepeat = 'stretch';
       
       onUseSection.appendChild(effectsContainer);
       

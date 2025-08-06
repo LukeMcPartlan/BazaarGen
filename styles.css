@@ -1251,7 +1251,7 @@ h1 {
 .card, .skill-card {
   display: flex;
   align-items: flex-start;
-  background-color: rgb(101, 84, 63);
+  background-color: rgb(120, 100, 75);
   padding: 1em;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0,0,0,0.1);
