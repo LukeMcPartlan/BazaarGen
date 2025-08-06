@@ -1657,14 +1657,14 @@ img.skill-icon-overlay-border[src*="legendary"] {
 /* Legendary cards: no bottom corner cuts, extra top corner cuts */
 .skill-content.legendary {
   clip-path: polygon(
-    6px 0,         /* Top-left: cut 6px from left (4px + 2px extra) */
-    294px 0,       /* Top-right: cut 6px from right (4px + 2px extra) */
-    300px 8px,     /* Top-right: cut 8px from top (6px + 2px extra) */
+    12px 0,        /* Top-left: cut 12px from left (doubled from 6px) */
+    288px 0,       /* Top-right: cut 12px from right (doubled from 6px) */
+    300px 16px,    /* Top-right: cut 16px from top (doubled from 8px) */
     300px 100%,    /* Bottom-right: no cut */
     296px 100%,    /* Bottom-right: cut 4px from right (reduced by 3px) */
     4px 100%,      /* Bottom-left: cut 4px from left (reduced by 3px) */
     0 100%,        /* Bottom-left: no cut */
-    0 8px          /* Top-left: cut 8px from top (6px + 2px extra) */
+    0 16px         /* Top-left: cut 16px from top (doubled from 8px) */
   );
 }
 
