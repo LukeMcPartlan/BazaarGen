@@ -623,8 +623,6 @@ static async createCard(options = {}) {
   static createTopSection(cardData, borderColor) {
     const topSection = document.createElement("div");
     topSection.className = "text-section hero-header";
-    topSection.style.borderTop = `2px solid ${borderColor}`;
-    topSection.style.borderBottom = `2px solid ${borderColor}`;
 
     const itemTitle = document.createElement("div");
     itemTitle.className = "item-title";
@@ -765,7 +763,18 @@ static async createCard(options = {}) {
       // Create on-use section with active border image
       const onUseSection = document.createElement("div");
       onUseSection.className = "text-section on-use-section";
-      onUseSection.style.borderImage = `url('images/skill-frames/borders/${cardData.border}_active.png') 40 fill / 50px / 0 round`;
+      
+      // Map border quality to active frame image
+      const activeFrameMap = {
+        'bronze': 'Tooltip_Bronze_Frame_Active_TUI.png',
+        'silver': 'Tooltip_Silver_Frame_Active_TUI.png',
+        'gold': 'Tooltip_Gold_Frame_Active_TUI.png',
+        'diamond': 'Tooltip_Diamond_Frame_Active_TUI.png',
+        'legendary': 'Tooltip_Legendary_Frame_Active_TUI.png'
+      };
+      
+      const activeFrameImage = activeFrameMap[cardData.border] || 'Tooltip_Bronze_Frame_Active_TUI.png';
+      onUseSection.style.borderImage = `url('images/skill-frames/Active/${activeFrameImage}') 40 fill / 50px / 0 round`;
       onUseSection.style.borderImageSlice = '40 fill';
       onUseSection.style.borderImageWidth = '50px';
       onUseSection.style.borderImageOutset = '0';
@@ -807,8 +816,6 @@ static async createCard(options = {}) {
     
     const passiveSection = document.createElement("div");
     passiveSection.className = "text-section passive-section";
-    passiveSection.style.borderTop = `2px solid ${borderColor}`;
-    passiveSection.style.borderBottom = `2px solid ${borderColor}`;
     
     // Create container for all passive effects
     const passiveContainer = document.createElement("div");
