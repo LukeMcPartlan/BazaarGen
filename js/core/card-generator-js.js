@@ -598,9 +598,12 @@ static async createCard(options = {}) {
     const topSection = this.createTopSection(cardData, borderColor);
     content.appendChild(topSection);
 
-    // On use effects section (now always created, either with effects or divider)
-    const onUseSection = this.createOnUseSection(cardData, borderColor);
-    content.appendChild(onUseSection);
+    // On use effects section or divider
+    const onUseElement = this.createOnUseSection(cardData, borderColor);
+    content.appendChild(onUseElement);
+    
+    // Check if this is an on-use section (for positioning cooldown/ammo)
+    const onUseSection = onUseElement.classList.contains('on-use-section') ? onUseElement : null;
 
     // Passive effects section - now checks for array and length
     if (cardData.passiveEffects && cardData.passiveEffects.length > 0) {
@@ -758,11 +761,10 @@ static async createCard(options = {}) {
       hasEffects = true;
     }
 
-    const onUseSection = document.createElement("div");
-    onUseSection.className = "text-section on-use-section";
-    
     if (hasEffects) {
-      // Apply active border image for on-use sections with effects
+      // Create on-use section with active border image
+      const onUseSection = document.createElement("div");
+      onUseSection.className = "text-section on-use-section";
       onUseSection.style.borderImage = `url('images/skill-frames/borders/${cardData.border}_active.png') 40 fill / 50px / 0 round`;
       onUseSection.style.borderImageSlice = '40 fill';
       onUseSection.style.borderImageWidth = '50px';
@@ -771,26 +773,30 @@ static async createCard(options = {}) {
       onUseSection.style.border = 'none'; // Remove colored border
       onUseSection.appendChild(effectsContainer);
       console.log('✅ On-use section with active border created successfully');
+      return onUseSection;
     } else {
-      // Create divider for cards without on-use effects
+      // Create divider that replaces the on-use section entirely
       const dividerContainer = document.createElement("div");
       dividerContainer.className = "skill-divider-container";
+      dividerContainer.style.width = '100%';
+      dividerContainer.style.boxSizing = 'border-box';
       
       const dividerImage = document.createElement("img");
       dividerImage.className = "skill-divider";
       dividerImage.src = `images/skill-frames/dividers/${cardData.border}_divider.png`;
       dividerImage.alt = '';
+      dividerImage.style.width = '100%';
+      dividerImage.style.height = 'auto';
+      dividerImage.style.display = 'block';
       dividerImage.onerror = function() {
         // Replace with colored line if image fails to load
-        dividerContainer.innerHTML = `<div class="skill-divider-fallback" style="background-color: ${borderColor};"></div>`;
+        dividerContainer.innerHTML = `<div class="skill-divider-fallback" style="background-color: ${borderColor}; height: 2px; width: 100%;"></div>`;
       };
       dividerContainer.appendChild(dividerImage);
       
-      onUseSection.appendChild(dividerContainer);
-      console.log('✅ On-use section with divider created successfully');
+      console.log('✅ Divider created successfully (replacing on-use section)');
+      return dividerContainer;
     }
-    
-    return onUseSection;
   }
 
   /**
@@ -1123,6 +1129,20 @@ static async createCard(options = {}) {
         ammoSection.style.top = `${ammoTop}px`;
         console.log('🎯 Positioned ammo section at:', ammoTop, 'px (on-use center:', onUseCenterY, 'px)');
       }
+    } else {
+      // No on-use section (divider instead), hide cooldown and ammo sections
+      const cooldownSection = cardWrapper ? cardWrapper.querySelector('.cooldown-section') : null;
+      const ammoSection = cardWrapper ? cardWrapper.querySelector('.ammo-section') : null;
+      
+      if (cooldownSection) {
+        cooldownSection.style.display = 'none';
+        console.log('🎯 Hidden cooldown section (no on-use effects)');
+      }
+      
+      if (ammoSection) {
+        ammoSection.style.display = 'none';
+        console.log('🎯 Hidden ammo section (no on-use effects)');
+      }
     }
   }
 
@@ -1133,7 +1153,7 @@ static async createCard(options = {}) {
     const onUseSection = cardContentElement.querySelector('.on-use-section');
     const cardWrapper = cardContentElement.closest('.card-wrapper');
     
-    if (!onUseSection || !cardWrapper) {
+    if (!cardWrapper) {
       return;
     }
 
@@ -1141,6 +1161,17 @@ static async createCard(options = {}) {
     const ammoSection = cardWrapper.querySelector('.ammo-section');
     
     if (!cooldownSection && !ammoSection) {
+      return;
+    }
+
+    if (!onUseSection) {
+      // No on-use section (divider instead), hide cooldown and ammo sections
+      if (cooldownSection) {
+        cooldownSection.style.display = 'none';
+      }
+      if (ammoSection) {
+        ammoSection.style.display = 'none';
+      }
       return;
     }
 
