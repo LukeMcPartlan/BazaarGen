@@ -774,15 +774,10 @@ static async createCard(options = {}) {
       };
       
       const activeFrameImage = activeFrameMap[cardData.border] || 'Tooltip_Bronze_Frame_Active_TUI.png';
-      const borderImageUrl = `url('images/skill-frames/Active/${activeFrameImage}')`;
       
-      // Set individual border-image properties
-      onUseSection.style.borderImageSource = borderImageUrl;
-      onUseSection.style.borderImageSlice = '40 fill';
-      onUseSection.style.borderImageWidth = '50px';
-      onUseSection.style.borderImageOutset = '0';
-      onUseSection.style.borderImageRepeat = 'round';
-      onUseSection.style.border = 'none'; // Remove colored border
+      // Apply border image in the simplest way
+      onUseSection.style.borderImage = `url('images/skill-frames/Active/${activeFrameImage}')`;
+      onUseSection.style.border = 'none';
       
       onUseSection.appendChild(effectsContainer);
       
@@ -794,6 +789,12 @@ static async createCard(options = {}) {
         console.log('🎨 Border-image-width:', computedStyle.borderImageWidth);
         console.log('🎨 Border-image-repeat:', computedStyle.borderImageRepeat);
         console.log('🎨 Border:', computedStyle.border);
+        
+        // Test if the image loads
+        const testImg = new Image();
+        testImg.onload = () => console.log('✅ Active frame image loads successfully:', borderImageUrl);
+        testImg.onerror = () => console.log('❌ Active frame image failed to load:', borderImageUrl);
+        testImg.src = borderImageUrl.replace('url(', '').replace(')', '');
       }, 100);
       
       console.log('✅ On-use section with active border created successfully');
