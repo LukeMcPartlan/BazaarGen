@@ -776,16 +776,13 @@ static async createCard(options = {}) {
       const activeFrameImage = activeFrameMap[cardData.border] || 'Tooltip_Bronze_Frame_Active_TUI.png';
       const borderImageUrl = `url('images/skill-frames/Active/${activeFrameImage}')`;
       
-      // Apply border-image using the shorthand property
-      const borderImageValue = `${borderImageUrl} 40 fill / 50px / 0 round`;
-      onUseSection.style.borderImage = borderImageValue;
-      onUseSection.style.border = 'none'; // Remove colored border
-      
-      // Also set individual properties as backup
+      // Set individual border-image properties
+      onUseSection.style.borderImageSource = borderImageUrl;
       onUseSection.style.borderImageSlice = '40 fill';
       onUseSection.style.borderImageWidth = '50px';
       onUseSection.style.borderImageOutset = '0';
       onUseSection.style.borderImageRepeat = 'round';
+      onUseSection.style.border = 'none'; // Remove colored border
       
       onUseSection.appendChild(effectsContainer);
       
