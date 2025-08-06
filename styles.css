@@ -1642,16 +1642,7 @@ img.skill-icon-overlay-border[src*="legendary"] {
   box-sizing: border-box;
   overflow: visible; /* Allow frame to overflow beyond container */
   position: relative; /* Enable positioning context for frame overlay */
-  clip-path: polygon(
-    4px 0,         /* Top-left: cut 4px from left (reduced by 3px) */
-    296px 0,       /* Top-right: cut 4px from right (reduced by 3px) */
-    300px 6px,     /* Top-right: cut 6px from top (reduced by 4px) */
-    300px calc(100% - 6px),    /* Bottom-right: cut 6px from bottom (reduced by 4px) */
-    296px 100%,    /* Bottom-right: cut 4px from right (reduced by 3px) */
-    4px 100%,      /* Bottom-left: cut 4px from left (reduced by 3px) */
-    0 calc(100% - 6px),        /* Bottom-left: cut 6px from bottom (reduced by 4px) */
-    0 6px          /* Top-left: cut 6px from top (reduced by 4px) */
-  ); /* Horizontal cuts at 4px and vertical cuts at 6px */
+  /* Clip-path will be applied via JavaScript after content is rendered */
 }
 
 /* All skill cards: corner cuts applied via JavaScript for proper timing */

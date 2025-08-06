@@ -334,17 +334,33 @@ class SkillGenerator {
    * Apply bottom corner cuts to skill content after rendering
    */
   static applyBottomCornerCuts(skillContentElement) {
+    console.log('🎨 Starting applyBottomCornerCuts...', skillContentElement);
+    
     // Wait for the next frame to ensure content is rendered
     requestAnimationFrame(() => {
+      console.log('🎨 requestAnimationFrame callback executing...');
+      
       // Get the actual rendered height
       const rect = skillContentElement.getBoundingClientRect();
       const height = rect.height;
       
+      console.log('🎨 Element dimensions:', {
+        width: rect.width,
+        height: height,
+        top: rect.top,
+        left: rect.left
+      });
+      
       // Calculate the bottom cut positions
       const bottomCutY = height - 16; // 16px from bottom
       
+      console.log('🎨 Calculated cut positions:', {
+        bottomCutY: bottomCutY,
+        height: height
+      });
+      
       // Apply the clip-path with calculated values
-      skillContentElement.style.clipPath = `polygon(
+      const clipPathValue = `polygon(
         12px 0,           /* Top-left: cut 12px from left */
         288px 0,          /* Top-right: cut 12px from right */
         300px 16px,       /* Top-right: cut 16px from top */
@@ -355,7 +371,10 @@ class SkillGenerator {
         0 16px                    /* Top-left: cut 16px from top */
       )`;
       
-      console.log(`🎨 Applied bottom corner cuts to skill content (height: ${height}px)`);
+      skillContentElement.style.clipPath = clipPathValue;
+      
+      console.log('🎨 Applied clip-path:', clipPathValue);
+      console.log('🎨 Applied bottom corner cuts to skill content (height: ${height}px)');
     });
   }
 
