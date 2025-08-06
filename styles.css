@@ -1654,16 +1654,9 @@ img.skill-icon-overlay-border[src*="legendary"] {
   ); /* Horizontal cuts at 4px and vertical cuts at 6px */
 }
 
-/* All skill cards: corner cuts applied to all rarities */
+/* All skill cards: corner cuts applied via JavaScript for proper timing */
 .skill-content {
-  clip-path: polygon(
-    12px 0,        /* Top-left: cut 12px from left */
-    288px 0,       /* Top-right: cut 12px from right */
-    300px 16px,    /* Top-right: cut 16px from top */
-    288px 284px,   /* Bottom-right: cut 12px from right, 16px from bottom */
-    12px 284px,    /* Bottom-left: cut 12px from left, 16px from bottom */
-    0 16px         /* Top-left: cut 16px from top */
-  );
+  /* Clip-path will be applied via JavaScript after content is rendered */
 }
 
 .card-wrapper {

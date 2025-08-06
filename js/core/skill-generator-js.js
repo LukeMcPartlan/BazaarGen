@@ -323,8 +323,40 @@ class SkillGenerator {
     // Add skill card to wrapper
     skillWrapper.appendChild(skillCard);
 
+    // Apply bottom corner cuts after content is rendered
+    this.applyBottomCornerCuts(content);
+
     this.debug('Skill element built successfully');
     return skillWrapper;
+  }
+
+  /**
+   * Apply bottom corner cuts to skill content after rendering
+   */
+  static applyBottomCornerCuts(skillContentElement) {
+    // Wait for the next frame to ensure content is rendered
+    requestAnimationFrame(() => {
+      // Get the actual rendered height
+      const rect = skillContentElement.getBoundingClientRect();
+      const height = rect.height;
+      
+      // Calculate the bottom cut positions
+      const bottomCutY = height - 16; // 16px from bottom
+      
+      // Apply the clip-path with calculated values
+      skillContentElement.style.clipPath = `polygon(
+        12px 0,           /* Top-left: cut 12px from left */
+        288px 0,          /* Top-right: cut 12px from right */
+        300px 16px,       /* Top-right: cut 16px from top */
+        300px ${bottomCutY}px,    /* Bottom-right: cut 16px from bottom */
+        288px ${height}px,        /* Bottom-right: cut 12px from right */
+        12px ${height}px,         /* Bottom-left: cut 12px from left */
+        0 ${bottomCutY}px,        /* Bottom-left: cut 16px from bottom */
+        0 16px                    /* Top-left: cut 16px from top */
+      )`;
+      
+      console.log(`🎨 Applied bottom corner cuts to skill content (height: ${height}px)`);
+    });
   }
 
   /**
