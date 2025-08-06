@@ -212,9 +212,9 @@ class SkillGenerator {
     // Define border-image configurations for each frame type
     const frameConfigs = {
       legendary: { slice: '50 50 50 50 fill', width: '50px 50px 50px 50px', repeat: 'stretch' },
-      gold: { slice: '60 60 60 60 fill', width: '180px 180px 180px 180px', repeat: 'stretch' }, // Increased to 180px
-      silver: { slice: '40 40 40 40 fill', width: '80px 80px 80px 80px', repeat: 'stretch' }, // Doubled from 40px
-      bronze: { slice: '30 30 30 30 fill', width: '70px 70px 70px 70px', repeat: 'stretch' }, // Doubled from 35px
+      gold: { slice: '180 180 180 180 fill', width: '180px 180px 180px 180px', repeat: 'stretch' }, // Fixed slice to match width
+      silver: { slice: '80 80 80 80 fill', width: '80px 80px 80px 80px', repeat: 'stretch' }, // Fixed slice to match width
+      bronze: { slice: '70 70 70 70 fill', width: '70px 70px 70px 70px', repeat: 'stretch' }, // Fixed slice to match width
       diamond: { slice: '44 44 44 44 fill', width: '44px 44px 44px 44px', repeat: 'stretch' }
     };
     
