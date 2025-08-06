@@ -1694,8 +1694,6 @@ img.skill-icon-overlay-border[src*="legendary"] {
 }
 
 .text-section, .skill-header, .skill-effect {
-  border-top: 2px solid gold;
-  border-bottom: 2px solid gold;
   padding: 10px;
   color: rgb(251, 225, 183);
   font-family: 'Roboto', Arial, sans-serif; 
