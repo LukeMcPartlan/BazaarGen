@@ -799,7 +799,7 @@ static async createCard(options = {}) {
       }, 100);
       
       console.log('✅ On-use section with active border created successfully');
-      console.log('🎨 Applied border-image:', borderImageUrl, 'for quality:', cardData.border);
+      console.log('🎨 Applied border-image for quality:', cardData.border);
       return onUseSection;
     } else {
       // Create divider that replaces the on-use section entirely
