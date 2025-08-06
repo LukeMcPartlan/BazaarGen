@@ -1934,6 +1934,8 @@ img.skill-icon-overlay-border[src*="legendary"] {
 
 .on-use-section {
   padding-left: 20px;
+  box-sizing: border-box;
+  position: relative;
 }
 
 .on-use-line img {

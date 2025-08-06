@@ -598,11 +598,9 @@ static async createCard(options = {}) {
     const topSection = this.createTopSection(cardData, borderColor);
     content.appendChild(topSection);
 
-    // On use effects section
+    // On use effects section (now always created, either with effects or divider)
     const onUseSection = this.createOnUseSection(cardData, borderColor);
-    if (onUseSection) {
-      content.appendChild(onUseSection);
-    }
+    content.appendChild(onUseSection);
 
     // Passive effects section - now checks for array and length
     if (cardData.passiveEffects && cardData.passiveEffects.length > 0) {
@@ -760,18 +758,38 @@ static async createCard(options = {}) {
       hasEffects = true;
     }
 
-    if (!hasEffects) {
-      console.log('⚡ No on-use effects found, returning null');
-      return null;
-    }
-
     const onUseSection = document.createElement("div");
     onUseSection.className = "text-section on-use-section";
-    onUseSection.style.borderTop = `2px solid ${borderColor}`;
-    onUseSection.style.borderBottom = `2px solid ${borderColor}`;
-    onUseSection.appendChild(effectsContainer);
     
-    console.log('✅ On-use section created successfully');
+    if (hasEffects) {
+      // Apply active border image for on-use sections with effects
+      onUseSection.style.borderImage = `url('images/skill-frames/borders/${cardData.border}_active.png') 40 fill / 50px / 0 round`;
+      onUseSection.style.borderImageSlice = '40 fill';
+      onUseSection.style.borderImageWidth = '50px';
+      onUseSection.style.borderImageOutset = '0';
+      onUseSection.style.borderImageRepeat = 'round';
+      onUseSection.style.border = 'none'; // Remove colored border
+      onUseSection.appendChild(effectsContainer);
+      console.log('✅ On-use section with active border created successfully');
+    } else {
+      // Create divider for cards without on-use effects
+      const dividerContainer = document.createElement("div");
+      dividerContainer.className = "skill-divider-container";
+      
+      const dividerImage = document.createElement("img");
+      dividerImage.className = "skill-divider";
+      dividerImage.src = `images/skill-frames/dividers/${cardData.border}_divider.png`;
+      dividerImage.alt = '';
+      dividerImage.onerror = function() {
+        // Replace with colored line if image fails to load
+        dividerContainer.innerHTML = `<div class="skill-divider-fallback" style="background-color: ${borderColor};"></div>`;
+      };
+      dividerContainer.appendChild(dividerImage);
+      
+      onUseSection.appendChild(dividerContainer);
+      console.log('✅ On-use section with divider created successfully');
+    }
+    
     return onUseSection;
   }
 
