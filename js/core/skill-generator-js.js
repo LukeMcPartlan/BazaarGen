@@ -331,10 +331,10 @@ class SkillGenerator {
   }
 
   /**
-   * Apply bottom corner cuts to skill content after rendering
+   * Apply corner cuts to skill content after rendering
    */
   static applyBottomCornerCuts(skillContentElement) {
-    console.log('🎨 Starting applyBottomCornerCuts...', skillContentElement);
+    console.log('🎨 Starting applyCornerCuts...', skillContentElement);
     
     // Wait for the next frame to ensure content is rendered
     requestAnimationFrame(() => {
@@ -351,30 +351,39 @@ class SkillGenerator {
         left: rect.left
       });
       
-      // Calculate the bottom cut positions
-      const bottomCutY = height - 16; // 16px from bottom
+      // Check if this is a legendary card for special treatment
+      const isLegendary = skillContentElement.classList.contains('legendary');
       
-      console.log('🎨 Calculated cut positions:', {
-        bottomCutY: bottomCutY,
-        height: height
-      });
+      let clipPathValue;
       
-      // Apply the clip-path with calculated values
-      const clipPathValue = `polygon(
-        12px 0,           /* Top-left: cut 12px from left */
-        288px 0,          /* Top-right: cut 12px from right */
-        300px 16px,       /* Top-right: cut 16px from top */
-        300px ${bottomCutY}px,    /* Bottom-right: cut 16px from bottom */
-        288px ${height}px,        /* Bottom-right: cut 12px from right */
-        12px ${height}px,         /* Bottom-left: cut 12px from left */
-        0 ${bottomCutY}px,        /* Bottom-left: cut 16px from bottom */
-        0 16px                    /* Top-left: cut 16px from top */
-      )`;
+      if (isLegendary) {
+        // Legendary cards: extra top corner cuts, no bottom corner cuts
+        clipPathValue = `polygon(
+          14px 0,           /* Top-left: cut 14px from left (12px + 2px extra) */
+          286px 0,          /* Top-right: cut 14px from right (12px + 2px extra) */
+          300px 18px,       /* Top-right: cut 18px from top (16px + 2px extra) */
+          300px 100%,       /* Bottom-right: no cut */
+          0 100%,           /* Bottom-left: no cut */
+          0 18px            /* Top-left: cut 18px from top (16px + 2px extra) */
+        )`;
+      } else {
+        // All other cards: standard corner cuts on all corners
+        clipPathValue = `polygon(
+          12px 0,           /* Top-left: cut 12px from left */
+          288px 0,          /* Top-right: cut 12px from right */
+          300px 16px,       /* Top-right: cut 16px from top */
+          300px calc(100% - 16px),  /* Bottom-right: cut 16px from bottom */
+          288px 100%,       /* Bottom-right: cut 12px from right */
+          12px 100%,        /* Bottom-left: cut 12px from left */
+          0 calc(100% - 16px),      /* Bottom-left: cut 16px from bottom */
+          0 16px            /* Top-left: cut 16px from top */
+        )`;
+      }
       
       skillContentElement.style.clipPath = clipPathValue;
       
       console.log('🎨 Applied clip-path:', clipPathValue);
-      console.log('🎨 Applied bottom corner cuts to skill content (height: ${height}px)');
+      console.log(`🎨 Applied corner cuts to skill content (height: ${height}px, legendary: ${isLegendary})`);
     });
   }
 
