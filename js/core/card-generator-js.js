@@ -781,7 +781,6 @@ static async createCard(options = {}) {
       onUseSection.style.borderImageWidth = '50px';
       onUseSection.style.borderImageOutset = '0';
       onUseSection.style.borderImageRepeat = 'round';
-      onUseSection.style.border = 'none';
       
       onUseSection.appendChild(effectsContainer);
       
