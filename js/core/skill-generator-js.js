@@ -211,20 +211,20 @@ class SkillGenerator {
     
     // Define border-image configurations for each frame type
     const frameConfigs = {
-      legendary: { slice: '50 50 50 50', width: '120px' }, // Doubled from 60px
-      gold: { slice: '60 60 60 60', width: '90px' }, // Doubled from 45px
-      silver: { slice: '40 40 40 40', width: '60px' }, // Doubled from 30px
-      bronze: { slice: '30 30 30 30', width: '50px' }, // Doubled from 25px
-      diamond: { slice: '44 44 44 44', width: '70px' } // Doubled from 35px
+      legendary: { slice: '50 50 50 50 fill', width: '50px 50px 50px 50px', repeat: 'stretch' },
+      gold: { slice: '60 60 60 60 fill', width: '45px 45px 45px 45px', repeat: 'stretch' },
+      silver: { slice: '40 40 40 40 fill', width: '40px 40px 40px 40px', repeat: 'stretch' },
+      bronze: { slice: '30 30 30 30 fill', width: '35px 35px 35px 35px', repeat: 'stretch' },
+      diamond: { slice: '44 44 44 44 fill', width: '44px 44px 44px 44px', repeat: 'stretch' }
     };
     
     // Apply border-image to the content
     const config = frameConfigs[skillData.border] || frameConfigs.bronze;
-    content.style.borderImage = `url('images/skill-frames/borders/${skillData.border}_frame.png') ${config.slice} / ${config.width} / 0 stretch`;
+    content.style.borderImage = `url('images/skill-frames/borders/${skillData.border}_frame.png') ${config.slice} / ${config.width} / 0 ${config.repeat}`;
     content.style.borderImageSlice = config.slice;
     content.style.borderImageWidth = config.width;
     content.style.borderImageOutset = '0';
-    content.style.borderImageRepeat = 'stretch';
+    content.style.borderImageRepeat = config.repeat;
     
     // Add legendary class for special corner cutting
     if (skillData.border === 'legendary') {
