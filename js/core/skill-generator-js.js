@@ -218,13 +218,12 @@ class SkillGenerator {
       diamond: { slice: '44 44 44 44 fill', width: '44px 44px 44px 44px', repeat: 'round' }
     };
     
-    // Apply border-image to the content
-    const config = frameConfigs[skillData.border] || frameConfigs.bronze;
-    content.style.borderImage = `url('images/skill-frames/borders/${skillData.border}_frame.png') ${config.slice} / ${config.width} / 0 ${config.repeat}`;
-    content.style.borderImageSlice = config.slice;
-    content.style.borderImageWidth = config.width;
+    // Apply border-image to the content with consistent values
+    content.style.borderImage = `url('images/skill-frames/borders/${skillData.border}_frame.png') 90 fill / 150px / 0 round`;
+    content.style.borderImageSlice = '90 fill';
+    content.style.borderImageWidth = '150px';
     content.style.borderImageOutset = '0';
-    content.style.borderImageRepeat = config.repeat;
+    content.style.borderImageRepeat = 'round';
     
     // Add legendary class for special corner cutting
     if (skillData.border === 'legendary') {
