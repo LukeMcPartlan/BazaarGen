@@ -776,15 +776,29 @@ static async createCard(options = {}) {
       const activeFrameImage = activeFrameMap[cardData.border] || 'Tooltip_Bronze_Frame_Active_TUI.png';
       const borderImageUrl = `url('images/skill-frames/Active/${activeFrameImage}')`;
       
-      // Apply border-image with !important to ensure it takes precedence
-      onUseSection.style.setProperty('border-image', `${borderImageUrl} 40 fill / 50px / 0 round`, 'important');
-      onUseSection.style.setProperty('border-image-slice', '40 fill', 'important');
-      onUseSection.style.setProperty('border-image-width', '50px', 'important');
-      onUseSection.style.setProperty('border-image-outset', '0', 'important');
-      onUseSection.style.setProperty('border-image-repeat', 'round', 'important');
-      onUseSection.style.setProperty('border', 'none', 'important'); // Remove colored border
+      // Apply border-image using the shorthand property
+      const borderImageValue = `${borderImageUrl} 40 fill / 50px / 0 round`;
+      onUseSection.style.borderImage = borderImageValue;
+      onUseSection.style.border = 'none'; // Remove colored border
+      
+      // Also set individual properties as backup
+      onUseSection.style.borderImageSlice = '40 fill';
+      onUseSection.style.borderImageWidth = '50px';
+      onUseSection.style.borderImageOutset = '0';
+      onUseSection.style.borderImageRepeat = 'round';
       
       onUseSection.appendChild(effectsContainer);
+      
+      // Debug: Check if border-image was applied
+      setTimeout(() => {
+        const computedStyle = window.getComputedStyle(onUseSection);
+        console.log('🎨 Border-image applied:', computedStyle.borderImage);
+        console.log('🎨 Border-image-slice:', computedStyle.borderImageSlice);
+        console.log('🎨 Border-image-width:', computedStyle.borderImageWidth);
+        console.log('🎨 Border-image-repeat:', computedStyle.borderImageRepeat);
+        console.log('🎨 Border:', computedStyle.border);
+      }, 100);
+      
       console.log('✅ On-use section with active border created successfully');
       console.log('🎨 Applied border-image:', borderImageUrl, 'for quality:', cardData.border);
       return onUseSection;
