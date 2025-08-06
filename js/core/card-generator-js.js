@@ -368,14 +368,29 @@ static async createCard(options = {}) {
     // Create tags container
     const tagsContainer = this.createTagsContainer(cardData);
 
-    // Create content container
-    const content = this.createContentContainer(cardData, borderColor);
+    // Create content container (now returns an object with content and onUseSection)
+    const { content, onUseSection } = this.createContentContainer(cardData, borderColor);
 
     // Create wrapper and visual content container
     const cardWrapper = document.createElement("div");
     cardWrapper.className = "card-wrapper";
     cardWrapper.appendChild(tagsContainer);
     cardWrapper.appendChild(content);
+
+    // Add cooldown and ammo sections outside the clipped content container
+    if (onUseSection) {
+      // Cooldown (only if there are on use effects)
+      if (cardData.cooldown && cardData.cooldown.trim()) {
+        const cooldownDiv = this.createCooldownSection(cardData, borderColor);
+        cardWrapper.appendChild(cooldownDiv);
+      }
+
+      // Ammo
+      if (cardData.ammo && cardData.ammo.trim()) {
+        const ammoDiv = this.createAmmoSection(cardData, borderColor);
+        cardWrapper.appendChild(ammoDiv);
+      }
+    }
 
     const visualContent = document.createElement("div");
     visualContent.className = "card-visual-content";
@@ -595,22 +610,10 @@ static async createCard(options = {}) {
       content.appendChild(passiveSection);
     }
 
-    // Cooldown (only if there are on use effects)
-    if (cardData.cooldown && cardData.cooldown.trim() && onUseSection) {
-      const cooldownDiv = this.createCooldownSection(cardData, borderColor);
-      content.appendChild(cooldownDiv);
-    }
-
-    // Ammo
-    if (cardData.ammo && cardData.ammo.trim() && onUseSection) {
-      const ammoDiv = this.createAmmoSection(cardData, borderColor);
-      content.appendChild(ammoDiv);
-    }
-
     // Apply corner cuts after content is rendered
     this.applyCardCornerCuts(content);
 
-    return content;
+    return { content, onUseSection };
   }
 
   /**
@@ -954,8 +957,10 @@ static async createCard(options = {}) {
     const onUseHeight = onUseSection.offsetHeight;
     const onUseCenterY = onUseRelativeTop + (onUseHeight / 2);
     
-    const cooldownSection = content.querySelector('.cooldown-section');
-    const ammoSection = content.querySelector('.ammo-section');
+    // Find cooldown and ammo sections in the card-wrapper (parent of content)
+    const cardWrapper = content.closest('.card-wrapper');
+    const cooldownSection = cardWrapper ? cardWrapper.querySelector('.cooldown-section') : null;
+    const ammoSection = cardWrapper ? cardWrapper.querySelector('.ammo-section') : null;
     
     if (cooldownSection && onUseHeight > 0) {
       // Position cooldown section at the center of the on-use section
