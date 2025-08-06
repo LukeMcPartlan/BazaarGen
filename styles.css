@@ -1650,6 +1650,17 @@ img.skill-icon-overlay-border[src*="legendary"] {
   /* Clip-path will be applied via JavaScript after content is rendered */
 }
 
+/* All card items: corner cuts applied via JavaScript for proper timing */
+.card-content {
+  /* Clip-path will be applied via JavaScript after content is rendered */
+  width: 300px;
+  min-width: 300px;
+  max-width: 300px;
+  box-sizing: border-box;
+  overflow: visible; /* Allow frame to overflow beyond container */
+  position: relative; /* Enable positioning context for frame overlay */
+}
+
 .card-wrapper {
   display: flex;
   flex-direction: column;
