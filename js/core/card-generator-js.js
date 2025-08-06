@@ -774,14 +774,19 @@ static async createCard(options = {}) {
       };
       
       const activeFrameImage = activeFrameMap[cardData.border] || 'Tooltip_Bronze_Frame_Active_TUI.png';
-      onUseSection.style.borderImage = `url('images/skill-frames/Active/${activeFrameImage}') 40 fill / 50px / 0 round`;
-      onUseSection.style.borderImageSlice = '40 fill';
-      onUseSection.style.borderImageWidth = '50px';
-      onUseSection.style.borderImageOutset = '0';
-      onUseSection.style.borderImageRepeat = 'round';
-      onUseSection.style.border = 'none'; // Remove colored border
+      const borderImageUrl = `url('images/skill-frames/Active/${activeFrameImage}')`;
+      
+      // Apply border-image with !important to ensure it takes precedence
+      onUseSection.style.setProperty('border-image', `${borderImageUrl} 40 fill / 50px / 0 round`, 'important');
+      onUseSection.style.setProperty('border-image-slice', '40 fill', 'important');
+      onUseSection.style.setProperty('border-image-width', '50px', 'important');
+      onUseSection.style.setProperty('border-image-outset', '0', 'important');
+      onUseSection.style.setProperty('border-image-repeat', 'round', 'important');
+      onUseSection.style.setProperty('border', 'none', 'important'); // Remove colored border
+      
       onUseSection.appendChild(effectsContainer);
       console.log('✅ On-use section with active border created successfully');
+      console.log('🎨 Applied border-image:', borderImageUrl, 'for quality:', cardData.border);
       return onUseSection;
     } else {
       // Create divider that replaces the on-use section entirely
