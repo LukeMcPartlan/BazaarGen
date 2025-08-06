@@ -1076,7 +1076,13 @@ static async createCard(options = {}) {
       cardContentElement.offsetHeight;
       onUseSection.offsetHeight;
       
-      const onUseRelativeTop = onUseSection.offsetTop;
+      // Get the position of the on-use section relative to the card-wrapper
+      const cardContentRect = cardContentElement.getBoundingClientRect();
+      const onUseRect = onUseSection.getBoundingClientRect();
+      const cardWrapperRect = cardWrapper.getBoundingClientRect();
+      
+      // Calculate the on-use section's position relative to the card-wrapper
+      const onUseRelativeTop = onUseRect.top - cardWrapperRect.top;
       const onUseHeight = onUseSection.offsetHeight;
       const onUseCenterY = onUseRelativeTop + (onUseHeight / 2);
       
@@ -1090,6 +1096,7 @@ static async createCard(options = {}) {
         cooldownSection.style.top = `${cooldownTop}px`;
         cooldownSection.style.transform = 'none'; // Remove default transform
         console.log('🎯 Positioned cooldown section at:', cooldownTop, 'px (on-use center:', onUseCenterY, 'px)');
+        console.log('📊 Debug - onUseRelativeTop:', onUseRelativeTop, 'onUseHeight:', onUseHeight);
       }
       
       if (ammoSection && onUseHeight > 0) {
@@ -1119,8 +1126,10 @@ static async createCard(options = {}) {
       return;
     }
 
-    // Get current on-use section position
-    const onUseRelativeTop = onUseSection.offsetTop;
+    // Get current on-use section position relative to card-wrapper
+    const onUseRect = onUseSection.getBoundingClientRect();
+    const cardWrapperRect = cardWrapper.getBoundingClientRect();
+    const onUseRelativeTop = onUseRect.top - cardWrapperRect.top;
     const onUseHeight = onUseSection.offsetHeight;
     const onUseCenterY = onUseRelativeTop + (onUseHeight / 2);
 
