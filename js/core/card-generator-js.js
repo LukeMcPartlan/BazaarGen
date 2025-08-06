@@ -1055,38 +1055,113 @@ static async createCard(options = {}) {
   static finalizeCardPositioning(cardContentElement) {
     // Wait for another frame to ensure corner cuts are applied
     requestAnimationFrame(() => {
-      const onUseSection = cardContentElement.querySelector('.on-use-section');
-      const cardWrapper = cardContentElement.closest('.card-wrapper');
+      this.positionCooldownAndAmmo(cardContentElement);
       
-      if (onUseSection && cardWrapper) {
-        // Force layout recalculation
-        cardContentElement.offsetHeight;
-        onUseSection.offsetHeight;
-        
-        const onUseRelativeTop = onUseSection.offsetTop;
-        const onUseHeight = onUseSection.offsetHeight;
-        const onUseCenterY = onUseRelativeTop + (onUseHeight / 2);
-        
-        const cooldownSection = cardWrapper.querySelector('.cooldown-section');
-        const ammoSection = cardWrapper.querySelector('.ammo-section');
-        
-        if (cooldownSection && onUseHeight > 0) {
-          // Position cooldown section at the center of the on-use section
-          const cooldownHeight = 50; // Height of cooldown section
-          const cooldownTop = onUseCenterY - (cooldownHeight / 2);
-          cooldownSection.style.top = `${cooldownTop}px`;
-          cooldownSection.style.transform = 'none'; // Remove default transform
-          console.log('🎯 Final positioned cooldown section at:', cooldownTop, 'px (on-use center:', onUseCenterY, 'px)');
-        }
-        
-        if (ammoSection && onUseHeight > 0) {
-          const ammoHeight = ammoSection.offsetHeight;
-          const ammoTop = onUseCenterY - (ammoHeight / 2);
-          ammoSection.style.top = `${ammoTop}px`;
-          console.log('🎯 Final positioned ammo section at:', ammoTop, 'px (on-use center:', onUseCenterY, 'px)');
-        }
-      }
+      // Set up continuous monitoring after 100ms
+      setTimeout(() => {
+        this.monitorAndReposition(cardContentElement);
+      }, 100);
     });
+  }
+
+  /**
+   * Position cooldown and ammo sections relative to on-use section
+   */
+  static positionCooldownAndAmmo(cardContentElement) {
+    const onUseSection = cardContentElement.querySelector('.on-use-section');
+    const cardWrapper = cardContentElement.closest('.card-wrapper');
+    
+    if (onUseSection && cardWrapper) {
+      // Force layout recalculation
+      cardContentElement.offsetHeight;
+      onUseSection.offsetHeight;
+      
+      const onUseRelativeTop = onUseSection.offsetTop;
+      const onUseHeight = onUseSection.offsetHeight;
+      const onUseCenterY = onUseRelativeTop + (onUseHeight / 2);
+      
+      const cooldownSection = cardWrapper.querySelector('.cooldown-section');
+      const ammoSection = cardWrapper.querySelector('.ammo-section');
+      
+      if (cooldownSection && onUseHeight > 0) {
+        // Position cooldown section at the center of the on-use section
+        const cooldownHeight = 50; // Height of cooldown section
+        const cooldownTop = onUseCenterY - (cooldownHeight / 2);
+        cooldownSection.style.top = `${cooldownTop}px`;
+        cooldownSection.style.transform = 'none'; // Remove default transform
+        console.log('🎯 Positioned cooldown section at:', cooldownTop, 'px (on-use center:', onUseCenterY, 'px)');
+      }
+      
+      if (ammoSection && onUseHeight > 0) {
+        const ammoHeight = ammoSection.offsetHeight;
+        const ammoTop = onUseCenterY - (ammoHeight / 2);
+        ammoSection.style.top = `${ammoTop}px`;
+        console.log('🎯 Positioned ammo section at:', ammoTop, 'px (on-use center:', onUseCenterY, 'px)');
+      }
+    }
+  }
+
+  /**
+   * Monitor and reposition cooldown and ammo sections if needed
+   */
+  static monitorAndReposition(cardContentElement) {
+    const onUseSection = cardContentElement.querySelector('.on-use-section');
+    const cardWrapper = cardContentElement.closest('.card-wrapper');
+    
+    if (!onUseSection || !cardWrapper) {
+      return;
+    }
+
+    const cooldownSection = cardWrapper.querySelector('.cooldown-section');
+    const ammoSection = cardWrapper.querySelector('.ammo-section');
+    
+    if (!cooldownSection && !ammoSection) {
+      return;
+    }
+
+    // Get current on-use section position
+    const onUseRelativeTop = onUseSection.offsetTop;
+    const onUseHeight = onUseSection.offsetHeight;
+    const onUseCenterY = onUseRelativeTop + (onUseHeight / 2);
+
+    let needsRepositioning = false;
+
+    // Check cooldown section position
+    if (cooldownSection && onUseHeight > 0) {
+      const cooldownHeight = 50;
+      const expectedCooldownTop = onUseCenterY - (cooldownHeight / 2);
+      const currentCooldownTop = parseInt(cooldownSection.style.top) || 0;
+      
+      if (Math.abs(currentCooldownTop - expectedCooldownTop) > 2) { // 2px tolerance
+        needsRepositioning = true;
+        console.log('🔄 Cooldown needs repositioning:', currentCooldownTop, '->', expectedCooldownTop);
+      }
+    }
+
+    // Check ammo section position
+    if (ammoSection && onUseHeight > 0) {
+      const ammoHeight = ammoSection.offsetHeight;
+      const expectedAmmoTop = onUseCenterY - (ammoHeight / 2);
+      const currentAmmoTop = parseInt(ammoSection.style.top) || 0;
+      
+      if (Math.abs(currentAmmoTop - expectedAmmoTop) > 2) { // 2px tolerance
+        needsRepositioning = true;
+        console.log('🔄 Ammo needs repositioning:', currentAmmoTop, '->', expectedAmmoTop);
+      }
+    }
+
+    // Reposition if needed
+    if (needsRepositioning) {
+      console.log('🔄 Repositioning cooldown and ammo sections...');
+      this.positionCooldownAndAmmo(cardContentElement);
+      
+      // Continue monitoring for a few more cycles
+      setTimeout(() => {
+        this.monitorAndReposition(cardContentElement);
+      }, 100);
+    } else {
+      console.log('✅ Cooldown and ammo sections are properly positioned');
+    }
   }
 }
 
