@@ -775,7 +775,7 @@ static async createCard(options = {}) {
       
       const activeFrameImage = activeFrameMap[cardData.border] || 'Tooltip_Bronze_Frame_Active_TUI.png';
       
-      // Apply border image the same way as card content
+      // Apply border image with proper stretching like card content
       onUseSection.style.borderImage = `url('images/skill-frames/Active/${activeFrameImage}') 40 fill / 50px / 0 round`;
       onUseSection.style.borderImageSlice = '40 fill';
       onUseSection.style.borderImageWidth = '50px';
