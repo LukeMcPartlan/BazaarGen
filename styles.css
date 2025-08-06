@@ -1654,16 +1654,14 @@ img.skill-icon-overlay-border[src*="legendary"] {
   ); /* Horizontal cuts at 4px and vertical cuts at 6px */
 }
 
-/* All skill cards: corner cuts on all corners except bottom legendary */
+/* All skill cards: corner cuts on all corners */
 .skill-content {
   clip-path: polygon(
     12px 0,        /* Top-left: cut 12px from left */
     288px 0,       /* Top-right: cut 12px from right */
     300px 16px,    /* Top-right: cut 16px from top */
-    300px 100%,    /* Bottom-right: no cut */
-    296px 100%,    /* Bottom-right: cut 4px from right */
-    4px 100%,      /* Bottom-left: cut 4px from left */
-    0 100%,        /* Bottom-left: no cut */
+    288px calc(100% - 16px), /* Bottom-right: cut 12px from right, 16px from bottom */
+    12px calc(100% - 16px),  /* Bottom-left: cut 12px from left, 16px from bottom */
     0 16px         /* Top-left: cut 16px from top */
   );
 }
