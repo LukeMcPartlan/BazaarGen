@@ -1868,7 +1868,8 @@ img.skill-icon-overlay-border[src*="legendary"] {
 .on-use-line {
   display: flex;
   align-items: flex-start;
-  margin-bottom: 4px;
+  margin-top: 10px;
+  margin-bottom: 10px;
   margin-left: 40px;
   flex-wrap: nowrap; /* Prevent wrapping - keep arrow and text together */
   overflow-wrap: break-word;
@@ -1937,8 +1938,8 @@ img.skill-icon-overlay-border[src*="legendary"] {
 }
 
 .on-use-line img {
-  width: 16px;
-  height: 18px;
+  width: 13px;
+  height: 10px;
   margin: 0;
 }
 
