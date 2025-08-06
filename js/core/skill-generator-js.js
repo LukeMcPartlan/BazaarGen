@@ -210,13 +210,12 @@ class SkillGenerator {
     // Frame will be applied via border-image to the content
     
     // Define border-image configurations for each frame type
-    // Using 150px top/bottom slices for 300px images to prevent horizontal corner stretching
     const frameConfigs = {
-      legendary: { slice: '150 50 150 50 fill', width: '0 50px 0 50px', repeat: 'round' },
-      gold: { slice: '150 60 150 60 fill', width: '0 60px 0 60px', repeat: 'round' },
-      silver: { slice: '150 40 150 40 fill', width: '0 40px 0 40px', repeat: 'round' },
-      bronze: { slice: '150 30 150 30 fill', width: '0 30px 0 30px', repeat: 'round' },
-      diamond: { slice: '150 44 150 44 fill', width: '0 44px 0 44px', repeat: 'round' }
+      legendary: { slice: '50 50 50 50 fill', width: '50px 50px 50px 50px', repeat: 'round' },
+      gold: { slice: '60 60 60 60 fill', width: '180px 180px 180px 180px', repeat: 'round' }, // Using round to prevent stretching
+      silver: { slice: '40 40 40 40 fill', width: '80px 80px 80px 80px', repeat: 'round' }, // Using round to prevent stretching
+      bronze: { slice: '30 30 30 30 fill', width: '70px 70px 70px 70px', repeat: 'round' }, // Using round to prevent stretching
+      diamond: { slice: '44 44 44 44 fill', width: '44px 44px 44px 44px', repeat: 'round' }
     };
     
     // Apply border-image to the content
