@@ -219,9 +219,9 @@ class SkillGenerator {
     };
     
     // Apply border-image to the content with consistent values
-    content.style.borderImage = `url('images/skill-frames/borders/${skillData.border}_frame.png') 90 fill / 150px / 0 round`;
-    content.style.borderImageSlice = '90 fill';
-    content.style.borderImageWidth = '150px';
+    content.style.borderImage = `url('images/skill-frames/borders/${skillData.border}_frame.png') 40 fill / 50px / 0 round`;
+    content.style.borderImageSlice = '40 fill';
+    content.style.borderImageWidth = '50px';
     content.style.borderImageOutset = '0';
     content.style.borderImageRepeat = 'round';
     
