@@ -233,7 +233,7 @@ class SkillGenerator {
     // Note: clip-path with images has limited browser support
     // For now, we'll just use border-image without clipping
     
-    console.log('Border-image and mask applied - Rarity:', skillData.border, 'Slice:', config.slice, 'Width:', config.width);
+    console.log('Border-image and mask applied - Rarity:', skillData.border, 'Slice: 40 fill', 'Width: 50px');
 
     // Header section
     const headerSection = document.createElement('div');
