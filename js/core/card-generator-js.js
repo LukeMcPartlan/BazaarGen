@@ -627,6 +627,7 @@ static async createCard(options = {}) {
     const itemTitle = document.createElement("div");
     itemTitle.className = "item-title";
     itemTitle.textContent = cardData.itemName;
+    itemTitle.style.paddingLeft = '5px';
 
     const heroImg = document.createElement("img");
     
@@ -662,6 +663,11 @@ static async createCard(options = {}) {
         console.log('⚡ Adding on-use effect:', effect);
         const effectLine = document.createElement("div");
         effectLine.className = "on-use-line";
+        
+        // Add 4px padding above the first on-use line
+        if (!hasEffects) {
+          effectLine.style.paddingTop = '4px';
+        }
 
         const icon = document.createElement("img");
         icon.src = "images/ui/arrows/use-arrow.png";

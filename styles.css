@@ -1946,7 +1946,7 @@ img.skill-icon-overlay-border[src*="legendary"] {
   display: flex;
   align-items: flex-start;
   margin-bottom: 4px;
-  margin-left: 40px;
+  margin-left: 20px;
   flex-wrap: wrap;
   overflow-wrap: break-word;
   word-wrap: break-word;
