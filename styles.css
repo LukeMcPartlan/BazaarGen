@@ -1998,7 +1998,7 @@ img.skill-icon-overlay-border[src*="legendary"] {
   color: white;
   background-color: #222;
   position: absolute;
-  z-index: 1;
+  z-index: 1000; /* High z-index to appear above corner cuts */
   overflow: visible;
   top: 50%; /* Default center position */
   transform: translateY(-50%); /* Center vertically */
@@ -2035,7 +2035,7 @@ img.skill-icon-overlay-border[src*="legendary"] {
   height: auto;
   width: auto;
   position: absolute;
-  z-index: 1;
+  z-index: 1000; /* High z-index to appear above corner cuts */
   background-color: rgb(37, 26, 12);
   color: rgb(254, 142, 0);
   font-weight: bold;
