@@ -792,9 +792,10 @@ static async createCard(options = {}) {
         
         // Test if the image loads
         const testImg = new Image();
-        testImg.onload = () => console.log('✅ Active frame image loads successfully:', borderImageUrl);
-        testImg.onerror = () => console.log('❌ Active frame image failed to load:', borderImageUrl);
-        testImg.src = borderImageUrl.replace('url(', '').replace(')', '');
+        const imageUrl = `images/skill-frames/Active/${activeFrameImage}`;
+        testImg.onload = () => console.log('✅ Active frame image loads successfully:', imageUrl);
+        testImg.onerror = () => console.log('❌ Active frame image failed to load:', imageUrl);
+        testImg.src = imageUrl;
       }, 100);
       
       console.log('✅ On-use section with active border created successfully');
