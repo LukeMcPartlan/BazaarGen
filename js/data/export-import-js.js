@@ -984,6 +984,10 @@ class ExportImport {
         imagePlaceholder: '', // Empty placeholder for failed images
         skipAutoScale: false, // Don't skip auto-scaling
         pixelRatio: perfectMode ? window.devicePixelRatio : 1, // Use device pixel ratio for perfect mode
+        // Suppress CORS errors for external CSS
+        beforeDraw: (canvas) => {
+          this.suppressCorsErrors();
+        },
         filter: (node) => {
           // Skip any control elements
           return !(node.classList && (
@@ -1028,7 +1032,7 @@ class ExportImport {
           width: cardElement.offsetWidth,
           height: cardElement.offsetHeight,
           totalPixels: pixelData.length / 4,
-          borderType: borderType,
+          borderType: 'auto-detected', // Pure capture - no border modification
           creator: typeof GoogleAuth !== 'undefined' ? GoogleAuth.getUserDisplayName() : 'Unknown'
         },
         pixelData: Array.from(pixelData), // Convert Uint8Array to regular array for JSON serialization
@@ -1160,7 +1164,7 @@ class ExportImport {
           width: skillElement.offsetWidth,
           height: skillElement.offsetHeight,
           totalPixels: pixelData.length / 4,
-          borderType: borderType,
+          borderType: 'auto-detected', // Pure capture - no border modification
           creator: typeof GoogleAuth !== 'undefined' ? GoogleAuth.getUserDisplayName() : 'Unknown'
         },
         pixelData: Array.from(pixelData), // Convert Uint8Array to regular array for JSON serialization
