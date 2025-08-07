@@ -35,9 +35,6 @@ class KeywordProcessor {
     
     let processedText = text;
     
-    // Process number patterns with slashes (1/2/3/4 format)
-    processedText = this.processNumberPatterns(processedText);
-    
     // Process LONGER patterns FIRST to avoid conflicts
     processedText = processedText.replace(/\/cd/g, '[COOLDOWN_ICON]');  // Process /cd before /c
     processedText = processedText.replace(/\/cr/g, '[CRIT_ICON]');      // Process /cr before /c
@@ -72,6 +69,9 @@ class KeywordProcessor {
       }
       return match;
     });
+    
+    // Process number patterns with slashes (1/2/3/4 format) AFTER keyword processing
+    processedText = this.processNumberPatterns(processedText);
     
     // Finally, replace all placeholders with actual images
     processedText = this.replaceIconPlaceholders(processedText);
@@ -112,7 +112,7 @@ class KeywordProcessor {
         } else if (totalNumbers === 3) {
           result += `<span class="text-silver">${num1}</span>`;
         } else if (totalNumbers === 2) {
-          result += `<span class="text-gold-500">${num1}</span>`;
+          result += `<span class="text-gold">${num1}</span>`;
         } else {
           result += `<span class="text-diamond">${num1}</span>`;
         }
@@ -125,7 +125,7 @@ class KeywordProcessor {
         if (totalNumbers >= 4) {
           result += `<span class="text-silver">${num2}</span>`;
         } else if (totalNumbers === 3) {
-          result += `<span class="text-gold-500">${num2}</span>`;
+          result += `<span class="text-gold">${num2}</span>`;
         } else {
           result += `<span class="text-diamond">${num2}</span>`;
         }
@@ -135,7 +135,7 @@ class KeywordProcessor {
         result += '/';
         // Third number
         if (totalNumbers >= 4) {
-          result += `<span class="text-gold-500">${num3}</span>`;
+          result += `<span class="text-gold">${num3}</span>`;
         } else {
           result += `<span class="text-diamond">${num3}</span>`;
         }
