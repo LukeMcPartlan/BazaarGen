@@ -1308,25 +1308,7 @@ class Forms {
     }
   }
 
-  /**
-   * Toggle advanced on-use options visibility
-   */
-  static toggleAdvancedOnUse() {
-    const advancedOptions = document.getElementById('advanced-onuse-options');
-    const toggleText = document.getElementById('advanced-onuse-toggle-text');
-    
-    if (!advancedOptions || !toggleText) return;
 
-    const isVisible = advancedOptions.style.display !== 'none';
-    
-    if (isVisible) {
-      advancedOptions.style.display = 'none';
-      toggleText.textContent = 'Show Advanced Options';
-    } else {
-      advancedOptions.style.display = 'block';
-      toggleText.textContent = 'Hide Advanced Options';
-    }
-  }
 
   /**
    * Remove last on-use input
@@ -1380,12 +1362,7 @@ class Forms {
       }
     });
 
-    // Set up default on-use input
-    const onUseInput1 = document.getElementById('onUseInput1');
-    if (onUseInput1) {
-      onUseInput1.addEventListener('input', (e) => this.handleInputChange(e.target));
-      onUseInput1.addEventListener('blur', (e) => this.validateField(e.target));
-    }
+
 
     // Set up default passive input
     const passiveInput1 = document.getElementById('passiveInput1');
@@ -1409,9 +1386,7 @@ function toggleSection(sectionId) {
   Forms.toggleSection(sectionId);
 }
 
-function toggleAdvancedOnUse() {
-  Forms.toggleAdvancedOnUse();
-}
+
 
 function removeOnUseInput() {
   Forms.removeOnUseInput();

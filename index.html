@@ -246,43 +246,30 @@
                   <span class="toggle-icon" id="onuse-toggle-icon">▼</span>
               </div>
               <div class="section-content" id="onuse-section">
-                  <!-- Basic On-Use Line (Always Visible) -->
-                  <div class="form-group">
-                      <label class="form-label">On-Use Effect</label>
-                      <input type="text" id="onUseInput1" placeholder="e.g. Deal 50 damage" class="form-input" />
-                  </div>
+                  <!-- On-Use Effects Lines -->
+                  <div id="onUseInputs"></div>
+                  <button type="button" onclick="addOnUseInput()" class="form-button secondary" style="margin-top: 10px;">Add On-Use Effect</button>
+                  <button type="button" onclick="removeOnUseInput()" class="form-button remove" style="margin-top: 10px;">Remove Last Effect</button>
 
-                  <!-- Advanced On-Use Options -->
-                  <div class="advanced-options" id="advanced-onuse-options" style="display: none;">
-                      <div class="form-grid">
-                          <div class="form-group">
-                              <label class="form-label">Cooldown (seconds)</label>
-                              <input type="text" id="cooldownInput" placeholder="e.g. 7.0" class="form-input" />
-                          </div>
-                          <div class="form-group">
-                              <label class="form-label">Ammo Count</label>
-                              <input type="text" id="ammoInput" placeholder="e.g. 3" class="form-input" />
-                          </div>
-                          <div class="form-group">
-                              <label class="form-label">Base Crit</label>
-                              <input type="text" id="critInput" placeholder="e.g. 20" class="form-input" />
-                          </div>
-                          <div class="form-group">
-                              <label class="form-label">Multicast</label>
-                              <input type="text" id="multicastInput" placeholder="e.g. 3" class="form-input" />
-                          </div>
+                  <!-- On-Use Options -->
+                  <div class="form-grid" style="margin-top: 20px;">
+                      <div class="form-group">
+                          <label class="form-label">Cooldown (seconds)</label>
+                          <input type="text" id="cooldownInput" placeholder="e.g. 7.0" class="form-input" />
                       </div>
-                      
-                      <!-- Additional On-Use Lines -->
-                      <div id="onUseInputs"></div>
-                      <button type="button" onclick="addOnUseInput()" class="form-button secondary" style="margin-top: 10px;">Add On-Use Effect</button>
-                      <button type="button" onclick="removeOnUseInput()" class="form-button remove" style="margin-top: 10px;">Remove Last Effect</button>
+                      <div class="form-group">
+                          <label class="form-label">Ammo Count</label>
+                          <input type="text" id="ammoInput" placeholder="e.g. 3" class="form-input" />
+                      </div>
+                      <div class="form-group">
+                          <label class="form-label">Base Crit</label>
+                          <input type="text" id="critInput" placeholder="e.g. 20" class="form-input" />
+                      </div>
+                      <div class="form-group">
+                          <label class="form-label">Multicast</label>
+                          <input type="text" id="multicastInput" placeholder="e.g. 3" class="form-input" />
+                      </div>
                   </div>
-
-                  <!-- Toggle Advanced Options Button -->
-                  <button type="button" onclick="toggleAdvancedOnUse()" class="form-button secondary" style="margin-top: 10px;">
-                      <span id="advanced-onuse-toggle-text">Show Advanced Options</span>
-                  </button>
               </div>
           </div>
 
