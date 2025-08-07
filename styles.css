@@ -1865,7 +1865,7 @@ img.skill-icon-overlay-border[src*="legendary"] {
   border-radius: 5px;
   margin-left: 10px;
   flex-shrink: 0; /* Prevent image from shrinking */
-  filter: sepia(1) hue-rotate(25deg) saturate(2) brightness(0.8); /* Apply brown color tint */
+  filter: brightness(0) saturate(100%) invert(27%) sepia(70%) saturate(498%) hue-rotate(354deg) brightness(96%) contrast(97%); /* Apply specific brown color */
 }
 
 .on-use-line {
