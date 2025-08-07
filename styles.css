@@ -1488,6 +1488,7 @@ h1 {
   pointer-events: none;
   z-index: 2;
   box-sizing: border-box;
+  overflow: visible !important;
 }
 
 .card-frame img {
@@ -1496,6 +1497,7 @@ h1 {
   object-fit: cover;
   object-position: center;
   display: block;
+  overflow: visible !important;
 }
 
 /* ===== SKILL-SPECIFIC IMAGE STYLES ===== */
