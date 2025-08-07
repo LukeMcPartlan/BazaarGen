@@ -222,6 +222,11 @@ class Validation {
         }
       }
 
+      // Preserve custom scaling values if they exist
+      if (scalingValues.custom && Array.isArray(scalingValues.custom)) {
+        validatedValues.custom = scalingValues.custom;
+      }
+
       return { valid: true, values: validatedValues };
     } catch (error) {
       return { valid: false, error: "Error validating scaling values: " + error.message };
