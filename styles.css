@@ -1984,11 +1984,12 @@ img.skill-icon-overlay-border[src*="legendary"] {
   overflow-wrap: break-word;
   word-wrap: break-word;
   word-break: break-word;
-  margin: 0 1px; /* Add small margin around text content */
+  margin: 10px 1px 0 1px; /* Add 10px margin above, 1px on sides */
   max-width: 100%; /* Constrain to parent width */
   display: inline-block; /* Allow the span to be constrained */
   vertical-align: middle; /* Center align with images */
   line-height: 1; /* Ensure consistent line height */
+  font-size: 1.1em; /* Increase font size slightly */
 }
 
 
