@@ -1364,12 +1364,7 @@ class Forms {
 
 
 
-    // Set up default passive input
-    const passiveInput1 = document.getElementById('passiveInput1');
-    if (passiveInput1) {
-      passiveInput1.addEventListener('input', (e) => this.handleInputChange(e.target));
-      passiveInput1.addEventListener('blur', (e) => this.validateField(e.target));
-    }
+
   }
 }
 
