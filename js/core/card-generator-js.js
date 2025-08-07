@@ -79,8 +79,11 @@ static async createCard(options = {}) {
 
     console.log('🏗️ Building card element...');
     console.log(`🔍 cardData.scalingValues before buildCardElement:`, JSON.stringify(cardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
+    // Create a deep clone of cardData to prevent reference issues
+    const clonedCardData = JSON.parse(JSON.stringify(cardData));
+    console.log(`🔍 clonedCardData.scalingValues:`, JSON.stringify(clonedCardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
     // Create the card element
-    const cardElement = this.buildCardElement(cardData, mode, includeControls, callId);
+    const cardElement = this.buildCardElement(clonedCardData, mode, includeControls, callId);
 
     // Add to container if specified
     if (container) {
