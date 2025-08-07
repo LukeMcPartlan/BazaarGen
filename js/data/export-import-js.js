@@ -330,149 +330,11 @@ class ExportImport {
       skillCard.style.maxWidth = '500px';
     }
     
-    // BULLETPROOF APPROACH: Replace the border overlay with a new one for export
-    const imageContainer = skillElement.querySelector('.skill-image-container');
-    const originalBorderOverlay = skillElement.querySelector('.skill-icon-overlay-border');
-    
-    if (imageContainer && originalBorderOverlay) {
-      // Store the original border overlay
-      originalElements.push({
-        element: originalBorderOverlay,
-        parent: imageContainer,
-        nextSibling: originalBorderOverlay.nextSibling
-      });
-      
-      // Remove the original border overlay
-      imageContainer.removeChild(originalBorderOverlay);
-      
-      // Create a new border overlay specifically for export
-      const exportBorderOverlay = document.createElement('img');
-      exportBorderOverlay.className = 'skill-icon-overlay-border-export';
-      exportBorderOverlay.src = originalBorderOverlay.src;
-      exportBorderOverlay.alt = '';
-      
-      // Set ALL positioning properties as inline styles with explicit values
-      exportBorderOverlay.style.cssText = `
-        position: absolute !important;
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        width: 113px !important;
-        height: 113px !important;
-        max-width: 113px !important;
-        max-height: 113px !important;
-        min-width: 113px !important;
-        min-height: 113px !important;
-        border-radius: 50% !important;
-        pointer-events: none !important;
-        z-index: 999 !important;
-        overflow: visible !important;
-        object-fit: cover !important;
-        display: block !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        border: none !important;
-        box-sizing: border-box !important;
-      `;
-      
-      // Also set each property individually as backup
-      exportBorderOverlay.style.position = 'absolute';
-      exportBorderOverlay.style.top = '50%';
-      exportBorderOverlay.style.left = '50%';
-      exportBorderOverlay.style.width = '113px';
-      exportBorderOverlay.style.height = '113px';
-      exportBorderOverlay.style.transform = 'translate(-50%, -50%)';
-      exportBorderOverlay.style.objectFit = 'cover';
-      exportBorderOverlay.style.pointerEvents = 'none';
-      exportBorderOverlay.style.zIndex = '999';
-      exportBorderOverlay.style.borderRadius = '50%';
-      exportBorderOverlay.style.overflow = 'visible';
-      exportBorderOverlay.style.display = 'block';
-      exportBorderOverlay.style.margin = '0';
-      exportBorderOverlay.style.padding = '0';
-      exportBorderOverlay.style.border = 'none';
-      exportBorderOverlay.style.boxSizing = 'border-box';
-      
-      // Ensure the image container has proper positioning context
-      imageContainer.style.position = 'relative';
-      imageContainer.style.display = 'flex';
-      imageContainer.style.alignItems = 'center';
-      imageContainer.style.justifyContent = 'center';
-      imageContainer.style.width = '112.5px';
-      imageContainer.style.height = '112.5px';
-      
-      // Add the new border overlay to the container
-      imageContainer.appendChild(exportBorderOverlay);
-      
-      console.log('🎨 Created new export-specific border overlay with bulletproof positioning');
-    }
-    
-    // CRITICAL FIX: Ensure border-image is properly applied for html-to-image
-    const skillContent = skillElement.querySelector('.skill-content');
-    if (skillContent) {
-      // Store original border-image styles
-      originalStyles.push({
-        element: skillContent,
-        property: 'borderImage',
-        originalValue: skillContent.style.borderImage
-      });
-      originalStyles.push({
-        element: skillContent,
-        property: 'borderImageSlice',
-        originalValue: skillContent.style.borderImageSlice
-      });
-      originalStyles.push({
-        element: skillContent,
-        property: 'borderImageWidth',
-        originalValue: skillContent.style.borderImageWidth
-      });
-      originalStyles.push({
-        element: skillContent,
-        property: 'borderImageOutset',
-        originalValue: skillContent.style.borderImageOutset
-      });
-      originalStyles.push({
-        element: skillContent,
-        property: 'borderImageRepeat',
-        originalValue: skillContent.style.borderImageRepeat
-      });
-      
-      // Store original classes for restoration
-      originalStyles.push({
-        element: skillContent,
-        property: 'className',
-        originalValue: skillContent.className
-      });
-      
-      // Get the border type from the skill data or element
-      const borderType = skillElement.getAttribute('data-border') || 
-                        skillElement.querySelector('[data-border]')?.getAttribute('data-border') ||
-                        'bronze'; // fallback
-      
-      // Re-apply border-image with explicit values for html-to-image
-      skillContent.style.borderImage = `url('images/skill-frames/borders/${borderType}_frame.png') 40 fill / 50px / 0 round`;
-      skillContent.style.borderImageSlice = '40 fill';
-      skillContent.style.borderImageWidth = '50px';
-      skillContent.style.borderImageOutset = '0';
-      skillContent.style.borderImageRepeat = 'round';
-      
-      // Force the border to be visible
-      skillContent.style.border = 'none';
-      skillContent.style.boxSizing = 'border-box';
-      
-      // Add fallback CSS class in case border-image doesn't work
-      skillContent.classList.add(`export-border-${borderType}`);
-      
-      // Debug: Test if border image loads
-      const testImage = new Image();
-      testImage.onload = () => console.log('✅ Border image loaded successfully:', borderType);
-      testImage.onerror = () => console.warn('⚠️ Border image failed to load:', borderType);
-      testImage.src = `images/skill-frames/borders/${borderType}_frame.png`;
-      
-      console.log('🎨 Re-applied border-image for html-to-image export:', borderType);
-    }
+    // html-to-image handles border images properly, no manipulation needed
+    console.log('🎨 Skill ready for export - html-to-image will handle border images automatically');
     
     // Ensure skill content has proper width (capped at 500px)
+    const skillContent = skillElement.querySelector('.skill-content');
     if (skillContent) {
       originalStyles.push({
         element: skillContent,
@@ -482,13 +344,7 @@ class ExportImport {
       skillContent.style.maxWidth = '500px';
     }
     
-    // Force a longer delay to ensure all styles are applied before html-to-image
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        console.log('🎨 Applied skill-specific export styling with extended delay');
-        resolve({ originalStyles, originalElements });
-      }, 150); // Increased delay for better reliability
-    });
+    return { originalStyles, originalElements };
   }
 
   /**
@@ -497,72 +353,8 @@ class ExportImport {
   static prepareCardForExport(cardElement) {
     const originalStyles = [];
     
-    // CRITICAL FIX: Ensure border-image is properly applied for html-to-image
-    const cardContent = cardElement.querySelector('.card-content');
-    if (cardContent) {
-      // Store original border-image styles
-      originalStyles.push({
-        element: cardContent,
-        property: 'borderImage',
-        originalValue: cardContent.style.borderImage
-      });
-      originalStyles.push({
-        element: cardContent,
-        property: 'borderImageSlice',
-        originalValue: cardContent.style.borderImageSlice
-      });
-      originalStyles.push({
-        element: cardContent,
-        property: 'borderImageWidth',
-        originalValue: cardContent.style.borderImageWidth
-      });
-      originalStyles.push({
-        element: cardContent,
-        property: 'borderImageOutset',
-        originalValue: cardContent.style.borderImageOutset
-      });
-      originalStyles.push({
-        element: cardContent,
-        property: 'borderImageRepeat',
-        originalValue: cardContent.style.borderImageRepeat
-      });
-      
-      // Store original classes for restoration
-      originalStyles.push({
-        element: cardContent,
-        property: 'className',
-        originalValue: cardContent.className
-      });
-      
-      // Get the border type from the card data or element
-      const borderType = cardElement.getAttribute('data-border') || 
-                        cardElement.querySelector('[data-border]')?.getAttribute('data-border') ||
-                        'bronze'; // fallback
-      
-      // Re-apply border-image with explicit values for html-to-image
-      cardContent.style.borderImage = `url('images/skill-frames/borders/${borderType}_frame.png') 40 fill / 50px / 0 round`;
-      cardContent.style.borderImageSlice = '40 fill';
-      cardContent.style.borderImageWidth = '50px';
-      cardContent.style.borderImageOutset = '0';
-      cardContent.style.borderImageRepeat = 'round';
-      
-      // Force the border to be visible
-      cardContent.style.border = 'none';
-      cardContent.style.boxSizing = 'border-box';
-      
-      // Add fallback CSS class in case border-image doesn't work
-      cardContent.classList.add(`export-border-${borderType}`);
-      
-      // Debug: Test if border image loads
-      const testImage = new Image();
-      testImage.onload = () => console.log('✅ Card border image loaded successfully:', borderType);
-      testImage.onerror = () => console.warn('⚠️ Card border image failed to load:', borderType);
-      testImage.src = `images/skill-frames/borders/${borderType}_frame.png`;
-      
-      console.log('🎨 Re-applied border-image for card html-to-image export:', borderType);
-    }
-    
-    console.log('🎨 Applied card-specific export styling with border-image fix');
+    // html-to-image handles border images properly, no manipulation needed
+    console.log('🎨 Card ready for export - html-to-image will handle border images automatically');
     return originalStyles;
   }
 
@@ -943,8 +735,8 @@ class ExportImport {
       // Temporarily remove gradients and fix styling
       originalStyles = this.prepareElementForExport(skillElement);
       
-      // Apply export-specific styling (now returns a Promise)
-      const exportResult = await this.prepareSkillForExport(skillElement);
+      // Apply export-specific styling
+      const exportResult = this.prepareSkillForExport(skillElement);
       originalStyles.push(...exportResult.originalStyles);
       
       // Store original elements for restoration
@@ -1002,26 +794,7 @@ class ExportImport {
         }, 100);
       }
       
-      // Restore original border overlay elements
-      if (originalElements && originalElements.length > 0) {
-        originalElements.forEach(item => {
-          const imageContainer = skillElement.querySelector('.skill-image-container');
-          const exportBorderOverlay = imageContainer.querySelector('.skill-icon-overlay-border-export');
-          
-          if (imageContainer && exportBorderOverlay) {
-            // Remove the export border overlay
-            imageContainer.removeChild(exportBorderOverlay);
-            
-            // Restore the original border overlay
-            if (item.nextSibling) {
-              imageContainer.insertBefore(item.element, item.nextSibling);
-            } else {
-              imageContainer.appendChild(item.element);
-            }
-          }
-        });
-        console.log('🔄 Restored original border overlay elements');
-      }
+
       
       // Restore hidden elements
       hiddenElements.forEach(item => {
