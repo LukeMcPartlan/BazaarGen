@@ -239,6 +239,9 @@
             <button class="debug-button secondary" onclick="testExportBorderImage()">🎨 Test Export Border</button>
             <button class="debug-button secondary" onclick="testSvgExport()">📐 Test SVG Export</button>
             <button class="debug-button secondary" onclick="testPixelDataExport()">🔍 Test Pixel Data Export</button>
+            <button class="debug-button secondary" onclick="testPerfectCapture()">📸 Test Perfect Capture</button>
+            <button class="debug-button secondary" onclick="testViewportCapture()">🖼️ Test Viewport Capture</button>
+            <button class="debug-button secondary" onclick="testBorderImageCapture()">🎨 Test Border Image Capture</button>
             <button class="debug-button danger" onclick="clearAllData()">🗑️ Clear All Data</button>
         </div>
     </div>
@@ -664,6 +667,98 @@
             }).catch(error => {
                 console.error('❌ Pixel data export error:', error);
                 document.body.removeChild(testContainer);
+            });
+        }
+
+        function testPerfectCapture() {
+            console.log('📸 Testing perfect screen capture...');
+            
+            if (typeof ExportImport === 'undefined') {
+                console.error('❌ ExportImport not available');
+                return;
+            }
+            
+            // Create a test element with complex styling
+            const testElement = document.createElement('div');
+            testElement.style.cssText = `
+                position: fixed;
+                top: 50px;
+                left: 50px;
+                width: 300px;
+                height: 200px;
+                background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+                border: 3px solid #333;
+                border-radius: 10px;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 18px;
+                font-weight: bold;
+                z-index: 1000;
+            `;
+            testElement.innerHTML = '<div>Perfect Capture Test</div>';
+            document.body.appendChild(testElement);
+            
+            // Test perfect capture
+            ExportImport.exportPerfectScreenCapture(testElement, 'perfect-capture-test.png').then(pixelData => {
+                if (pixelData) {
+                    console.log('✅ Perfect capture successful');
+                    console.log('📊 Pixel data length:', pixelData.length);
+                    
+                    // Clean up
+                    document.body.removeChild(testElement);
+                } else {
+                    console.error('❌ Perfect capture failed');
+                    document.body.removeChild(testElement);
+                }
+            }).catch(error => {
+                console.error('❌ Perfect capture error:', error);
+                document.body.removeChild(testElement);
+            });
+        }
+
+        function testViewportCapture() {
+            console.log('🖼️ Testing viewport capture...');
+            
+            if (typeof ExportImport === 'undefined') {
+                console.error('❌ ExportImport not available');
+                return;
+            }
+            
+            // Test viewport capture
+            ExportImport.captureEntireViewport('viewport-capture-test.png').then(pixelData => {
+                if (pixelData) {
+                    console.log('✅ Viewport capture successful');
+                    console.log('📊 Pixel data length:', pixelData.length);
+                    console.log('📊 Viewport size:', window.innerWidth, 'x', window.innerHeight);
+                    console.log('📊 Device pixel ratio:', window.devicePixelRatio);
+                } else {
+                    console.error('❌ Viewport capture failed');
+                }
+            }).catch(error => {
+                console.error('❌ Viewport capture error:', error);
+            });
+        }
+
+        function testBorderImageCapture() {
+            console.log('🎨 Testing border image capture...');
+            
+            if (typeof ExportImport === 'undefined') {
+                console.error('❌ ExportImport not available');
+                return;
+            }
+            
+            // Test border image capture
+            ExportImport.testBorderImageCapture().then(success => {
+                if (success) {
+                    console.log('✅ Border image capture test completed successfully');
+                } else {
+                    console.error('❌ Border image capture test failed');
+                }
+            }).catch(error => {
+                console.error('❌ Border image capture test error:', error);
             });
         }
 

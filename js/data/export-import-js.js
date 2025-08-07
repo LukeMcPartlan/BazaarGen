@@ -777,21 +777,7 @@ class ExportImport {
       // Generate filename if not provided
       const finalFilename = filename || `card-${this.getDateString()}.svg`;
       
-      // Detect border type for enhanced styling
-      const borderType = cardElement.querySelector('.card-content')?.style.borderImage?.includes('legendary') ? 'legendary' :
-                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('gold') ? 'gold' :
-                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('silver') ? 'silver' :
-                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('bronze') ? 'bronze' :
-                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('diamond') ? 'diamond' : null;
-      
-      if (borderType) {
-        console.log('🎨 Detected border type for card SVG export:', borderType);
-        // Apply fallback border styling for html-to-image
-        const contentElement = cardElement.querySelector('.card-content');
-        if (contentElement) {
-          this.applyEnhancedBorderForExport(contentElement, borderType);
-        }
-      }
+      // Pure capture - no modifications to preserve exact visual representation
       
       // Force reflow to ensure styles are applied
       cardElement.offsetHeight;
@@ -822,14 +808,6 @@ class ExportImport {
       
       // Download the SVG data URL
       this.downloadImage(dataUrl, finalFilename);
-      
-      // Restore original border-image styling if it was modified
-      if (borderType) {
-        const contentElement = cardElement.querySelector('.card-content');
-        if (contentElement) {
-          this.restoreBorderImageStyling(contentElement, borderType);
-        }
-      }
       
       if (typeof Messages !== 'undefined') {
         Messages.showSuccess(`Card exported as ${finalFilename}`);
@@ -896,21 +874,7 @@ class ExportImport {
       // Generate filename if not provided
       const finalFilename = filename || `skill-${this.getDateString()}.svg`;
       
-      // Detect border type for enhanced styling
-      const borderType = skillElement.querySelector('.skill-content')?.style.borderImage?.includes('legendary') ? 'legendary' :
-                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('gold') ? 'gold' :
-                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('silver') ? 'silver' :
-                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('bronze') ? 'bronze' :
-                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('diamond') ? 'diamond' : null;
-      
-      if (borderType) {
-        console.log('🎨 Detected border type for skill SVG export:', borderType);
-        // Apply fallback border styling for html-to-image
-        const contentElement = skillElement.querySelector('.skill-content');
-        if (contentElement) {
-          this.applyEnhancedBorderForExport(contentElement, borderType);
-        }
-      }
+      // Pure capture - no modifications to preserve exact visual representation
       
       // Force reflow to ensure styles are applied
       skillElement.offsetHeight;
@@ -940,14 +904,6 @@ class ExportImport {
       
       // Download the SVG data URL
       this.downloadImage(dataUrl, finalFilename);
-      
-      // Restore original border-image styling if it was modified
-      if (borderType) {
-        const contentElement = skillElement.querySelector('.skill-content');
-        if (contentElement) {
-          this.restoreBorderImageStyling(contentElement, borderType);
-        }
-      }
       
       if (typeof Messages !== 'undefined') {
         Messages.showSuccess(`Skill exported as ${finalFilename}`);
@@ -979,9 +935,9 @@ class ExportImport {
   }
 
   /**
-   * Export single card as pixel data using html-to-image
+   * Export single card as pixel data using html-to-image with perfect 1:1 representation
    */
-  static async exportCardAsPixelData(cardElement, filename = null, outputFormat = 'png') {
+  static async exportCardAsPixelData(cardElement, filename = null, outputFormat = 'png', perfectMode = false) {
     if (!cardElement) {
       console.error('No card element provided for pixel data export');
       return;
@@ -1014,32 +970,20 @@ class ExportImport {
       // Generate filename if not provided
       const finalFilename = filename || `card-pixels-${this.getDateString()}.json`;
       
-      // Detect border type for enhanced styling
-      const borderType = cardElement.querySelector('.card-content')?.style.borderImage?.includes('legendary') ? 'legendary' :
-                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('gold') ? 'gold' :
-                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('silver') ? 'silver' :
-                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('bronze') ? 'bronze' :
-                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('diamond') ? 'diamond' : null;
-      
-      if (borderType) {
-        console.log('🎨 Detected border type for card pixel export:', borderType);
-        // Apply fallback border styling for html-to-image
-        const contentElement = cardElement.querySelector('.card-content');
-        if (contentElement) {
-          this.applyEnhancedBorderForExport(contentElement, borderType);
-        }
-      }
+      // Pure capture - no modifications to preserve exact visual representation
       
       // Force reflow to ensure styles are applied
       cardElement.offsetHeight;
       
       // Configure html-to-image options for pixel data export
-      const pixelData = await htmlToImage.toPixelData(cardElement, {
+      const exportOptions = {
         backgroundColor: null,
         width: cardElement.offsetWidth,
         height: cardElement.offsetHeight,
         cacheBust: true, // Enable cache busting for images
         imagePlaceholder: '', // Empty placeholder for failed images
+        skipAutoScale: false, // Don't skip auto-scaling
+        pixelRatio: perfectMode ? window.devicePixelRatio : 1, // Use device pixel ratio for perfect mode
         filter: (node) => {
           // Skip any control elements
           return !(node.classList && (
@@ -1053,7 +997,19 @@ class ExportImport {
             node.classList.contains('save-btn')
           ));
         }
-      });
+      };
+
+      // Add perfect mode options
+      if (perfectMode) {
+        exportOptions.canvasWidth = cardElement.offsetWidth * window.devicePixelRatio;
+        exportOptions.canvasHeight = cardElement.offsetHeight * window.devicePixelRatio;
+        exportOptions.style = {
+          transform: 'none', // Remove any transforms
+          transformOrigin: 'top left'
+        };
+      }
+
+      const pixelData = await htmlToImage.toPixelData(cardElement, exportOptions);
 
       console.log('✅ Card pixel data created successfully');
       console.log('📊 Pixel data info:', {
@@ -1092,14 +1048,6 @@ class ExportImport {
       
       // Also save the JSON for analysis (optional)
       this.downloadJSON(exportData, finalFilename);
-      
-      // Restore original border-image styling if it was modified
-      if (borderType) {
-        const contentElement = cardElement.querySelector('.card-content');
-        if (contentElement) {
-          this.restoreBorderImageStyling(contentElement, borderType);
-        }
-      }
       
       if (typeof Messages !== 'undefined') {
         Messages.showSuccess(`Card exported as ${imageFilename} (${outputFormat.toUpperCase()}) and ${finalFilename} (JSON)`);
@@ -1169,21 +1117,7 @@ class ExportImport {
       // Generate filename if not provided
       const finalFilename = filename || `skill-pixels-${this.getDateString()}.json`;
       
-      // Detect border type for enhanced styling
-      const borderType = skillElement.querySelector('.skill-content')?.style.borderImage?.includes('legendary') ? 'legendary' :
-                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('gold') ? 'gold' :
-                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('silver') ? 'silver' :
-                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('bronze') ? 'bronze' :
-                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('diamond') ? 'diamond' : null;
-      
-      if (borderType) {
-        console.log('🎨 Detected border type for skill pixel export:', borderType);
-        // Apply fallback border styling for html-to-image
-        const contentElement = skillElement.querySelector('.skill-content');
-        if (contentElement) {
-          this.applyEnhancedBorderForExport(contentElement, borderType);
-        }
-      }
+      // Pure capture - no modifications to preserve exact visual representation
       
       // Force reflow to ensure styles are applied
       skillElement.offsetHeight;
@@ -1246,14 +1180,6 @@ class ExportImport {
       
       // Also save the JSON for analysis (optional)
       this.downloadJSON(exportData, finalFilename);
-      
-      // Restore original border-image styling if it was modified
-      if (borderType) {
-        const contentElement = skillElement.querySelector('.skill-content');
-        if (contentElement) {
-          this.restoreBorderImageStyling(contentElement, borderType);
-        }
-      }
       
       if (typeof Messages !== 'undefined') {
         Messages.showSuccess(`Skill exported as ${imageFilename} (${outputFormat.toUpperCase()}) and ${finalFilename} (JSON)`);
@@ -1331,6 +1257,234 @@ class ExportImport {
     } else {
       // PNG preserves transparency
       return canvas.toDataURL(format);
+    }
+  }
+
+  /**
+   * Export element as perfect 1:1 screen representation with enhanced border image support
+   */
+  static async exportPerfectScreenCapture(element, filename = null, preserveBorders = true) {
+    if (!element) {
+      console.error('No element provided for perfect screen capture');
+      return;
+    }
+
+    try {
+      console.log('📸 Starting perfect 1:1 screen capture...');
+      
+      // Get element dimensions and position
+      const rect = element.getBoundingClientRect();
+      const devicePixelRatio = window.devicePixelRatio || 1;
+      
+      // Create a temporary container that matches the screen exactly
+      const tempContainer = document.createElement('div');
+      tempContainer.style.cssText = `
+        position: fixed;
+        top: ${rect.top}px;
+        left: ${rect.left}px;
+        width: ${rect.width}px;
+        height: ${rect.height}px;
+        z-index: 999999;
+        pointer-events: none;
+        overflow: hidden;
+      `;
+      
+      // Clone the element and position it exactly
+      const clonedElement = element.cloneNode(true);
+      clonedElement.style.cssText = `
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        transform: none;
+        transform-origin: top left;
+      `;
+      
+      // Enhanced border image preservation
+      if (preserveBorders) {
+        // Ensure border images are properly loaded and applied
+        const borderElements = clonedElement.querySelectorAll('[style*="border-image"]');
+        borderElements.forEach(borderEl => {
+          // Force border image reload
+          const computedStyle = window.getComputedStyle(borderEl);
+          const borderImage = computedStyle.borderImage;
+          
+          if (borderImage && borderImage !== 'none') {
+            console.log('🎨 Preserving border image:', borderImage);
+            // Ensure border image properties are explicitly set
+            borderEl.style.borderImage = borderImage;
+            borderEl.style.borderImageSlice = computedStyle.borderImageSlice;
+            borderEl.style.borderImageWidth = computedStyle.borderImageWidth;
+            borderEl.style.borderImageOutset = computedStyle.borderImageOutset;
+            borderEl.style.borderImageRepeat = computedStyle.borderImageRepeat;
+          }
+        });
+      }
+      
+      tempContainer.appendChild(clonedElement);
+      document.body.appendChild(tempContainer);
+      
+      // Wait for any pending renders and border images to load
+      await new Promise(resolve => {
+        requestAnimationFrame(() => {
+          // Additional wait for border images
+          setTimeout(resolve, 100);
+        });
+      });
+      
+      // Capture with perfect settings
+      const pixelData = await htmlToImage.toPixelData(tempContainer, {
+        backgroundColor: null,
+        width: rect.width * devicePixelRatio,
+        height: rect.height * devicePixelRatio,
+        pixelRatio: devicePixelRatio,
+        canvasWidth: rect.width * devicePixelRatio,
+        canvasHeight: rect.height * devicePixelRatio,
+        cacheBust: true,
+        imagePlaceholder: '',
+        skipAutoScale: false,
+        style: {
+          transform: 'none',
+          transformOrigin: 'top left'
+        }
+      });
+      
+      // Clean up
+      document.body.removeChild(tempContainer);
+      
+      // Generate filename
+      const finalFilename = filename || `perfect-capture-${this.getDateString()}.png`;
+      
+      // Convert to PNG and download
+      const dataUrl = this.pixelDataToDataURL(pixelData, rect.width * devicePixelRatio, rect.height * devicePixelRatio, 'image/png');
+      this.downloadImage(dataUrl, finalFilename);
+      
+      console.log('✅ Perfect screen capture completed:', finalFilename);
+      console.log('📊 Capture info:', {
+        originalSize: `${rect.width} x ${rect.height}`,
+        devicePixelRatio: devicePixelRatio,
+        actualSize: `${rect.width * devicePixelRatio} x ${rect.height * devicePixelRatio}`,
+        totalPixels: pixelData.length / 4
+      });
+      
+      return pixelData;
+      
+    } catch (error) {
+      console.error('❌ Error in perfect screen capture:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Test border image capture specifically
+   */
+  static async testBorderImageCapture() {
+    console.log('🎨 Testing border image capture...');
+    
+    // Create a test element with border image
+    const testElement = document.createElement('div');
+    testElement.style.cssText = `
+      position: fixed;
+      top: 100px;
+      left: 100px;
+      width: 300px;
+      height: 200px;
+      border-image: url('images/skill-frames/borders/bronze_frame.png') 40 fill / 50px / 0 round;
+      border-image-slice: 40 fill;
+      border-image-width: 50px;
+      border-image-outset: 0;
+      border-image-repeat: round;
+      background: white;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: black;
+      font-weight: bold;
+    `;
+    testElement.innerHTML = '<div>Border Image Test</div>';
+    document.body.appendChild(testElement);
+    
+    try {
+      // Test perfect capture with border preservation
+      const pixelData = await this.exportPerfectScreenCapture(testElement, 'border-test.png', true);
+      
+      if (pixelData) {
+        console.log('✅ Border image capture successful');
+        console.log('📊 Pixel data length:', pixelData.length);
+        
+        // Analyze the captured pixels for border detection
+        const analysis = this.analyzePixelData(pixelData, 300 * (window.devicePixelRatio || 1), 200 * (window.devicePixelRatio || 1));
+        console.log('📊 Border analysis:', {
+          totalPixels: analysis.totalPixels,
+          dominantColors: analysis.dominantColors.slice(0, 5),
+          transparency: analysis.transparency
+        });
+        
+        // Clean up
+        document.body.removeChild(testElement);
+        return true;
+      } else {
+        console.error('❌ Border image capture failed');
+        document.body.removeChild(testElement);
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Border image capture error:', error);
+      document.body.removeChild(testElement);
+      return false;
+    }
+  }
+
+  /**
+   * Capture entire viewport as perfect 1:1 representation
+   */
+  static async captureEntireViewport(filename = null) {
+    try {
+      console.log('📸 Starting entire viewport capture...');
+      
+      const devicePixelRatio = window.devicePixelRatio || 1;
+      const viewportWidth = window.innerWidth * devicePixelRatio;
+      const viewportHeight = window.innerHeight * devicePixelRatio;
+      
+      // Capture the entire document body
+      const pixelData = await htmlToImage.toPixelData(document.body, {
+        backgroundColor: null,
+        width: window.innerWidth * devicePixelRatio,
+        height: window.innerHeight * devicePixelRatio,
+        pixelRatio: devicePixelRatio,
+        canvasWidth: window.innerWidth * devicePixelRatio,
+        canvasHeight: window.innerHeight * devicePixelRatio,
+        cacheBust: true,
+        imagePlaceholder: '',
+        skipAutoScale: false,
+        style: {
+          transform: 'none',
+          transformOrigin: 'top left'
+        }
+      });
+      
+      // Generate filename
+      const finalFilename = filename || `viewport-capture-${this.getDateString()}.png`;
+      
+      // Convert to PNG and download
+      const dataUrl = this.pixelDataToDataURL(pixelData, viewportWidth, viewportHeight, 'image/png');
+      this.downloadImage(dataUrl, finalFilename);
+      
+      console.log('✅ Viewport capture completed:', finalFilename);
+      console.log('📊 Viewport info:', {
+        viewportSize: `${window.innerWidth} x ${window.innerHeight}`,
+        devicePixelRatio: devicePixelRatio,
+        actualSize: `${viewportWidth} x ${viewportHeight}`,
+        totalPixels: pixelData.length / 4
+      });
+      
+      return pixelData;
+      
+    } catch (error) {
+      console.error('❌ Error in viewport capture:', error);
+      throw error;
     }
   }
 
@@ -2136,109 +2290,7 @@ class ExportImport {
   /**
    * Apply fallback border styling for html-to-image if border-image fails
    */
-  static applyBorderImageFallback(element, borderType) {
-    console.log('🔄 Applying border-image fallback for:', borderType);
-    
-    // Remove border-image and apply solid border as fallback
-    element.style.borderImage = 'none';
-    element.style.borderImageSlice = 'none';
-    element.style.borderImageWidth = 'none';
-    element.style.borderImageOutset = 'none';
-    element.style.borderImageRepeat = 'none';
-    
-    // Apply solid border based on border type
-    const borderColors = {
-      legendary: '#FFD700',
-      gold: '#FFD700', 
-      silver: '#C0C0C0',
-      bronze: '#CD7F32',
-      diamond: '#B9F2FF'
-    };
-    
-    const borderColor = borderColors[borderType] || '#000000';
-    element.style.border = `3px solid ${borderColor}`;
-    element.style.borderRadius = '8px';
-    
-    console.log('✅ Applied fallback border styling:', borderColor);
-  }
-
-  /**
-   * Apply enhanced border styling that works better with html-to-image
-   */
-  static applyEnhancedBorderForExport(element, borderType) {
-    console.log('🎨 Applying enhanced border for export:', borderType);
-    
-    // Border configurations for different types
-    const borderConfigs = {
-      legendary: {
-        color: '#FFD700',
-        width: '4px',
-        style: 'solid',
-        shadow: '0 0 10px rgba(255, 215, 0, 0.5)'
-      },
-      gold: {
-        color: '#FFD700',
-        width: '3px',
-        style: 'solid',
-        shadow: '0 0 8px rgba(255, 215, 0, 0.4)'
-      },
-      silver: {
-        color: '#C0C0C0',
-        width: '3px',
-        style: 'solid',
-        shadow: '0 0 6px rgba(192, 192, 192, 0.3)'
-      },
-      bronze: {
-        color: '#CD7F32',
-        width: '2px',
-        style: 'solid',
-        shadow: '0 0 4px rgba(205, 127, 50, 0.3)'
-      },
-      diamond: {
-        color: '#B9F2FF',
-        width: '3px',
-        style: 'solid',
-        shadow: '0 0 8px rgba(185, 242, 255, 0.4)'
-      }
-    };
-    
-    const config = borderConfigs[borderType] || borderConfigs.bronze;
-    
-    // Remove border-image
-    element.style.borderImage = 'none';
-    element.style.borderImageSlice = 'none';
-    element.style.borderImageWidth = 'none';
-    element.style.borderImageOutset = 'none';
-    element.style.borderImageRepeat = 'none';
-    
-    // Apply enhanced border
-    element.style.border = `${config.width} ${config.style} ${config.color}`;
-    element.style.borderRadius = '8px';
-    element.style.boxShadow = config.shadow;
-    
-    console.log('✅ Applied enhanced border styling for export:', config);
-  }
-
-  /**
-   * Restore original border-image styling after export
-   */
-  static restoreBorderImageStyling(element, borderType) {
-    console.log('🔄 Restoring original border-image styling for:', borderType);
-    
-    // Remove enhanced border styling
-    element.style.border = 'none';
-    element.style.borderRadius = 'none';
-    element.style.boxShadow = 'none';
-    
-    // Restore border-image styling
-    element.style.borderImage = `url('images/skill-frames/borders/${borderType}_frame.png') 40 fill / 50px / 0 round`;
-    element.style.borderImageSlice = '40 fill';
-    element.style.borderImageWidth = '50px';
-    element.style.borderImageOutset = '0';
-    element.style.borderImageRepeat = 'round';
-    
-    console.log('✅ Restored original border-image styling');
-  }
+  // Fallback systems removed - pure capture only for perfect 1:1 representation
 
   // ===== UTILITY METHODS =====
 
