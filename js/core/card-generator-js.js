@@ -79,7 +79,7 @@ static async createCard(options = {}) {
 
     console.log('🏗️ Building card element...');
     // Create the card element
-    const cardElement = this.buildCardElement(cardData, mode, includeControls);
+    const cardElement = this.buildCardElement(cardData, mode, includeControls, callId);
 
     // Add to container if specified
     if (container) {
@@ -99,7 +99,7 @@ static async createCard(options = {}) {
     // Apply sizing and positioning after DOM insertion
     this.applyCardSizing(cardElement, cardData);
 
-    console.log('✅ Card created successfully');
+    console.log(`✅ Card created successfully [Call ID: ${callId}]`);
     return cardElement;
 
   } catch (error) {
@@ -447,8 +447,8 @@ static async createCard(options = {}) {
   /**
    * Build the complete card element
    */
-  static buildCardElement(cardData, mode = 'generator', includeControls = true) {
-    console.log('🏗️ Building card element for mode:', mode);
+  static buildCardElement(cardData, mode = 'generator', includeControls = true, callId = 'unknown') {
+    console.log(`🏗️ Building card element for mode: ${mode} [Call ID: ${callId}]`);
     
     const borderColor = this.getBorderColor(cardData.border);
     const card = document.createElement("div");
