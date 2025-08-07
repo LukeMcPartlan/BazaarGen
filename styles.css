@@ -1987,6 +1987,8 @@ img.skill-icon-overlay-border[src*="legendary"] {
   margin: 0 1px; /* Add small margin around text content */
   max-width: 100%; /* Constrain to parent width */
   display: inline-block; /* Allow the span to be constrained */
+  vertical-align: middle; /* Center align with images */
+  line-height: 1; /* Ensure consistent line height */
 }
 
 
