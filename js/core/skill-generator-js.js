@@ -129,6 +129,25 @@ class SkillGenerator {
   }
 
   /**
+   * Create blurred background element
+   */
+  static createBlurredBackground(imageData) {
+    const blurredBackground = document.createElement("div");
+    blurredBackground.className = "skill-blurred-background";
+    
+    const backgroundImg = document.createElement("img");
+    backgroundImg.src = imageData;
+    backgroundImg.alt = "Blurred background";
+    backgroundImg.onerror = function() {
+      console.log('❌ Skill blurred background image failed to load');
+      blurredBackground.style.display = 'none';
+    };
+    
+    blurredBackground.appendChild(backgroundImg);
+    return blurredBackground;
+  }
+
+  /**
    * Build the skill card HTML element
    */
   static buildSkillElement(skillData, mode, includeControls) {
@@ -149,6 +168,12 @@ class SkillGenerator {
     const skillCard = document.createElement('div');
     skillCard.className = 'skill-card';
     skillCard.setAttribute('data-border', skillData.border); // Add border type for export
+    
+    // Create blurred background if image data is available
+    if (skillData.imageData) {
+      const blurredBackground = this.createBlurredBackground(skillData.imageData);
+      skillCard.appendChild(blurredBackground);
+    }
     
     // Create image container
     const imageContainer = document.createElement('div');

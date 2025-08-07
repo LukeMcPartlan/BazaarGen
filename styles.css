@@ -785,7 +785,7 @@ h1 {
   width: 100%; /* Changed from fit-content to 100% */
   max-width: 100%; /* Changed from 600px to 100% */
   box-sizing: border-box;
-  overflow: visible; /* Allow skill content frames to overflow */
+  overflow: hidden; /* Ensure blurred background doesn't overflow */
   flex-wrap: nowrap; /* Prevent wrapping - keep as row */
 }
 
@@ -1262,6 +1262,49 @@ h1 {
   min-width: fit-content;
   flex-wrap: nowrap; /* Prevent wrapping */
   white-space: nowrap; /* Prevent text wrapping */
+  overflow: hidden; /* Ensure blurred background doesn't overflow */
+}
+
+/* Blurred background for cards */
+.card-blurred-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.card-blurred-background img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: blur(20px) brightness(0.3) contrast(1.2);
+  transform: scale(1.1); /* Slightly larger to avoid blur edges */
+}
+
+/* Blurred background for skill cards */
+.skill-blurred-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.skill-blurred-background img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  filter: blur(20px) brightness(0.3) contrast(1.2);
+  transform: scale(1.1); /* Slightly larger to avoid blur edges */
 }
 
 .card-visual-content {
@@ -2083,20 +2126,43 @@ img.skill-icon-overlay-border[src*="legendary"] {
 }
 
 .scaling-value {
-  background-color: #333;
+  background-color: transparent;
   color: white;
-  padding: 6px 8px;
-  border-radius: 3px;
+  padding: 4px 6px;
+  border-radius: 50%;
   font-size: 11px;
   font-weight: bold;
   font-family: Arial, sans-serif;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  min-width: 28px;
+  border: none;
+  min-width: 32px;
   text-align: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   flex: 1;
   max-width: 45px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.scaling-gem {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  margin-bottom: 2px;
+}
+
+.scaling-value-text {
+  font-size: 10px;
+  font-weight: bold;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
 }
 
 .scaling-value.heal { background-color: rgb(143, 234, 49); }

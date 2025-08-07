@@ -184,6 +184,57 @@ static async createCard(options = {}) {
       poison: document.getElementById("poisonScalingInput")?.value || '',
       burn: document.getElementById("burnScalingInput")?.value || ''
     };
+    
+    // Get custom scaling values
+    const customScalingContainer = document.getElementById('customScalingContainer');
+    const customScalingInputs = customScalingContainer?.querySelectorAll('.custom-scaling-input') || [];
+    const customScalingValues = Array.from(customScalingInputs).map(inputGroup => {
+      const valueInput = inputGroup.querySelector('.custom-scaling-value');
+      const colorInput = inputGroup.querySelector('.custom-scaling-color');
+      const value = valueInput?.value?.trim() || '';
+      const color = colorInput?.value || '#00ff00';
+      
+      if (value) {
+        // Convert hex color to HSL for filter
+        const hex = color.replace('#', '');
+        const r = parseInt(hex.substr(0, 2), 16) / 255;
+        const g = parseInt(hex.substr(2, 2), 16) / 255;
+        const b = parseInt(hex.substr(4, 2), 16) / 255;
+        
+        const max = Math.max(r, g, b);
+        const min = Math.min(r, g, b);
+        let h, s, l = (max + min) / 2;
+        
+        if (max === min) {
+          h = s = 0; // achromatic
+        } else {
+          const d = max - min;
+          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+          switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+          }
+          h /= 6;
+        }
+        
+        const hue = Math.round(h * 360);
+        const saturation = Math.round(s * 100);
+        const brightness = Math.round(l * 100);
+        
+        return {
+          value: value,
+          hue: hue,
+          saturation: saturation / 100,
+          brightness: brightness / 100
+        };
+      }
+      return null;
+    }).filter(val => val !== null);
+    
+    if (customScalingValues.length > 0) {
+      scalingValues.custom = customScalingValues;
+    }
 
     // Get dynamic inputs - on-use effects, tags, passive effects, and quests
     const onUseInputs = document.querySelectorAll("#onUseInputs input");
@@ -383,6 +434,19 @@ static async createCard(options = {}) {
       card.appendChild(controls);
     }
 
+    // Create blurred background if image data is available
+    let imageDataForBackground = cardData.imageData;
+    
+    // For galleries, use the first gallery item's image if no imageData is set
+    if (!imageDataForBackground && cardData.isGallery && cardData.galleryItems && cardData.galleryItems.length > 0) {
+      imageDataForBackground = cardData.galleryItems[0].imageData;
+    }
+    
+    if (imageDataForBackground) {
+      const blurredBackground = this.createBlurredBackground(imageDataForBackground);
+      card.appendChild(blurredBackground);
+    }
+
     // Create image container
     const imageContainer = this.createImageContainer(cardData, borderColor);
     
@@ -487,6 +551,25 @@ static async createCard(options = {}) {
     }
 
     return cardControls;
+  }
+
+  /**
+   * Create blurred background element
+   */
+  static createBlurredBackground(imageData) {
+    const blurredBackground = document.createElement("div");
+    blurredBackground.className = "card-blurred-background";
+    
+    const backgroundImg = document.createElement("img");
+    backgroundImg.src = imageData;
+    backgroundImg.alt = "Blurred background";
+    backgroundImg.onerror = function() {
+      console.log('❌ Blurred background image failed to load');
+      blurredBackground.style.display = 'none';
+    };
+    
+    blurredBackground.appendChild(backgroundImg);
+    return blurredBackground;
   }
 
   /**
@@ -1177,12 +1260,76 @@ static async createCard(options = {}) {
       if (value && value.toString().trim()) {
         const scalingElement = document.createElement("div");
         scalingElement.className = `scaling-value ${type}`;
-        scalingElement.textContent = value.toString().trim();
+        
+        // Create gem image
+        const gemImg = document.createElement("img");
+        gemImg.className = "scaling-gem";
+        
+        // Set gem image based on type
+        if (type === 'regen') {
+          gemImg.src = "images/CardGems/CardGem_Blank.png";
+          gemImg.style.filter = "hue-rotate(120deg) saturate(1.5)"; // Make it green
+        } else {
+          gemImg.src = `images/CardGems/CardGem_${type.charAt(0).toUpperCase() + type.slice(1)}_TD.png`;
+        }
+        
+        gemImg.alt = `${type} gem`;
+        gemImg.onerror = function() {
+          // Fallback to colored background if image fails to load
+          scalingElement.style.background = this.getScalingColor(type);
+          gemImg.style.display = 'none';
+        };
+        
+        // Create value text
+        const valueText = document.createElement("span");
+        valueText.className = "scaling-value-text";
+        valueText.textContent = value.toString().trim();
+        
+        scalingElement.appendChild(gemImg);
+        scalingElement.appendChild(valueText);
         container.appendChild(scalingElement);
       }
     });
     
+    // Add custom scaling values
+    if (scalingData.custom) {
+      scalingData.custom.forEach(customValue => {
+        if (customValue.value && customValue.value.toString().trim()) {
+          const scalingElement = document.createElement("div");
+          scalingElement.className = "scaling-value custom";
+          
+          // Create gem image with custom color
+          const gemImg = document.createElement("img");
+          gemImg.className = "scaling-gem";
+          gemImg.src = "images/CardGems/CardGem_Blank.png";
+          gemImg.style.filter = `hue-rotate(${customValue.hue || 0}deg) saturate(${customValue.saturation || 1}) brightness(${customValue.brightness || 1})`;
+          gemImg.alt = "custom gem";
+          
+          // Create value text
+          const valueText = document.createElement("span");
+          valueText.className = "scaling-value-text";
+          valueText.textContent = customValue.value.toString().trim();
+          
+          scalingElement.appendChild(gemImg);
+          scalingElement.appendChild(valueText);
+          container.appendChild(scalingElement);
+        }
+      });
+    }
+    
     return container;
+  }
+  
+  static getScalingColor(type) {
+    const colors = {
+      heal: 'rgb(143, 234, 49)',
+      regen: 'rgb(100, 255, 60)',
+      shield: 'rgb(245, 208, 33)',
+      damage: 'rgb(244, 82, 60)',
+      poison: 'rgb(13, 190, 79)',
+      burn: 'rgb(253, 146, 63)'
+    };
+    return colors[type] || '#333';
   }
 
   /**

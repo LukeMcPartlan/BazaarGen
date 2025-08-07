@@ -1050,13 +1050,10 @@ class ExportImport {
       const imageDataUrl = this.pixelDataToDataURL(pixelData, cardElement.offsetWidth, cardElement.offsetHeight, imageFormat);
       this.downloadImage(imageDataUrl, imageFilename);
       
-      // Also save the JSON for analysis (optional)
-      this.downloadJSON(exportData, finalFilename);
-      
       if (typeof Messages !== 'undefined') {
-        Messages.showSuccess(`Card exported as ${imageFilename} (${outputFormat.toUpperCase()}) and ${finalFilename} (JSON)`);
+        Messages.showSuccess(`Card exported as ${imageFilename} (${outputFormat.toUpperCase()})`);
       }
-      console.log('✅ Pixel data export completed:', imageFilename, 'and', finalFilename);
+      console.log('✅ Pixel data export completed:', imageFilename);
       
       return pixelData; // Return the raw pixel data for further processing
       
@@ -1182,13 +1179,10 @@ class ExportImport {
       const imageDataUrl = this.pixelDataToDataURL(pixelData, skillElement.offsetWidth, skillElement.offsetHeight, imageFormat);
       this.downloadImage(imageDataUrl, imageFilename);
       
-      // Also save the JSON for analysis (optional)
-      this.downloadJSON(exportData, finalFilename);
-      
       if (typeof Messages !== 'undefined') {
-        Messages.showSuccess(`Skill exported as ${imageFilename} (${outputFormat.toUpperCase()}) and ${finalFilename} (JSON)`);
+        Messages.showSuccess(`Skill exported as ${imageFilename} (${outputFormat.toUpperCase()})`);
       }
-      console.log('✅ Skill pixel data export completed:', imageFilename, 'and', finalFilename);
+      console.log('✅ Skill pixel data export completed:', imageFilename);
       
       return pixelData; // Return the raw pixel data for further processing
       

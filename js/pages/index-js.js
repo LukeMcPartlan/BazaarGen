@@ -981,6 +981,69 @@ class IndexPageController {
         if (cardData.scalingValues.burn !== undefined) {
           document.getElementById('burnScalingInput').value = cardData.scalingValues.burn;
         }
+        
+        // Handle custom scaling values
+        if (cardData.scalingValues.custom && Array.isArray(cardData.scalingValues.custom)) {
+          const customContainer = document.getElementById('customScalingContainer');
+          customContainer.innerHTML = ''; // Clear existing custom inputs
+          
+          cardData.scalingValues.custom.forEach(customValue => {
+            if (customValue.value) {
+              // Add custom scaling input
+              IndexPageController.addCustomScaling();
+              
+              // Get the last added input group
+              const inputGroups = customContainer.querySelectorAll('.custom-scaling-input');
+              const lastGroup = inputGroups[inputGroups.length - 1];
+              
+              if (lastGroup) {
+                const valueInput = lastGroup.querySelector('.custom-scaling-value');
+                const colorInput = lastGroup.querySelector('.custom-scaling-color');
+                
+                if (valueInput) {
+                  valueInput.value = customValue.value;
+                }
+                
+                if (colorInput && customValue.hue !== undefined) {
+                  // Convert HSL back to hex for color picker
+                  const hue = customValue.hue;
+                  const saturation = customValue.saturation || 1;
+                  const lightness = customValue.brightness || 0.5;
+                  
+                  // Convert HSL to RGB to Hex
+                  const h = hue / 360;
+                  const s = saturation;
+                  const l = lightness;
+                  
+                  const c = (1 - Math.abs(2 * l - 1)) * s;
+                  const x = c * (1 - Math.abs((h * 6) % 2 - 1));
+                  const m = l - c / 2;
+                  
+                  let r, g, b;
+                  if (h < 1/6) {
+                    r = c; g = x; b = 0;
+                  } else if (h < 2/6) {
+                    r = x; g = c; b = 0;
+                  } else if (h < 3/6) {
+                    r = 0; g = c; b = x;
+                  } else if (h < 4/6) {
+                    r = 0; g = x; b = c;
+                  } else if (h < 5/6) {
+                    r = x; g = 0; b = c;
+                  } else {
+                    r = c; g = 0; b = x;
+                  }
+                  
+                  const rHex = Math.round((r + m) * 255).toString(16).padStart(2, '0');
+                  const gHex = Math.round((g + m) * 255).toString(16).padStart(2, '0');
+                  const bHex = Math.round((b + m) * 255).toString(16).padStart(2, '0');
+                  
+                  colorInput.value = `#${rHex}${gHex}${bHex}`;
+                }
+              }
+            }
+          });
+        }
       }
 
       // Fill in passive effects
@@ -1192,6 +1255,58 @@ class IndexPageController {
       }
     }
   }
+  
+  // Custom scaling value functions
+  static addCustomScaling() {
+    const container = document.getElementById('customScalingContainer');
+    const customIndex = container.children.length;
+    
+    const inputGroup = document.createElement('div');
+    inputGroup.className = 'custom-scaling-input';
+    inputGroup.style.cssText = `
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+      padding: 10px;
+      background: rgba(74, 60, 46, 0.3);
+      border-radius: 8px;
+      border: 1px solid rgba(218, 165, 32, 0.3);
+    `;
+    
+    // Value input
+    const valueInput = document.createElement('input');
+    valueInput.type = 'text';
+    valueInput.className = 'custom-scaling-value form-input';
+    valueInput.placeholder = 'Value (e.g., 5)';
+    valueInput.style.flex = '1';
+    
+    // Color picker
+    const colorInput = document.createElement('input');
+    colorInput.type = 'color';
+    colorInput.className = 'custom-scaling-color';
+    colorInput.value = '#00ff00';
+    colorInput.style.width = '40px';
+    colorInput.style.height = '30px';
+    colorInput.style.border = 'none';
+    colorInput.style.borderRadius = '4px';
+    colorInput.style.cursor = 'pointer';
+    
+    // Remove button
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'form-button remove';
+    removeBtn.innerHTML = '❌';
+    removeBtn.style.padding = '5px 8px';
+    removeBtn.onclick = function() {
+      container.removeChild(inputGroup);
+    };
+    
+    inputGroup.appendChild(valueInput);
+    inputGroup.appendChild(colorInput);
+    inputGroup.appendChild(removeBtn);
+    container.appendChild(inputGroup);
+  }
 }
 
 // Auto-initialize
@@ -1205,3 +1320,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Make available globally
 window.IndexPageController = IndexPageController;
+window.addCustomScaling = IndexPageController.addCustomScaling;
