@@ -1284,7 +1284,139 @@ class Forms {
       });
     }
   }
+
+  /**
+   * Toggle collapsible section visibility
+   * @param {string} sectionId - ID of the section to toggle
+   */
+  static toggleSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    const toggleIcon = document.getElementById(sectionId.replace('-section', '-toggle-icon'));
+    
+    if (!section || !toggleIcon) return;
+
+    const isCollapsed = section.classList.contains('collapsed');
+    
+    if (isCollapsed) {
+      section.classList.remove('collapsed');
+      toggleIcon.textContent = '▼';
+      toggleIcon.style.transform = 'rotate(0deg)';
+    } else {
+      section.classList.add('collapsed');
+      toggleIcon.textContent = '▶';
+      toggleIcon.style.transform = 'rotate(-90deg)';
+    }
+  }
+
+  /**
+   * Toggle advanced on-use options visibility
+   */
+  static toggleAdvancedOnUse() {
+    const advancedOptions = document.getElementById('advanced-onuse-options');
+    const toggleText = document.getElementById('advanced-onuse-toggle-text');
+    
+    if (!advancedOptions || !toggleText) return;
+
+    const isVisible = advancedOptions.style.display !== 'none';
+    
+    if (isVisible) {
+      advancedOptions.style.display = 'none';
+      toggleText.textContent = 'Show Advanced Options';
+    } else {
+      advancedOptions.style.display = 'block';
+      toggleText.textContent = 'Hide Advanced Options';
+    }
+  }
+
+  /**
+   * Remove last on-use input
+   */
+  static removeOnUseInput() {
+    const onUseInputs = document.getElementById('onUseInputs');
+    if (!onUseInputs) return;
+
+    const inputs = onUseInputs.querySelectorAll('.on-use-input-group');
+    if (inputs.length > 0) {
+      const lastInput = inputs[inputs.length - 1];
+      lastInput.remove();
+      this.updateCardPreview();
+    }
+  }
+
+  /**
+   * Remove last passive input
+   */
+  static removePassiveInput() {
+    const passiveInputs = document.getElementById('passiveInputs');
+    if (!passiveInputs) return;
+
+    const inputs = passiveInputs.querySelectorAll('.passive-input-group');
+    if (inputs.length > 0) {
+      const lastInput = inputs[inputs.length - 1];
+      lastInput.remove();
+      this.updateCardPreview();
+    }
+  }
+
+  /**
+   * Initialize collapsible sections
+   */
+  static setupCollapsibleSections() {
+    // Set up default states
+    const sections = ['tags-section', 'onuse-section', 'passive-section', 'scaling-section'];
+    
+    sections.forEach(sectionId => {
+      const section = document.getElementById(sectionId);
+      if (section) {
+        // Start with sections collapsed
+        section.classList.add('collapsed');
+        
+        // Update toggle icon
+        const toggleIcon = document.getElementById(sectionId.replace('-section', '-toggle-icon'));
+        if (toggleIcon) {
+          toggleIcon.textContent = '▶';
+          toggleIcon.style.transform = 'rotate(-90deg)';
+        }
+      }
+    });
+
+    // Set up default on-use input
+    const onUseInput1 = document.getElementById('onUseInput1');
+    if (onUseInput1) {
+      onUseInput1.addEventListener('input', (e) => this.handleInputChange(e.target));
+      onUseInput1.addEventListener('blur', (e) => this.validateField(e.target));
+    }
+
+    // Set up default passive input
+    const passiveInput1 = document.getElementById('passiveInput1');
+    if (passiveInput1) {
+      passiveInput1.addEventListener('input', (e) => this.handleInputChange(e.target));
+      passiveInput1.addEventListener('blur', (e) => this.validateField(e.target));
+    }
+  }
 }
 
 // Auto-initialize forms
 Forms.init();
+
+// Initialize collapsible sections when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  Forms.setupCollapsibleSections();
+});
+
+// Global functions for HTML onclick handlers
+function toggleSection(sectionId) {
+  Forms.toggleSection(sectionId);
+}
+
+function toggleAdvancedOnUse() {
+  Forms.toggleAdvancedOnUse();
+}
+
+function removeOnUseInput() {
+  Forms.removeOnUseInput();
+}
+
+function removePassiveInput() {
+  Forms.removePassiveInput();
+}

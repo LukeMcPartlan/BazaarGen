@@ -159,144 +159,190 @@
   <div class="main-container">
       <!-- REORGANIZED: Left Column - All Form Inputs -->
       <div class="form-column">
-          <div class="form-grid">
-              <!-- Basic Card Info -->
-              <div class="form-group full-width">
-                  <label class="form-label">Card Image</label>
-                  <input type="file" id="imageInput" accept="image/*" class="form-input" data-default-image="images/characters/default.png" />
-                  <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">
-                      Default image will load automatically. Upload your own to replace it.
-                  </small>
-              </div>
-
-              <div class="form-group">
-                  <label class="form-label">Item Name</label>
-                  <input type="text" id="itemNameInput" placeholder="Enter item name" class="form-input" />
-              </div>
-
-              <div class="form-group">
-                  <label class="form-label">Hero</label>
-                  <select id="heroSelect" class="form-select">
-                      <option value="Neutral" selected>Neutral</option>
-                      <option value="Mak">Mak</option>
-                      <option value="Vanessa">Vanessa</option>
-                      <option value="Pyg">Pyg</option>
-                      <option value="Dooly">Dooly</option>
-                      <option value="Stelle">Stelle</option>
-                      <option value="Jules">Jules</option>
-                      <option value="Vampire">Vampire</option>
-                      <option value="Custom" style="display: none;">Custom</option>
-                  </select>
-              </div>
-
-              <!-- Custom Hero Image Input (hidden but functional) -->
-              <div class="form-group" id="customHeroGroup" style="display: none;">
-                  <label class="form-label">Custom Hero Image</label>
-                  <input type="file" id="customHeroInput" accept="image/*" class="form-input" />
-                  <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">
-                      Upload a custom hero tooltip image (recommended size: 32x32px)
-                  </small>
-              </div>
-
-              <div class="form-group">
-                  <label class="form-label">Cooldown (seconds)</label>
-                  <input type="text" id="cooldownInput" placeholder="e.g. 7.0" class="form-input" />
-              </div>
-
-              <div class="form-group">
-                  <label class="form-label">Ammo Count</label>
-                  <input type="text" id="ammoInput" placeholder="e.g. 3" class="form-input" />
-              </div>
-
-              <div class="form-group">
-                  <label class="form-label">Item Size</label>
-                  <select id="itemSizeSelect" class="form-select">
-                      <option value="Small">Small</option>
-                      <option value="Medium" selected>Medium</option>
-                      <option value="Large">Large</option>
-                  </select>
-              </div>
-
-              <div class="form-group">
-                  <label class="form-label">Item Rarity</label>
-                  <select id="borderSelect" class="form-select">
-                      <option value="bronze">Bronze</option>
-                      <option value="silver">Silver</option>
-                      <option value="gold" selected>Gold</option>
-                      <option value="diamond">Diamond</option>
-                      <option value="legendary">Legendary</option>
-                  </select>
-              </div>
-
-              <!-- REORGANIZED: Passive Effects Section -->
-              <div class="form-group full-width">
-                  <label class="form-label">Passive Effects</label>
-                  <div id="passiveInputs">
-                      <!-- Initial passive effect input will be added automatically by JavaScript -->
-                  </div>
-                  <button type="button" onclick="addPassiveInput()" class="form-button secondary" style="margin-top: 10px;">Add Passive Effect</button>
-              </div>
-          </div>
-
-          <!-- REORGANIZED: Scaling Values Section -->
-          <div class="tag-effects">
-              <label class="form-label">Scaling Values</label>
+          <!-- MAIN SECTION - Always Visible -->
+          <div class="form-section main-section">
+              <h3 class="section-header">📋 Basic Card Information</h3>
               <div class="form-grid">
-                  <div class="form-group">
-                      <label class="form-label">Heal</label>
-                      <input type="text" id="healScalingInput" placeholder="N/A" class="form-input" />
+                  <!-- Card Image -->
+                  <div class="form-group full-width">
+                      <label class="form-label">Card Image</label>
+                      <input type="file" id="imageInput" accept="image/*" class="form-input" data-default-image="images/characters/default.png" />
+                      <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">
+                          Default image will load automatically. Upload your own to replace it.
+                      </small>
                   </div>
+
+                  <!-- Hero Selection -->
                   <div class="form-group">
-                      <label class="form-label">Regen</label>
-                      <input type="text" id="regenScalingInput" placeholder="N/A" class="form-input" />
+                      <label class="form-label">Hero</label>
+                      <select id="heroSelect" class="form-select">
+                          <option value="Neutral" selected>Neutral</option>
+                          <option value="Mak">Mak</option>
+                          <option value="Vanessa">Vanessa</option>
+                          <option value="Pyg">Pyg</option>
+                          <option value="Dooly">Dooly</option>
+                          <option value="Stelle">Stelle</option>
+                          <option value="Jules">Jules</option>
+                          <option value="Vampire">Vampire</option>
+                          <option value="Custom" style="display: none;">Custom</option>
+                      </select>
                   </div>
-                  <div class="form-group">
-                      <label class="form-label">Shield</label>
-                      <input type="text" id="shieldScalingInput" placeholder="N/A" class="form-input" />
+
+                  <!-- Custom Hero Image Input (hidden but functional) -->
+                  <div class="form-group" id="customHeroGroup" style="display: none;">
+                      <label class="form-label">Custom Hero Image</label>
+                      <input type="file" id="customHeroInput" accept="image/*" class="form-input" />
+                      <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">
+                          Upload a custom hero tooltip image (recommended size: 32x32px)
+                      </small>
                   </div>
+
+                  <!-- Item Name -->
                   <div class="form-group">
-                      <label class="form-label">Damage</label>
-                      <input type="text" id="damageScalingInput" placeholder="N/A" class="form-input" />
+                      <label class="form-label">Item Name</label>
+                      <input type="text" id="itemNameInput" placeholder="Enter item name" class="form-input" />
                   </div>
+
+                  <!-- Item Size -->
                   <div class="form-group">
-                      <label class="form-label">Poison</label>
-                      <input type="text" id="poisonScalingInput" placeholder="N/A" class="form-input" />
+                      <label class="form-label">Item Size</label>
+                      <select id="itemSizeSelect" class="form-select">
+                          <option value="Small">Small</option>
+                          <option value="Medium" selected>Medium</option>
+                          <option value="Large">Large</option>
+                      </select>
                   </div>
+
+                  <!-- Item Rarity -->
                   <div class="form-group">
-                      <label class="form-label">Burn</label>
-                      <input type="text" id="burnScalingInput" placeholder="N/A" class="form-input" />
+                      <label class="form-label">Item Rarity</label>
+                      <select id="borderSelect" class="form-select">
+                          <option value="bronze">Bronze</option>
+                          <option value="silver">Silver</option>
+                          <option value="gold" selected>Gold</option>
+                          <option value="diamond">Diamond</option>
+                          <option value="legendary">Legendary</option>
+                      </select>
                   </div>
               </div>
           </div>
 
-          <!-- REORGANIZED: Tags Section -->
-          <div class="tag-effects">
-              <label class="form-label">Additional Tags</label>
-              <div id="tagInputs"></div>
-              <button type="button" onclick="addTagInput()" class="form-button secondary" style="margin-top: 10px;">Add Tag</button>
+          <!-- TAGS SECTION - Toggleable -->
+          <div class="form-section collapsible-section">
+              <div class="section-toggle" onclick="toggleSection('tags-section')">
+                  <h3 class="section-header">🏷️ Tags</h3>
+                  <span class="toggle-icon" id="tags-toggle-icon">▼</span>
+              </div>
+              <div class="section-content" id="tags-section">
+                  <div id="tagInputs"></div>
+                  <button type="button" onclick="addTagInput()" class="form-button secondary" style="margin-top: 10px;">Add Tag</button>
+              </div>
           </div>
 
-          <!-- REORGANIZED: On Use Effects Section -->
-          <div class="on-use-effects">
-              <label class="form-label">On Use Effects</label>
-              
-              <!-- Moved Crit and Multicast here -->
-              <div class="form-grid" style="margin-bottom: 15px;">
+          <!-- ON-USE SECTION - Toggleable -->
+          <div class="form-section collapsible-section">
+              <div class="section-toggle" onclick="toggleSection('onuse-section')">
+                  <h3 class="section-header">⚡ On-Use Effects</h3>
+                  <span class="toggle-icon" id="onuse-toggle-icon">▼</span>
+              </div>
+              <div class="section-content" id="onuse-section">
+                  <!-- Basic On-Use Line (Always Visible) -->
                   <div class="form-group">
-                      <label class="form-label">Base Crit</label>
-                      <input type="text" id="critInput" placeholder="e.g. 20" class="form-input" />
+                      <label class="form-label">On-Use Effect</label>
+                      <input type="text" id="onUseInput1" placeholder="e.g. Deal 50 damage" class="form-input" />
                   </div>
+
+                  <!-- Advanced On-Use Options -->
+                  <div class="advanced-options" id="advanced-onuse-options" style="display: none;">
+                      <div class="form-grid">
+                          <div class="form-group">
+                              <label class="form-label">Cooldown (seconds)</label>
+                              <input type="text" id="cooldownInput" placeholder="e.g. 7.0" class="form-input" />
+                          </div>
+                          <div class="form-group">
+                              <label class="form-label">Ammo Count</label>
+                              <input type="text" id="ammoInput" placeholder="e.g. 3" class="form-input" />
+                          </div>
+                          <div class="form-group">
+                              <label class="form-label">Base Crit</label>
+                              <input type="text" id="critInput" placeholder="e.g. 20" class="form-input" />
+                          </div>
+                          <div class="form-group">
+                              <label class="form-label">Multicast</label>
+                              <input type="text" id="multicastInput" placeholder="e.g. 3" class="form-input" />
+                          </div>
+                      </div>
+                      
+                      <!-- Additional On-Use Lines -->
+                      <div id="onUseInputs"></div>
+                      <button type="button" onclick="addOnUseInput()" class="form-button secondary" style="margin-top: 10px;">Add On-Use Effect</button>
+                      <button type="button" onclick="removeOnUseInput()" class="form-button remove" style="margin-top: 10px;">Remove Last Effect</button>
+                  </div>
+
+                  <!-- Toggle Advanced Options Button -->
+                  <button type="button" onclick="toggleAdvancedOnUse()" class="form-button secondary" style="margin-top: 10px;">
+                      <span id="advanced-onuse-toggle-text">Show Advanced Options</span>
+                  </button>
+              </div>
+          </div>
+
+          <!-- PASSIVE SECTION - Toggleable -->
+          <div class="form-section collapsible-section">
+              <div class="section-toggle" onclick="toggleSection('passive-section')">
+                  <h3 class="section-header">🛡️ Passive Effects</h3>
+                  <span class="toggle-icon" id="passive-toggle-icon">▼</span>
+              </div>
+              <div class="section-content" id="passive-section">
+                  <!-- Default Passive Line (Always Visible) -->
                   <div class="form-group">
-                      <label class="form-label">Multicast</label>
-                      <input type="text" id="multicastInput" placeholder="e.g. 3" class="form-input" />
+                      <label class="form-label">Passive Effect</label>
+                      <input type="text" id="passiveInput1" placeholder="e.g. When you use an adjacent item..." class="form-input" />
+                  </div>
+
+                  <!-- Additional Passive Lines -->
+                  <div id="passiveInputs"></div>
+                  <button type="button" onclick="addPassiveInput()" class="form-button secondary" style="margin-top: 10px;">Add Passive Effect</button>
+                  <button type="button" onclick="removePassiveInput()" class="form-button remove" style="margin-top: 10px;">Remove Last Effect</button>
+              </div>
+          </div>
+
+          <!-- SCALING VALUES SECTION - Toggleable -->
+          <div class="form-section collapsible-section">
+              <div class="section-toggle" onclick="toggleSection('scaling-section')">
+                  <h3 class="section-header">📊 Scaling Values</h3>
+                  <span class="toggle-icon" id="scaling-toggle-icon">▼</span>
+              </div>
+              <div class="section-content" id="scaling-section">
+                  <div class="form-grid">
+                      <div class="form-group">
+                          <label class="form-label">Heal</label>
+                          <input type="text" id="healScalingInput" placeholder="N/A" class="form-input" />
+                      </div>
+                      <div class="form-group">
+                          <label class="form-label">Regen</label>
+                          <input type="text" id="regenScalingInput" placeholder="N/A" class="form-input" />
+                      </div>
+                      <div class="form-group">
+                          <label class="form-label">Shield</label>
+                          <input type="text" id="shieldScalingInput" placeholder="N/A" class="form-input" />
+                      </div>
+                      <div class="form-group">
+                          <label class="form-label">Damage</label>
+                          <input type="text" id="damageScalingInput" placeholder="N/A" class="form-input" />
+                      </div>
+                      <div class="form-group">
+                          <label class="form-label">Poison</label>
+                          <input type="text" id="poisonScalingInput" placeholder="N/A" class="form-input" />
+                      </div>
+                      <div class="form-group">
+                          <label class="form-label">Burn</label>
+                          <input type="text" id="burnScalingInput" placeholder="N/A" class="form-input" />
+                      </div>
                   </div>
               </div>
-              
-              <div id="onUseInputs"></div>
-              <button type="button" onclick="addOnUseInput()" class="form-button secondary" style="margin-top: 10px;">Add On Use Effect</button>
           </div>
 
-          <!-- REORGANIZED: Keyboard Shortcuts Help -->
+          <!-- KEYBOARD SHORTCUTS HELP -->
           <div class="shortcuts-help">
               <h4>🎮 Keyword Shortcuts - Type these in text boxes:</h4>
               <div class="shortcut-grid">
