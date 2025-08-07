@@ -2168,12 +2168,12 @@ img.skill-icon-overlay-border[src*="legendary"] {
   z-index: 1;
 }
 
-.scaling-value.heal { background-color: rgb(143, 234, 49); }
-.scaling-value.regen { background-color: rgb(100, 255, 60); }
-.scaling-value.shield { background-color: rgb(245, 208, 33); }
-.scaling-value.damage { background-color: rgb(244, 82, 60); }
-.scaling-value.poison { background-color: rgb(13, 190, 79); }
-.scaling-value.burn { background-color: rgb(253, 146, 63); }
+.scaling-value.heal { background-color: transparent; }
+.scaling-value.regen { background-color: transparent; }
+.scaling-value.shield { background-color: transparent; }
+.scaling-value.damage { background-color: transparent; }
+.scaling-value.poison { background-color: transparent; }
+.scaling-value.burn { background-color: transparent; }
 .scaling-value.custom { background-color: transparent; }
 
 /* ===== EFFECTS AND INPUTS ===== */
