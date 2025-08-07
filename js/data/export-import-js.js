@@ -658,99 +658,24 @@ class ExportImport {
       return;
     }
 
-    let originalStyles = [];
-    let hiddenElements = [];
-    
     try {
-      console.log('🖼️ Starting card PNG export with proper styling...');
+      console.log('🖼️ Starting card PNG export using pixel data...');
       
       // Get card name for filename
       const cardNameElement = cardElement.querySelector('.card-name, .item-name, h3, h2');
       const cardName = cardNameElement ? cardNameElement.textContent.trim().replace(/[^a-zA-Z0-9]/g, '_') : 'card';
       const finalFilename = filename || `${cardName}-${this.getDateString()}.png`;
       
-      // Hide all control elements
-      const controlElements = cardElement.querySelectorAll('.card-controls, .skill-controls, .item-controls, .export-btn, .export-button, .export-menu, .delete-btn, .delete-button, .upvote-btn, .upvote-button, .save-btn, .save-button');
-      controlElements.forEach(el => {
-        if (el.style.display !== 'none') {
-          hiddenElements.push({
-            element: el,
-            originalDisplay: el.style.display
-          });
-          el.style.display = 'none';
-        }
-      });
+      // Use the new pixel data export method with PNG output
+      const pixelData = await this.exportCardAsPixelData(cardElement, finalFilename.replace('.png', '.json'), 'png');
       
-      // Temporarily remove gradients and fix styling
-      originalStyles = this.prepareElementForExport(cardElement);
-      
-      // Apply export-specific styling
-      const exportStyles = this.prepareCardForExport(cardElement);
-      originalStyles.push(...exportStyles);
-      
-      // Test border-image support and apply fallback if needed
-      const borderType = cardElement.querySelector('.card-content')?.style.borderImage?.includes('legendary') ? 'legendary' :
-                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('gold') ? 'gold' :
-                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('silver') ? 'silver' :
-                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('bronze') ? 'bronze' :
-                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('diamond') ? 'diamond' : null;
-      
-      if (borderType) {
-        console.log('🎨 Detected border type for export:', borderType);
-        // Apply fallback border styling for html-to-image
-        const contentElement = cardElement.querySelector('.card-content');
-        if (contentElement) {
-          this.applyEnhancedBorderForExport(contentElement, borderType);
-        }
+      if (pixelData) {
+        console.log('✅ Card PNG export completed using pixel data method');
+        return pixelData;
+      } else {
+        console.error('❌ Failed to export card using pixel data method');
+        return null;
       }
-      
-      // Force reflow to ensure styles are applied
-      cardElement.offsetHeight;
-      
-      // Configure html-to-image options with error suppression
-      const dataUrl = await htmlToImage.toPng(cardElement, {
-        backgroundColor: null,
-        width: cardElement.offsetWidth,
-        height: cardElement.offsetHeight,
-        pixelRatio: 2, // Equivalent to scale: 2 in html2canvas
-        cacheBust: true, // Enable cache busting for images
-        imagePlaceholder: '', // Empty placeholder for failed images
-        filter: (node) => {
-          // Skip any control elements
-          return !(node.classList && (
-            node.classList.contains('export-button') || 
-            node.classList.contains('export-menu') ||
-            node.classList.contains('card-controls') ||
-            node.classList.contains('skill-controls') ||
-            node.classList.contains('item-controls') ||
-            node.classList.contains('delete-btn') ||
-            node.classList.contains('upvote-btn') ||
-            node.classList.contains('save-btn')
-          ));
-        },
-        // Suppress CORS-related console errors
-        beforeDraw: (canvas) => {
-          this.suppressCorsErrors();
-        }
-      });
-
-      console.log('✅ Card PNG created successfully');
-      
-      // Download the data URL directly
-      this.downloadImage(dataUrl, finalFilename);
-      
-      // Restore original border-image styling if it was modified
-      if (borderType) {
-        const contentElement = cardElement.querySelector('.card-content');
-        if (contentElement) {
-          this.restoreBorderImageStyling(contentElement, borderType);
-        }
-      }
-      
-      if (typeof Messages !== 'undefined') {
-        Messages.showSuccess(`Card exported as ${finalFilename}`);
-      }
-      console.log('✅ PNG export completed:', finalFilename);
       
     } catch (error) {
       console.error('❌ Error exporting card as PNG:', error);
@@ -760,19 +685,7 @@ class ExportImport {
       } else {
         alert(errorMsg);
       }
-    } finally {
-      // Always restore original styles and show hidden elements
-      if (originalStyles.length > 0) {
-        // Small delay to ensure canvas is processed before restoring
-        setTimeout(() => {
-          this.restoreElementAfterExport(originalStyles);
-        }, 100);
-      }
-      
-      // Restore hidden elements
-      hiddenElements.forEach(item => {
-        item.element.style.display = item.originalDisplay;
-      });
+      return null;
     }
   }
 
@@ -797,101 +710,24 @@ class ExportImport {
       return;
     }
 
-    let originalStyles = [];
-    let hiddenElements = [];
-
     try {
-      console.log('🖼️ Starting skill PNG export with proper styling...');
+      console.log('🖼️ Starting skill PNG export using pixel data...');
       
       // Get skill name for filename
       const skillNameElement = skillElement.querySelector('.skill-name, .skill-title, h3, h2');
       const skillName = skillNameElement ? skillNameElement.textContent.trim().replace(/[^a-zA-Z0-9]/g, '_') : 'skill';
       const finalFilename = filename || `${skillName}-${this.getDateString()}.png`;
       
-      // Hide all control elements
-      const controlElements = skillElement.querySelectorAll('.skill-controls, .card-controls, .item-controls, .export-btn, .export-button, .export-menu, .delete-btn, .delete-button, .upvote-btn, .upvote-button');
-      controlElements.forEach(el => {
-        if (el.style.display !== 'none') {
-          hiddenElements.push({
-            element: el,
-            originalDisplay: el.style.display
-          });
-          el.style.display = 'none';
-        }
-      });
+      // Use the new pixel data export method with PNG output
+      const pixelData = await this.exportSkillAsPixelData(skillElement, finalFilename.replace('.png', '.json'), 'png');
       
-      // Temporarily remove gradients and fix styling
-      originalStyles = this.prepareElementForExport(skillElement);
-      
-      // Apply export-specific styling
-      const exportResult = this.prepareSkillForExport(skillElement);
-      originalStyles.push(...exportResult.originalStyles);
-      
-      // Store original elements for restoration
-      const originalElements = exportResult.originalElements;
-      
-      // Test border-image support and apply fallback if needed
-      const borderType = skillElement.querySelector('.skill-content')?.style.borderImage?.includes('legendary') ? 'legendary' :
-                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('gold') ? 'gold' :
-                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('silver') ? 'silver' :
-                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('bronze') ? 'bronze' :
-                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('diamond') ? 'diamond' : null;
-      
-      if (borderType) {
-        console.log('🎨 Detected border type for skill export:', borderType);
-        // Apply fallback border styling for html-to-image
-        const contentElement = skillElement.querySelector('.skill-content');
-        if (contentElement) {
-          this.applyEnhancedBorderForExport(contentElement, borderType);
-        }
+      if (pixelData) {
+        console.log('✅ Skill PNG export completed using pixel data method');
+        return pixelData;
+      } else {
+        console.error('❌ Failed to export skill using pixel data method');
+        return null;
       }
-      
-      // Force reflow to ensure styles are applied
-      skillElement.offsetHeight;
-      
-      // Configure html-to-image options with error suppression
-      const dataUrl = await htmlToImage.toPng(skillElement, {
-        backgroundColor: null,
-        width: skillElement.offsetWidth,
-        height: skillElement.offsetHeight,
-        pixelRatio: 2, // Equivalent to scale: 2 in html2canvas
-        cacheBust: true, // Enable cache busting for images
-        imagePlaceholder: '', // Empty placeholder for failed images
-        filter: (node) => {
-          // Skip any control elements
-          return !(node.classList && (
-            node.classList.contains('export-button') || 
-            node.classList.contains('export-menu') ||
-            node.classList.contains('skill-controls') ||
-            node.classList.contains('card-controls') ||
-            node.classList.contains('item-controls') ||
-            node.classList.contains('delete-btn') ||
-            node.classList.contains('upvote-btn')
-          ));
-        },
-        // Suppress CORS-related console errors
-        beforeDraw: (canvas) => {
-          this.suppressCorsErrors();
-        }
-      });
-
-      console.log('✅ Skill PNG created successfully');
-      
-      // Download the data URL directly
-      this.downloadImage(dataUrl, finalFilename);
-      
-      // Restore original border-image styling if it was modified
-      if (borderType) {
-        const contentElement = skillElement.querySelector('.skill-content');
-        if (contentElement) {
-          this.restoreBorderImageStyling(contentElement, borderType);
-        }
-      }
-      
-      if (typeof Messages !== 'undefined') {
-        Messages.showSuccess(`Skill exported as ${finalFilename}`);
-      }
-      console.log('✅ Skill PNG export completed:', finalFilename);
       
     } catch (error) {
       console.error('❌ Error exporting skill as PNG:', error);
@@ -901,21 +737,7 @@ class ExportImport {
       } else {
         alert(errorMsg);
       }
-    } finally {
-      // Always restore original styles and show hidden elements
-      if (originalStyles.length > 0) {
-        // Small delay to ensure canvas is processed before restoring
-        setTimeout(() => {
-          this.restoreElementAfterExport(originalStyles);
-        }, 100);
-      }
-      
-
-      
-      // Restore hidden elements
-      hiddenElements.forEach(item => {
-        item.element.style.display = item.originalDisplay;
-      });
+      return null;
     }
   }
 
