@@ -985,18 +985,28 @@ static async createCard(options = {}) {
           questCondition.className = "quest-condition";
           questCondition.style.flex = "1";
           questCondition.style.marginRight = "10px";
+          questCondition.style.display = "flex";
+          questCondition.style.justifyContent = "space-between";
+          questCondition.style.alignItems = "center";
+          
+          // Create condition text container
+          const conditionText = document.createElement("div");
+          conditionText.style.flex = "1";
           
           if (typeof KeywordProcessor !== 'undefined') {
-            questCondition.innerHTML = KeywordProcessor.processKeywordText(quest.condition);
+            conditionText.innerHTML = KeywordProcessor.processKeywordText(quest.condition);
           } else {
-            questCondition.textContent = quest.condition;
+            conditionText.textContent = quest.condition;
           }
           
-          // Add value display
+          // Add value display aligned to the right
           const questValue = document.createElement("span");
-          questValue.textContent = ` 0/${quest.value}`;
+          questValue.textContent = `0/${quest.value}`;
           questValue.style.color = "rgb(251, 225, 183)";
           questValue.style.fontWeight = "bold";
+          questValue.style.marginLeft = "auto";
+          
+          questCondition.appendChild(conditionText);
           questCondition.appendChild(questValue);
           
           questContent.appendChild(questCondition);

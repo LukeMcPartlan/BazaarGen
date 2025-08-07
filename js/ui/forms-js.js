@@ -447,6 +447,9 @@ class Forms {
     
     // Passive effects input management
     this.setupPassiveInputs();
+    
+    // Quest input management
+    this.setupQuestInputs();
   }
 
   /**
@@ -491,6 +494,23 @@ class Forms {
     const passiveContainer = document.getElementById('passiveInputs');
     if (passiveContainer && passiveContainer.children.length === 0) {
       this.addPassiveInputWithDefault();
+    }
+  }
+
+  /**
+   * Setup quest input management
+   */
+  static setupQuestInputs() {
+    // Add quest input button
+    const addQuestBtn = document.querySelector('button[onclick="addQuestInput()"]');
+    if (addQuestBtn) {
+      addQuestBtn.onclick = () => this.addQuestInput();
+    }
+    
+    // Add initial quest input if container is empty
+    const questContainer = document.getElementById('questInputs');
+    if (questContainer && questContainer.children.length === 0) {
+      this.addQuestInput();
     }
   }
 
@@ -817,6 +837,33 @@ class Forms {
     
     // Reinitialize passive inputs
     document.querySelectorAll('#passiveInputs input').forEach(input => {
+      // Remove existing listeners to avoid duplicates
+      const oldHandler = input._handleInputChange;
+      if (oldHandler) {
+        input.removeEventListener('input', oldHandler);
+        input.removeEventListener('change', oldHandler);
+      }
+      
+      const oldBlurHandler = input._validateField;
+      if (oldBlurHandler) {
+        input.removeEventListener('blur', oldBlurHandler);
+      }
+      
+      // Create new handlers and store references
+      const newInputHandler = (e) => this.handleInputChange(e.target);
+      const newBlurHandler = (e) => this.validateField(e.target);
+      
+      input._handleInputChange = newInputHandler;
+      input._validateField = newBlurHandler;
+      
+      // Add fresh listeners
+      input.addEventListener('input', newInputHandler);
+      input.addEventListener('change', newInputHandler);
+      input.addEventListener('blur', newBlurHandler);
+    });
+    
+    // Reinitialize quest inputs
+    document.querySelectorAll('#questInputs input[type="text"], #questInputs input[type="number"]').forEach(input => {
       // Remove existing listeners to avoid duplicates
       const oldHandler = input._handleInputChange;
       if (oldHandler) {
