@@ -189,12 +189,18 @@ static async createCard(options = {}) {
     
     // Get custom scaling values
     const customScalingContainer = document.getElementById('customScalingContainer');
+    console.log('🎨 Custom scaling container found:', customScalingContainer);
     const customScalingInputs = customScalingContainer?.querySelectorAll('.custom-scaling-input') || [];
-    const customScalingValues = Array.from(customScalingInputs).map(inputGroup => {
+    console.log('🎨 Custom scaling inputs found:', customScalingInputs.length);
+    console.log('🎨 Custom scaling input elements:', customScalingInputs);
+    
+    const customScalingValues = Array.from(customScalingInputs).map((inputGroup, index) => {
+      console.log(`🎨 Processing custom scaling input group ${index}:`, inputGroup);
       const valueInput = inputGroup.querySelector('.custom-scaling-value');
       const colorInput = inputGroup.querySelector('.custom-scaling-color');
       const value = valueInput?.value?.trim() || '';
       const color = colorInput?.value || '#00ff00';
+      console.log(`🎨 Input group ${index} - value: "${value}", color: "${color}"`);
       
       if (value) {
         // Convert hex color to HSL for filter
@@ -224,13 +230,16 @@ static async createCard(options = {}) {
         const saturation = Math.round(s * 100);
         const brightness = Math.round(l * 100);
         
-        return {
+        const result = {
           value: value,
           hue: hue,
           saturation: saturation / 100,
           brightness: brightness / 100
         };
+        console.log(`🎨 Input group ${index} - processed result:`, result);
+        return result;
       }
+      console.log(`🎨 Input group ${index} - no value, skipping`);
       return null;
     }).filter(val => val !== null);
     

@@ -1258,8 +1258,10 @@ class IndexPageController {
   
   // Custom scaling value functions
   static addCustomScaling() {
+    console.log('🎨 Adding custom scaling input group...');
     const container = document.getElementById('customScalingContainer');
     const customIndex = container.children.length;
+    console.log('🎨 Current custom scaling inputs:', customIndex);
     
     const inputGroup = document.createElement('div');
     inputGroup.className = 'custom-scaling-input';
@@ -1281,6 +1283,12 @@ class IndexPageController {
     valueInput.placeholder = 'Value (e.g., 5)';
     valueInput.style.flex = '1';
     
+    // Add event listener for value changes
+    valueInput.addEventListener('input', function() {
+      console.log('🎨 Custom scaling value changed:', this.value);
+      console.log('🎨 Custom scaling color:', this.parentElement.querySelector('.custom-scaling-color').value);
+    });
+    
     // Color picker
     const colorInput = document.createElement('input');
     colorInput.type = 'color';
@@ -1292,6 +1300,12 @@ class IndexPageController {
     colorInput.style.borderRadius = '4px';
     colorInput.style.cursor = 'pointer';
     
+    // Add event listener for color changes
+    colorInput.addEventListener('change', function() {
+      console.log('🎨 Custom scaling color changed:', this.value);
+      console.log('🎨 Custom scaling value:', this.parentElement.querySelector('.custom-scaling-value').value);
+    });
+    
     // Remove button
     const removeBtn = document.createElement('button');
     removeBtn.type = 'button';
@@ -1299,6 +1313,7 @@ class IndexPageController {
     removeBtn.innerHTML = '❌';
     removeBtn.style.padding = '5px 8px';
     removeBtn.onclick = function() {
+      console.log('🎨 Removing custom scaling input group');
       container.removeChild(inputGroup);
     };
     
@@ -1306,6 +1321,9 @@ class IndexPageController {
     inputGroup.appendChild(colorInput);
     inputGroup.appendChild(removeBtn);
     container.appendChild(inputGroup);
+    
+    console.log('🎨 Custom scaling input group added successfully');
+    console.log('🎨 Total custom scaling inputs now:', container.children.length);
   }
 }
 
