@@ -1069,7 +1069,7 @@ static async createCard(options = {}) {
   static createAmmoSection(cardData, borderColor) {
     const ammoDiv = document.createElement("div");
     ammoDiv.className = "ammo-section";
-    ammoDiv.style.border = `3px solid ${borderColor}`;
+    ammoDiv.style.borderImage = `url('images/skill-frames/borders/bronze_frame.png') 40 fill / 50px / 0 round`;
     
     const ammoImg = document.createElement("img");
     ammoImg.src = "images/keywords/effects/ammo.png";
