@@ -526,7 +526,26 @@ class SkillGenerator {
         const dataUrl = await htmlToImage.toPng(skillElement, {
           backgroundColor: null,
           pixelRatio: 2, // Higher quality
-          cacheBust: true
+          cacheBust: true,
+                  // Suppress CORS-related console errors
+        beforeDraw: (canvas) => {
+          // Simple error suppression for skill generator
+          const originalConsoleError = console.error;
+          console.error = (...args) => {
+            const message = args.join(' ');
+            if (message.includes('SecurityError') || 
+                message.includes('CORS') || 
+                message.includes('cssRules') ||
+                message.includes('fetch') ||
+                message.includes('stylesheet')) {
+              return;
+            }
+            originalConsoleError.apply(console, args);
+          };
+          setTimeout(() => {
+            console.error = originalConsoleError;
+          }, 1000);
+        }
         });
 
         // Create download link

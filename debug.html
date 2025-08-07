@@ -235,6 +235,10 @@
             <button class="debug-button" onclick="runFullDiagnostic()">🔍 Full Diagnostic</button>
             <button class="debug-button secondary" onclick="simulateSignIn()">👤 Simulate Sign In</button>
             <button class="debug-button secondary" onclick="testDatabaseOperations()">💾 Test DB Operations</button>
+            <button class="debug-button secondary" onclick="testHtmlToImageBorderSupport()">🖼️ Test Border Image</button>
+            <button class="debug-button secondary" onclick="testExportBorderImage()">🎨 Test Export Border</button>
+            <button class="debug-button secondary" onclick="testSvgExport()">📐 Test SVG Export</button>
+            <button class="debug-button secondary" onclick="testPixelDataExport()">🔍 Test Pixel Data Export</button>
             <button class="debug-button danger" onclick="clearAllData()">🗑️ Clear All Data</button>
         </div>
     </div>
@@ -515,6 +519,152 @@
                 console.log('✅ All local data cleared');
                 setTimeout(() => location.reload(), 1000);
             }
+        }
+
+        function testHtmlToImageBorderSupport() {
+            console.log('🧪 Testing html-to-image border-image support...');
+            
+            if (typeof htmlToImage === 'undefined') {
+                console.error('❌ html-to-image library not loaded');
+                return;
+            }
+            
+            // Create a test element with border-image
+            const testContainer = document.createElement('div');
+            testContainer.style.cssText = `
+                position: fixed;
+                top: -9999px;
+                left: -9999px;
+                width: 200px;
+                height: 200px;
+                border-image: url('images/skill-frames/borders/bronze_frame.png') 40 fill / 50px / 0 round;
+                border-image-slice: 40 fill;
+                border-image-width: 50px;
+                border-image-outset: 0;
+                border-image-repeat: round;
+                background: white;
+                padding: 20px;
+            `;
+            testContainer.innerHTML = '<div style="color: black;">Test Border Image</div>';
+            document.body.appendChild(testContainer);
+            
+            // Test html-to-image capture
+            htmlToImage.toPng(testContainer, {
+                backgroundColor: null,
+                pixelRatio: 2,
+                cacheBust: true
+            }).then(dataUrl => {
+                console.log('✅ html-to-image captured test element');
+                
+                // Create a test image to see the result
+                const testImg = new Image();
+                testImg.onload = () => {
+                    console.log('✅ Test image loaded successfully');
+                    console.log('Image dimensions:', testImg.width, 'x', testImg.height);
+                    
+                    // Clean up
+                    document.body.removeChild(testContainer);
+                };
+                testImg.onerror = () => {
+                    console.error('❌ Failed to load test image');
+                    document.body.removeChild(testContainer);
+                };
+                testImg.src = dataUrl;
+                
+            }).catch(error => {
+                console.error('❌ html-to-image test failed:', error);
+                document.body.removeChild(testContainer);
+            });
+        }
+
+        function testExportBorderImage() {
+            console.log('🎨 Testing export border image functionality...');
+            
+            if (typeof ExportImport === 'undefined') {
+                console.error('❌ ExportImport not available');
+                return;
+            }
+            
+            // Test the border image support function
+            ExportImport.testBorderImageSupport().then(success => {
+                if (success) {
+                    console.log('✅ Border image support test passed');
+                } else {
+                    console.log('❌ Border image support test failed');
+                }
+            });
+        }
+
+        function testPixelDataExport() {
+            console.log('🔍 Testing pixel data export functionality...');
+            
+            if (typeof ExportImport === 'undefined') {
+                console.error('❌ ExportImport not available');
+                return;
+            }
+            
+            if (typeof htmlToImage === 'undefined') {
+                console.error('❌ html-to-image library not loaded');
+                return;
+            }
+            
+            // Create a test element
+            const testContainer = document.createElement('div');
+            testContainer.style.cssText = `
+                position: fixed;
+                top: -9999px;
+                left: -9999px;
+                width: 200px;
+                height: 200px;
+                background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+                border: 3px solid #333;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: white;
+                font-size: 18px;
+                font-weight: bold;
+            `;
+            testContainer.innerHTML = '<div>Test Pixel Data</div>';
+            document.body.appendChild(testContainer);
+            
+            // Test pixel data export (PNG)
+            ExportImport.exportCardAsPixelData(testContainer, 'test-pixel-data.json', 'png').then(pixelData => {
+                if (pixelData) {
+                    console.log('✅ Pixel data export successful');
+                    console.log('📊 Pixel data length:', pixelData.length);
+                    console.log('📊 Total pixels:', pixelData.length / 4);
+                    console.log('📊 Sample pixels (first 20 bytes):', pixelData.slice(0, 20));
+                    
+                    // Test pixel data analysis
+                    const analysis = ExportImport.analyzePixelData(pixelData, 200, 200);
+                    console.log('📊 Pixel analysis:', analysis);
+                    
+                    // Test converting back to canvas
+                    const canvas = ExportImport.pixelDataToCanvas(pixelData, 200, 200);
+                    console.log('✅ Canvas recreation successful');
+                    console.log('📊 Canvas dimensions:', canvas.width, 'x', canvas.height);
+                    
+                    // Test JPEG export as well
+                    console.log('🖼️ Testing JPEG export...');
+                    ExportImport.exportCardAsPixelData(testContainer, 'test-pixel-data-jpeg.json', 'jpeg').then(jpegPixelData => {
+                        if (jpegPixelData) {
+                            console.log('✅ JPEG export successful');
+                        }
+                        // Clean up
+                        document.body.removeChild(testContainer);
+                    }).catch(error => {
+                        console.error('❌ JPEG export error:', error);
+                        document.body.removeChild(testContainer);
+                    });
+                } else {
+                    console.error('❌ Pixel data export failed');
+                    document.body.removeChild(testContainer);
+                }
+            }).catch(error => {
+                console.error('❌ Pixel data export error:', error);
+                document.body.removeChild(testContainer);
+            });
         }
 
         // Global test functions

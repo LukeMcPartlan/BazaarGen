@@ -5,6 +5,31 @@
 class ExportImport {
   
   /**
+   * Suppress CORS-related console errors during html-to-image rendering
+   */
+  static suppressCorsErrors() {
+    const originalConsoleError = console.error;
+    console.error = (...args) => {
+      const message = args.join(' ');
+      // Only suppress CORS and CSS-related errors that don't affect the export
+      if (message.includes('SecurityError') || 
+          message.includes('CORS') || 
+          message.includes('cssRules') ||
+          message.includes('fetch') ||
+          message.includes('stylesheet') ||
+          message.includes('Access to fetch')) {
+        return; // Suppress these errors
+      }
+      originalConsoleError.apply(console, args);
+    };
+    
+    // Restore console.error after a short delay
+    setTimeout(() => {
+      console.error = originalConsoleError;
+    }, 1000);
+  }
+  
+  /**
    * Export all cards as JSON data
    */
   static exportAllCardsAsData(cardsData) {
@@ -359,6 +384,41 @@ class ExportImport {
   }
 
   /**
+   * Hide control elements during export
+   */
+  static hideControlElements(element) {
+    const hiddenElements = [];
+    const controlSelectors = [
+      '.export-button',
+      '.export-menu',
+      '.card-controls',
+      '.skill-controls',
+      '.item-controls',
+      '.delete-btn',
+      '.upvote-btn',
+      '.save-btn',
+      '.edit-btn',
+      '.share-btn'
+    ];
+
+    controlSelectors.forEach(selector => {
+      const controls = element.querySelectorAll(selector);
+      controls.forEach(control => {
+        if (control.style.display !== 'none') {
+          hiddenElements.push({
+            element: control,
+            originalDisplay: control.style.display
+          });
+          control.style.display = 'none';
+        }
+      });
+    });
+
+    console.log(`🎭 Hidden ${hiddenElements.length} control elements for export`);
+    return hiddenElements;
+  }
+
+  /**
    * Add watermark to canvas with creator alias
    */
   static addWatermarkToCanvas(canvas, cardElement = null) {
@@ -628,10 +688,26 @@ class ExportImport {
       const exportStyles = this.prepareCardForExport(cardElement);
       originalStyles.push(...exportStyles);
       
+      // Test border-image support and apply fallback if needed
+      const borderType = cardElement.querySelector('.card-content')?.style.borderImage?.includes('legendary') ? 'legendary' :
+                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('gold') ? 'gold' :
+                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('silver') ? 'silver' :
+                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('bronze') ? 'bronze' :
+                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('diamond') ? 'diamond' : null;
+      
+      if (borderType) {
+        console.log('🎨 Detected border type for export:', borderType);
+        // Apply fallback border styling for html-to-image
+        const contentElement = cardElement.querySelector('.card-content');
+        if (contentElement) {
+          this.applyEnhancedBorderForExport(contentElement, borderType);
+        }
+      }
+      
       // Force reflow to ensure styles are applied
       cardElement.offsetHeight;
       
-      // Configure html-to-image options
+      // Configure html-to-image options with error suppression
       const dataUrl = await htmlToImage.toPng(cardElement, {
         backgroundColor: null,
         width: cardElement.offsetWidth,
@@ -651,6 +727,10 @@ class ExportImport {
             node.classList.contains('upvote-btn') ||
             node.classList.contains('save-btn')
           ));
+        },
+        // Suppress CORS-related console errors
+        beforeDraw: (canvas) => {
+          this.suppressCorsErrors();
         }
       });
 
@@ -658,6 +738,14 @@ class ExportImport {
       
       // Download the data URL directly
       this.downloadImage(dataUrl, finalFilename);
+      
+      // Restore original border-image styling if it was modified
+      if (borderType) {
+        const contentElement = cardElement.querySelector('.card-content');
+        if (contentElement) {
+          this.restoreBorderImageStyling(contentElement, borderType);
+        }
+      }
       
       if (typeof Messages !== 'undefined') {
         Messages.showSuccess(`Card exported as ${finalFilename}`);
@@ -742,10 +830,26 @@ class ExportImport {
       // Store original elements for restoration
       const originalElements = exportResult.originalElements;
       
+      // Test border-image support and apply fallback if needed
+      const borderType = skillElement.querySelector('.skill-content')?.style.borderImage?.includes('legendary') ? 'legendary' :
+                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('gold') ? 'gold' :
+                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('silver') ? 'silver' :
+                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('bronze') ? 'bronze' :
+                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('diamond') ? 'diamond' : null;
+      
+      if (borderType) {
+        console.log('🎨 Detected border type for skill export:', borderType);
+        // Apply fallback border styling for html-to-image
+        const contentElement = skillElement.querySelector('.skill-content');
+        if (contentElement) {
+          this.applyEnhancedBorderForExport(contentElement, borderType);
+        }
+      }
+      
       // Force reflow to ensure styles are applied
       skillElement.offsetHeight;
       
-      // Configure html-to-image options
+      // Configure html-to-image options with error suppression
       const dataUrl = await htmlToImage.toPng(skillElement, {
         backgroundColor: null,
         width: skillElement.offsetWidth,
@@ -764,6 +868,10 @@ class ExportImport {
             node.classList.contains('delete-btn') ||
             node.classList.contains('upvote-btn')
           ));
+        },
+        // Suppress CORS-related console errors
+        beforeDraw: (canvas) => {
+          this.suppressCorsErrors();
         }
       });
 
@@ -771,6 +879,14 @@ class ExportImport {
       
       // Download the data URL directly
       this.downloadImage(dataUrl, finalFilename);
+      
+      // Restore original border-image styling if it was modified
+      if (borderType) {
+        const contentElement = skillElement.querySelector('.skill-content');
+        if (contentElement) {
+          this.restoreBorderImageStyling(contentElement, borderType);
+        }
+      }
       
       if (typeof Messages !== 'undefined') {
         Messages.showSuccess(`Skill exported as ${finalFilename}`);
@@ -801,6 +917,651 @@ class ExportImport {
         item.element.style.display = item.originalDisplay;
       });
     }
+  }
+
+  /**
+   * Export single card as SVG using html-to-image
+   */
+  static async exportCardAsSVG(cardElement, filename = null) {
+    if (!cardElement) {
+      console.error('No card element provided for SVG export');
+      return;
+    }
+
+    // Check if html-to-image is available
+    if (typeof htmlToImage === 'undefined') {
+      const errorMsg = 'html-to-image library not loaded! Please ensure the library is included.';
+      console.error(errorMsg);
+      if (typeof Messages !== 'undefined') {
+        Messages.showError(errorMsg);
+      } else {
+        alert(errorMsg);
+      }
+      return;
+    }
+
+    let originalStyles = [];
+    let hiddenElements = [];
+
+    try {
+      console.log('🖼️ Starting card SVG export...');
+      
+      // Prepare element for export
+      originalStyles = this.prepareCardForExport(cardElement);
+      
+      // Hide control elements
+      hiddenElements = this.hideControlElements(cardElement);
+      
+      // Generate filename if not provided
+      const finalFilename = filename || `card-${this.getDateString()}.svg`;
+      
+      // Detect border type for enhanced styling
+      const borderType = cardElement.querySelector('.card-content')?.style.borderImage?.includes('legendary') ? 'legendary' :
+                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('gold') ? 'gold' :
+                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('silver') ? 'silver' :
+                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('bronze') ? 'bronze' :
+                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('diamond') ? 'diamond' : null;
+      
+      if (borderType) {
+        console.log('🎨 Detected border type for card SVG export:', borderType);
+        // Apply fallback border styling for html-to-image
+        const contentElement = cardElement.querySelector('.card-content');
+        if (contentElement) {
+          this.applyEnhancedBorderForExport(contentElement, borderType);
+        }
+      }
+      
+      // Force reflow to ensure styles are applied
+      cardElement.offsetHeight;
+      
+      // Configure html-to-image options for SVG export
+      const dataUrl = await htmlToImage.toSvg(cardElement, {
+        backgroundColor: null,
+        width: cardElement.offsetWidth,
+        height: cardElement.offsetHeight,
+        cacheBust: true, // Enable cache busting for images
+        imagePlaceholder: '', // Empty placeholder for failed images
+        filter: (node) => {
+          // Skip any control elements
+          return !(node.classList && (
+            node.classList.contains('export-button') || 
+            node.classList.contains('export-menu') ||
+            node.classList.contains('card-controls') ||
+            node.classList.contains('skill-controls') ||
+            node.classList.contains('item-controls') ||
+            node.classList.contains('delete-btn') ||
+            node.classList.contains('upvote-btn') ||
+            node.classList.contains('save-btn')
+          ));
+        }
+      });
+
+      console.log('✅ Card SVG created successfully');
+      
+      // Download the SVG data URL
+      this.downloadImage(dataUrl, finalFilename);
+      
+      // Restore original border-image styling if it was modified
+      if (borderType) {
+        const contentElement = cardElement.querySelector('.card-content');
+        if (contentElement) {
+          this.restoreBorderImageStyling(contentElement, borderType);
+        }
+      }
+      
+      if (typeof Messages !== 'undefined') {
+        Messages.showSuccess(`Card exported as ${finalFilename}`);
+      }
+      console.log('✅ SVG export completed:', finalFilename);
+      
+    } catch (error) {
+      console.error('❌ Error exporting card as SVG:', error);
+      const errorMsg = `Failed to export card as SVG: ${error.message}`;
+      if (typeof Messages !== 'undefined') {
+        Messages.showError(errorMsg);
+      } else {
+        alert(errorMsg);
+      }
+    } finally {
+      // Always restore original styles and show hidden elements
+      if (originalStyles.length > 0) {
+        // Small delay to ensure SVG is processed before restoring
+        setTimeout(() => {
+          this.restoreElementAfterExport(originalStyles);
+        }, 100);
+      }
+      
+      // Restore hidden elements
+      hiddenElements.forEach(item => {
+        item.element.style.display = item.originalDisplay;
+      });
+    }
+  }
+
+  /**
+   * Export single skill as SVG using html-to-image
+   */
+  static async exportSkillAsSVG(skillElement, filename = null) {
+    if (!skillElement) {
+      console.error('No skill element provided for SVG export');
+      return;
+    }
+
+    // Check if html-to-image is available
+    if (typeof htmlToImage === 'undefined') {
+      const errorMsg = 'html-to-image library not loaded! Please ensure the library is included.';
+      console.error(errorMsg);
+      if (typeof Messages !== 'undefined') {
+        Messages.showError(errorMsg);
+      } else {
+        alert(errorMsg);
+      }
+      return;
+    }
+
+    let originalStyles = [];
+    let hiddenElements = [];
+
+    try {
+      console.log('🖼️ Starting skill SVG export...');
+      
+      // Prepare element for export
+      originalStyles = this.prepareSkillForExport(skillElement);
+      
+      // Hide control elements
+      hiddenElements = this.hideControlElements(skillElement);
+      
+      // Generate filename if not provided
+      const finalFilename = filename || `skill-${this.getDateString()}.svg`;
+      
+      // Detect border type for enhanced styling
+      const borderType = skillElement.querySelector('.skill-content')?.style.borderImage?.includes('legendary') ? 'legendary' :
+                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('gold') ? 'gold' :
+                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('silver') ? 'silver' :
+                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('bronze') ? 'bronze' :
+                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('diamond') ? 'diamond' : null;
+      
+      if (borderType) {
+        console.log('🎨 Detected border type for skill SVG export:', borderType);
+        // Apply fallback border styling for html-to-image
+        const contentElement = skillElement.querySelector('.skill-content');
+        if (contentElement) {
+          this.applyEnhancedBorderForExport(contentElement, borderType);
+        }
+      }
+      
+      // Force reflow to ensure styles are applied
+      skillElement.offsetHeight;
+      
+      // Configure html-to-image options for SVG export
+      const dataUrl = await htmlToImage.toSvg(skillElement, {
+        backgroundColor: null,
+        width: skillElement.offsetWidth,
+        height: skillElement.offsetHeight,
+        cacheBust: true, // Enable cache busting for images
+        imagePlaceholder: '', // Empty placeholder for failed images
+        filter: (node) => {
+          // Skip any control elements
+          return !(node.classList && (
+            node.classList.contains('export-button') || 
+            node.classList.contains('export-menu') ||
+            node.classList.contains('skill-controls') ||
+            node.classList.contains('card-controls') ||
+            node.classList.contains('item-controls') ||
+            node.classList.contains('delete-btn') ||
+            node.classList.contains('upvote-btn')
+          ));
+        }
+      });
+
+      console.log('✅ Skill SVG created successfully');
+      
+      // Download the SVG data URL
+      this.downloadImage(dataUrl, finalFilename);
+      
+      // Restore original border-image styling if it was modified
+      if (borderType) {
+        const contentElement = skillElement.querySelector('.skill-content');
+        if (contentElement) {
+          this.restoreBorderImageStyling(contentElement, borderType);
+        }
+      }
+      
+      if (typeof Messages !== 'undefined') {
+        Messages.showSuccess(`Skill exported as ${finalFilename}`);
+      }
+      console.log('✅ Skill SVG export completed:', finalFilename);
+      
+    } catch (error) {
+      console.error('❌ Error exporting skill as SVG:', error);
+      const errorMsg = `Failed to export skill as SVG: ${error.message}`;
+      if (typeof Messages !== 'undefined') {
+        Messages.showError(errorMsg);
+      } else {
+        alert(errorMsg);
+      }
+    } finally {
+      // Always restore original styles and show hidden elements
+      if (originalStyles.length > 0) {
+        // Small delay to ensure SVG is processed before restoring
+        setTimeout(() => {
+          this.restoreElementAfterExport(originalStyles);
+        }, 100);
+      }
+      
+      // Restore hidden elements
+      hiddenElements.forEach(item => {
+        item.element.style.display = item.originalDisplay;
+      });
+    }
+  }
+
+  /**
+   * Export single card as pixel data using html-to-image
+   */
+  static async exportCardAsPixelData(cardElement, filename = null, outputFormat = 'png') {
+    if (!cardElement) {
+      console.error('No card element provided for pixel data export');
+      return;
+    }
+
+    // Check if html-to-image is available
+    if (typeof htmlToImage === 'undefined') {
+      const errorMsg = 'html-to-image library not loaded! Please ensure the library is included.';
+      console.error(errorMsg);
+      if (typeof Messages !== 'undefined') {
+        Messages.showError(errorMsg);
+      } else {
+        alert(errorMsg);
+      }
+      return;
+    }
+
+    let originalStyles = [];
+    let hiddenElements = [];
+
+    try {
+      console.log('🖼️ Starting card pixel data export...');
+      
+      // Prepare element for export
+      originalStyles = this.prepareCardForExport(cardElement);
+      
+      // Hide control elements
+      hiddenElements = this.hideControlElements(cardElement);
+      
+      // Generate filename if not provided
+      const finalFilename = filename || `card-pixels-${this.getDateString()}.json`;
+      
+      // Detect border type for enhanced styling
+      const borderType = cardElement.querySelector('.card-content')?.style.borderImage?.includes('legendary') ? 'legendary' :
+                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('gold') ? 'gold' :
+                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('silver') ? 'silver' :
+                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('bronze') ? 'bronze' :
+                        cardElement.querySelector('.card-content')?.style.borderImage?.includes('diamond') ? 'diamond' : null;
+      
+      if (borderType) {
+        console.log('🎨 Detected border type for card pixel export:', borderType);
+        // Apply fallback border styling for html-to-image
+        const contentElement = cardElement.querySelector('.card-content');
+        if (contentElement) {
+          this.applyEnhancedBorderForExport(contentElement, borderType);
+        }
+      }
+      
+      // Force reflow to ensure styles are applied
+      cardElement.offsetHeight;
+      
+      // Configure html-to-image options for pixel data export
+      const pixelData = await htmlToImage.toPixelData(cardElement, {
+        backgroundColor: null,
+        width: cardElement.offsetWidth,
+        height: cardElement.offsetHeight,
+        cacheBust: true, // Enable cache busting for images
+        imagePlaceholder: '', // Empty placeholder for failed images
+        filter: (node) => {
+          // Skip any control elements
+          return !(node.classList && (
+            node.classList.contains('export-button') || 
+            node.classList.contains('export-menu') ||
+            node.classList.contains('card-controls') ||
+            node.classList.contains('skill-controls') ||
+            node.classList.contains('item-controls') ||
+            node.classList.contains('delete-btn') ||
+            node.classList.contains('upvote-btn') ||
+            node.classList.contains('save-btn')
+          ));
+        }
+      });
+
+      console.log('✅ Card pixel data created successfully');
+      console.log('📊 Pixel data info:', {
+        totalPixels: pixelData.length / 4,
+        width: cardElement.offsetWidth,
+        height: cardElement.offsetHeight,
+        dataLength: pixelData.length,
+        samplePixels: pixelData.slice(0, 20) // First 5 pixels (20 bytes)
+      });
+      
+      // Create export data object
+      const exportData = {
+        metadata: {
+          type: 'card_pixel_data',
+          timestamp: new Date().toISOString(),
+          width: cardElement.offsetWidth,
+          height: cardElement.offsetHeight,
+          totalPixels: pixelData.length / 4,
+          borderType: borderType,
+          creator: typeof GoogleAuth !== 'undefined' ? GoogleAuth.getUserDisplayName() : 'Unknown'
+        },
+        pixelData: Array.from(pixelData), // Convert Uint8Array to regular array for JSON serialization
+        rgbaInfo: {
+          description: 'Each pixel is represented by 4 consecutive values: R, G, B, A',
+          format: 'RGBA',
+          bytesPerPixel: 4
+        }
+      };
+      
+      // Convert pixel data back to image format and download
+      const imageFormat = outputFormat === 'jpeg' ? 'image/jpeg' : 'image/png';
+      const imageExtension = outputFormat === 'jpeg' ? '.jpg' : '.png';
+      const imageFilename = finalFilename.replace('.json', imageExtension);
+      const imageDataUrl = this.pixelDataToDataURL(pixelData, cardElement.offsetWidth, cardElement.offsetHeight, imageFormat);
+      this.downloadImage(imageDataUrl, imageFilename);
+      
+      // Also save the JSON for analysis (optional)
+      this.downloadJSON(exportData, finalFilename);
+      
+      // Restore original border-image styling if it was modified
+      if (borderType) {
+        const contentElement = cardElement.querySelector('.card-content');
+        if (contentElement) {
+          this.restoreBorderImageStyling(contentElement, borderType);
+        }
+      }
+      
+      if (typeof Messages !== 'undefined') {
+        Messages.showSuccess(`Card exported as ${imageFilename} (${outputFormat.toUpperCase()}) and ${finalFilename} (JSON)`);
+      }
+      console.log('✅ Pixel data export completed:', imageFilename, 'and', finalFilename);
+      
+      return pixelData; // Return the raw pixel data for further processing
+      
+    } catch (error) {
+      console.error('❌ Error exporting card as pixel data:', error);
+      const errorMsg = `Failed to export card as pixel data: ${error.message}`;
+      if (typeof Messages !== 'undefined') {
+        Messages.showError(errorMsg);
+      } else {
+        alert(errorMsg);
+      }
+      return null;
+    } finally {
+      // Always restore original styles and show hidden elements
+      if (originalStyles.length > 0) {
+        // Small delay to ensure processing is complete before restoring
+        setTimeout(() => {
+          this.restoreElementAfterExport(originalStyles);
+        }, 100);
+      }
+      
+      // Restore hidden elements
+      hiddenElements.forEach(item => {
+        item.element.style.display = item.originalDisplay;
+      });
+    }
+  }
+
+  /**
+   * Export single skill as pixel data using html-to-image
+   */
+  static async exportSkillAsPixelData(skillElement, filename = null, outputFormat = 'png') {
+    if (!skillElement) {
+      console.error('No skill element provided for pixel data export');
+      return;
+    }
+
+    // Check if html-to-image is available
+    if (typeof htmlToImage === 'undefined') {
+      const errorMsg = 'html-to-image library not loaded! Please ensure the library is included.';
+      console.error(errorMsg);
+      if (typeof Messages !== 'undefined') {
+        Messages.showError(errorMsg);
+      } else {
+        alert(errorMsg);
+      }
+      return;
+    }
+
+    let originalStyles = [];
+    let hiddenElements = [];
+
+    try {
+      console.log('🖼️ Starting skill pixel data export...');
+      
+      // Prepare element for export
+      originalStyles = this.prepareSkillForExport(skillElement);
+      
+      // Hide control elements
+      hiddenElements = this.hideControlElements(skillElement);
+      
+      // Generate filename if not provided
+      const finalFilename = filename || `skill-pixels-${this.getDateString()}.json`;
+      
+      // Detect border type for enhanced styling
+      const borderType = skillElement.querySelector('.skill-content')?.style.borderImage?.includes('legendary') ? 'legendary' :
+                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('gold') ? 'gold' :
+                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('silver') ? 'silver' :
+                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('bronze') ? 'bronze' :
+                        skillElement.querySelector('.skill-content')?.style.borderImage?.includes('diamond') ? 'diamond' : null;
+      
+      if (borderType) {
+        console.log('🎨 Detected border type for skill pixel export:', borderType);
+        // Apply fallback border styling for html-to-image
+        const contentElement = skillElement.querySelector('.skill-content');
+        if (contentElement) {
+          this.applyEnhancedBorderForExport(contentElement, borderType);
+        }
+      }
+      
+      // Force reflow to ensure styles are applied
+      skillElement.offsetHeight;
+      
+      // Configure html-to-image options for pixel data export
+      const pixelData = await htmlToImage.toPixelData(skillElement, {
+        backgroundColor: null,
+        width: skillElement.offsetWidth,
+        height: skillElement.offsetHeight,
+        cacheBust: true, // Enable cache busting for images
+        imagePlaceholder: '', // Empty placeholder for failed images
+        filter: (node) => {
+          // Skip any control elements
+          return !(node.classList && (
+            node.classList.contains('export-button') || 
+            node.classList.contains('export-menu') ||
+            node.classList.contains('skill-controls') ||
+            node.classList.contains('card-controls') ||
+            node.classList.contains('item-controls') ||
+            node.classList.contains('delete-btn') ||
+            node.classList.contains('upvote-btn')
+          ));
+        }
+      });
+
+      console.log('✅ Skill pixel data created successfully');
+      console.log('📊 Pixel data info:', {
+        totalPixels: pixelData.length / 4,
+        width: skillElement.offsetWidth,
+        height: skillElement.offsetHeight,
+        dataLength: pixelData.length,
+        samplePixels: pixelData.slice(0, 20) // First 5 pixels (20 bytes)
+      });
+      
+      // Create export data object
+      const exportData = {
+        metadata: {
+          type: 'skill_pixel_data',
+          timestamp: new Date().toISOString(),
+          width: skillElement.offsetWidth,
+          height: skillElement.offsetHeight,
+          totalPixels: pixelData.length / 4,
+          borderType: borderType,
+          creator: typeof GoogleAuth !== 'undefined' ? GoogleAuth.getUserDisplayName() : 'Unknown'
+        },
+        pixelData: Array.from(pixelData), // Convert Uint8Array to regular array for JSON serialization
+        rgbaInfo: {
+          description: 'Each pixel is represented by 4 consecutive values: R, G, B, A',
+          format: 'RGBA',
+          bytesPerPixel: 4
+        }
+      };
+      
+      // Convert pixel data back to image format and download
+      const imageFormat = outputFormat === 'jpeg' ? 'image/jpeg' : 'image/png';
+      const imageExtension = outputFormat === 'jpeg' ? '.jpg' : '.png';
+      const imageFilename = finalFilename.replace('.json', imageExtension);
+      const imageDataUrl = this.pixelDataToDataURL(pixelData, skillElement.offsetWidth, skillElement.offsetHeight, imageFormat);
+      this.downloadImage(imageDataUrl, imageFilename);
+      
+      // Also save the JSON for analysis (optional)
+      this.downloadJSON(exportData, finalFilename);
+      
+      // Restore original border-image styling if it was modified
+      if (borderType) {
+        const contentElement = skillElement.querySelector('.skill-content');
+        if (contentElement) {
+          this.restoreBorderImageStyling(contentElement, borderType);
+        }
+      }
+      
+      if (typeof Messages !== 'undefined') {
+        Messages.showSuccess(`Skill exported as ${imageFilename} (${outputFormat.toUpperCase()}) and ${finalFilename} (JSON)`);
+      }
+      console.log('✅ Skill pixel data export completed:', imageFilename, 'and', finalFilename);
+      
+      return pixelData; // Return the raw pixel data for further processing
+      
+    } catch (error) {
+      console.error('❌ Error exporting skill as pixel data:', error);
+      const errorMsg = `Failed to export skill as pixel data: ${error.message}`;
+      if (typeof Messages !== 'undefined') {
+        Messages.showError(errorMsg);
+      } else {
+        alert(errorMsg);
+      }
+      return null;
+    } finally {
+      // Always restore original styles and show hidden elements
+      if (originalStyles.length > 0) {
+        // Small delay to ensure processing is complete before restoring
+        setTimeout(() => {
+          this.restoreElementAfterExport(originalStyles);
+        }, 100);
+      }
+      
+      // Restore hidden elements
+      hiddenElements.forEach(item => {
+        item.element.style.display = item.originalDisplay;
+      });
+    }
+  }
+
+  /**
+   * Convert pixel data back to canvas (for testing/verification)
+   */
+  static pixelDataToCanvas(pixelData, width, height) {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    
+    const imageData = ctx.createImageData(width, height);
+    imageData.data.set(pixelData);
+    ctx.putImageData(imageData, 0, 0);
+    
+    return canvas;
+  }
+
+  /**
+   * Convert pixel data to data URL (PNG/JPEG)
+   */
+  static pixelDataToDataURL(pixelData, width, height, format = 'image/png', quality = 0.9) {
+    const canvas = this.pixelDataToCanvas(pixelData, width, height);
+    
+    if (format === 'image/jpeg') {
+      // For JPEG, we need to fill transparent areas with white background
+      const ctx = canvas.getContext('2d');
+      const imageData = ctx.getImageData(0, 0, width, height);
+      const data = imageData.data;
+      
+      // Create a white background
+      for (let i = 0; i < data.length; i += 4) {
+        if (data[i + 3] < 255) { // If pixel is not fully opaque
+          const alpha = data[i + 3] / 255;
+          data[i] = Math.round(data[i] * alpha + 255 * (1 - alpha)); // R
+          data[i + 1] = Math.round(data[i + 1] * alpha + 255 * (1 - alpha)); // G
+          data[i + 2] = Math.round(data[i + 2] * alpha + 255 * (1 - alpha)); // B
+          data[i + 3] = 255; // A - fully opaque
+        }
+      }
+      
+      ctx.putImageData(imageData, 0, 0);
+      return canvas.toDataURL(format, quality);
+    } else {
+      // PNG preserves transparency
+      return canvas.toDataURL(format);
+    }
+  }
+
+  /**
+   * Analyze pixel data for specific patterns or colors
+   */
+  static analyzePixelData(pixelData, width, height) {
+    const analysis = {
+      totalPixels: pixelData.length / 4,
+      width: width,
+      height: height,
+      dominantColors: [],
+      transparency: {
+        fullyTransparent: 0,
+        fullyOpaque: 0,
+        semiTransparent: 0
+      },
+      colorDistribution: {}
+    };
+    
+    // Analyze each pixel
+    for (let i = 0; i < pixelData.length; i += 4) {
+      const r = pixelData[i];
+      const g = pixelData[i + 1];
+      const b = pixelData[i + 2];
+      const a = pixelData[i + 3];
+      
+      // Check transparency
+      if (a === 0) {
+        analysis.transparency.fullyTransparent++;
+      } else if (a === 255) {
+        analysis.transparency.fullyOpaque++;
+      } else {
+        analysis.transparency.semiTransparent++;
+      }
+      
+      // Create color key for distribution
+      const colorKey = `${r},${g},${b},${a}`;
+      analysis.colorDistribution[colorKey] = (analysis.colorDistribution[colorKey] || 0) + 1;
+    }
+    
+    // Find dominant colors (top 10)
+    const sortedColors = Object.entries(analysis.colorDistribution)
+      .sort(([,a], [,b]) => b - a)
+      .slice(0, 10);
+    
+    analysis.dominantColors = sortedColors.map(([color, count]) => ({
+      color: color.split(',').map(Number),
+      count: count,
+      percentage: (count / analysis.totalPixels * 100).toFixed(2) + '%'
+    }));
+    
+    return analysis;
   }
 
   /**
@@ -1488,6 +2249,173 @@ class ExportImport {
     const currentCount = parseInt(localStorage.getItem('bazaargen_export_count') || '0');
     localStorage.setItem('bazaargen_export_count', (currentCount + count).toString());
     localStorage.setItem('bazaargen_last_export', new Date().toISOString());
+  }
+
+  /**
+   * Test border-image support in html-to-image
+   */
+  static async testBorderImageSupport() {
+    console.log('🧪 Testing border-image support in html-to-image...');
+    
+    if (typeof htmlToImage === 'undefined') {
+      console.error('❌ html-to-image library not loaded');
+      return false;
+    }
+    
+    // Create a test element with border-image
+    const testElement = document.createElement('div');
+    testElement.style.cssText = `
+      position: fixed;
+      top: -9999px;
+      left: -9999px;
+      width: 200px;
+      height: 200px;
+      border-image: url('images/skill-frames/borders/bronze_frame.png') 40 fill / 50px / 0 round;
+      border-image-slice: 40 fill;
+      border-image-width: 50px;
+      border-image-outset: 0;
+      border-image-repeat: round;
+      background: white;
+      padding: 20px;
+    `;
+    testElement.innerHTML = '<div style="color: black;">Border Image Test</div>';
+    document.body.appendChild(testElement);
+    
+    try {
+      const dataUrl = await htmlToImage.toPng(testElement, {
+        backgroundColor: null,
+        pixelRatio: 2,
+        cacheBust: true
+      });
+      
+      console.log('✅ html-to-image captured test element with border-image');
+      
+      // Create test image to verify
+      const testImg = new Image();
+      testImg.onload = () => {
+        console.log('✅ Test image loaded successfully');
+        console.log('Image dimensions:', testImg.width, 'x', testImg.height);
+        document.body.removeChild(testElement);
+      };
+      testImg.onerror = () => {
+        console.error('❌ Failed to load test image');
+        document.body.removeChild(testElement);
+      };
+      testImg.src = dataUrl;
+      
+      return true;
+    } catch (error) {
+      console.error('❌ html-to-image border-image test failed:', error);
+      document.body.removeChild(testElement);
+      return false;
+    }
+  }
+
+  /**
+   * Apply fallback border styling for html-to-image if border-image fails
+   */
+  static applyBorderImageFallback(element, borderType) {
+    console.log('🔄 Applying border-image fallback for:', borderType);
+    
+    // Remove border-image and apply solid border as fallback
+    element.style.borderImage = 'none';
+    element.style.borderImageSlice = 'none';
+    element.style.borderImageWidth = 'none';
+    element.style.borderImageOutset = 'none';
+    element.style.borderImageRepeat = 'none';
+    
+    // Apply solid border based on border type
+    const borderColors = {
+      legendary: '#FFD700',
+      gold: '#FFD700', 
+      silver: '#C0C0C0',
+      bronze: '#CD7F32',
+      diamond: '#B9F2FF'
+    };
+    
+    const borderColor = borderColors[borderType] || '#000000';
+    element.style.border = `3px solid ${borderColor}`;
+    element.style.borderRadius = '8px';
+    
+    console.log('✅ Applied fallback border styling:', borderColor);
+  }
+
+  /**
+   * Apply enhanced border styling that works better with html-to-image
+   */
+  static applyEnhancedBorderForExport(element, borderType) {
+    console.log('🎨 Applying enhanced border for export:', borderType);
+    
+    // Border configurations for different types
+    const borderConfigs = {
+      legendary: {
+        color: '#FFD700',
+        width: '4px',
+        style: 'solid',
+        shadow: '0 0 10px rgba(255, 215, 0, 0.5)'
+      },
+      gold: {
+        color: '#FFD700',
+        width: '3px',
+        style: 'solid',
+        shadow: '0 0 8px rgba(255, 215, 0, 0.4)'
+      },
+      silver: {
+        color: '#C0C0C0',
+        width: '3px',
+        style: 'solid',
+        shadow: '0 0 6px rgba(192, 192, 192, 0.3)'
+      },
+      bronze: {
+        color: '#CD7F32',
+        width: '2px',
+        style: 'solid',
+        shadow: '0 0 4px rgba(205, 127, 50, 0.3)'
+      },
+      diamond: {
+        color: '#B9F2FF',
+        width: '3px',
+        style: 'solid',
+        shadow: '0 0 8px rgba(185, 242, 255, 0.4)'
+      }
+    };
+    
+    const config = borderConfigs[borderType] || borderConfigs.bronze;
+    
+    // Remove border-image
+    element.style.borderImage = 'none';
+    element.style.borderImageSlice = 'none';
+    element.style.borderImageWidth = 'none';
+    element.style.borderImageOutset = 'none';
+    element.style.borderImageRepeat = 'none';
+    
+    // Apply enhanced border
+    element.style.border = `${config.width} ${config.style} ${config.color}`;
+    element.style.borderRadius = '8px';
+    element.style.boxShadow = config.shadow;
+    
+    console.log('✅ Applied enhanced border styling for export:', config);
+  }
+
+  /**
+   * Restore original border-image styling after export
+   */
+  static restoreBorderImageStyling(element, borderType) {
+    console.log('🔄 Restoring original border-image styling for:', borderType);
+    
+    // Remove enhanced border styling
+    element.style.border = 'none';
+    element.style.borderRadius = 'none';
+    element.style.boxShadow = 'none';
+    
+    // Restore border-image styling
+    element.style.borderImage = `url('images/skill-frames/borders/${borderType}_frame.png') 40 fill / 50px / 0 round`;
+    element.style.borderImageSlice = '40 fill';
+    element.style.borderImageWidth = '50px';
+    element.style.borderImageOutset = '0';
+    element.style.borderImageRepeat = 'round';
+    
+    console.log('✅ Restored original border-image styling');
   }
 
   // ===== UTILITY METHODS =====
