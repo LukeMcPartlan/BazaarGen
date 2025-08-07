@@ -199,6 +199,10 @@ static async createCard(options = {}) {
       console.log('🎨 Custom scaling container HTML:', customScalingContainer.innerHTML);
     }
     
+    // Also check for any custom scaling inputs anywhere in the document
+    const allCustomScalingInputs = document.querySelectorAll('.custom-scaling-input');
+    console.log('🎨 All custom scaling inputs in document:', allCustomScalingInputs.length);
+    
     const customScalingValues = Array.from(customScalingInputs).map((inputGroup, index) => {
       console.log(`🎨 Processing custom scaling input group ${index}:`, inputGroup);
       const valueInput = inputGroup.querySelector('.custom-scaling-value');
