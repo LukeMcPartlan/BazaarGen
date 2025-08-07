@@ -78,6 +78,7 @@ static async createCard(options = {}) {
     }
 
     console.log('🏗️ Building card element...');
+    console.log(`🔍 cardData.scalingValues before buildCardElement:`, JSON.stringify(cardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
     // Create the card element
     const cardElement = this.buildCardElement(cardData, mode, includeControls, callId);
 
@@ -449,6 +450,7 @@ static async createCard(options = {}) {
    */
   static buildCardElement(cardData, mode = 'generator', includeControls = true, callId = 'unknown') {
     console.log(`🏗️ Building card element for mode: ${mode} [Call ID: ${callId}]`);
+    console.log(`🔍 cardData.scalingValues in buildCardElement:`, JSON.stringify(cardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
     
     const borderColor = this.getBorderColor(cardData.border);
     const card = document.createElement("div");
