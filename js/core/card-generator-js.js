@@ -692,6 +692,7 @@ static async createCard(options = {}) {
         const icon = document.createElement("img");
         icon.src = "images/ui/arrows/use-arrow.png";
         icon.alt = "-";
+        icon.className = "on-use-arrow";
         icon.onerror = function() { this.style.display = 'none'; };
 
         const text = document.createElement("span");
@@ -754,6 +755,7 @@ static async createCard(options = {}) {
       const icon = document.createElement("img");
       icon.src = "images/ui/arrows/use-arrow.png";
       icon.alt = "-";
+      icon.className = "on-use-arrow";
       icon.onerror = function() { this.style.display = 'none'; };
 
       const text = document.createElement("span");
