@@ -43,6 +43,7 @@ static async createCard(options = {}) {
       console.log('📝 Extracting data from form...');
       cardData = await this.extractFormData(); // ← Now properly awaiting the Promise
       console.log('✅ Form data extracted:', cardData);
+      console.log('🔍 CardData scalingValues check:', JSON.stringify(cardData.scalingValues, null, 2));
     } else {
       throw new Error('No data source provided');
     }
@@ -259,7 +260,7 @@ static async createCard(options = {}) {
       console.log('🎨 No custom scaling values found');
     }
     
-    console.log('📊 Final scaling values:', scalingValues);
+    console.log('📊 Final scaling values:', JSON.stringify(scalingValues, null, 2));
 
     // Get dynamic inputs - on-use effects, tags, passive effects, and quests
     const onUseInputs = document.querySelectorAll("#onUseInputs input");
@@ -652,6 +653,7 @@ static async createCard(options = {}) {
     imageContainer.appendChild(frame);
 
     // Add scaling values if any exist
+    console.log('🔍 About to create scaling container with data:', cardData.scalingValues);
     const scalingContainer = this.createScalingValuesContainer(cardData.scalingValues);
     console.log('🔍 Scaling container created with', scalingContainer.children.length, 'children');
     if (scalingContainer.children.length > 0) {
