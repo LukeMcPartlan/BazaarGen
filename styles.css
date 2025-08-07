@@ -2219,12 +2219,10 @@ img.skill-icon-overlay-border[src*="legendary"] {
 }
 
 .card-wrapper .ammo-section {
-
   right: -30px;
- 
-  bottom: auto ;
-  transform: none; /* Remove any transforms */
- 
+  top: 50%; /* Center vertically by default */
+  transform: translateY(-50%); /* Center vertically */
+  bottom: auto;
 }
 
 .creator-info {
