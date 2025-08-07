@@ -1865,6 +1865,7 @@ img.skill-icon-overlay-border[src*="legendary"] {
   border-radius: 5px;
   margin-left: 10px;
   flex-shrink: 0; /* Prevent image from shrinking */
+  filter: sepia(1) hue-rotate(25deg) saturate(2) brightness(0.8); /* Apply brown color tint */
 }
 
 .on-use-line {
@@ -1872,7 +1873,7 @@ img.skill-icon-overlay-border[src*="legendary"] {
   align-items: flex-start;
   margin-top: 10px;
   margin-bottom: 10px;
-  margin-left: 40px;
+  margin-left: 20px;
   flex-wrap: nowrap; /* Prevent wrapping - keep arrow and text together */
   overflow-wrap: break-word;
   word-wrap: break-word;
@@ -1895,9 +1896,12 @@ img.skill-icon-overlay-border[src*="legendary"] {
   overflow-wrap: break-word;
   word-wrap: break-word;
   word-break: break-word;
-  margin: 0 1px; /* Add small margin around text content */
+  margin: 5px 1px 0 1px; /* Add 5px margin above, 1px on sides */
   max-width: 100%; /* Constrain to parent width */
   display: inline-block; /* Allow the span to be constrained */
+  vertical-align: middle; /* Center align with images */
+  line-height: 1; /* Ensure consistent line height */
+  font-size: 1.1em; /* Increase font size slightly */
 }
 
 .on-use-line .on-use-content {
@@ -1940,14 +1944,14 @@ img.skill-icon-overlay-border[src*="legendary"] {
 }
 
 .on-use-line img {
-  width: 16px;
-  height: 18px;
+  width: 30px;
+  height: 30px;
   margin: 0;
 }
 
 .on-use-arrow {
-  width: 27px; /* 50% wider than height (18px * 1.5 = 27px) */
-  height: 18px;
+  width: 45px; /* 50% wider than height (30px * 1.5 = 45px) */
+  height: 30px;
   margin: 0;
 }
 
