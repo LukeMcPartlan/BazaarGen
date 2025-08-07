@@ -185,15 +185,32 @@ static async createCard(options = {}) {
       burn: document.getElementById("burnScalingInput")?.value || ''
     };
 
-    // Get dynamic inputs - on-use effects, tags, and passive effects
+    // Get dynamic inputs - on-use effects, tags, passive effects, and quests
     const onUseInputs = document.querySelectorAll("#onUseInputs input");
     const tagInputs = document.querySelectorAll("#tagInputs input");
     const passiveInputs = document.querySelectorAll("#passiveInputs input");
+    const questInputs = document.querySelectorAll("#questInputs .quest-input-group");
 
     console.log('🏷️ Dynamic inputs found:');
     console.log('  - Tag inputs:', tagInputs.length, 'values:', Array.from(tagInputs).map(i => i.value));
     console.log('  - OnUse inputs:', onUseInputs.length, 'values:', Array.from(onUseInputs).map(i => i.value));
     console.log('  - Passive inputs:', passiveInputs.length, 'values:', Array.from(passiveInputs).map(i => i.value));
+    console.log('  - Quest inputs:', questInputs.length, 'groups');
+
+    // Extract quest data
+    const quests = Array.from(questInputs).map(questGroup => {
+      const conditionInput = questGroup.querySelector('.quest-condition');
+      const valueInput = questGroup.querySelector('.quest-value');
+      const rewardInput = questGroup.querySelector('.quest-reward');
+      const orCheckbox = questGroup.querySelector('input[type="checkbox"]');
+      
+      return {
+        condition: conditionInput?.value?.trim() || '',
+        value: valueInput?.value?.trim() || '1',
+        reward: rewardInput?.value?.trim() || '',
+        or: orCheckbox?.checked || false
+      };
+    }).filter(quest => quest.condition && quest.reward); // Only include quests with both condition and reward
 
     return new Promise(async (resolve) => {
       console.log('📖 Processing image file...');
@@ -238,6 +255,7 @@ static async createCard(options = {}) {
         passiveEffects: Array.from(passiveInputs).map(input => input.value.trim()).filter(val => val), // Now array
         onUseEffects: Array.from(onUseInputs).map(input => input.value.trim()).filter(val => val),
         tags: Array.from(tagInputs).map(input => input.value.trim().toUpperCase()).filter(val => val),
+        quests: quests,
         scalingValues: scalingValues,
         imageData: imageData,
         customHeroImage: resolvedCustomHeroImage,
@@ -282,6 +300,7 @@ static async createCard(options = {}) {
         passiveEffects: itemData.passive_effects || itemData.passiveEffects || itemData.passive_effect ? [itemData.passive_effect] : [], // Handle both formats
         onUseEffects: itemData.on_use_effects || itemData.onUseEffects || [],
         tags: itemData.tags || [],
+        quests: itemData.quests || [],
         scalingValues: itemData.scaling_values || itemData.scalingValues || {},
         imageData: itemData.image_data || itemData.imageData || '',
         customHeroImage: itemData.custom_hero_image || itemData.customHeroImage || null,
@@ -324,6 +343,7 @@ static async createCard(options = {}) {
       passiveEffects: passiveEffects, // Now always an array
       onUseEffects: data.onUseEffects || [],
       tags: data.tags || [],
+      quests: data.quests || [],
       scalingValues: data.scalingValues || {},
       imageData: data.imageData || '',
       timestamp: data.timestamp || new Date().toISOString(),
@@ -836,10 +856,11 @@ static async createCard(options = {}) {
   }
 
   /**
-   * Create passive effects section - now handles multiple effects
+   * Create passive effects section - now handles multiple effects and quests
    */
   static createPassiveSection(cardData, borderColor) {
     console.log('🛡️ Creating passive section with effects:', cardData.passiveEffects);
+    console.log('🎯 Creating quest section with quests:', cardData.quests);
     
     const passiveSection = document.createElement("div");
     passiveSection.className = "text-section passive-section";
@@ -908,8 +929,107 @@ static async createCard(options = {}) {
       }
     });
     
+    // Add quest lines after passive effects
+    if (cardData.quests && cardData.quests.length > 0) {
+      console.log('🎯 Adding quest lines to passive section');
+      
+      cardData.quests.forEach((quest, index) => {
+        if (quest.condition && quest.reward) {
+          console.log('🎯 Adding quest:', quest);
+          
+          // Create quest line container
+          const questLineContainer = document.createElement("div");
+          questLineContainer.className = "quest-line-container";
+          questLineContainer.style.marginTop = "12px";
+          questLineContainer.style.position = "relative";
+          
+          // Add divider at the top (or "or" text if checkbox is checked)
+          if (quest.or) {
+            const orText = document.createElement("div");
+            orText.textContent = "or";
+            orText.style.color = "rgb(251, 225, 183)";
+            orText.style.fontWeight = "bold";
+            orText.style.textAlign = "center";
+            orText.style.marginBottom = "8px";
+            orText.style.fontSize = "14px";
+            questLineContainer.appendChild(orText);
+          } else {
+            const dividerImage = document.createElement("img");
+            dividerImage.src = `images/skill-frames/dividers/${cardData.border}_divider.png`;
+            dividerImage.alt = "";
+            dividerImage.style.width = "100%";
+            dividerImage.style.height = "auto";
+            dividerImage.style.display = "block";
+            dividerImage.style.marginBottom = "8px";
+            dividerImage.onerror = function() {
+              // Replace with colored line if image fails to load
+              const fallbackDiv = document.createElement("div");
+              fallbackDiv.style.backgroundColor = borderColor;
+              fallbackDiv.style.height = "2px";
+              fallbackDiv.style.width = "100%";
+              fallbackDiv.style.marginBottom = "8px";
+              questLineContainer.insertBefore(fallbackDiv, questLineContainer.firstChild);
+            };
+            questLineContainer.appendChild(dividerImage);
+          }
+          
+          // Create quest content container
+          const questContent = document.createElement("div");
+          questContent.className = "quest-content";
+          questContent.style.display = "flex";
+          questContent.style.alignItems = "center";
+          questContent.style.justifyContent = "space-between";
+          
+          // Quest condition and value
+          const questCondition = document.createElement("div");
+          questCondition.className = "quest-condition";
+          questCondition.style.flex = "1";
+          questCondition.style.marginRight = "10px";
+          
+          if (typeof KeywordProcessor !== 'undefined') {
+            questCondition.innerHTML = KeywordProcessor.processKeywordText(quest.condition);
+          } else {
+            questCondition.textContent = quest.condition;
+          }
+          
+          // Add value display
+          const questValue = document.createElement("span");
+          questValue.textContent = ` 0/${quest.value}`;
+          questValue.style.color = "rgb(251, 225, 183)";
+          questValue.style.fontWeight = "bold";
+          questCondition.appendChild(questValue);
+          
+          questContent.appendChild(questCondition);
+          
+          // Vertical divider
+          const verticalDivider = document.createElement("div");
+          verticalDivider.style.width = "2px";
+          verticalDivider.style.height = "20px";
+          verticalDivider.style.backgroundColor = borderColor;
+          verticalDivider.style.margin = "0 10px";
+          questContent.appendChild(verticalDivider);
+          
+          // Quest reward
+          const questReward = document.createElement("div");
+          questReward.className = "quest-reward";
+          questReward.style.flex = "1";
+          
+          if (typeof KeywordProcessor !== 'undefined') {
+            questReward.innerHTML = KeywordProcessor.processKeywordText(quest.reward);
+          } else {
+            questReward.textContent = quest.reward;
+          }
+          
+          questContent.appendChild(questReward);
+          
+          questLineContainer.appendChild(questContent);
+          passiveContainer.appendChild(questLineContainer);
+        }
+      });
+    }
+    
     passiveSection.appendChild(passiveContainer);
-    console.log('✅ Passive section created with', cardData.passiveEffects.length, 'effects');
+    console.log('✅ Passive section created with', cardData.passiveEffects.length, 'effects and', (cardData.quests?.length || 0), 'quests');
     return passiveSection;
   }
 

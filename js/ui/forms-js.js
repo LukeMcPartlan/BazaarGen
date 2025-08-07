@@ -1341,6 +1341,69 @@ class Forms {
   }
 
   /**
+   * Add quest input
+   */
+  static addQuestInput() {
+    const questInputs = document.getElementById('questInputs');
+    if (!questInputs) return;
+
+    const questGroup = document.createElement('div');
+    questGroup.className = 'quest-input-group';
+    questGroup.style.marginBottom = '15px';
+    questGroup.style.padding = '15px';
+    questGroup.style.border = '1px solid rgba(218, 165, 32, 0.3)';
+    questGroup.style.borderRadius = '5px';
+    questGroup.style.backgroundColor = 'rgba(37, 26, 12, 0.1)';
+
+    const questId = `quest_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    questGroup.innerHTML = `
+      <div style="display: flex; align-items: center; margin-bottom: 10px;">
+        <input type="checkbox" id="${questId}_or" style="margin-right: 8px;">
+        <label for="${questId}_or" style="color: rgb(251, 225, 183); font-size: 14px;">Or</label>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Quest Condition</label>
+        <input type="text" id="${questId}_condition" placeholder="e.g. Deal damage to an enemy" class="form-input quest-condition" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Value (times to complete)</label>
+        <input type="number" id="${questId}_value" placeholder="1" class="form-input quest-value" min="1" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Reward</label>
+        <input type="text" id="${questId}_reward" placeholder="e.g. 🎯 or /d 10 damage" class="form-input quest-reward" />
+      </div>
+    `;
+
+    questInputs.appendChild(questGroup);
+
+    // Add event listeners
+    const inputs = questGroup.querySelectorAll('input[type="text"], input[type="number"]');
+    inputs.forEach(input => {
+      input.addEventListener('input', (e) => this.handleInputChange(e.target));
+      input.addEventListener('blur', (e) => this.validateField(e.target));
+    });
+
+    this.updateCardPreview();
+  }
+
+  /**
+   * Remove last quest input
+   */
+  static removeQuestInput() {
+    const questInputs = document.getElementById('questInputs');
+    if (!questInputs) return;
+
+    const inputs = questInputs.querySelectorAll('.quest-input-group');
+    if (inputs.length > 0) {
+      const lastInput = inputs[inputs.length - 1];
+      lastInput.remove();
+      this.updateCardPreview();
+    }
+  }
+
+  /**
    * Initialize collapsible sections
    */
   static setupCollapsibleSections() {
@@ -1389,4 +1452,12 @@ function removeOnUseInput() {
 
 function removePassiveInput() {
   Forms.removePassiveInput();
+}
+
+function addQuestInput() {
+  Forms.addQuestInput();
+}
+
+function removeQuestInput() {
+  Forms.removeQuestInput();
 }
