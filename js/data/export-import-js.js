@@ -407,8 +407,72 @@ class ExportImport {
       console.log('🎨 Created new export-specific border overlay with bulletproof positioning');
     }
     
-    // Ensure skill content has proper width (capped at 500px)
+    // CRITICAL FIX: Ensure border-image is properly applied for html2canvas
     const skillContent = skillElement.querySelector('.skill-content');
+    if (skillContent) {
+      // Store original border-image styles
+      originalStyles.push({
+        element: skillContent,
+        property: 'borderImage',
+        originalValue: skillContent.style.borderImage
+      });
+      originalStyles.push({
+        element: skillContent,
+        property: 'borderImageSlice',
+        originalValue: skillContent.style.borderImageSlice
+      });
+      originalStyles.push({
+        element: skillContent,
+        property: 'borderImageWidth',
+        originalValue: skillContent.style.borderImageWidth
+      });
+      originalStyles.push({
+        element: skillContent,
+        property: 'borderImageOutset',
+        originalValue: skillContent.style.borderImageOutset
+      });
+      originalStyles.push({
+        element: skillContent,
+        property: 'borderImageRepeat',
+        originalValue: skillContent.style.borderImageRepeat
+      });
+      
+      // Store original classes for restoration
+      originalStyles.push({
+        element: skillContent,
+        property: 'className',
+        originalValue: skillContent.className
+      });
+      
+      // Get the border type from the skill data or element
+      const borderType = skillElement.getAttribute('data-border') || 
+                        skillElement.querySelector('[data-border]')?.getAttribute('data-border') ||
+                        'bronze'; // fallback
+      
+      // Re-apply border-image with explicit values for html2canvas
+      skillContent.style.borderImage = `url('images/skill-frames/borders/${borderType}_frame.png') 40 fill / 50px / 0 round`;
+      skillContent.style.borderImageSlice = '40 fill';
+      skillContent.style.borderImageWidth = '50px';
+      skillContent.style.borderImageOutset = '0';
+      skillContent.style.borderImageRepeat = 'round';
+      
+      // Force the border to be visible
+      skillContent.style.border = 'none';
+      skillContent.style.boxSizing = 'border-box';
+      
+      // Add fallback CSS class in case border-image doesn't work
+      skillContent.classList.add(`export-border-${borderType}`);
+      
+      // Debug: Test if border image loads
+      const testImage = new Image();
+      testImage.onload = () => console.log('✅ Border image loaded successfully:', borderType);
+      testImage.onerror = () => console.warn('⚠️ Border image failed to load:', borderType);
+      testImage.src = `images/skill-frames/borders/${borderType}_frame.png`;
+      
+      console.log('🎨 Re-applied border-image for html2canvas export:', borderType);
+    }
+    
+    // Ensure skill content has proper width (capped at 500px)
     if (skillContent) {
       originalStyles.push({
         element: skillContent,
@@ -423,7 +487,7 @@ class ExportImport {
       setTimeout(() => {
         console.log('🎨 Applied skill-specific export styling with extended delay');
         resolve({ originalStyles, originalElements });
-      }, 100);
+      }, 150); // Increased delay for better reliability
     });
   }
 
@@ -433,10 +497,72 @@ class ExportImport {
   static prepareCardForExport(cardElement) {
     const originalStyles = [];
     
-    // No card rendering changes needed - only gradient replacement is handled in prepareElementForExport
-    // The card should render exactly as it appears on the page
+    // CRITICAL FIX: Ensure border-image is properly applied for html2canvas
+    const cardContent = cardElement.querySelector('.card-content');
+    if (cardContent) {
+      // Store original border-image styles
+      originalStyles.push({
+        element: cardContent,
+        property: 'borderImage',
+        originalValue: cardContent.style.borderImage
+      });
+      originalStyles.push({
+        element: cardContent,
+        property: 'borderImageSlice',
+        originalValue: cardContent.style.borderImageSlice
+      });
+      originalStyles.push({
+        element: cardContent,
+        property: 'borderImageWidth',
+        originalValue: cardContent.style.borderImageWidth
+      });
+      originalStyles.push({
+        element: cardContent,
+        property: 'borderImageOutset',
+        originalValue: cardContent.style.borderImageOutset
+      });
+      originalStyles.push({
+        element: cardContent,
+        property: 'borderImageRepeat',
+        originalValue: cardContent.style.borderImageRepeat
+      });
+      
+      // Store original classes for restoration
+      originalStyles.push({
+        element: cardContent,
+        property: 'className',
+        originalValue: cardContent.className
+      });
+      
+      // Get the border type from the card data or element
+      const borderType = cardElement.getAttribute('data-border') || 
+                        cardElement.querySelector('[data-border]')?.getAttribute('data-border') ||
+                        'bronze'; // fallback
+      
+      // Re-apply border-image with explicit values for html2canvas
+      cardContent.style.borderImage = `url('images/skill-frames/borders/${borderType}_frame.png') 40 fill / 50px / 0 round`;
+      cardContent.style.borderImageSlice = '40 fill';
+      cardContent.style.borderImageWidth = '50px';
+      cardContent.style.borderImageOutset = '0';
+      cardContent.style.borderImageRepeat = 'round';
+      
+      // Force the border to be visible
+      cardContent.style.border = 'none';
+      cardContent.style.boxSizing = 'border-box';
+      
+      // Add fallback CSS class in case border-image doesn't work
+      cardContent.classList.add(`export-border-${borderType}`);
+      
+      // Debug: Test if border image loads
+      const testImage = new Image();
+      testImage.onload = () => console.log('✅ Card border image loaded successfully:', borderType);
+      testImage.onerror = () => console.warn('⚠️ Card border image failed to load:', borderType);
+      testImage.src = `images/skill-frames/borders/${borderType}_frame.png`;
+      
+      console.log('🎨 Re-applied border-image for card html2canvas export:', borderType);
+    }
     
-    console.log('🎨 Applied card-specific export styling (no rendering changes)');
+    console.log('🎨 Applied card-specific export styling with border-image fix');
     return originalStyles;
   }
 
@@ -724,6 +850,8 @@ class ExportImport {
         height: cardElement.offsetHeight,
         scrollX: 0,
         scrollY: 0,
+        foreignObjectRendering: true, // Better support for complex CSS
+        imageTimeout: 15000, // Longer timeout for images
         ignoreElements: (element) => {
           // Skip any control elements
           return element.classList.contains('export-button') || 
@@ -859,6 +987,8 @@ class ExportImport {
         height: skillElement.offsetHeight,
         scrollX: 0,
         scrollY: 0,
+        foreignObjectRendering: true, // Better support for complex CSS
+        imageTimeout: 15000, // Longer timeout for images
         ignoreElements: (element) => {
           // Skip any control elements
           return element.classList.contains('export-button') || 

@@ -148,7 +148,8 @@ class SkillGenerator {
     
     const skillCard = document.createElement('div');
     skillCard.className = 'skill-card';
-
+    skillCard.setAttribute('data-border', skillData.border); // Add border type for export
+    
     // Create image container
     const imageContainer = document.createElement('div');
     imageContainer.className = 'skill-image-container';

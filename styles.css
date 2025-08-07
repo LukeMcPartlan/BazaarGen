@@ -3902,3 +3902,29 @@ img.skill-icon-overlay-border[src*="legendary"] {
 .text-diamond {
   color: rgb(2, 163, 216);
 }
+
+/* Export-specific border fallback classes */
+.export-border-bronze {
+  border: 3px solid #cd7f32 !important;
+  border-radius: 8px !important;
+}
+
+.export-border-silver {
+  border: 3px solid #c0c0c0 !important;
+  border-radius: 8px !important;
+}
+
+.export-border-gold {
+  border: 3px solid #ffd700 !important;
+  border-radius: 8px !important;
+}
+
+.export-border-diamond {
+  border: 3px solid #b9f2ff !important;
+  border-radius: 8px !important;
+}
+
+.export-border-legendary {
+  border: 3px solid #ff6b35 !important;
+  border-radius: 8px !important;
+}

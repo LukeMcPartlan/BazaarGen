@@ -375,6 +375,7 @@ static async createCard(options = {}) {
     const borderColor = this.getBorderColor(cardData.border);
     const card = document.createElement("div");
     card.className = "card";
+    card.setAttribute('data-border', cardData.border); // Add border type for export
 
     // Add controls if requested
     if (includeControls) {
@@ -1295,9 +1296,11 @@ static async createCard(options = {}) {
       }
       
       if (ammoSection && onUseHeight > 0) {
-        const ammoHeight = ammoSection.offsetHeight;
+        // Position ammo section at the center of the on-use section (same as cooldown)
+        const ammoHeight = 50; // Use same fixed height as cooldown section
         const ammoTop = onUseCenterY - (ammoHeight / 2);
         ammoSection.style.top = `${ammoTop}px`;
+        ammoSection.style.transform = 'none'; // Remove default transform
         console.log('🎯 Positioned ammo section at:', ammoTop, 'px (on-use center:', onUseCenterY, 'px)');
       }
     } else {
@@ -1369,7 +1372,7 @@ static async createCard(options = {}) {
 
     // Check ammo section position
     if (ammoSection && onUseHeight > 0) {
-      const ammoHeight = ammoSection.offsetHeight;
+      const ammoHeight = 50; // Use same fixed height as cooldown section
       const expectedAmmoTop = onUseCenterY - (ammoHeight / 2);
       const currentAmmoTop = parseInt(ammoSection.style.top) || 0;
       
