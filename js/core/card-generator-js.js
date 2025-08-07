@@ -19,7 +19,8 @@ class CardGenerator {
  * @returns {Promise<HTMLElement|null>} The created card element
  */
 static async createCard(options = {}) {
-  console.log('🎯 CardGenerator.createCard called with options:', options);
+  const callId = Math.random().toString(36).substr(2, 9);
+  console.log(`🎯 CardGenerator.createCard called with options:`, options, `[Call ID: ${callId}]`);
   
   const {
     data = null,
@@ -43,7 +44,7 @@ static async createCard(options = {}) {
       console.log('📝 Extracting data from form...');
       cardData = await this.extractFormData(); // ← Now properly awaiting the Promise
       console.log('✅ Form data extracted:', cardData);
-      console.log('🔍 CardData scalingValues check:', JSON.stringify(cardData.scalingValues, null, 2));
+      console.log(`🔍 CardData scalingValues check:`, JSON.stringify(cardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
     } else {
       throw new Error('No data source provided');
     }
@@ -474,7 +475,7 @@ static async createCard(options = {}) {
     }
 
     // Create image container
-    const imageContainer = this.createImageContainer(cardData, borderColor);
+    const imageContainer = this.createImageContainer(cardData, borderColor, callId);
     
     // Create tags container
     const tagsContainer = this.createTagsContainer(cardData);
@@ -601,7 +602,8 @@ static async createCard(options = {}) {
   /**
    * Create image container with frame and scaling values
    */
-  static createImageContainer(cardData, borderColor) {
+  static createImageContainer(cardData, borderColor, callId = 'unknown') {
+    console.log(`🔍 createImageContainer received cardData.scalingValues:`, JSON.stringify(cardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
     const imageContainer = document.createElement("div");
     imageContainer.className = "image-container";
     imageContainer.style.border = `3px solid ${borderColor}`;
@@ -653,8 +655,9 @@ static async createCard(options = {}) {
     imageContainer.appendChild(frame);
 
     // Add scaling values if any exist
-    console.log('🔍 About to create scaling container with data:', JSON.stringify(cardData.scalingValues, null, 2));
-    const scalingContainer = this.createScalingValuesContainer(cardData.scalingValues);
+    console.log(`🔍 About to create scaling container with data:`, JSON.stringify(cardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
+    console.log(`🔍 Full cardData object at this point:`, JSON.stringify(cardData, null, 2), `[Call ID: ${callId}]`);
+    const scalingContainer = this.createScalingValuesContainer(cardData.scalingValues, callId);
     console.log('🔍 Scaling container created with', scalingContainer.children.length, 'children');
     if (scalingContainer.children.length > 0) {
       console.log('✅ Adding scaling container to image container');
@@ -1280,8 +1283,8 @@ static async createCard(options = {}) {
     return borderDiv;
   }
 
-  static createScalingValuesContainer(scalingData) {
-    console.log('🔍 Creating scaling values container with data:', scalingData);
+  static createScalingValuesContainer(scalingData, callId = 'unknown') {
+    console.log(`🔍 Creating scaling values container with data:`, JSON.stringify(scalingData, null, 2), `[Call ID: ${callId}]`);
     const container = document.createElement("div");
     container.className = "scaling-values-container";
     
@@ -1326,7 +1329,7 @@ static async createCard(options = {}) {
     });
     
     // Add custom scaling values
-    console.log('🔍 Checking for custom scaling values in scalingData:', scalingData);
+    console.log(`🔍 Checking for custom scaling values in scalingData:`, scalingData, `[Call ID: ${callId}]`);
     if (scalingData.custom) {
       console.log('🎨 Processing custom scaling values:', scalingData.custom);
       scalingData.custom.forEach(customValue => {
