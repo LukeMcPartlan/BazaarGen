@@ -1471,7 +1471,7 @@ h1 {
   left: 5px;
   right: 5px;
   bottom: 5px;
-  overflow: hidden;
+  overflow: visible;
   border-radius: 7px;
   display: flex;
   align-items: center;
@@ -1938,8 +1938,8 @@ img.skill-icon-overlay-border[src*="legendary"] {
 }
 
 .on-use-line img {
-  width: 13px;
-  height: 10px;
+  width: 16px;
+  height: 18px;
   margin: 0;
 }
 
