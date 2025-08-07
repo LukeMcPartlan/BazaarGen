@@ -1984,7 +1984,7 @@ img.skill-icon-overlay-border[src*="legendary"] {
   overflow-wrap: break-word;
   word-wrap: break-word;
   word-break: break-word;
-  margin: 10px 1px 0 1px; /* Add 10px margin above, 1px on sides */
+  margin: 5px 1px 0 1px; /* Add 5px margin above, 1px on sides */
   max-width: 100%; /* Constrain to parent width */
   display: inline-block; /* Allow the span to be constrained */
   vertical-align: middle; /* Center align with images */
@@ -2498,8 +2498,8 @@ img.skill-icon-overlay-border[src*="legendary"] {
 }
 
 .keyword-icon {
-  width: 32px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   display: inline;
   vertical-align: middle;
   margin: 0 2px;
