@@ -1950,8 +1950,8 @@ img.skill-icon-overlay-border[src*="legendary"] {
 }
 
 .on-use-arrow {
-  width: 45px; /* 50% wider than height (30px * 1.5 = 45px) */
-  height: 30px;
+  width: 45px; /* 50% wider than height (20px * 1.5 = 45px) */
+  height: 20px !important;
   margin: 0;
 }
 
