@@ -194,6 +194,11 @@ static async createCard(options = {}) {
     console.log('🎨 Custom scaling inputs found:', customScalingInputs.length);
     console.log('🎨 Custom scaling input elements:', customScalingInputs);
     
+    // Debug: Log the actual HTML content of the container
+    if (customScalingContainer) {
+      console.log('🎨 Custom scaling container HTML:', customScalingContainer.innerHTML);
+    }
+    
     const customScalingValues = Array.from(customScalingInputs).map((inputGroup, index) => {
       console.log(`🎨 Processing custom scaling input group ${index}:`, inputGroup);
       const valueInput = inputGroup.querySelector('.custom-scaling-value');
@@ -246,6 +251,8 @@ static async createCard(options = {}) {
     if (customScalingValues.length > 0) {
       scalingValues.custom = customScalingValues;
       console.log('🎨 Custom scaling values found:', customScalingValues);
+    } else {
+      console.log('🎨 No custom scaling values found');
     }
     
     console.log('📊 Final scaling values:', scalingValues);
