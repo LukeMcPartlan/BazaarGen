@@ -2135,11 +2135,13 @@ img.skill-icon-overlay-border[src*="legendary"] {
   font-family: Arial, sans-serif;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
   border: none;
-  min-width: 32px;
+  min-width: 30px;
+  min-height: 30px;
   text-align: center;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
   flex: 1;
-  max-width: 45px;
+  max-width: 60px;
+  max-height: 30px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2172,6 +2174,7 @@ img.skill-icon-overlay-border[src*="legendary"] {
 .scaling-value.damage { background-color: rgb(244, 82, 60); }
 .scaling-value.poison { background-color: rgb(13, 190, 79); }
 .scaling-value.burn { background-color: rgb(253, 146, 63); }
+.scaling-value.custom { background-color: transparent; }
 
 /* ===== EFFECTS AND INPUTS ===== */
 .on-use-effects, .tag-effects {
