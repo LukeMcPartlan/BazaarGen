@@ -2502,8 +2502,8 @@ img.skill-icon-overlay-border[src*="legendary"] {
 }
 
 .keyword-icon {
-  width: 30px;
-  height: 30px;
+  width: 25px;
+  height: 25px;
   display: inline;
   vertical-align: middle;
   margin: 0 2px;
