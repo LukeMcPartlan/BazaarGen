@@ -403,8 +403,8 @@ class IndexPageController {
       });
     });
     
-    // Add event listeners for custom scaling inputs that are created dynamically
-    this.setupCustomScalingEventListeners();
+         // Add event listeners for custom scaling inputs that are created dynamically
+     IndexPageController.setupCustomScalingEventListeners();
 
     // File input special handling
     const imageInput = document.getElementById('imageInput');
@@ -1325,32 +1325,32 @@ class IndexPageController {
     inputGroup.appendChild(removeBtn);
     container.appendChild(inputGroup);
     
-    console.log('🎨 Custom scaling input group added successfully');
-    console.log('🎨 Total custom scaling inputs now:', container.children.length);
-    
-    // Setup event listeners for the new inputs
-    this.setupCustomScalingEventListeners();
-  }
-  
-  /**
-   * Setup event listeners for custom scaling inputs
-   */
-  static setupCustomScalingEventListeners() {
+         console.log('🎨 Custom scaling input group added successfully');
+     console.log('🎨 Total custom scaling inputs now:', container.children.length);
+     
+     // Setup event listeners for the new inputs
+     IndexPageController.setupCustomScalingEventListeners();
+   }
+   
+   /**
+    * Setup event listeners for custom scaling inputs
+    */
+   static setupCustomScalingEventListeners() {
     const customScalingInputs = document.querySelectorAll('.custom-scaling-value, .custom-scaling-color');
-    customScalingInputs.forEach(input => {
-      // Remove existing listeners to avoid duplicates
-      input.removeEventListener('input', this.handleFormChange);
-      input.removeEventListener('change', this.handleFormChange);
+         customScalingInputs.forEach(input => {
+       // Remove existing listeners to avoid duplicates
+       input.removeEventListener('input', IndexPageController.handleFormChange);
+       input.removeEventListener('change', IndexPageController.handleFormChange);
       
-      // Add new listeners
-      input.addEventListener('input', () => {
-        console.log('🎨 Custom scaling input changed, triggering form update');
-        this.handleFormChange();
-      });
-      input.addEventListener('change', () => {
-        console.log('🎨 Custom scaling input changed, triggering form update');
-        this.handleFormChange();
-      });
+             // Add new listeners
+       input.addEventListener('input', () => {
+         console.log('🎨 Custom scaling input changed, triggering form update');
+         IndexPageController.handleFormChange();
+       });
+       input.addEventListener('change', () => {
+         console.log('🎨 Custom scaling input changed, triggering form update');
+         IndexPageController.handleFormChange();
+       });
     });
   }
 }
