@@ -151,9 +151,9 @@ class ExportImport {
       return;
     }
 
-    if (typeof html2canvas === 'undefined') {
+    if (typeof htmlToImage === 'undefined') {
       if (typeof Messages !== 'undefined') {
-        Messages.showError('html2canvas library not loaded!');
+        Messages.showError('html-to-image library not loaded!');
       }
       return;
     }
@@ -223,9 +223,9 @@ class ExportImport {
       return;
     }
 
-    if (typeof html2canvas === 'undefined') {
+    if (typeof htmlToImage === 'undefined') {
       if (typeof Messages !== 'undefined') {
-        Messages.showError('html2canvas library not loaded!');
+        Messages.showError('html-to-image library not loaded!');
       }
       return;
     }
@@ -257,7 +257,7 @@ class ExportImport {
   }
 
   /**
-   * Temporarily remove gradients from element and children for html2canvas
+   * Temporarily remove gradients from element and children for html-to-image
    * Replaces gradients with solid colors extracted from the gradient
    */
   static prepareElementForExport(element) {
@@ -407,7 +407,7 @@ class ExportImport {
       console.log('🎨 Created new export-specific border overlay with bulletproof positioning');
     }
     
-    // CRITICAL FIX: Ensure border-image is properly applied for html2canvas
+    // CRITICAL FIX: Ensure border-image is properly applied for html-to-image
     const skillContent = skillElement.querySelector('.skill-content');
     if (skillContent) {
       // Store original border-image styles
@@ -449,7 +449,7 @@ class ExportImport {
                         skillElement.querySelector('[data-border]')?.getAttribute('data-border') ||
                         'bronze'; // fallback
       
-      // Re-apply border-image with explicit values for html2canvas
+      // Re-apply border-image with explicit values for html-to-image
       skillContent.style.borderImage = `url('images/skill-frames/borders/${borderType}_frame.png') 40 fill / 50px / 0 round`;
       skillContent.style.borderImageSlice = '40 fill';
       skillContent.style.borderImageWidth = '50px';
@@ -469,7 +469,7 @@ class ExportImport {
       testImage.onerror = () => console.warn('⚠️ Border image failed to load:', borderType);
       testImage.src = `images/skill-frames/borders/${borderType}_frame.png`;
       
-      console.log('🎨 Re-applied border-image for html2canvas export:', borderType);
+      console.log('🎨 Re-applied border-image for html-to-image export:', borderType);
     }
     
     // Ensure skill content has proper width (capped at 500px)
@@ -482,7 +482,7 @@ class ExportImport {
       skillContent.style.maxWidth = '500px';
     }
     
-    // Force a longer delay to ensure all styles are applied before html2canvas
+    // Force a longer delay to ensure all styles are applied before html-to-image
     return new Promise((resolve) => {
       setTimeout(() => {
         console.log('🎨 Applied skill-specific export styling with extended delay');
@@ -497,7 +497,7 @@ class ExportImport {
   static prepareCardForExport(cardElement) {
     const originalStyles = [];
     
-    // CRITICAL FIX: Ensure border-image is properly applied for html2canvas
+    // CRITICAL FIX: Ensure border-image is properly applied for html-to-image
     const cardContent = cardElement.querySelector('.card-content');
     if (cardContent) {
       // Store original border-image styles
@@ -539,7 +539,7 @@ class ExportImport {
                         cardElement.querySelector('[data-border]')?.getAttribute('data-border') ||
                         'bronze'; // fallback
       
-      // Re-apply border-image with explicit values for html2canvas
+      // Re-apply border-image with explicit values for html-to-image
       cardContent.style.borderImage = `url('images/skill-frames/borders/${borderType}_frame.png') 40 fill / 50px / 0 round`;
       cardContent.style.borderImageSlice = '40 fill';
       cardContent.style.borderImageWidth = '50px';
@@ -559,7 +559,7 @@ class ExportImport {
       testImage.onerror = () => console.warn('⚠️ Card border image failed to load:', borderType);
       testImage.src = `images/skill-frames/borders/${borderType}_frame.png`;
       
-      console.log('🎨 Re-applied border-image for card html2canvas export:', borderType);
+      console.log('🎨 Re-applied border-image for card html-to-image export:', borderType);
     }
     
     console.log('🎨 Applied card-specific export styling with border-image fix');
@@ -600,7 +600,7 @@ class ExportImport {
     let y;
     
     if (cardElement) {
-      // Get the scale factor from html2canvas (usually 2)
+      // Get the scale factor from html-to-image (usually 2)
       const scale = canvas.width / cardElement.offsetWidth;
       console.log('💧 Canvas scale factor:', scale, 'Canvas size:', canvas.width, 'x', canvas.height, 'Element size:', cardElement.offsetWidth, 'x', cardElement.offsetHeight);
       
@@ -786,7 +786,7 @@ class ExportImport {
   }
 
   /**
-   * Export single card as PNG using html2canvas (with gradient removal)
+   * Export single card as PNG using html-to-image (with gradient removal)
    */
   static async exportCardAsPNG(cardElement, filename = null) {
     if (!cardElement) {
@@ -794,9 +794,9 @@ class ExportImport {
       return;
     }
 
-    // Check if html2canvas is available
-    if (typeof html2canvas === 'undefined') {
-      const errorMsg = 'html2canvas library not loaded! Please ensure the library is included.';
+    // Check if html-to-image is available
+    if (typeof htmlToImage === 'undefined') {
+      const errorMsg = 'html-to-image library not loaded! Please ensure the library is included.';
       console.error(errorMsg);
       if (typeof Messages !== 'undefined') {
         Messages.showError(errorMsg);
@@ -839,61 +839,38 @@ class ExportImport {
       // Force reflow to ensure styles are applied
       cardElement.offsetHeight;
       
-      // Configure html2canvas options
-      const canvas = await html2canvas(cardElement, {
+      // Configure html-to-image options
+      const dataUrl = await htmlToImage.toPng(cardElement, {
         backgroundColor: null,
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
         width: cardElement.offsetWidth,
         height: cardElement.offsetHeight,
-        scrollX: 0,
-        scrollY: 0,
-        foreignObjectRendering: true, // Better support for complex CSS
-        imageTimeout: 15000, // Longer timeout for images
-        ignoreElements: (element) => {
+        pixelRatio: 2, // Equivalent to scale: 2 in html2canvas
+        cacheBust: true, // Enable cache busting for images
+        imagePlaceholder: '', // Empty placeholder for failed images
+        filter: (node) => {
           // Skip any control elements
-          return element.classList.contains('export-button') || 
-                 element.classList.contains('export-menu') ||
-                 element.classList.contains('card-controls') ||
-                 element.classList.contains('skill-controls') ||
-                 element.classList.contains('item-controls') ||
-                 element.classList.contains('delete-btn') ||
-                 element.classList.contains('upvote-btn') ||
-                 element.classList.contains('save-btn');
+          return !(node.classList && (
+            node.classList.contains('export-button') || 
+            node.classList.contains('export-menu') ||
+            node.classList.contains('card-controls') ||
+            node.classList.contains('skill-controls') ||
+            node.classList.contains('item-controls') ||
+            node.classList.contains('delete-btn') ||
+            node.classList.contains('upvote-btn') ||
+            node.classList.contains('save-btn')
+          ));
         }
       });
 
-      console.log('✅ Card canvas created successfully');
+      console.log('✅ Card PNG created successfully');
       
-      // Add watermark to the canvas
-      const watermarkedCanvas = this.addWatermarkToCanvas(canvas, cardElement);
+      // Download the data URL directly
+      this.downloadImage(dataUrl, finalFilename);
       
-      // Convert to blob and download
-      watermarkedCanvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = finalFilename;
-          link.style.display = 'none';
-          
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          
-          // Clean up
-          setTimeout(() => URL.revokeObjectURL(url), 100);
-          
-          if (typeof Messages !== 'undefined') {
-            Messages.showSuccess(`Card exported as ${finalFilename}`);
-          }
-          console.log('✅ PNG export completed:', finalFilename);
-        } else {
-          throw new Error('Failed to create blob from canvas');
-        }
-      }, 'image/png', 0.95);
+      if (typeof Messages !== 'undefined') {
+        Messages.showSuccess(`Card exported as ${finalFilename}`);
+      }
+      console.log('✅ PNG export completed:', finalFilename);
       
     } catch (error) {
       console.error('❌ Error exporting card as PNG:', error);
@@ -920,7 +897,7 @@ class ExportImport {
   }
 
   /**
-   * Export single skill as PNG using html2canvas (with gradient removal)
+   * Export single skill as PNG using html-to-image (with gradient removal)
    */
   static async exportSkillAsPNG(skillElement, filename = null) {
     if (!skillElement) {
@@ -928,9 +905,9 @@ class ExportImport {
       return;
     }
 
-    // Check if html2canvas is available
-    if (typeof html2canvas === 'undefined') {
-      const errorMsg = 'html2canvas library not loaded! Please ensure the library is included.';
+    // Check if html-to-image is available
+    if (typeof htmlToImage === 'undefined') {
+      const errorMsg = 'html-to-image library not loaded! Please ensure the library is included.';
       console.error(errorMsg);
       if (typeof Messages !== 'undefined') {
         Messages.showError(errorMsg);
@@ -976,60 +953,37 @@ class ExportImport {
       // Force reflow to ensure styles are applied
       skillElement.offsetHeight;
       
-      // Configure html2canvas options
-      const canvas = await html2canvas(skillElement, {
+      // Configure html-to-image options
+      const dataUrl = await htmlToImage.toPng(skillElement, {
         backgroundColor: null,
-        scale: 2,
-        useCORS: true,
-        allowTaint: true,
-        logging: false,
         width: skillElement.offsetWidth,
         height: skillElement.offsetHeight,
-        scrollX: 0,
-        scrollY: 0,
-        foreignObjectRendering: true, // Better support for complex CSS
-        imageTimeout: 15000, // Longer timeout for images
-        ignoreElements: (element) => {
+        pixelRatio: 2, // Equivalent to scale: 2 in html2canvas
+        cacheBust: true, // Enable cache busting for images
+        imagePlaceholder: '', // Empty placeholder for failed images
+        filter: (node) => {
           // Skip any control elements
-          return element.classList.contains('export-button') || 
-                 element.classList.contains('export-menu') ||
-                 element.classList.contains('skill-controls') ||
-                 element.classList.contains('card-controls') ||
-                 element.classList.contains('item-controls') ||
-                 element.classList.contains('delete-btn') ||
-                 element.classList.contains('upvote-btn');
+          return !(node.classList && (
+            node.classList.contains('export-button') || 
+            node.classList.contains('export-menu') ||
+            node.classList.contains('skill-controls') ||
+            node.classList.contains('card-controls') ||
+            node.classList.contains('item-controls') ||
+            node.classList.contains('delete-btn') ||
+            node.classList.contains('upvote-btn')
+          ));
         }
       });
 
-      console.log('✅ Skill canvas created successfully');
+      console.log('✅ Skill PNG created successfully');
       
-      // Add watermark to the canvas
-      const watermarkedCanvas = this.addWatermarkToCanvas(canvas, skillElement);
+      // Download the data URL directly
+      this.downloadImage(dataUrl, finalFilename);
       
-      // Convert to blob and download
-      watermarkedCanvas.toBlob((blob) => {
-        if (blob) {
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = finalFilename;
-          link.style.display = 'none';
-          
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          
-          // Clean up
-          setTimeout(() => URL.revokeObjectURL(url), 100);
-          
-          if (typeof Messages !== 'undefined') {
-            Messages.showSuccess(`Skill exported as ${finalFilename}`);
-          }
-          console.log('✅ Skill PNG export completed:', finalFilename);
-        } else {
-          throw new Error('Failed to create blob from canvas');
-        }
-      }, 'image/png', 0.95);
+      if (typeof Messages !== 'undefined') {
+        Messages.showSuccess(`Skill exported as ${finalFilename}`);
+      }
+      console.log('✅ Skill PNG export completed:', finalFilename);
       
     } catch (error) {
       console.error('❌ Error exporting skill as PNG:', error);
@@ -1124,8 +1078,8 @@ class ExportImport {
       return;
     }
 
-    if (typeof html2canvas === 'undefined') {
-      const errorMsg = 'html2canvas library not loaded! Please ensure the library is included.';
+    if (typeof htmlToImage === 'undefined') {
+      const errorMsg = 'html-to-image library not loaded! Please ensure the library is included.';
       console.error(errorMsg);
       if (typeof Messages !== 'undefined') {
         Messages.showError(errorMsg);

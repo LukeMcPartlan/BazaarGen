@@ -521,23 +521,23 @@ class SkillGenerator {
    */
   static async exportSkillAsPNG(skillElement, filename) {
     try {
-      // Use html2canvas if available, otherwise show message
-      if (typeof html2canvas !== 'undefined') {
-        const canvas = await html2canvas(skillElement, {
+      // Use html-to-image if available, otherwise show message
+      if (typeof htmlToImage !== 'undefined') {
+        const dataUrl = await htmlToImage.toPng(skillElement, {
           backgroundColor: null,
-          scale: 2, // Higher quality
-          useCORS: true
+          pixelRatio: 2, // Higher quality
+          cacheBust: true
         });
 
         // Create download link
         const link = document.createElement('a');
         link.download = filename || 'skill.png';
-        link.href = canvas.toDataURL();
+        link.href = dataUrl;
         link.click();
 
         Messages.showSuccess('Skill exported as PNG!');
       } else {
-        Messages.showInfo('PNG export requires html2canvas library. Use "Export as Data" instead.');
+        Messages.showInfo('PNG export requires html-to-image library. Use "Export as Data" instead.');
       }
     } catch (error) {
       this.debug('Error exporting skill as PNG:', error);
