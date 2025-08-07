@@ -185,6 +185,8 @@ static async createCard(options = {}) {
       burn: document.getElementById("burnScalingInput")?.value || ''
     };
     
+    console.log('📊 Scaling values extracted:', scalingValues);
+    
     // Get custom scaling values
     const customScalingContainer = document.getElementById('customScalingContainer');
     const customScalingInputs = customScalingContainer?.querySelectorAll('.custom-scaling-input') || [];
@@ -234,7 +236,10 @@ static async createCard(options = {}) {
     
     if (customScalingValues.length > 0) {
       scalingValues.custom = customScalingValues;
+      console.log('🎨 Custom scaling values found:', customScalingValues);
     }
+    
+    console.log('📊 Final scaling values:', scalingValues);
 
     // Get dynamic inputs - on-use effects, tags, passive effects, and quests
     const onUseInputs = document.querySelectorAll("#onUseInputs input");
@@ -628,8 +633,12 @@ static async createCard(options = {}) {
 
     // Add scaling values if any exist
     const scalingContainer = this.createScalingValuesContainer(cardData.scalingValues);
+    console.log('🔍 Scaling container created with', scalingContainer.children.length, 'children');
     if (scalingContainer.children.length > 0) {
+      console.log('✅ Adding scaling container to image container');
       imageContainer.appendChild(scalingContainer);
+    } else {
+      console.log('⚠️ No scaling values to display');
     }
 
     return imageContainer;
@@ -1250,6 +1259,7 @@ static async createCard(options = {}) {
   }
 
   static createScalingValuesContainer(scalingData) {
+    console.log('🔍 Creating scaling values container with data:', scalingData);
     const container = document.createElement("div");
     container.className = "scaling-values-container";
     
@@ -1257,7 +1267,9 @@ static async createCard(options = {}) {
     
     scalingTypes.forEach(type => {
       const value = scalingData[type];
+      console.log(`🔍 Checking ${type} scaling value:`, value);
       if (value && value.toString().trim()) {
+        console.log(`✅ Creating ${type} scaling element with value:`, value);
         const scalingElement = document.createElement("div");
         scalingElement.className = `scaling-value ${type}`;
         
@@ -1293,8 +1305,11 @@ static async createCard(options = {}) {
     
     // Add custom scaling values
     if (scalingData.custom) {
+      console.log('🎨 Processing custom scaling values:', scalingData.custom);
       scalingData.custom.forEach(customValue => {
+        console.log('🔍 Checking custom scaling value:', customValue);
         if (customValue.value && customValue.value.toString().trim()) {
+          console.log('✅ Creating custom scaling element with value:', customValue.value);
           const scalingElement = document.createElement("div");
           scalingElement.className = "scaling-value custom";
           
