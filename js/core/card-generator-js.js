@@ -979,6 +979,7 @@ static async createCard(options = {}) {
           questContent.style.display = "flex";
           questContent.style.alignItems = "center";
           questContent.style.justifyContent = "space-between";
+          questContent.style.marginLeft = "20px";
           
           // Quest condition and value
           const questCondition = document.createElement("div");
@@ -1022,7 +1023,9 @@ static async createCard(options = {}) {
           // Quest reward
           const questReward = document.createElement("div");
           questReward.className = "quest-reward";
-          questReward.style.flex = "1";
+          questReward.style.flex = "0 0 auto";
+          questReward.style.textAlign = "right";
+          questReward.style.width = "fit-content";
           
           if (typeof KeywordProcessor !== 'undefined') {
             questReward.innerHTML = KeywordProcessor.processKeywordText(quest.reward);
