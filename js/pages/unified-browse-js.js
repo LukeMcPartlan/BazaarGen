@@ -402,7 +402,7 @@ class UnifiedBrowsePageController {
           <option value="Dooly">Dooly</option>
           <option value="Stelle">Stelle</option>
           <option value="Jules">Jules</option>
-          <option value="Vampire">Vampire</option>
+  
         </select>
       </div>
 

@@ -3885,3 +3885,20 @@ img.skill-icon-overlay-border[src*="legendary"] {
 .quest-input-group .form-group:last-child {
   margin-bottom: 0;
 }
+
+/* ===== NUMBER COLOR CODING ===== */
+.text-bronze {
+  color: rgb(205, 127, 50);
+}
+
+.text-silver {
+  color: rgb(170, 170, 170);
+}
+
+.text-gold-500 {
+  color: rgb(228, 182, 14);
+}
+
+.text-diamond {
+  color: rgb(2, 163, 216);
+}

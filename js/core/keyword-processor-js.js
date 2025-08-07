@@ -35,6 +35,9 @@ class KeywordProcessor {
     
     let processedText = text;
     
+    // Process number patterns with slashes (1/2/3/4 format)
+    processedText = this.processNumberPatterns(processedText);
+    
     // Process LONGER patterns FIRST to avoid conflicts
     processedText = processedText.replace(/\/cd/g, '[COOLDOWN_ICON]');  // Process /cd before /c
     processedText = processedText.replace(/\/cr/g, '[CRIT_ICON]');      // Process /cr before /c
@@ -83,6 +86,69 @@ class KeywordProcessor {
     // processedText = processedText.replace(/(<\/span>)(<span)/g, '$1<br>$2');
     
     return processedText;
+  }
+
+  /**
+   * Process number patterns with slashes and apply color coding based on position
+   * @param {string} text - The text to process
+   * @returns {string} Text with colored numbers
+   */
+  static processNumberPatterns(text) {
+    // Match patterns like 1/2/3/4, 2/3/4, 3/4, etc.
+    const numberPattern = /(\d+)\/(\d+)(?:\/(\d+))?(?:\/(\d+))?/g;
+    
+    return text.replace(numberPattern, (match, num1, num2, num3, num4) => {
+      let result = '';
+      
+      // Count how many numbers we have in this sequence
+      const numbers = [num1, num2, num3, num4].filter(num => num !== undefined);
+      const totalNumbers = numbers.length;
+      
+      // Color based on position: last = diamond, second-to-last = gold, third-to-last = silver, fourth-to-last = bronze
+      if (totalNumbers >= 1) {
+        // First number (fourth-to-last if 4 numbers, third-to-last if 3 numbers, etc.)
+        if (totalNumbers >= 4) {
+          result += `<span class="text-bronze">${num1}</span>`;
+        } else if (totalNumbers === 3) {
+          result += `<span class="text-silver">${num1}</span>`;
+        } else if (totalNumbers === 2) {
+          result += `<span class="text-gold-500">${num1}</span>`;
+        } else {
+          result += `<span class="text-diamond">${num1}</span>`;
+        }
+      }
+      
+      result += '/';
+      
+      if (totalNumbers >= 2) {
+        // Second number
+        if (totalNumbers >= 4) {
+          result += `<span class="text-silver">${num2}</span>`;
+        } else if (totalNumbers === 3) {
+          result += `<span class="text-gold-500">${num2}</span>`;
+        } else {
+          result += `<span class="text-diamond">${num2}</span>`;
+        }
+      }
+      
+      if (totalNumbers >= 3) {
+        result += '/';
+        // Third number
+        if (totalNumbers >= 4) {
+          result += `<span class="text-gold-500">${num3}</span>`;
+        } else {
+          result += `<span class="text-diamond">${num3}</span>`;
+        }
+      }
+      
+      if (totalNumbers >= 4) {
+        result += '/';
+        // Fourth number (last = diamond)
+        result += `<span class="text-diamond">${num4}</span>`;
+      }
+      
+      return result;
+    });
   }
 
   /**

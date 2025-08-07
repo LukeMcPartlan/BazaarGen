@@ -75,7 +75,7 @@ class Validation {
       }
 
       // Validate enum values
-      const validHeroes = ['Neutral', 'Mak', 'Vanessa', 'Pyg', 'Dooly', 'Stelle', 'Jules', 'Vampire'];
+      const validHeroes = ['Neutral', 'Mak', 'Vanessa', 'Pyg', 'Dooly', 'Stelle', 'Jules'];
       if (!validHeroes.includes(cardData.hero)) {
         return { valid: false, error: "Invalid hero selection" };
       }
