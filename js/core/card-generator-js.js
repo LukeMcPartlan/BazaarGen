@@ -653,7 +653,7 @@ static async createCard(options = {}) {
     imageContainer.appendChild(frame);
 
     // Add scaling values if any exist
-    console.log('🔍 About to create scaling container with data:', cardData.scalingValues);
+    console.log('🔍 About to create scaling container with data:', JSON.stringify(cardData.scalingValues, null, 2));
     const scalingContainer = this.createScalingValuesContainer(cardData.scalingValues);
     console.log('🔍 Scaling container created with', scalingContainer.children.length, 'children');
     if (scalingContainer.children.length > 0) {
@@ -1326,6 +1326,7 @@ static async createCard(options = {}) {
     });
     
     // Add custom scaling values
+    console.log('🔍 Checking for custom scaling values in scalingData:', scalingData);
     if (scalingData.custom) {
       console.log('🎨 Processing custom scaling values:', scalingData.custom);
       scalingData.custom.forEach(customValue => {
