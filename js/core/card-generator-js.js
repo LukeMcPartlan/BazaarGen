@@ -1405,7 +1405,7 @@ static async createCard(options = {}) {
       'brightness(50%)',
       'sepia(1)',
       `hue-rotate(${hueAdjustment}deg)`,
-      `saturate(${Math.max(0, 100 + saturationAdjustment)}%)`,
+      'saturate(500%)',
       `brightness(${Math.max(0, 100 + lightnessAdjustment)}%)`
     ];
     
