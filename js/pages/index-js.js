@@ -1007,8 +1007,11 @@ class IndexPageController {
                   valueInput.value = customValue.value;
                 }
                 
-                if (colorInput && customValue.hue !== undefined) {
-                  // Convert HSL back to hex for color picker
+                if (colorInput && customValue.color) {
+                  // Use the stored color value directly
+                  colorInput.value = customValue.color;
+                } else if (colorInput && customValue.hue !== undefined) {
+                  // Fallback: Convert HSL back to hex for color picker (for backward compatibility)
                   const hue = customValue.hue;
                   const saturation = customValue.saturation || 1;
                   const lightness = customValue.brightness || 0.5;
@@ -1261,10 +1264,10 @@ class IndexPageController {
   
   // Custom scaling value functions
   static addCustomScaling() {
-    console.log('🎨 Adding custom scaling input group...');
+    // console.log('🎨 Adding custom scaling input group...');
     const container = document.getElementById('customScalingContainer');
     const customIndex = container.children.length;
-    console.log('🎨 Current custom scaling inputs:', customIndex);
+    // console.log('🎨 Current custom scaling inputs:', customIndex);
     
     const inputGroup = document.createElement('div');
     inputGroup.className = 'custom-scaling-input';
@@ -1288,8 +1291,8 @@ class IndexPageController {
     
     // Add event listener for value changes
     valueInput.addEventListener('input', function() {
-      console.log('🎨 Custom scaling value changed:', this.value);
-      console.log('🎨 Custom scaling color:', this.parentElement.querySelector('.custom-scaling-color').value);
+      // console.log('🎨 Custom scaling value changed:', this.value);
+      // console.log('🎨 Custom scaling color:', this.parentElement.querySelector('.custom-scaling-color').value);
     });
     
     // Color picker
@@ -1305,8 +1308,8 @@ class IndexPageController {
     
     // Add event listener for color changes
     colorInput.addEventListener('change', function() {
-      console.log('🎨 Custom scaling color changed:', this.value);
-      console.log('🎨 Custom scaling value:', this.parentElement.querySelector('.custom-scaling-value').value);
+      // console.log('🎨 Custom scaling color changed:', this.value);
+      // console.log('🎨 Custom scaling value:', this.parentElement.querySelector('.custom-scaling-value').value);
     });
     
     // Remove button
@@ -1325,8 +1328,8 @@ class IndexPageController {
     inputGroup.appendChild(removeBtn);
     container.appendChild(inputGroup);
     
-         console.log('🎨 Custom scaling input group added successfully');
-     console.log('🎨 Total custom scaling inputs now:', container.children.length);
+         // console.log('🎨 Custom scaling input group added successfully');
+     // console.log('🎨 Total custom scaling inputs now:', container.children.length);
      
      // Setup event listeners for the new inputs
      IndexPageController.setupCustomScalingEventListeners();
@@ -1344,7 +1347,7 @@ class IndexPageController {
       
              // Add new listeners
        input.addEventListener('input', () => {
-         console.log('🎨 Custom scaling input changed, triggering form update');
+         // console.log('🎨 Custom scaling input changed, triggering form update');
          IndexPageController.handleFormChange();
        });
        input.addEventListener('change', () => {

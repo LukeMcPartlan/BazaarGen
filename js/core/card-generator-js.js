@@ -20,7 +20,7 @@ class CardGenerator {
  */
 static async createCard(options = {}) {
   const callId = Math.random().toString(36).substr(2, 9);
-  console.log(`🎯 CardGenerator.createCard called with options:`, options, `[Call ID: ${callId}]`);
+  // console.log(`🎯 CardGenerator.createCard called with options:`, options, `[Call ID: ${callId}]`);
   
   const {
     data = null,
@@ -33,18 +33,18 @@ static async createCard(options = {}) {
   } = options;
 
   try {
-    console.log('📊 Starting card creation process...');
+    // console.log('📊 Starting card creation process...');
     
     // Determine data source and extract card data
     let cardData;
     if (data) {
-      console.log('📋 Using provided data');
+      // console.log('📋 Using provided data');
       cardData = this.normalizeCardData(data);
     } else if (formData) {
-      console.log('📝 Extracting data from form...');
+      // console.log('📝 Extracting data from form...');
       cardData = await this.extractFormData(); // ← Now properly awaiting the Promise
-      console.log('✅ Form data extracted:', cardData);
-      console.log(`🔍 CardData scalingValues check:`, JSON.stringify(cardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
+      // console.log('✅ Form data extracted:', cardData);
+      // console.log(`🔍 CardData scalingValues check:`, JSON.stringify(cardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
     } else {
       throw new Error('No data source provided');
     }
@@ -57,7 +57,7 @@ static async createCard(options = {}) {
 
     // Skip validation if requested (for galleries)
     if (!skipValidation) {
-      console.log('🔍 Validating card data...');
+      // console.log('🔍 Validating card data...');
       // Validate card data
       const validation = Validation.validateCardData(cardData);
       if (!validation.valid) {
@@ -72,22 +72,22 @@ static async createCard(options = {}) {
         }
         return null;
       }
-      console.log('✅ Validation passed');
+      // console.log('✅ Validation passed');
     } else {
-      console.log('⏭️ Skipping validation (skipValidation: true)');
+      // console.log('⏭️ Skipping validation (skipValidation: true)');
     }
 
-    console.log('🏗️ Building card element...');
-    console.log(`🔍 cardData.scalingValues before buildCardElement:`, JSON.stringify(cardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
+    // console.log('🏗️ Building card element...');
+    // console.log(`🔍 cardData.scalingValues before buildCardElement:`, JSON.stringify(cardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
     // Create a deep clone of cardData to prevent reference issues
     const clonedCardData = JSON.parse(JSON.stringify(cardData));
-    console.log(`🔍 clonedCardData.scalingValues:`, JSON.stringify(clonedCardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
+    // console.log(`🔍 clonedCardData.scalingValues:`, JSON.stringify(clonedCardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
     // Create the card element
     const cardElement = this.buildCardElement(clonedCardData, mode, includeControls, callId);
 
     // Add to container if specified
     if (container) {
-      console.log('📦 Adding card to container');
+      // console.log('📦 Adding card to container');
       if (isPreview) {
         container.innerHTML = '';
       }
@@ -96,7 +96,7 @@ static async createCard(options = {}) {
 
     // Store card data for export if in generator mode
     if (mode === 'generator' && !isPreview && window.cardsData) {
-      console.log('💾 Storing card data for export');
+      // console.log('💾 Storing card data for export');
       window.cardsData.push(cardData);
     }
 
@@ -124,7 +124,7 @@ static async createCard(options = {}) {
    * Extract card data from form inputs
    */
   static extractFormData() {
-    console.log('📝 Extracting form data...');
+    // console.log('📝 Extracting form data...');
     
     const imageInput = document.getElementById("imageInput");
     
@@ -177,9 +177,9 @@ static async createCard(options = {}) {
       }
     }
 
-    console.log('📋 Basic form values extracted:', {
-      itemName, hero, cooldown, ammo, crit, multicast, itemSize, border
-    });
+    // console.log('📋 Basic form values extracted:', {
+    //   itemName, hero, cooldown, ammo, crit, multicast, itemSize, border
+    // });
 
     // Get scaling values
     const scalingValues = {
@@ -191,81 +191,55 @@ static async createCard(options = {}) {
       burn: document.getElementById("burnScalingInput")?.value || ''
     };
     
-    console.log('📊 Scaling values extracted:', scalingValues);
+    // console.log('📊 Scaling values extracted:', scalingValues);
     
     // Get custom scaling values
     const customScalingContainer = document.getElementById('customScalingContainer');
-    console.log('🎨 Custom scaling container found:', customScalingContainer);
+    // console.log('🎨 Custom scaling container found:', customScalingContainer);
     const customScalingInputs = customScalingContainer?.querySelectorAll('.custom-scaling-input') || [];
-    console.log('🎨 Custom scaling inputs found:', customScalingInputs.length);
-    console.log('🎨 Custom scaling input elements:', customScalingInputs);
+    // console.log('🎨 Custom scaling inputs found:', customScalingInputs.length);
+    // console.log('🎨 Custom scaling input elements:', customScalingInputs);
     
     // Debug: Log the actual HTML content of the container
-    if (customScalingContainer) {
-      console.log('🎨 Custom scaling container HTML:', customScalingContainer.innerHTML);
-    }
+    // if (customScalingContainer) {
+    //   console.log('🎨 Custom scaling container HTML:', customScalingContainer.innerHTML);
+    // }
     
     // Also check for any custom scaling inputs anywhere in the document
     const allCustomScalingInputs = document.querySelectorAll('.custom-scaling-input');
-    console.log('🎨 All custom scaling inputs in document:', allCustomScalingInputs.length);
+    // console.log('🎨 All custom scaling inputs in document:', allCustomScalingInputs.length);
     
     const customScalingValues = Array.from(customScalingInputs).map((inputGroup, index) => {
-      console.log(`🎨 Processing custom scaling input group ${index}:`, inputGroup);
+      // console.log(`🎨 Processing custom scaling input group ${index}:`, inputGroup);
       const valueInput = inputGroup.querySelector('.custom-scaling-value');
       const colorInput = inputGroup.querySelector('.custom-scaling-color');
       const value = valueInput?.value?.trim() || '';
       const color = colorInput?.value || '#00ff00';
-      console.log(`🎨 Input group ${index} - value: "${value}", color: "${color}"`);
+      // console.log(`🎨 Input group ${index} - value: "${value}", color: "${color}"`);
       
       if (value) {
-        // Convert hex color to HSL for filter
-        const hex = color.replace('#', '');
-        const r = parseInt(hex.substr(0, 2), 16) / 255;
-        const g = parseInt(hex.substr(2, 2), 16) / 255;
-        const b = parseInt(hex.substr(4, 2), 16) / 255;
-        
-        const max = Math.max(r, g, b);
-        const min = Math.min(r, g, b);
-        let h, s, l = (max + min) / 2;
-        
-        if (max === min) {
-          h = s = 0; // achromatic
-        } else {
-          const d = max - min;
-          s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-          switch (max) {
-            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-            case g: h = (b - r) / d + 2; break;
-            case b: h = (r - g) / d + 4; break;
-          }
-          h /= 6;
-        }
-        
-        const hue = Math.round(h * 360);
-        const saturation = Math.round(s * 100);
-        const brightness = Math.round(l * 100);
-        
+        // Use advanced filter conversion for better color matching
+        const filterString = this.hexToAdvancedFilters(color);
         const result = {
           value: value,
-          hue: hue,
-          saturation: saturation / 100,
-          brightness: brightness / 100
+          color: color,
+          filterString: filterString
         };
-        console.log(`🎨 Input group ${index} - processed result:`, result);
+        console.log(`🎨 Input group ${index} - generated filter:`, filterString);
         return result;
       }
-      console.log(`🎨 Input group ${index} - no value, skipping`);
+      // console.log(`🎨 Input group ${index} - no value, skipping`);
       return null;
     }).filter(val => val !== null);
     
     if (customScalingValues.length > 0) {
       scalingValues.custom = customScalingValues;
-      console.log('🎨 Custom scaling values found:', customScalingValues);
+      console.log('🎨 Custom scaling values found:', customScalingValues.length, 'values');
     } else {
-      console.log('🎨 No custom scaling values found');
+      // console.log('🎨 No custom scaling values found');
     }
     
-    console.log('📊 Final scaling values:', JSON.stringify(scalingValues, null, 2));
+    console.log('📊 Final scaling values extracted');
 
     // Get dynamic inputs - on-use effects, tags, passive effects, and quests
     const onUseInputs = document.querySelectorAll("#onUseInputs input");
@@ -452,8 +426,8 @@ static async createCard(options = {}) {
    * Build the complete card element
    */
   static buildCardElement(cardData, mode = 'generator', includeControls = true, callId = 'unknown') {
-    console.log(`🏗️ Building card element for mode: ${mode} [Call ID: ${callId}]`);
-    console.log(`🔍 cardData.scalingValues in buildCardElement:`, JSON.stringify(cardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
+    // console.log(`🏗️ Building card element for mode: ${mode} [Call ID: ${callId}]`);
+    // console.log(`🔍 cardData.scalingValues in buildCardElement:`, JSON.stringify(cardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
     
     const borderColor = this.getBorderColor(cardData.border);
     const card = document.createElement("div");
@@ -660,15 +634,15 @@ static async createCard(options = {}) {
     imageContainer.appendChild(frame);
 
     // Add scaling values if any exist
-    console.log(`🔍 About to create scaling container with data:`, JSON.stringify(cardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
-    console.log(`🔍 Full cardData object at this point:`, JSON.stringify(cardData, null, 2), `[Call ID: ${callId}]`);
+    // console.log(`🔍 About to create scaling container with data:`, JSON.stringify(cardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
+    // console.log(`🔍 Full cardData object at this point:`, JSON.stringify(cardData, null, 2), `[Call ID: ${callId}]`);
     const scalingContainer = this.createScalingValuesContainer(cardData.scalingValues, callId);
-    console.log('🔍 Scaling container created with', scalingContainer.children.length, 'children');
+    // console.log('🔍 Scaling container created with', scalingContainer.children.length, 'children');
     if (scalingContainer.children.length > 0) {
-      console.log('✅ Adding scaling container to image container');
+      // console.log('✅ Adding scaling container to image container');
       imageContainer.appendChild(scalingContainer);
     } else {
-      console.log('⚠️ No scaling values to display');
+      // console.log('⚠️ No scaling values to display');
     }
 
     return imageContainer;
@@ -1289,7 +1263,7 @@ static async createCard(options = {}) {
   }
 
   static createScalingValuesContainer(scalingData, callId = 'unknown') {
-    console.log(`🔍 Creating scaling values container with data:`, JSON.stringify(scalingData, null, 2), `[Call ID: ${callId}]`);
+    // console.log(`🔍 Creating scaling values container with data:`, JSON.stringify(scalingData, null, 2), `[Call ID: ${callId}]`);
     const container = document.createElement("div");
     container.className = "scaling-values-container";
     
@@ -1297,9 +1271,9 @@ static async createCard(options = {}) {
     
     scalingTypes.forEach(type => {
       const value = scalingData[type];
-      console.log(`🔍 Checking ${type} scaling value:`, value);
+      // console.log(`🔍 Checking ${type} scaling value:`, value);
       if (value && value.toString().trim()) {
-        console.log(`✅ Creating ${type} scaling element with value:`, value);
+        // console.log(`✅ Creating ${type} scaling element with value:`, value);
         const scalingElement = document.createElement("div");
         scalingElement.className = `scaling-value ${type}`;
         
@@ -1334,13 +1308,13 @@ static async createCard(options = {}) {
     });
     
     // Add custom scaling values
-    console.log(`🔍 Checking for custom scaling values in scalingData:`, scalingData, `[Call ID: ${callId}]`);
+    // console.log(`🔍 Checking for custom scaling values in scalingData:`, scalingData, `[Call ID: ${callId}]`);
     if (scalingData.custom) {
-      console.log('🎨 Processing custom scaling values:', scalingData.custom);
+      console.log('🎨 Processing custom scaling values:', scalingData.custom.length, 'values');
       scalingData.custom.forEach(customValue => {
-        console.log('🔍 Checking custom scaling value:', customValue);
+        // console.log('🔍 Checking custom scaling value:', customValue);
         if (customValue.value && customValue.value.toString().trim()) {
-          console.log('✅ Creating custom scaling element with value:', customValue.value);
+          // console.log('✅ Creating custom scaling element with value:', customValue.value);
           const scalingElement = document.createElement("div");
           scalingElement.className = "scaling-value custom";
           
@@ -1348,7 +1322,7 @@ static async createCard(options = {}) {
           const gemImg = document.createElement("img");
           gemImg.className = "scaling-gem";
           gemImg.src = "images/CardGems/CardGem_Blank.png";
-          gemImg.style.filter = `hue-rotate(${customValue.hue || 0}deg) saturate(${customValue.saturation || 1}) brightness(${customValue.brightness || 1})`;
+          gemImg.style.filter = customValue.filterString || `hue-rotate(${customValue.hue || 0}deg) saturate(${customValue.saturation || 1}) brightness(${customValue.brightness || 1})`;
           gemImg.alt = "custom gem";
           
           // Create value text
@@ -1376,6 +1350,115 @@ static async createCard(options = {}) {
       burn: 'rgb(253, 146, 63)'
     };
     return colors[type] || '#333';
+  }
+
+  /**
+   * Advanced color conversion utility for CSS filters
+   * Converts RGB colors to complex filter chains for better color matching
+   */
+  static convertRgbToAdvancedFilters(r, g, b) {
+    // Normalize RGB values (0-255 to 0-1)
+    const rNorm = r / 255;
+    const gNorm = g / 255;
+    const bNorm = b / 255;
+    
+    // Calculate HSL values
+    const max = Math.max(rNorm, gNorm, bNorm);
+    const min = Math.min(rNorm, gNorm, bNorm);
+    let h, s, l = (max + min) / 2;
+    
+    if (max === min) {
+      h = s = 0; // achromatic
+    } else {
+      const d = max - min;
+      s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+      switch (max) {
+        case rNorm: h = (gNorm - bNorm) / d + (gNorm < bNorm ? 6 : 0); break;
+        case gNorm: h = (bNorm - rNorm) / d + 2; break;
+        case bNorm: h = (rNorm - gNorm) / d + 4; break;
+      }
+      h /= 6;
+    }
+    
+    // Convert to degrees and percentages
+    const hue = Math.round(h * 360);
+    const saturation = Math.round(s * 100);
+    const lightness = Math.round(l * 100);
+    
+    // Calculate advanced filter values based on color characteristics
+    let brightness = 1;
+    let contrast = 1;
+    let sepia = 0;
+    let invert = 0;
+    let saturate = 1;
+    
+    // Adjust brightness based on lightness
+    if (lightness < 30) {
+      brightness = 0.3 + (lightness / 30) * 0.7; // Dark colors
+    } else if (lightness > 70) {
+      brightness = 1 + (lightness - 70) / 30 * 0.5; // Bright colors
+    } else {
+      brightness = 0.8 + (lightness - 30) / 40 * 0.4; // Medium colors
+    }
+    
+    // Adjust contrast based on saturation
+    if (saturation < 20) {
+      contrast = 0.8; // Low saturation = lower contrast
+    } else if (saturation > 80) {
+      contrast = 1.2; // High saturation = higher contrast
+    } else {
+      contrast = 0.9 + (saturation - 20) / 60 * 0.3;
+    }
+    
+    // Add sepia for warm colors (reds, oranges, yellows)
+    if (hue >= 0 && hue <= 60) {
+      sepia = Math.min(0.7, (60 - hue) / 60 * 0.7);
+    } else if (hue >= 300 && hue <= 360) {
+      sepia = Math.min(0.7, (hue - 300) / 60 * 0.7);
+    }
+    
+    // Add invert for very dark or very light colors
+    if (lightness < 15) {
+      invert = 0.3; // Very dark colors
+    } else if (lightness > 85) {
+      invert = 0.1; // Very light colors
+    }
+    
+    // Adjust saturation filter
+    if (saturation < 30) {
+      saturate = 0.5; // Desaturate low saturation colors
+    } else if (saturation > 80) {
+      saturate = 1.5; // Increase saturation for high saturation colors
+    }
+    
+    // Build the filter string
+    const filters = [
+      `brightness(${brightness.toFixed(2)})`,
+      `saturate(${(saturate * 100).toFixed(0)}%)`,
+      `invert(${(invert * 100).toFixed(0)}%)`,
+      `sepia(${(sepia * 100).toFixed(0)}%)`,
+      `saturate(${(saturation * 5).toFixed(0)}%)`,
+      `hue-rotate(${hue}deg)`,
+      `brightness(${(brightness * 96).toFixed(0)}%)`,
+      `contrast(${(contrast * 97).toFixed(0)}%)`
+    ];
+    
+    return filters.join(' ');
+  }
+
+  /**
+   * Convert hex color to advanced CSS filters
+   */
+  static hexToAdvancedFilters(hexColor) {
+    // Remove # if present
+    const hex = hexColor.replace('#', '');
+    
+    // Parse RGB values
+    const r = parseInt(hex.substr(0, 2), 16);
+    const g = parseInt(hex.substr(2, 2), 16);
+    const b = parseInt(hex.substr(4, 2), 16);
+    
+    return this.convertRgbToAdvancedFilters(r, g, b);
   }
 
   /**

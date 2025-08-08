@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Filter Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #2a2a2a;
+            color: white;
+            padding: 20px;
+        }
+        .test-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .color-test {
+            background: #333;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .gem-image {
+            width: 50px;
+            height: 25px;
+            object-fit: contain;
+            margin: 10px auto;
+            display: block;
+        }
+        .color-picker {
+            margin: 10px 0;
+        }
+        .filter-string {
+            font-family: monospace;
+            font-size: 10px;
+            background: #222;
+            padding: 5px;
+            border-radius: 4px;
+            word-break: break-all;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 Advanced Color Filter Test</h1>
+    <p>Test the new advanced color conversion system for custom scaling gems.</p>
+    
+    <div class="test-container" id="testContainer">
+        <!-- Test cases will be generated here -->
+    </div>
+
+    <script>
+        // Advanced color conversion utility (copied from card-generator-js.js)
+        class ColorConverter {
+            static convertRgbToAdvancedFilters(r, g, b) {
+                // Normalize RGB values (0-255 to 0-1)
+                const rNorm = r / 255;
+                const gNorm = g / 255;
+                const bNorm = b / 255;
+                
+                // Calculate HSL values
+                const max = Math.max(rNorm, gNorm, bNorm);
+                const min = Math.min(rNorm, gNorm, bNorm);
+                let h, s, l = (max + min) / 2;
+                
+                if (max === min) {
+                    h = s = 0; // achromatic
+                } else {
+                    const d = max - min;
+                    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                    switch (max) {
+                        case rNorm: h = (gNorm - bNorm) / d + (gNorm < bNorm ? 6 : 0); break;
+                        case gNorm: h = (bNorm - rNorm) / d + 2; break;
+                        case bNorm: h = (rNorm - gNorm) / d + 4; break;
+                    }
+                    h /= 6;
+                }
+                
+                // Convert to degrees and percentages
+                const hue = Math.round(h * 360);
+                const saturation = Math.round(s * 100);
+                const lightness = Math.round(l * 100);
+                
+                // Calculate advanced filter values based on color characteristics
+                let brightness = 1;
+                let contrast = 1;
+                let sepia = 0;
+                let invert = 0;
+                let saturate = 1;
+                
+                // Adjust brightness based on lightness
+                if (lightness < 30) {
+                    brightness = 0.3 + (lightness / 30) * 0.7; // Dark colors
+                } else if (lightness > 70) {
+                    brightness = 1 + (lightness - 70) / 30 * 0.5; // Bright colors
+                } else {
+                    brightness = 0.8 + (lightness - 30) / 40 * 0.4; // Medium colors
+                }
+                
+                // Adjust contrast based on saturation
+                if (saturation < 20) {
+                    contrast = 0.8; // Low saturation = lower contrast
+                } else if (saturation > 80) {
+                    contrast = 1.2; // High saturation = higher contrast
+                } else {
+                    contrast = 0.9 + (saturation - 20) / 60 * 0.3;
+                }
+                
+                // Add sepia for warm colors (reds, oranges, yellows)
+                if (hue >= 0 && hue <= 60) {
+                    sepia = Math.min(0.7, (60 - hue) / 60 * 0.7);
+                } else if (hue >= 300 && hue <= 360) {
+                    sepia = Math.min(0.7, (hue - 300) / 60 * 0.7);
+                }
+                
+                // Add invert for very dark or very light colors
+                if (lightness < 15) {
+                    invert = 0.3; // Very dark colors
+                } else if (lightness > 85) {
+                    invert = 0.1; // Very light colors
+                }
+                
+                // Adjust saturation filter
+                if (saturation < 30) {
+                    saturate = 0.5; // Desaturate low saturation colors
+                } else if (saturation > 80) {
+                    saturate = 1.5; // Increase saturation for high saturation colors
+                }
+                
+                // Build the filter string
+                const filters = [
+                    `brightness(${brightness.toFixed(2)})`,
+                    `saturate(${(saturate * 100).toFixed(0)}%)`,
+                    `invert(${(invert * 100).toFixed(0)}%)`,
+                    `sepia(${(sepia * 100).toFixed(0)}%)`,
+                    `saturate(${(saturation * 5).toFixed(0)}%)`,
+                    `hue-rotate(${hue}deg)`,
+                    `brightness(${(brightness * 96).toFixed(0)}%)`,
+                    `contrast(${(contrast * 97).toFixed(0)}%)`
+                ];
+                
+                return filters.join(' ');
+            }
+
+            static hexToAdvancedFilters(hexColor) {
+                // Remove # if present
+                const hex = hexColor.replace('#', '');
+                
+                // Parse RGB values
+                const r = parseInt(hex.substr(0, 2), 16);
+                const g = parseInt(hex.substr(2, 2), 16);
+                const b = parseInt(hex.substr(4, 2), 16);
+                
+                return this.convertRgbToAdvancedFilters(r, g, b);
+            }
+        }
+
+        // Test colors
+        const testColors = [
+            '#ff0000', // Red
+            '#00ff00', // Green
+            '#0000ff', // Blue
+            '#ffff00', // Yellow
+            '#ff00ff', // Magenta
+            '#00ffff', // Cyan
+            '#ff8000', // Orange
+            '#8000ff', // Purple
+            '#ffffff', // White
+            '#000000', // Black
+            '#808080', // Gray
+            '#ff0080', // Pink
+            '#0080ff', // Light Blue
+            '#80ff00', // Lime
+            '#ff8000'  // Orange
+        ];
+
+        // Generate test cases
+        const container = document.getElementById('testContainer');
+        
+        testColors.forEach((color, index) => {
+            const filterString = ColorConverter.hexToAdvancedFilters(color);
+            
+            const testDiv = document.createElement('div');
+            testDiv.className = 'color-test';
+            testDiv.innerHTML = `
+                <h3>Test ${index + 1}</h3>
+                <div style="background: ${color}; width: 30px; height: 30px; margin: 10px auto; border-radius: 4px;"></div>
+                <p>Color: ${color}</p>
+                <img src="images/CardGems/CardGem_Blank.png" class="gem-image" style="filter: ${filterString};" alt="test gem">
+                <div class="filter-string">${filterString}</div>
+            `;
+            
+            container.appendChild(testDiv);
+        });
+
+        // Add interactive color picker
+        const interactiveDiv = document.createElement('div');
+        interactiveDiv.className = 'color-test';
+        interactiveDiv.innerHTML = `
+            <h3>🎨 Interactive Test</h3>
+            <input type="color" id="colorPicker" value="#ff0000" class="color-picker">
+            <p>Selected: <span id="selectedColor">#ff0000</span></p>
+            <img src="images/CardGems/CardGem_Blank.png" class="gem-image" id="interactiveGem" alt="interactive gem">
+            <div class="filter-string" id="interactiveFilter"></div>
+        `;
+        container.appendChild(interactiveDiv);
+
+        // Interactive color picker functionality
+        const colorPicker = document.getElementById('colorPicker');
+        const selectedColorSpan = document.getElementById('selectedColor');
+        const interactiveGem = document.getElementById('interactiveGem');
+        const interactiveFilter = document.getElementById('interactiveFilter');
+
+        function updateInteractiveTest() {
+            const color = colorPicker.value;
+            const filterString = ColorConverter.hexToAdvancedFilters(color);
+            
+            selectedColorSpan.textContent = color;
+            interactiveGem.style.filter = filterString;
+            interactiveFilter.textContent = filterString;
+        }
+
+        colorPicker.addEventListener('input', updateInteractiveTest);
+        updateInteractiveTest(); // Initial update
+    </script>
+</body>
+</html>
