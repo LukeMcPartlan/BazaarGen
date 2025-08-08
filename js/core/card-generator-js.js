@@ -1285,7 +1285,8 @@ static async createCard(options = {}) {
         // Set gem image based on type
         if (type === 'regen') {
           gemImg.src = "images/CardGems/CardGem_Blank.png";
-          gemImg.style.filter = "hue-rotate(120deg) saturate(1.5)"; // Make it green
+          // Apply the new color conversion system for regen (RGB: 183, 240, 190)
+          gemImg.style.filter = "brightness(50%) sepia(1) hue-rotate(89deg) saturate(500%) brightness(123%)";
         } else {
           gemImg.src = `images/CardGems/CardGem_${type.charAt(0).toUpperCase() + type.slice(1)}_TD.png`;
         }

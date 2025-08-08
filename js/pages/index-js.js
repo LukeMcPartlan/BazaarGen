@@ -439,6 +439,12 @@ class IndexPageController {
         this.handleFormChange();
       });
     }
+
+    // Setup hero portraits
+    this.setupHeroPortraits();
+
+    // Setup image preview
+    this.setupImagePreview();
   }
 
   /**
@@ -1355,6 +1361,78 @@ class IndexPageController {
          IndexPageController.handleFormChange();
        });
     });
+  }
+
+  /**
+   * Setup hero portrait selection
+   */
+  static setupHeroPortraits() {
+    const heroPortraits = document.querySelectorAll('.hero-portrait');
+    const heroSelect = document.getElementById('heroSelect');
+
+    // Set initial selection
+    if (heroSelect) {
+      const selectedHero = heroSelect.value;
+      this.selectHeroPortrait(selectedHero);
+    }
+
+    // Add click handlers
+    heroPortraits.forEach(portrait => {
+      portrait.addEventListener('click', () => {
+        const hero = portrait.getAttribute('data-hero');
+        this.selectHeroPortrait(hero);
+        
+        // Update the hidden select
+        if (heroSelect) {
+          heroSelect.value = hero;
+          heroSelect.dispatchEvent(new Event('change'));
+        }
+        
+        this.handleFormChange();
+      });
+    });
+  }
+
+  /**
+   * Select a hero portrait
+   */
+  static selectHeroPortrait(hero) {
+    const heroPortraits = document.querySelectorAll('.hero-portrait');
+    
+    // Remove selected class from all portraits
+    heroPortraits.forEach(portrait => {
+      portrait.classList.remove('selected');
+    });
+    
+    // Add selected class to the clicked portrait
+    const selectedPortrait = document.querySelector(`.hero-portrait[data-hero="${hero}"]`);
+    if (selectedPortrait) {
+      selectedPortrait.classList.add('selected');
+    }
+  }
+
+  /**
+   * Setup image preview functionality
+   */
+  static setupImagePreview() {
+    const imageInput = document.getElementById('imageInput');
+    const previewImage = document.getElementById('previewImage');
+
+    if (imageInput && previewImage) {
+      imageInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            previewImage.src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        } else {
+          // Reset to default image
+          previewImage.src = 'images/characters/default.png';
+        }
+      });
+    }
   }
 }
 

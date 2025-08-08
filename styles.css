@@ -514,6 +514,77 @@ h1 {
   animation: slideDown 0.3s ease-out;
 }
 
+/* Image input container with preview */
+.image-input-container {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+}
+
+.image-preview {
+  width: 80px;
+  height: 80px;
+  border: 2px solid rgba(218, 165, 32, 0.3);
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Hero portraits */
+.hero-portraits {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.hero-portrait {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  padding: 8px;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  background: rgba(74, 60, 46, 0.3);
+}
+
+.hero-portrait:hover {
+  border-color: rgba(218, 165, 32, 0.5);
+  background: rgba(74, 60, 46, 0.5);
+  transform: translateY(-2px);
+}
+
+.hero-portrait.selected {
+  border-color: rgb(218, 165, 32);
+  background: rgba(218, 165, 32, 0.1);
+  box-shadow: 0 0 10px rgba(218, 165, 32, 0.3);
+}
+
+.hero-portrait img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(218, 165, 32, 0.3);
+}
+
+.hero-portrait span {
+  font-size: 12px;
+  font-weight: bold;
+  color: rgb(251, 225, 183);
+  text-align: center;
+}
+
 @keyframes slideDown {
   from {
     opacity: 0;

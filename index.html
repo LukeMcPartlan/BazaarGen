@@ -161,68 +161,108 @@
       <div class="form-column">
           <!-- MAIN SECTION - Always Visible -->
           <div class="form-section main-section">
-              <h3 class="section-header">📋 Basic Card Information</h3>
-              <div class="form-grid">
-                  <!-- Card Image -->
-                  <div class="form-group full-width">
-                      <label class="form-label">Card Image</label>
-                      <input type="file" id="imageInput" accept="image/*" class="form-input" data-default-image="images/characters/default.png" />
-                      <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">
-                          Default image will load automatically. Upload your own to replace it.
-                      </small>
-                  </div>
+              <div class="section-toggle" onclick="toggleSection('basic-info-section')">
+                  <h3 class="section-header">📋 Basic Card Information</h3>
+                  <span class="toggle-icon" id="basic-info-toggle-icon">▼</span>
+              </div>
+              <div class="section-content" id="basic-info-section">
+                  <div class="form-grid">
+                      <!-- Card Image and Preview -->
+                      <div class="form-group full-width">
+                          <label class="form-label">Card Image</label>
+                          <div class="image-input-container">
+                              <input type="file" id="imageInput" accept="image/*" class="form-input" data-default-image="images/characters/default.png" />
+                              <div class="image-preview" id="imagePreview">
+                                  <img src="images/characters/default.png" alt="Preview" id="previewImage" />
+                              </div>
+                          </div>
+                          <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">
+                              Default image will load automatically. Upload your own to replace it.
+                          </small>
+                      </div>
 
-                  <!-- Hero Selection -->
-                  <div class="form-group">
-                      <label class="form-label">Hero</label>
-                      <select id="heroSelect" class="form-select">
-                          <option value="Neutral" selected>Neutral</option>
-                          <option value="Mak">Mak</option>
-                          <option value="Vanessa">Vanessa</option>
-                          <option value="Pyg">Pyg</option>
-                          <option value="Dooly">Dooly</option>
-                          <option value="Stelle">Stelle</option>
-                          <option value="Jules">Jules</option>
-          
-                          <option value="Custom" style="display: none;">Custom</option>
-                      </select>
-                  </div>
+                      <!-- Hero Selection with Portraits -->
+                      <div class="form-group full-width">
+                          <label class="form-label">Hero</label>
+                          <div class="hero-portraits">
+                              <div class="hero-portrait" data-hero="Neutral">
+                                  <img src="images/characters/neutral.png" alt="Neutral" />
+                                  <span>Neutral</span>
+                              </div>
+                              <div class="hero-portrait" data-hero="Mak">
+                                  <img src="images/characters/mak.png" alt="Mak" />
+                                  <span>Mak</span>
+                              </div>
+                              <div class="hero-portrait" data-hero="Vanessa">
+                                  <img src="images/characters/vanessa.png" alt="Vanessa" />
+                                  <span>Vanessa</span>
+                              </div>
+                              <div class="hero-portrait" data-hero="Pyg">
+                                  <img src="images/characters/pyg.png" alt="Pyg" />
+                                  <span>Pyg</span>
+                              </div>
+                              <div class="hero-portrait" data-hero="Dooly">
+                                  <img src="images/characters/dooly.png" alt="Dooly" />
+                                  <span>Dooly</span>
+                              </div>
+                              <div class="hero-portrait" data-hero="Stelle">
+                                  <img src="images/characters/stelle.png" alt="Stelle" />
+                                  <span>Stelle</span>
+                              </div>
+                              <div class="hero-portrait" data-hero="Jules">
+                                  <img src="images/characters/jules.png" alt="Jules" />
+                                  <span>Jules</span>
+                              </div>
+                          </div>
+                          <!-- Hidden select for form data -->
+                          <select id="heroSelect" class="form-select" style="display: none;">
+                              <option value="Neutral" selected>Neutral</option>
+                              <option value="Mak">Mak</option>
+                              <option value="Vanessa">Vanessa</option>
+                              <option value="Pyg">Pyg</option>
+                              <option value="Dooly">Dooly</option>
+                              <option value="Stelle">Stelle</option>
+                              <option value="Jules">Jules</option>
+                              <option value="Custom" style="display: none;">Custom</option>
+                          </select>
+                      </div>
 
-                  <!-- Custom Hero Image Input (hidden but functional) -->
-                  <div class="form-group" id="customHeroGroup" style="display: none;">
-                      <label class="form-label">Custom Hero Image</label>
-                      <input type="file" id="customHeroInput" accept="image/*" class="form-input" />
-                      <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">
-                          Upload a custom hero tooltip image (recommended size: 32x32px)
-                      </small>
-                  </div>
+                      <!-- Custom Hero Image Input (hidden but functional) -->
+                      <div class="form-group" id="customHeroGroup" style="display: none;">
+                          <label class="form-label">Custom Hero Image</label>
+                          <input type="file" id="customHeroInput" accept="image/*" class="form-input" />
+                          <small style="color: #666; font-size: 0.85em; margin-top: 5px; display: block;">
+                              Upload a custom hero tooltip image (recommended size: 32x32px)
+                          </small>
+                      </div>
 
-                  <!-- Item Name -->
-                  <div class="form-group">
-                      <label class="form-label">Item Name</label>
-                      <input type="text" id="itemNameInput" placeholder="Enter item name" class="form-input" />
-                  </div>
+                      <!-- Item Name -->
+                      <div class="form-group">
+                          <label class="form-label">Item Name</label>
+                          <input type="text" id="itemNameInput" placeholder="Enter item name" class="form-input" />
+                      </div>
 
-                  <!-- Item Size -->
-                  <div class="form-group">
-                      <label class="form-label">Item Size</label>
-                      <select id="itemSizeSelect" class="form-select">
-                          <option value="Small">Small</option>
-                          <option value="Medium" selected>Medium</option>
-                          <option value="Large">Large</option>
-                      </select>
-                  </div>
+                      <!-- Item Size -->
+                      <div class="form-group">
+                          <label class="form-label">Item Size</label>
+                          <select id="itemSizeSelect" class="form-select">
+                              <option value="Small">Small</option>
+                              <option value="Medium" selected>Medium</option>
+                              <option value="Large">Large</option>
+                          </select>
+                      </div>
 
-                  <!-- Item Rarity -->
-                  <div class="form-group">
-                      <label class="form-label">Item Rarity</label>
-                      <select id="borderSelect" class="form-select">
-                          <option value="bronze">Bronze</option>
-                          <option value="silver">Silver</option>
-                          <option value="gold" selected>Gold</option>
-                          <option value="diamond">Diamond</option>
-                          <option value="legendary">Legendary</option>
-                      </select>
+                      <!-- Item Rarity -->
+                      <div class="form-group">
+                          <label class="form-label">Item Rarity</label>
+                          <select id="borderSelect" class="form-select">
+                              <option value="bronze">Bronze</option>
+                              <option value="silver">Silver</option>
+                              <option value="gold" selected>Gold</option>
+                              <option value="diamond">Diamond</option>
+                              <option value="legendary">Legendary</option>
+                          </select>
+                      </div>
                   </div>
               </div>
           </div>
