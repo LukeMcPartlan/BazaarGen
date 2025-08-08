@@ -225,6 +225,7 @@ class Validation {
       // Preserve custom scaling values if they exist
       if (scalingValues.custom && Array.isArray(scalingValues.custom)) {
         validatedValues.custom = scalingValues.custom;
+        console.log('✅ Validation preserved custom scaling values:', scalingValues.custom.length, 'values');
       }
 
       return { valid: true, values: validatedValues };

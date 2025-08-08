@@ -55,11 +55,17 @@ static async createCard(options = {}) {
       throw new Error('Validation class not loaded');
     }
 
+    // console.log('🏗️ Building card element...');
+    // console.log(`🔍 cardData.scalingValues before buildCardElement:`, JSON.stringify(cardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
+    // Create a deep clone of cardData to prevent reference issues
+    const clonedCardData = JSON.parse(JSON.stringify(cardData));
+    console.log(`🔍 clonedCardData.scalingValues:`, JSON.stringify(clonedCardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
+    
     // Skip validation if requested (for galleries)
     if (!skipValidation) {
       // console.log('🔍 Validating card data...');
       // Validate card data
-      const validation = Validation.validateCardData(cardData);
+      const validation = Validation.validateCardData(clonedCardData);
       if (!validation.valid) {
         console.error('❌ Validation failed:', validation.error);
         if (mode === 'generator' || mode === 'preview') {
@@ -76,12 +82,7 @@ static async createCard(options = {}) {
     } else {
       // console.log('⏭️ Skipping validation (skipValidation: true)');
     }
-
-    // console.log('🏗️ Building card element...');
-    // console.log(`🔍 cardData.scalingValues before buildCardElement:`, JSON.stringify(cardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
-    // Create a deep clone of cardData to prevent reference issues
-    const clonedCardData = JSON.parse(JSON.stringify(cardData));
-    // console.log(`🔍 clonedCardData.scalingValues:`, JSON.stringify(clonedCardData.scalingValues, null, 2), `[Call ID: ${callId}]`);
+    
     // Create the card element
     const cardElement = this.buildCardElement(clonedCardData, mode, includeControls, callId);
 
@@ -1308,13 +1309,13 @@ static async createCard(options = {}) {
     });
     
     // Add custom scaling values
-    // console.log(`🔍 Checking for custom scaling values in scalingData:`, scalingData, `[Call ID: ${callId}]`);
+    console.log(`🔍 Checking for custom scaling values in scalingData:`, scalingData, `[Call ID: ${callId}]`);
     if (scalingData.custom) {
       console.log('🎨 Processing custom scaling values:', scalingData.custom.length, 'values');
       scalingData.custom.forEach(customValue => {
-        // console.log('🔍 Checking custom scaling value:', customValue);
+        console.log('🔍 Checking custom scaling value:', customValue);
         if (customValue.value && customValue.value.toString().trim()) {
-          // console.log('✅ Creating custom scaling element with value:', customValue.value);
+          console.log('✅ Creating custom scaling element with value:', customValue.value);
           const scalingElement = document.createElement("div");
           scalingElement.className = "scaling-value custom";
           
@@ -1354,7 +1355,8 @@ static async createCard(options = {}) {
 
   /**
    * Advanced color conversion utility for CSS filters
-   * Converts RGB colors to complex filter chains for better color matching
+   * Based on Stack Overflow approach: https://stackoverflow.com/questions/29037023/how-to-calculate-required-hue-rotate-to-generate-specific-colour
+   * Converts RGB colors to precise filter chains using base color + adjustments
    */
   static convertRgbToAdvancedFilters(r, g, b) {
     // Normalize RGB values (0-255 to 0-1)
@@ -1362,7 +1364,7 @@ static async createCard(options = {}) {
     const gNorm = g / 255;
     const bNorm = b / 255;
     
-    // Calculate HSL values
+    // Calculate HSL values for target color
     const max = Math.max(rNorm, gNorm, bNorm);
     const min = Math.min(rNorm, gNorm, bNorm);
     let h, s, l = (max + min) / 2;
@@ -1381,67 +1383,35 @@ static async createCard(options = {}) {
     }
     
     // Convert to degrees and percentages
-    const hue = Math.round(h * 360);
-    const saturation = Math.round(s * 100);
-    const lightness = Math.round(l * 100);
+    const targetHue = Math.round(h * 360);
+    const targetSaturation = Math.round(s * 100);
+    const targetLightness = Math.round(l * 100);
     
-    // Calculate advanced filter values based on color characteristics
-    let brightness = 1;
-    let contrast = 1;
-    let sepia = 0;
-    let invert = 0;
-    let saturate = 1;
+    // Step 1: Create base color using brightness(50%) sepia(1)
+    // This produces approximately rgb(178, 160, 128) = hsl(38, 24.5%, 60%)
+    const baseHue = 38;
+    const baseSaturation = 24.5;
+    const baseLightness = 60;
     
-    // Adjust brightness based on lightness
-    if (lightness < 30) {
-      brightness = 0.3 + (lightness / 30) * 0.7; // Dark colors
-    } else if (lightness > 70) {
-      brightness = 1 + (lightness - 70) / 30 * 0.5; // Bright colors
-    } else {
-      brightness = 0.8 + (lightness - 30) / 40 * 0.4; // Medium colors
-    }
+    // Step 2: Calculate adjustments needed to reach target color
+    const hueAdjustment = targetHue - baseHue;
+    const saturationAdjustment = targetSaturation - baseSaturation;
+    const lightnessAdjustment = targetLightness - baseLightness;
     
-    // Adjust contrast based on saturation
-    if (saturation < 20) {
-      contrast = 0.8; // Low saturation = lower contrast
-    } else if (saturation > 80) {
-      contrast = 1.2; // High saturation = higher contrast
-    } else {
-      contrast = 0.9 + (saturation - 20) / 60 * 0.3;
-    }
-    
-    // Add sepia for warm colors (reds, oranges, yellows)
-    if (hue >= 0 && hue <= 60) {
-      sepia = Math.min(0.7, (60 - hue) / 60 * 0.7);
-    } else if (hue >= 300 && hue <= 360) {
-      sepia = Math.min(0.7, (hue - 300) / 60 * 0.7);
-    }
-    
-    // Add invert for very dark or very light colors
-    if (lightness < 15) {
-      invert = 0.3; // Very dark colors
-    } else if (lightness > 85) {
-      invert = 0.1; // Very light colors
-    }
-    
-    // Adjust saturation filter
-    if (saturation < 30) {
-      saturate = 0.5; // Desaturate low saturation colors
-    } else if (saturation > 80) {
-      saturate = 1.5; // Increase saturation for high saturation colors
-    }
-    
-    // Build the filter string
+    // Step 3: Build the filter string
+    // Start with base color: brightness(50%) sepia(1)
+    // Then apply adjustments: hue-rotate, saturate, brightness
     const filters = [
-      `brightness(${brightness.toFixed(2)})`,
-      `saturate(${(saturate * 100).toFixed(0)}%)`,
-      `invert(${(invert * 100).toFixed(0)}%)`,
-      `sepia(${(sepia * 100).toFixed(0)}%)`,
-      `saturate(${(saturation * 5).toFixed(0)}%)`,
-      `hue-rotate(${hue}deg)`,
-      `brightness(${(brightness * 96).toFixed(0)}%)`,
-      `contrast(${(contrast * 97).toFixed(0)}%)`
+      'brightness(50%)',
+      'sepia(1)',
+      `hue-rotate(${hueAdjustment}deg)`,
+      `saturate(${Math.max(0, 100 + saturationAdjustment)}%)`,
+      `brightness(${Math.max(0, 100 + lightnessAdjustment)}%)`
     ];
+    
+    console.log(`🎨 Color conversion - Target: rgb(${r},${g},${b}) = hsl(${targetHue},${targetSaturation}%,${targetLightness}%)`);
+    console.log(`🎨 Color conversion - Adjustments: hue=${hueAdjustment}°, sat=${saturationAdjustment}%, light=${lightnessAdjustment}%`);
+    console.log(`🎨 Color conversion - Filter: ${filters.join(' ')}`);
     
     return filters.join(' ');
   }
