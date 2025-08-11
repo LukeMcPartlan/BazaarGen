@@ -157,25 +157,30 @@ class KeywordProcessor {
    * @returns {string} Text with HTML img elements
    */
   static replaceIconPlaceholders(text) {
-    const iconReplacements = {
-          '[SLOW_ICON]': '<img src="images/keywords/keytext/slow.png" alt="slow" class="keyword-icon">',
-    '[HASTE_ICON]': '<img src="images/keywords/keytext/haste.png" alt="haste" class="keyword-icon">',
-    '[HEAL_ICON]': '<img src="images/keywords/keytext/heal.png" alt="heal" class="keyword-icon">',
-    '[REGEN_ICON]': '<img src="images/keywords/keytext/regen.png" alt="regen" class="keyword-icon">',
-    '[POISON_ICON]': '<img src="images/keywords/keytext/poison.png" alt="poison" class="keyword-icon">',
-    '[BURN_ICON]': '<img src="images/keywords/keytext/burn.png" alt="burn" class="keyword-icon">',
-    '[CHARGE_ICON]': '<img src="images/keywords/keytext/charge.png" alt="charge" class="keyword-icon">',
-    '[COOLDOWN_ICON]': '<img src="images/keywords/keytext/cooldown.png" alt="cooldown" class="keyword-icon">',
-    '[CRIT_ICON]': '<img src="images/keywords/keytext/crit.png" alt="crit" class="keyword-icon">',
-    '[DAMAGE_ICON]': '<img src="images/keywords/keytext/damage.png" alt="damage" class="keyword-icon">',
-    '[DESTROY_ICON]': '<img src="images/keywords/keytext/destroy.png" alt="destroy" class="keyword-icon">',
-    '[FREEZE_ICON]': '<img src="images/keywords/keytext/freeze.png" alt="freeze" class="keyword-icon">',
-    '[LIFESTEAL_ICON]': '<img src="images/keywords/keytext/lifesteal.png" alt="lifesteal" class="keyword-icon">',
-    '[VALUE_ICON]': '<img src="images/keywords/keytext/value.png" alt="value" class="keyword-icon">',
-    '[TRANSFORM_ICON]': '<img src="images/keywords/keytext/transform.png" alt="transform" class="keyword-icon">',
-    '[SHEILD_ICON]': '<img src="images/keywords/keytext/sheild.png" alt="sheild" class="keyword-icon">',
-    '[MAXHEALTH_ICON]': '<img src="images/keywords/keytext/maxhealth.png" alt="maxhealth" class="keyword-icon">'
-    };
+    const iconReplacements = {};
+    
+    // Define keyword mappings
+    const keywords = [
+      'slow', 'haste', 'heal', 'regen', 'poison', 'burn', 'charge', 'cooldown',
+      'crit', 'damage', 'destroy', 'freeze', 'lifesteal', 'value', 'transform',
+      'sheild', 'maxhealth'
+    ];
+    
+    // Build icon replacements using preloaded images if available
+    keywords.forEach(keyword => {
+      const placeholder = `[${keyword.toUpperCase()}_ICON]`;
+      let src = `images/keywords/keytext/${keyword}.png`;
+      
+      // Use preloaded image if available
+      if (typeof ImagePreloader !== 'undefined' && ImagePreloader.isFullyLoaded()) {
+        const preloadedSrc = ImagePreloader.getKeywordSrc(keyword);
+        if (preloadedSrc) {
+          src = preloadedSrc;
+        }
+      }
+      
+      iconReplacements[placeholder] = `<img src="${src}" alt="${keyword}" class="keyword-icon">`;
+    });
 
     let processedText = text;
     Object.entries(iconReplacements).forEach(([placeholder, replacement]) => {

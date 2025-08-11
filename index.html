@@ -153,6 +153,9 @@
   <!-- Page Header -->
   <div class="page-header">
       <h1 class="page-title">Bazaar Card Generator</h1>
+      <div id="loading-indicator" style="display: none; text-align: center; margin-top: 10px;">
+          <div style="color: #8B7A65; font-size: 14px;">🔄 Loading assets...</div>
+      </div>
   </div>
 
   <!-- REORGANIZED: Main Two-Column Container -->
@@ -501,6 +504,9 @@
   </div>
 
   <!-- Scripts -->
+  <!-- Image Preloader (load first for performance) -->
+  <script src="js/core/image-preloader-js.js"></script>
+  
   <!-- Core modules (load first) -->
   <script src="js/core/validation-js.js"></script>
   <script src="js/core/keyword-processor-js.js"></script>
