@@ -699,17 +699,7 @@ static async createCard(options = {}) {
     };
     
     // Apply border-image to the content with consistent values
-    let borderImageSrc = `images/skill-frames/borders/${cardData.border}_frame.png`;
-    
-    // Use preloaded image if available
-    if (typeof ImagePreloader !== 'undefined' && ImagePreloader.isFullyLoaded()) {
-      const preloadedSrc = ImagePreloader.getFrameSrc(cardData.border);
-      if (preloadedSrc) {
-        borderImageSrc = preloadedSrc;
-      }
-    }
-    
-    content.style.borderImage = `url('${borderImageSrc}') 40 fill / 50px / 0 round`;
+    content.style.borderImage = `url('images/skill-frames/borders/${cardData.border}_frame.png') 40 fill / 50px / 0 round`;
     content.style.borderImageSlice = '40 fill';
     content.style.borderImageWidth = '50px';
     content.style.borderImageOutset = '0';
@@ -763,19 +753,7 @@ static async createCard(options = {}) {
     if (cardData.hero === 'Custom' && cardData.customHeroImage) {
       heroImg.src = cardData.customHeroImage;
     } else {
-      // Use preloaded character image if available
-      if (typeof ImagePreloader !== 'undefined' && ImagePreloader.isFullyLoaded()) {
-        const preloadedSrc = ImagePreloader.getCharacterSrc(cardData.hero);
-        if (preloadedSrc) {
-          heroImg.src = preloadedSrc;
-        } else {
-          // Fallback to direct loading
-          heroImg.src = `images/characters/${cardData.hero.toLowerCase()}.png`;
-        }
-      } else {
-        // Fallback to direct loading if preloader not available
-        heroImg.src = `images/characters/${cardData.hero.toLowerCase()}.png`;
-      }
+      heroImg.src = `images/characters/${cardData.hero.toLowerCase()}.png`;
     }
     
     heroImg.alt = cardData.hero;
@@ -1256,21 +1234,7 @@ static async createCard(options = {}) {
     frameDiv.className = "card-frame";
     
     const frameImg = document.createElement("img");
-    
-    // Use preloaded image if available
-    if (typeof ImagePreloader !== 'undefined' && ImagePreloader.isFullyLoaded()) {
-      const preloadedSrc = ImagePreloader.getFrameSrc(frameQuality, frameSize);
-      if (preloadedSrc) {
-        frameImg.src = preloadedSrc;
-      } else {
-        // Fallback to direct loading
-        frameImg.src = `images/skill-content/skill-borders/${frameQuality}/${frameQuality}_${frameSize}_frame.png`;
-      }
-    } else {
-      // Fallback to direct loading if preloader not available
-      frameImg.src = `images/skill-content/skill-borders/${frameQuality}/${frameQuality}_${frameSize}_frame.png`;
-    }
-    
+    frameImg.src = `images/skill-content/skill-borders/${frameQuality}/${frameQuality}_${frameSize}_frame.png`;
     frameImg.alt = `${quality} ${size} frame`;
     frameImg.onerror = function() {
       frameDiv.style.display = 'none';
@@ -1289,20 +1253,10 @@ static async createCard(options = {}) {
     const mappedQuality = qualityMap[quality?.toLowerCase()] || 'gold';
     const borderDiv = document.createElement("div");
     borderDiv.className = "cooldown-border";
-    
-    // Use preloaded cooldown image if available
-    let cooldownImageSrc = `images/skill-content/cooldown/${mappedQuality}_Cooldown.png`;
-    if (typeof ImagePreloader !== 'undefined' && ImagePreloader.isFullyLoaded()) {
-      const preloadedSrc = ImagePreloader.getCooldownSrc(mappedQuality);
-      if (preloadedSrc) {
-        cooldownImageSrc = preloadedSrc;
-      }
-    }
-    
     borderDiv.style.cssText = `
       position: absolute; top: 50%; left: 50%; width: 130%; height: 130%;
       transform: translate(calc(-50% + 2px), -50%); pointer-events: none; z-index: 0;
-      background-image: url('${cooldownImageSrc}');
+      background-image: url('images/skill-content/cooldown/${mappedQuality}_Cooldown.png');
       background-size: 100% 100%; background-repeat: no-repeat; background-position: center;
     `;
     
@@ -1330,24 +1284,11 @@ static async createCard(options = {}) {
         
         // Set gem image based on type
         if (type === 'regen') {
-          // Use preloaded gem image if available
-          if (typeof ImagePreloader !== 'undefined' && ImagePreloader.isFullyLoaded()) {
-            const preloadedSrc = ImagePreloader.getGemSrc('Blank');
-            gemImg.src = preloadedSrc || "images/CardGems/CardGem_Blank.png";
-          } else {
-            gemImg.src = "images/CardGems/CardGem_Blank.png";
-          }
+          gemImg.src = "images/CardGems/CardGem_Blank.png";
           // Apply the new color conversion system for regen (RGB: 183, 240, 190)
           gemImg.style.filter = "brightness(50%) sepia(1) hue-rotate(89deg) saturate(500%) brightness(123%)";
         } else {
-          // Use preloaded gem image if available
-          if (typeof ImagePreloader !== 'undefined' && ImagePreloader.isFullyLoaded()) {
-            const gemType = `${type.charAt(0).toUpperCase() + type.slice(1)}_TD`;
-            const preloadedSrc = ImagePreloader.getGemSrc(gemType);
-            gemImg.src = preloadedSrc || `images/CardGems/CardGem_${gemType}.png`;
-          } else {
-            gemImg.src = `images/CardGems/CardGem_${type.charAt(0).toUpperCase() + type.slice(1)}_TD.png`;
-          }
+          gemImg.src = `images/CardGems/CardGem_${type.charAt(0).toUpperCase() + type.slice(1)}_TD.png`;
         }
         
         gemImg.alt = `${type} gem`;
@@ -1382,15 +1323,7 @@ static async createCard(options = {}) {
           // Create gem image with custom color
           const gemImg = document.createElement("img");
           gemImg.className = "scaling-gem";
-          
-          // Use preloaded gem image if available
-          if (typeof ImagePreloader !== 'undefined' && ImagePreloader.isFullyLoaded()) {
-            const preloadedSrc = ImagePreloader.getGemSrc('Blank');
-            gemImg.src = preloadedSrc || "images/CardGems/CardGem_Blank.png";
-          } else {
-            gemImg.src = "images/CardGems/CardGem_Blank.png";
-          }
-          
+          gemImg.src = "images/CardGems/CardGem_Blank.png";
           gemImg.style.filter = customValue.filterString || `hue-rotate(${customValue.hue || 0}deg) saturate(${customValue.saturation || 1}) brightness(${customValue.brightness || 1})`;
           gemImg.alt = "custom gem";
           

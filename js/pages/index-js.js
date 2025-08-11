@@ -1376,7 +1376,7 @@ class IndexPageController {
       this.selectHeroPortrait(selectedHero);
     }
 
-    // Add click handlers and update images to use preloaded images
+    // Add click handlers
     heroPortraits.forEach(portrait => {
       portrait.addEventListener('click', () => {
         const hero = portrait.getAttribute('data-hero');
@@ -1390,16 +1390,6 @@ class IndexPageController {
         
         this.handleFormChange();
       });
-      
-      // Update hero portrait images to use preloaded images if available
-      const img = portrait.querySelector('img');
-      if (img && typeof ImagePreloader !== 'undefined' && ImagePreloader.isFullyLoaded()) {
-        const hero = portrait.getAttribute('data-hero');
-        const preloadedSrc = ImagePreloader.getCharacterSrc(hero);
-        if (preloadedSrc) {
-          img.src = preloadedSrc;
-        }
-      }
     });
   }
 
@@ -1445,25 +1435,7 @@ class IndexPageController {
     }
   }
 
-  /**
-   * Update keyword shortcut images to use preloaded images
-   */
-  static updateKeywordShortcuts() {
-    if (typeof ImagePreloader === 'undefined' || !ImagePreloader.isFullyLoaded()) {
-      return;
-    }
 
-    const shortcutItems = document.querySelectorAll('.shortcut-item img');
-    shortcutItems.forEach(img => {
-      const alt = img.alt;
-      if (alt) {
-        const preloadedSrc = ImagePreloader.getKeywordSrc(alt);
-        if (preloadedSrc) {
-          img.src = preloadedSrc;
-        }
-      }
-    });
-  }
 }
 
 // Auto-initialize
@@ -1473,11 +1445,6 @@ IndexPageController.init();
 document.addEventListener('DOMContentLoaded', () => {
   IndexPageController.setupKeyboardShortcuts();
   IndexPageController.setupAutoSave();
-  
-  // Update images to use preloaded versions after a short delay
-  setTimeout(() => {
-    IndexPageController.updateKeywordShortcuts();
-  }, 100);
 });
 
 // Make available globally
