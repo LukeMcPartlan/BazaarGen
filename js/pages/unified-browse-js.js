@@ -684,6 +684,16 @@ class UnifiedBrowsePageController {
     this.showingItemsSpan = document.getElementById('showingItems');
     this.loadingText = document.getElementById('loadingText');
     this.endMessage = document.getElementById('endMessage');
+    
+    // Debug logging for DOM elements
+    this.debug(`🔍 DOM Elements - itemsGrid: ${!!this.itemsGrid}, loadMoreBtn: ${!!this.loadMoreBtn}, endMessage: ${!!this.endMessage}`);
+    
+    // Additional debug info for load more button
+    if (this.loadMoreBtn) {
+      this.debug(`🔍 Load More button found - Initial display: ${this.loadMoreBtn.style.display}, Computed display: ${window.getComputedStyle(this.loadMoreBtn).display}`);
+    } else {
+      this.debug('🔍 Load More button NOT found during setupDOMElements');
+    }
   }
 
   /**
@@ -699,6 +709,7 @@ class UnifiedBrowsePageController {
     
     // Load more button
     this.addEventListenerIfExists('loadMoreBtn', 'click', () => {
+      this.debug('🔍 Load More button clicked!');
       if (this.activeTab === 'items') {
         this.loadMoreItems();
       } else if (this.activeTab === 'skills') {
@@ -801,6 +812,15 @@ class UnifiedBrowsePageController {
     const element = document.getElementById(id);
     if (element) {
       element.addEventListener(event, handler);
+      this.debug(`🔍 Event listener added for ${id}`);
+      if (id === 'loadMoreBtn') {
+        this.debug(`🔍 Load More button event listener added - Current display: ${element.style.display}, Computed: ${window.getComputedStyle(element).display}`);
+      }
+    } else {
+      this.debug(`🔍 Element ${id} not found, cannot add event listener`);
+      if (id === 'loadMoreBtn') {
+        this.debug('🔍 Load More button not found during event listener setup!');
+      }
     }
   }
 
@@ -889,17 +909,27 @@ class UnifiedBrowsePageController {
       this.debug(`🔍 Loaded ${this.allItems.length} items from database`);
 
       // Apply additional client-side filtering
+      this.debug(`🔍 Applying filters:`, filters);
       this.displayedItems = this.applyItemFilters(this.allItems, filters);
       this.debug(`🔍 After client-side filtering: ${this.displayedItems.length} items`);
 
       // Reset pagination
       this.currentPage = 0;
+      this.debug(`🔍 Reset pagination to page 0`);
       
       // Display first page
       await this.displayItemsPage(0);
       
       this.updateStats();
       this.updateLoadMoreButton();
+      
+      this.debug(`🔍 Initial load complete - Total: ${this.displayedItems.length}, Page: ${this.currentPage}, Items per load: ${this.ITEMS_PER_LOAD}`);
+      this.debug(`🔍 After updateLoadMoreButton - loadMoreBtn display: ${this.loadMoreBtn?.style.display}, endMessage display: ${this.endMessage?.style.display}`);
+      
+      // Additional debug: Check button state after a short delay
+      setTimeout(() => {
+        this.debug(`🔍 Button state after delay - loadMoreBtn: ${this.loadMoreBtn ? 'found' : 'not found'}, display: ${this.loadMoreBtn?.style.display}, computed: ${this.loadMoreBtn ? window.getComputedStyle(this.loadMoreBtn).display : 'N/A'}`);
+      }, 100);
       
     } catch (error) {
       console.error('Error loading items:', error);
@@ -918,8 +948,12 @@ class UnifiedBrowsePageController {
     const endIndex = startIndex + this.ITEMS_PER_LOAD;
     const pageItems = this.displayedItems.slice(startIndex, endIndex);
 
+    this.debug(`🔍 displayItemsPage - Page: ${page}, Start: ${startIndex}, End: ${endIndex}, Items: ${pageItems.length}`);
+    this.debug(`🔍 Total displayedItems: ${this.displayedItems.length}, ITEMS_PER_LOAD: ${this.ITEMS_PER_LOAD}`);
+
     if (page === 0) {
       this.itemsGrid.innerHTML = '';
+      this.debug('🔍 Cleared items grid for page 0');
     }
 
     for (const item of pageItems) {
@@ -928,6 +962,13 @@ class UnifiedBrowsePageController {
         this.itemsGrid.appendChild(card);
       }
     }
+
+    this.debug(`🔍 Added ${pageItems.length} items to grid`);
+    
+    // Debug: Check if we should show load more button after this page
+    const nextPageStartIndex = (page + 1) * this.ITEMS_PER_LOAD;
+    this.debug(`🔍 Next page would start at index: ${nextPageStartIndex}, Total items: ${this.displayedItems.length}`);
+    this.debug(`🔍 Should show load more button: ${nextPageStartIndex < this.displayedItems.length}`);
   }
 
   /**
@@ -999,12 +1040,16 @@ class UnifiedBrowsePageController {
     this.isLoading = true;
     this.currentPage++;
     
+    this.debug(`🔍 loadMoreItems - Loading page ${this.currentPage}`);
+    
     try {
       await this.displayItemsPage(this.currentPage);
       this.updateLoadMoreButton();
+      this.debug(`🔍 Successfully loaded page ${this.currentPage}`);
     } catch (error) {
       console.error('Error loading more items:', error);
       this.currentPage--; // Revert on error
+      this.debug(`🔍 Error loading page ${this.currentPage + 1}, reverted to page ${this.currentPage}`);
     } finally {
       this.isLoading = false;
     }
@@ -1868,7 +1913,7 @@ static async addSkillComment(skillId) {
     console.log('🔍 Contest filter element value:', contestValue);
     console.log('🔍 Contest filter element options:', contestFilterElement?.options?.length);
     
-    return {
+    const filters = {
       sortBy: document.getElementById('sortBy')?.value || 'recent',
       hero: document.getElementById('heroFilter')?.value || '',
       size: document.getElementById('sizeFilter')?.value || '',
@@ -1884,6 +1929,9 @@ static async addSkillComment(skillId) {
       dateFrom: document.getElementById('dateFrom')?.value || '',
       dateTo: document.getElementById('dateTo')?.value || ''
     };
+    
+    this.debug('🔍 Retrieved filter values:', filters);
+    return filters;
   }
 
   /**
@@ -1937,22 +1985,40 @@ static async addSkillComment(skillId) {
    * Update load more button visibility
    */
   static updateLoadMoreButton() {
-    let totalCount, displayedCount;
+    let totalCount, currentDisplayedCount;
     
     if (this.activeTab === 'items') {
-      totalCount = this.allItems.length;
-      displayedCount = this.displayedItems.length;
+      totalCount = this.displayedItems.length; // Total items that pass filters
+      currentDisplayedCount = (this.currentPage + 1) * this.ITEMS_PER_LOAD; // Items currently shown
     } else {
-      totalCount = this.allSkills.length;
-      displayedCount = this.displayedSkills.length;
+      totalCount = this.displayedSkills.length; // Total skills that pass filters
+      currentDisplayedCount = (this.currentSkillPage + 1) * this.ITEMS_PER_LOAD; // Skills currently shown
     }
 
-    if (displayedCount >= totalCount) {
-      if (this.loadMoreBtn) this.loadMoreBtn.style.display = 'none';
-      if (this.endMessage) this.endMessage.style.display = displayedCount > 0 ? 'block' : 'none';
-    } else {
-      if (this.loadMoreBtn) this.loadMoreBtn.style.display = displayedCount > 0 ? 'block' : 'none';
+    // Debug logging
+    this.debug(`🔍 updateLoadMoreButton - Tab: ${this.activeTab}, Total: ${totalCount}, Current: ${currentDisplayedCount}, Page: ${this.activeTab === 'items' ? this.currentPage : this.currentSkillPage}`);
+
+    // Show load more button if there are more items to display
+    if (currentDisplayedCount < totalCount) {
+      if (this.loadMoreBtn) {
+        this.loadMoreBtn.style.display = 'block';
+        this.debug('🔍 Load More button shown');
+        this.debug(`🔍 Button display style after change: ${this.loadMoreBtn.style.display}`);
+        this.debug(`🔍 Button computed display: ${window.getComputedStyle(this.loadMoreBtn).display}`);
+      } else {
+        this.debug('🔍 Load More button element not found!');
+      }
       if (this.endMessage) this.endMessage.style.display = 'none';
+    } else {
+      if (this.loadMoreBtn) {
+        this.loadMoreBtn.style.display = 'none';
+        this.debug('🔍 Load More button hidden');
+        this.debug(`🔍 Button display style after change: ${this.loadMoreBtn.style.display}`);
+        this.debug(`🔍 Button computed display: ${window.getComputedStyle(this.loadMoreBtn).display}`);
+      } else {
+        this.debug('🔍 Load More button element not found!');
+      }
+      if (this.endMessage) this.endMessage.style.display = totalCount > 0 ? 'block' : 'none';
     }
 
     if (totalCount === 0) {
@@ -2641,52 +2707,66 @@ static async addSkillComment(skillId) {
   static applyItemFilters(items, filters) {
     if (!items || !Array.isArray(items)) return [];
     
+    this.debug(`🔍 applyItemFilters - Starting with ${items.length} items`);
     let filteredItems = [...items];
 
     // Hero filter
     if (filters.hero) {
+      const beforeCount = filteredItems.length;
       filteredItems = filteredItems.filter(item => 
         item.item_data?.hero === filters.hero
       );
+      this.debug(`🔍 Hero filter "${filters.hero}" reduced items from ${beforeCount} to ${filteredItems.length}`);
     }
 
     // Size filter
     if (filters.size) {
+      const beforeCount = filteredItems.length;
       filteredItems = filteredItems.filter(item => 
         item.item_data?.itemSize === filters.size
       );
+      this.debug(`🔍 Size filter "${filters.size}" reduced items from ${beforeCount} to ${filteredItems.length}`);
     }
 
     // Border/Rarity filter
     if (filters.border) {
+      const beforeCount = filteredItems.length;
       filteredItems = filteredItems.filter(item => 
         item.item_data?.border === filters.border
       );
+      this.debug(`🔍 Border filter "${filters.border}" reduced items from ${beforeCount} to ${filteredItems.length}`);
     }
 
     // Upvote range filter
     if (filters.minUpvotes > 0) {
+      const beforeCount = filteredItems.length;
       filteredItems = filteredItems.filter(item => 
         (item.upvotes || 0) >= filters.minUpvotes
       );
+      this.debug(`🔍 Min upvotes filter ${filters.minUpvotes} reduced items from ${beforeCount} to ${filteredItems.length}`);
     }
 
     if (filters.maxUpvotes && filters.maxUpvotes > 0) {
+      const beforeCount = filteredItems.length;
       filteredItems = filteredItems.filter(item => 
         (item.upvotes || 0) <= filters.maxUpvotes
       );
+      this.debug(`🔍 Max upvotes filter ${filters.maxUpvotes} reduced items from ${beforeCount} to ${filteredItems.length}`);
     }
 
     // Search filter (item name)
     if (filters.search) {
+      const beforeCount = filteredItems.length;
       const searchLower = filters.search.toLowerCase();
       filteredItems = filteredItems.filter(item => 
         item.item_data?.itemName?.toLowerCase().includes(searchLower)
       );
+      this.debug(`🔍 Search filter "${filters.search}" reduced items from ${beforeCount} to ${filteredItems.length}`);
     }
 
     // Tags filter
     if (filters.tags) {
+      const beforeCount = filteredItems.length;
       const tagList = filters.tags.split(',').map(tag => tag.trim().toLowerCase());
       filteredItems = filteredItems.filter(item => {
         const itemTags = item.item_data?.tags || [];
@@ -2694,10 +2774,12 @@ static async addSkillComment(skillId) {
           itemTags.some(itemTag => itemTag.toLowerCase().includes(tag))
         );
       });
+      this.debug(`🔍 Tags filter "${filters.tags}" reduced items from ${beforeCount} to ${filteredItems.length}`);
     }
 
     // Keywords filter (effects)
     if (filters.keywords) {
+      const beforeCount = filteredItems.length;
       const keywordList = filters.keywords.split(',').map(keyword => keyword.trim().toLowerCase());
       filteredItems = filteredItems.filter(item => {
         const onUseEffects = item.item_data?.onUseEffects || [];
@@ -2706,57 +2788,73 @@ static async addSkillComment(skillId) {
         
         return keywordList.some(keyword => allEffects.includes(keyword));
       });
+      this.debug(`🔍 Keywords filter "${filters.keywords}" reduced items from ${beforeCount} to ${filteredItems.length}`);
     }
 
     // Creator filter
     if (filters.creator) {
+      const beforeCount = filteredItems.length;
       const creatorLower = filters.creator.toLowerCase();
       filteredItems = filteredItems.filter(item => 
         item.user_alias?.toLowerCase().includes(creatorLower)
       );
+      this.debug(`🔍 Creator filter "${filters.creator}" reduced items from ${beforeCount} to ${filteredItems.length}`);
     }
 
     // Contest filter
     if (filters.contest !== '') {
+      this.debug(`🔍 Applying contest filter: "${filters.contest}"`);
       if (filters.contest === '0') {
         // Show items not in any contest
+        const beforeCount = filteredItems.length;
         filteredItems = filteredItems.filter(item => !item.in_contest);
+        this.debug(`🔍 Contest filter "0" reduced items from ${beforeCount} to ${filteredItems.length}`);
       } else {
         // Show items in specific contest
+        const beforeCount = filteredItems.length;
         filteredItems = filteredItems.filter(item => 
           item.contest_id === parseInt(filters.contest)
         );
+        this.debug(`🔍 Contest filter "${filters.contest}" reduced items from ${beforeCount} to ${filteredItems.length}`);
       }
     }
 
     // Item type filter (single vs gallery)
     if (filters.itemType) {
+      const beforeCount = filteredItems.length;
       if (filters.itemType === 'single') {
         filteredItems = filteredItems.filter(item => !item.item_data?.isGallery);
+        this.debug(`🔍 Item type filter "single" reduced items from ${beforeCount} to ${filteredItems.length}`);
       } else if (filters.itemType === 'gallery') {
         filteredItems = filteredItems.filter(item => item.item_data?.isGallery);
+        this.debug(`🔍 Item type filter "gallery" reduced items from ${beforeCount} to ${filteredItems.length}`);
       }
     }
 
     // Date range filter
     if (filters.dateFrom) {
+      const beforeCount = filteredItems.length;
       const fromDate = new Date(filters.dateFrom);
       filteredItems = filteredItems.filter(item => 
         new Date(item.created_at) >= fromDate
       );
+      this.debug(`🔍 Date from filter "${filters.dateFrom}" reduced items from ${beforeCount} to ${filteredItems.length}`);
     }
 
     if (filters.dateTo) {
+      const beforeCount = filteredItems.length;
       const toDate = new Date(filters.dateTo);
       toDate.setHours(23, 59, 59, 999); // End of day
       filteredItems = filteredItems.filter(item => 
         new Date(item.created_at) <= toDate
       );
+      this.debug(`🔍 Date to filter "${filters.dateTo}" reduced items from ${beforeCount} to ${filteredItems.length}`);
     }
 
     // Sort items
     filteredItems = this.sortItems(filteredItems, filters.sortBy);
 
+    this.debug(`🔍 applyItemFilters - Final result: ${filteredItems.length} items after all filters`);
     return filteredItems;
   }
 
