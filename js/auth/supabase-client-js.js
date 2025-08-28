@@ -521,15 +521,14 @@ static async loadItems(options = {}, requestOptions = {}) {
     console.log('🔍 [loadItems] Building query...');
     let query = this.supabase
       .from('items')
-      .select('id, user_email, user_alias, contest_number, upvotes, created_at, updated_at')
-      .order('created_at', { ascending: false });
+      .select('id, user_email, user_alias, contest_number, upvotes, created_at, updated_at');
 
     console.log('🔍 [loadItems] Base query built, applying filters...');
 
     // Apply hero filter
     if (options.hero) {
       console.log('🔍 [loadItems] Applying hero filter:', options.hero);
-      query = query.filter('item_data->hero', 'eq', `"${options.hero}"`);
+      query = query.eq('item_data->hero', options.hero);
     }
 
     // Apply contest filter
@@ -540,6 +539,7 @@ static async loadItems(options = {}, requestOptions = {}) {
         // Show items not in any contest
         console.log('🔍 [loadItems] Filtering for items NOT in any contest');
         query = query.is('contest_number', null);
+        console.log('🔍 [loadItems] After contest filter (null) - query has toSQL method:', typeof query?.toSQL === 'function');
       } else {
         // Show items in specific contest
         const contestId = parseInt(options.contest);
@@ -553,7 +553,7 @@ static async loadItems(options = {}, requestOptions = {}) {
     // Apply search filter
     if (options.search) {
       console.log('🔍 [loadItems] Applying search filter:', options.search);
-      query = query.filter('item_data->itemName', 'ilike', `%${options.search}%`);
+      query = query.ilike('item_data->itemName', `%${options.search}%`);
     }
 
     // Apply sorting
@@ -569,7 +569,10 @@ static async loadItems(options = {}, requestOptions = {}) {
     }
 
     console.log('🔍 [loadItems] Query built, executing...');
-    console.log('🔍 [loadItems] Query string preview:', query.toSQL());
+    console.log('🔍 [loadItems] Query object type:', typeof query);
+    console.log('🔍 [loadItems] Query object keys:', Object.keys(query || {}));
+    console.log('🔍 [loadItems] Query has toSQL method:', typeof query?.toSQL === 'function');
+    // console.log('🔍 [loadItems] Query string preview:', query.toSQL()); // Temporarily commented out to debug
 
     // *** CORRECTED ABORT SIGNAL SUPPORT ***
     let queryPromise;
@@ -642,6 +645,8 @@ static async loadSkills(options = {}, requestOptions = {}) {
     }
 
     console.log('🔍 [loadSkills] Building query...');
+    console.log('🔍 [loadSkills] this.supabase type:', typeof this.supabase);
+    console.log('🔍 [loadSkills] this.supabase keys:', Object.keys(this.supabase || {}));
     let query = this.supabase
       .from('skills')
       .select(`
@@ -650,17 +655,19 @@ static async loadSkills(options = {}, requestOptions = {}) {
       `);
 
     console.log('🔍 [loadSkills] Base query built, applying filters...');
+    console.log('🔍 [loadSkills] Initial query object type:', typeof query);
+    console.log('🔍 [loadSkills] Initial query has toSQL method:', typeof query?.toSQL === 'function');
 
     // Apply rarity filter
     if (options.rarity) {
       console.log('🔍 [loadSkills] Applying rarity filter:', options.rarity);
-      query = query.filter('skill_data->border', 'eq', `"${options.rarity}"`);
+      query = query.eq('skill_data->border', options.rarity);
     }
 
     // Apply search filter
     if (options.search) {
       console.log('🔍 [loadSkills] Applying search filter:', options.search);
-      query = query.filter('skill_data->skillName', 'ilike', `%${options.search}%`);
+      query = query.ilike('skill_data->skillName', `%${options.search}%`);
     }
 
     // Apply creator filter
@@ -702,7 +709,10 @@ static async loadSkills(options = {}, requestOptions = {}) {
     }
 
     console.log('🔍 [loadSkills] Query built, executing...');
-    console.log('🔍 [loadSkills] Query string preview:', query.toSQL());
+    console.log('🔍 [loadSkills] Query object type:', typeof query);
+    console.log('🔍 [loadSkills] Query object keys:', Object.keys(query || {}));
+    console.log('🔍 [loadSkills] Query has toSQL method:', typeof query?.toSQL === 'function');
+    // console.log('🔍 [loadSkills] Query string preview:', query.toSQL()); // Temporarily commented out to debug
 
     // *** CORRECTED ABORT SIGNAL SUPPORT ***
     let queryPromise;
