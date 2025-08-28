@@ -903,15 +903,10 @@ class UnifiedBrowsePageController {
       this.debug('🔍 Loading items with filters:', filters);
       const queryOptions = this.buildQueryOptions(filters);
       
-      // Get items from database with filters applied
-      console.log('🔍 [unified-browse] Calling SupabaseClient.loadItems with options:', queryOptions);
-      const startTime = performance.now();
+      // Get items from database with filters applied (minimal data only)
       const items = await SupabaseClient.loadItems(queryOptions);
-      const endTime = performance.now();
-      console.log('🔍 [unified-browse] SupabaseClient.loadItems completed in', (endTime - startTime).toFixed(2), 'ms');
-      console.log('🔍 [unified-browse] Received items:', items?.length || 0);
       this.allItems = items || [];
-      this.debug(`🔍 Loaded ${this.allItems.length} items from database`);
+      this.debug(`🔍 Loaded ${this.allItems.length} items from database (minimal data)`);
 
       // Apply additional client-side filtering
       this.debug(`🔍 Applying filters:`, filters);
@@ -991,13 +986,8 @@ class UnifiedBrowsePageController {
       const filters = this.getSkillFilters();
       const queryOptions = this.buildQueryOptions(filters);
       
-      // Get skills from database with filters applied
-      console.log('🔍 [unified-browse] Calling SupabaseClient.loadSkills with options:', queryOptions);
-      const startTime = performance.now();
+      // Get skills from database with filters applied (minimal data only)
       const skills = await SupabaseClient.loadSkills(queryOptions);
-      const endTime = performance.now();
-      console.log('🔍 [unified-browse] SupabaseClient.loadSkills completed in', (endTime - startTime).toFixed(2), 'ms');
-      console.log('🔍 [unified-browse] Received skills:', skills?.length || 0);
       this.allSkills = skills || [];
 
       // Apply additional client-side filtering
@@ -1139,12 +1129,7 @@ static async createItemCard(item) {
     // Load full item data for card creation
     let fullItemData;
     try {
-      console.log('🔍 [unified-browse] Loading full item data for item ID:', item.id);
-      const startTime = performance.now();
       fullItemData = await SupabaseClient.loadItemData(item.id);
-      const endTime = performance.now();
-      console.log('🔍 [unified-browse] loadItemData completed in', (endTime - startTime).toFixed(2), 'ms');
-      console.log('🔍 [unified-browse] Full item data loaded successfully');
     } catch (error) {
       console.error('❌ [unified-browse] Error loading full item data for item ID:', item.id, error);
       // Fallback to basic data
@@ -1262,12 +1247,7 @@ static async createItemCard(item) {
     // Load full skill data for card creation
     let fullSkillData;
     try {
-      console.log('🔍 [unified-browse] Loading full skill data for skill ID:', skill.id);
-      const startTime = performance.now();
       fullSkillData = await SupabaseClient.loadSkillData(skill.id);
-      const endTime = performance.now();
-      console.log('🔍 [unified-browse] loadSkillData completed in', (endTime - startTime).toFixed(2), 'ms');
-      console.log('🔍 [unified-browse] Full skill data loaded successfully');
     } catch (error) {
       console.error('❌ [unified-browse] Error loading full skill data for skill ID:', skill.id, error);
       // Fallback to basic data

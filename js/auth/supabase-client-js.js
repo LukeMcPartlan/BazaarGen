@@ -510,18 +510,16 @@ class SupabaseClient {
  */
 static async loadItems(options = {}, requestOptions = {}) {
   try {
-    console.log('🔍 [loadItems] Starting with options:', options);
-    console.log('🔍 [loadItems] Request options:', requestOptions);
-    
     if (!this.isReady()) {
       console.error('❌ [loadItems] Database not available');
       throw new Error('Database not available');
     }
 
     console.log('🔍 [loadItems] Building query...');
+    // Only select essential fields - NO item_data to prevent timeouts
     let query = this.supabase
       .from('items')
-      .select('*');
+      .select('id, user_email, user_alias, contest_number, upvotes, created_at, updated_at');
 
     console.log('🔍 [loadItems] Base query built, applying filters...');
 
@@ -569,9 +567,7 @@ static async loadItems(options = {}, requestOptions = {}) {
     }
 
     console.log('🔍 [loadItems] Query built, executing...');
-    console.log('🔍 [loadItems] Query object type:', typeof query);
-    console.log('🔍 [loadItems] Query object keys:', Object.keys(query || {}));
-    console.log('🔍 [loadItems] Query has toSQL method:', typeof query?.toSQL === 'function');
+    console.log('🔍 [loadItems] Query built, executing...');
     // console.log('🔍 [loadItems] Query string preview:', query.toSQL()); // Temporarily commented out to debug
 
     // *** CORRECTED ABORT SIGNAL SUPPORT ***
@@ -632,21 +628,54 @@ static async loadItems(options = {}, requestOptions = {}) {
 }
 
 /**
- * Load skills with filters - CORRECTED VERSION
+ * Load full item data for a specific item ID
+ * This fetches the complete item_data JSONB field for individual items
+ */
+static async loadItemData(itemId) {
+  try {
+    console.log('🔍 [loadItemData] Loading full data for item ID:', itemId);
+    
+    if (!this.isReady()) {
+      console.error('❌ [loadItemData] Database not available');
+      throw new Error('Database not available');
+    }
+
+    const startTime = performance.now();
+    const { data, error } = await this.supabase
+      .from('items')
+      .select('*')
+      .eq('id', itemId)
+      .single();
+    const endTime = performance.now();
+    
+    console.log('🔍 [loadItemData] Query completed in', (endTime - startTime).toFixed(2), 'ms');
+
+    if (error) {
+      console.error('❌ [loadItemData] Database error:', error);
+      throw error;
+    }
+
+    console.log('🔍 [loadItemData] Successfully loaded full data for item ID:', itemId);
+    return data;
+  } catch (error) {
+    console.error('❌ [loadItemData] Error in loadItemData:', error);
+    throw error;
+  }
+}
+
+/**
+ * Load skills with filters - MINIMAL DATA VERSION (no skill_data)
+ * This prevents timeouts by only fetching essential fields
  */
 static async loadSkills(options = {}, requestOptions = {}) {
   try {
-    console.log('🔍 [loadSkills] Starting with options:', options);
-    console.log('🔍 [loadSkills] Request options:', requestOptions);
-    
     if (!this.isReady()) {
       console.error('❌ [loadSkills] Database not available');
       throw new Error('Database not available');
     }
 
     console.log('🔍 [loadSkills] Building query...');
-    console.log('🔍 [loadSkills] this.supabase type:', typeof this.supabase);
-    console.log('🔍 [loadSkills] this.supabase keys:', Object.keys(this.supabase || {}));
+    // Only select essential fields - NO skill_data to prevent timeouts
     let query = this.supabase
       .from('skills')
       .select(`
@@ -709,10 +738,6 @@ static async loadSkills(options = {}, requestOptions = {}) {
     }
 
     console.log('🔍 [loadSkills] Query built, executing...');
-    console.log('🔍 [loadSkills] Query object type:', typeof query);
-    console.log('🔍 [loadSkills] Query object keys:', Object.keys(query || {}));
-    console.log('🔍 [loadSkills] Query has toSQL method:', typeof query?.toSQL === 'function');
-    // console.log('🔍 [loadSkills] Query string preview:', query.toSQL()); // Temporarily commented out to debug
 
     // *** CORRECTED ABORT SIGNAL SUPPORT ***
     let queryPromise;
@@ -793,6 +818,78 @@ static async loadSkills(options = {}, requestOptions = {}) {
       hint: error.hint
     });
     this.debug('Error loading skills:', error);
+    throw error;
+  }
+}
+
+/**
+ * Load full skill data for a specific skill ID
+ * This fetches the complete skill_data JSONB field for individual skills
+ */
+static async loadSkillData(skillId) {
+  try {
+    console.log('🔍 [loadSkillData] Loading full data for skill ID:', skillId);
+    
+    if (!this.isReady()) {
+      console.error('❌ [loadSkillData] Database not available');
+      throw new Error('Database not available');
+    }
+
+    const startTime = performance.now();
+    const { data, error } = await this.supabase
+      .from('skills')
+      .select('*')
+      .eq('id', skillId)
+      .single();
+    const endTime = performance.now();
+    
+    console.log('🔍 [loadSkillData] Query completed in', (endTime - startTime).toFixed(2), 'ms');
+
+    if (error) {
+      console.error('❌ [loadSkillData] Database error:', error);
+      throw error;
+    }
+
+    console.log('🔍 [loadSkillData] Successfully loaded full data for skill ID:', skillId);
+    return data;
+  } catch (error) {
+    console.error('❌ [loadSkillData] Error in loadSkillData:', error);
+    throw error;
+  }
+}
+
+/**
+ * Load full skill data for a specific skill ID
+ * This fetches the complete skill_data JSONB field for individual skills
+ */
+static async loadSkillData(skillId) {
+  try {
+    console.log('🔍 [loadSkillData] Loading full data for skill ID:', skillId);
+    
+    if (!this.isReady()) {
+      console.error('❌ [loadSkillData] Database not available');
+      throw new Error('Database not available');
+    }
+
+    const startTime = performance.now();
+    const { data, error } = await this.supabase
+      .from('skills')
+      .select('*')
+      .eq('id', skillId)
+      .single();
+    const endTime = performance.now();
+    
+    console.log('🔍 [loadSkillData] Query completed in', (endTime - startTime).toFixed(2), 'ms');
+
+    if (error) {
+      console.error('❌ [loadSkillData] Database error:', error);
+      throw error;
+    }
+
+    console.log('🔍 [loadSkillData] Successfully loaded full data for skill ID:', skillId);
+    return data;
+  } catch (error) {
+    console.error('❌ [loadSkillData] Error in loadSkillData:', error);
     throw error;
   }
 }
