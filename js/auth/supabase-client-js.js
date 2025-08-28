@@ -719,7 +719,7 @@ static async loadSkills(options = {}, requestOptions = {}) {
         query = query.eq('contest_submissions.contest_id', parseInt(options.contest));
       }
     }
-
+    //random comment
     // Apply sorting
     console.log('🔍 [loadSkills] Applying sorting:', options.sortBy);
     switch (options.sortBy) {
