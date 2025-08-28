@@ -510,44 +510,54 @@ class SupabaseClient {
  */
 static async loadItems(options = {}, requestOptions = {}) {
   try {
+    console.log('🔍 [loadItems] Starting with options:', options);
+    console.log('🔍 [loadItems] Request options:', requestOptions);
+    
     if (!this.isReady()) {
+      console.error('❌ [loadItems] Database not available');
       throw new Error('Database not available');
     }
 
+    console.log('🔍 [loadItems] Building query...');
     let query = this.supabase
       .from('items')
-      .select('*')
+      .select('id, user_email, user_alias, contest_number, upvotes, created_at, updated_at')
       .order('created_at', { ascending: false });
+
+    console.log('🔍 [loadItems] Base query built, applying filters...');
 
     // Apply hero filter
     if (options.hero) {
+      console.log('🔍 [loadItems] Applying hero filter:', options.hero);
       query = query.filter('item_data->hero', 'eq', `"${options.hero}"`);
     }
 
     // Apply contest filter
     if (options.contest !== undefined && options.contest !== '') {
-      console.log('🔍 Applying contest filter:', options.contest);
-      console.log('🔍 Contest filter type:', typeof options.contest);
+      console.log('🔍 [loadItems] Applying contest filter:', options.contest);
+      console.log('🔍 [loadItems] Contest filter type:', typeof options.contest);
       if (options.contest === '0') {
         // Show items not in any contest
-        console.log('🔍 Filtering for items NOT in any contest');
+        console.log('🔍 [loadItems] Filtering for items NOT in any contest');
         query = query.is('contest_number', null);
       } else {
         // Show items in specific contest
         const contestId = parseInt(options.contest);
-        console.log('🔍 Filtering for items in contest ID:', contestId);
+        console.log('🔍 [loadItems] Filtering for items in contest ID:', contestId);
         query = query.eq('contest_number', contestId);
       }
     } else {
-      console.log('🔍 No contest filter applied');
+      console.log('🔍 [loadItems] No contest filter applied');
     }
 
     // Apply search filter
     if (options.search) {
+      console.log('🔍 [loadItems] Applying search filter:', options.search);
       query = query.filter('item_data->itemName', 'ilike', `%${options.search}%`);
     }
 
     // Apply sorting
+    console.log('🔍 [loadItems] Applying sorting:', options.sortBy);
     switch (options.sortBy) {
       case 'oldest':
         query = query.order('created_at', { ascending: true });
@@ -558,14 +568,19 @@ static async loadItems(options = {}, requestOptions = {}) {
         break;
     }
 
+    console.log('🔍 [loadItems] Query built, executing...');
+    console.log('🔍 [loadItems] Query string preview:', query.toSQL());
+
     // *** CORRECTED ABORT SIGNAL SUPPORT ***
     let queryPromise;
     if (requestOptions.signal) {
+      console.log('🔍 [loadItems] Using abort signal support');
       // Wrap the query in a Promise.race with abort signal
       queryPromise = Promise.race([
         query,
         new Promise((_, reject) => {
           requestOptions.signal.addEventListener('abort', () => {
+            console.log('🔍 [loadItems] Query aborted by signal');
             reject(new DOMException('Query was aborted', 'AbortError'));
           });
         })
@@ -574,10 +589,20 @@ static async loadItems(options = {}, requestOptions = {}) {
       queryPromise = query;
     }
 
+    console.log('🔍 [loadItems] Executing query...');
+    const startTime = performance.now();
     const { data, error } = await queryPromise;
+    const endTime = performance.now();
+    
+    console.log('🔍 [loadItems] Query completed in', (endTime - startTime).toFixed(2), 'ms');
+    console.log('🔍 [loadItems] Raw response:', { dataCount: data?.length || 0, error: error?.message || 'none' });
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ [loadItems] Database error:', error);
+      throw error;
+    }
 
+    console.log('🔍 [loadItems] Transforming data...');
     // Transform data to include contest information
     const transformedData = data?.map(item => {
       return {
@@ -587,9 +612,17 @@ static async loadItems(options = {}, requestOptions = {}) {
       };
     }) || [];
 
+    console.log('🔍 [loadItems] Data transformation complete. Final count:', transformedData.length);
     this.debug('Retrieved items successfully:', transformedData.length);
     return transformedData;
   } catch (error) {
+    console.error('❌ [loadItems] Error in loadItems:', error);
+    console.error('❌ [loadItems] Error details:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint
+    });
     this.debug('Error loading items:', error);
     throw error;
   }
@@ -600,47 +633,58 @@ static async loadItems(options = {}, requestOptions = {}) {
  */
 static async loadSkills(options = {}, requestOptions = {}) {
   try {
+    console.log('🔍 [loadSkills] Starting with options:', options);
+    console.log('🔍 [loadSkills] Request options:', requestOptions);
+    
     if (!this.isReady()) {
+      console.error('❌ [loadSkills] Database not available');
       throw new Error('Database not available');
     }
 
+    console.log('🔍 [loadSkills] Building query...');
     let query = this.supabase
       .from('skills')
       .select(`
-        *,
+        id, user_email, user_alias, upvotes, created_at, updated_at, is_collection, collection_name, collection_description, skill_count,
         contest_submissions!left(contest_id, content_type)
       `);
 
+    console.log('🔍 [loadSkills] Base query built, applying filters...');
+
     // Apply rarity filter
     if (options.rarity) {
+      console.log('🔍 [loadSkills] Applying rarity filter:', options.rarity);
       query = query.filter('skill_data->border', 'eq', `"${options.rarity}"`);
     }
 
     // Apply search filter
     if (options.search) {
+      console.log('🔍 [loadSkills] Applying search filter:', options.search);
       query = query.filter('skill_data->skillName', 'ilike', `%${options.search}%`);
     }
 
     // Apply creator filter
     if (options.creator) {
+      console.log('🔍 [loadSkills] Applying creator filter:', options.creator);
       query = query.filter('user_alias', 'ilike', `%${options.creator}%`);
     }
 
     // Apply contest filter
     if (options.contest !== undefined && options.contest !== '') {
-      console.log('🔍 Applying skills contest filter:', options.contest);
+      console.log('🔍 [loadSkills] Applying skills contest filter:', options.contest);
       if (options.contest === '0') {
         // Show skills not in any contest
-        console.log('🔍 Filtering for skills NOT in any contest');
+        console.log('🔍 [loadSkills] Filtering for skills NOT in any contest');
         query = query.is('contest_submissions.contest_id', null);
       } else {
         // Show skills in specific contest
-        console.log('🔍 Filtering for skills in contest ID:', parseInt(options.contest));
+        console.log('🔍 [loadSkills] Filtering for skills in contest ID:', parseInt(options.contest));
         query = query.eq('contest_submissions.contest_id', parseInt(options.contest));
       }
     }
 
     // Apply sorting
+    console.log('🔍 [loadSkills] Applying sorting:', options.sortBy);
     switch (options.sortBy) {
       case 'oldest':
         query = query.order('created_at', { ascending: true });
@@ -657,14 +701,19 @@ static async loadSkills(options = {}, requestOptions = {}) {
         break;
     }
 
+    console.log('🔍 [loadSkills] Query built, executing...');
+    console.log('🔍 [loadSkills] Query string preview:', query.toSQL());
+
     // *** CORRECTED ABORT SIGNAL SUPPORT ***
     let queryPromise;
     if (requestOptions.signal) {
+      console.log('🔍 [loadSkills] Using abort signal support');
       // Wrap the query in a Promise.race with abort signal
       queryPromise = Promise.race([
         query,
         new Promise((_, reject) => {
           requestOptions.signal.addEventListener('abort', () => {
+            console.log('🔍 [loadSkills] Query aborted by signal');
             reject(new DOMException('Query was aborted', 'AbortError'));
           });
         })
@@ -673,10 +722,20 @@ static async loadSkills(options = {}, requestOptions = {}) {
       queryPromise = query;
     }
 
+    console.log('🔍 [loadSkills] Executing query...');
+    const startTime = performance.now();
     const { data, error } = await queryPromise;
+    const endTime = performance.now();
+    
+    console.log('🔍 [loadSkills] Query completed in', (endTime - startTime).toFixed(2), 'ms');
+    console.log('🔍 [loadSkills] Raw response:', { dataCount: data?.length || 0, error: error?.message || 'none' });
 
-    if (error) throw error;
+    if (error) {
+      console.error('❌ [loadSkills] Database error:', error);
+      throw error;
+    }
 
+    console.log('🔍 [loadSkills] Transforming data...');
     // Transform data to include contest information
     const transformedData = data?.map(skill => {
       const contestSubmission = skill.contest_submissions?.[0];
@@ -689,8 +748,10 @@ static async loadSkills(options = {}, requestOptions = {}) {
 
     let filteredSkills = transformedData || [];
 
+    console.log('🔍 [loadSkills] Applying client-side filters...');
     // Apply client-side filters for complex operations
     if (options.keywords) {
+      console.log('🔍 [loadSkills] Applying keywords filter:', options.keywords);
       const keywordLower = options.keywords.toLowerCase();
       filteredSkills = filteredSkills.filter(skill => 
         skill.skill_data?.skillEffect?.toLowerCase().includes(keywordLower)
@@ -698,6 +759,7 @@ static async loadSkills(options = {}, requestOptions = {}) {
     }
 
     if (options.length) {
+      console.log('🔍 [loadSkills] Applying length filter:', options.length);
       filteredSkills = filteredSkills.filter(skill => {
         const effectLength = skill.skill_data?.skillEffect?.length || 0;
         switch (options.length) {
@@ -709,9 +771,17 @@ static async loadSkills(options = {}, requestOptions = {}) {
       });
     }
 
+    console.log('🔍 [loadSkills] Data processing complete. Final count:', filteredSkills.length);
     this.debug('Retrieved skills successfully:', filteredSkills.length);
     return filteredSkills;
   } catch (error) {
+    console.error('❌ [loadSkills] Error in loadSkills:', error);
+    console.error('❌ [loadSkills] Error details:', {
+      message: error.message,
+      code: error.code,
+      details: error.details,
+      hint: error.hint
+    });
     this.debug('Error loading skills:', error);
     throw error;
   }
@@ -1167,18 +1237,31 @@ static async addSkillComment(skillId, commentText) {
    */
   static async searchSkillsByKeyword(keyword, limit = 50) {
     try {
+      console.log('🔍 [searchSkillsByKeyword] Starting search with keyword:', keyword, 'limit:', limit);
+      
       if (!this.isReady() || !keyword?.trim()) {
+        console.log('🔍 [searchSkillsByKeyword] Database not ready or invalid keyword, returning empty array');
         return [];
       }
 
+      console.log('🔍 [searchSkillsByKeyword] Executing query...');
+      const startTime = performance.now();
       const { data, error } = await this.supabase
         .from('skills')
-        .select('*')
+        .select('id, user_email, user_alias, upvotes, created_at, updated_at, skill_data')
         .order('created_at', { ascending: false })
         .limit(1000);
+      const endTime = performance.now();
+      
+      console.log('🔍 [searchSkillsByKeyword] Query completed in', (endTime - startTime).toFixed(2), 'ms');
+      console.log('🔍 [searchSkillsByKeyword] Raw response:', { dataCount: data?.length || 0, error: error?.message || 'none' });
 
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [searchSkillsByKeyword] Database error:', error);
+        throw error;
+      }
 
+      console.log('🔍 [searchSkillsByKeyword] Filtering results...');
       const keywordLower = keyword.toLowerCase();
       const matchingSkills = (data || [])
         .filter(skill => {
@@ -1188,8 +1271,16 @@ static async addSkillComment(skillId, commentText) {
         })
         .slice(0, limit);
 
+      console.log('🔍 [searchSkillsByKeyword] Search complete. Found', matchingSkills.length, 'matching skills');
       return matchingSkills;
     } catch (error) {
+      console.error('❌ [searchSkillsByKeyword] Error in searchSkillsByKeyword:', error);
+      console.error('❌ [searchSkillsByKeyword] Error details:', {
+        message: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint
+      });
       this.debug('Error searching skills by keyword:', error);
       throw error;
     }

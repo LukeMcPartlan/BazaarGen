@@ -904,7 +904,12 @@ class UnifiedBrowsePageController {
       const queryOptions = this.buildQueryOptions(filters);
       
       // Get items from database with filters applied
+      console.log('🔍 [unified-browse] Calling SupabaseClient.loadItems with options:', queryOptions);
+      const startTime = performance.now();
       const items = await SupabaseClient.loadItems(queryOptions);
+      const endTime = performance.now();
+      console.log('🔍 [unified-browse] SupabaseClient.loadItems completed in', (endTime - startTime).toFixed(2), 'ms');
+      console.log('🔍 [unified-browse] Received items:', items?.length || 0);
       this.allItems = items || [];
       this.debug(`🔍 Loaded ${this.allItems.length} items from database`);
 
@@ -987,7 +992,12 @@ class UnifiedBrowsePageController {
       const queryOptions = this.buildQueryOptions(filters);
       
       // Get skills from database with filters applied
+      console.log('🔍 [unified-browse] Calling SupabaseClient.loadSkills with options:', queryOptions);
+      const startTime = performance.now();
       const skills = await SupabaseClient.loadSkills(queryOptions);
+      const endTime = performance.now();
+      console.log('🔍 [unified-browse] SupabaseClient.loadSkills completed in', (endTime - startTime).toFixed(2), 'ms');
+      console.log('🔍 [unified-browse] Received skills:', skills?.length || 0);
       this.allSkills = skills || [];
 
       // Apply additional client-side filtering
@@ -1126,8 +1136,23 @@ static async createItemCard(item) {
     const createdBySpan = creatorInfo.querySelector('span');
     createdBySpan.appendChild(userLink);
 
+    // Load full item data for card creation
+    let fullItemData;
+    try {
+      console.log('🔍 [unified-browse] Loading full item data for item ID:', item.id);
+      const startTime = performance.now();
+      fullItemData = await SupabaseClient.loadItemData(item.id);
+      const endTime = performance.now();
+      console.log('🔍 [unified-browse] loadItemData completed in', (endTime - startTime).toFixed(2), 'ms');
+      console.log('🔍 [unified-browse] Full item data loaded successfully');
+    } catch (error) {
+      console.error('❌ [unified-browse] Error loading full item data for item ID:', item.id, error);
+      // Fallback to basic data
+      fullItemData = item;
+    }
+
     // Create the card
-    const cardData = item.item_data;
+    const cardData = fullItemData.item_data || {};
     cardData.created_at = item.created_at;
     cardData.creator_alias = creatorAlias;
     cardData.database_id = item.id;
@@ -1234,7 +1259,17 @@ static async createItemCard(item) {
    * Create skill card element - SIMPLIFIED VERSION (no collections)
    */
   static async createSkillCard(skill) {
-    if (!skill.skill_data) {
+    // Load full skill data for card creation
+    let fullSkillData;
+    try {
+      fullSkillData = await SupabaseClient.loadSkillData(skill.id);
+    } catch (error) {
+      console.error('Error loading full skill data:', error);
+      // Fallback to basic data
+      fullSkillData = skill;
+    }
+
+    if (!fullSkillData.skill_data) {
       console.warn(`Skill ${skill.id} has no skill_data`);
       return null;
     }
@@ -1282,8 +1317,8 @@ static async createItemCard(item) {
       const createdBySpan = creatorInfo.querySelector('span');
       createdBySpan.appendChild(userLink);
 
-      const skillEffect = skill.skill_data.skillEffect || '';
-      const rarityColor = this.getRarityColor(skill.skill_data.border || 'gold');
+      const skillEffect = fullSkillData.skill_data.skillEffect || '';
+      const rarityColor = this.getRarityColor(fullSkillData.skill_data.border || 'gold');
 
       creatorInfo.innerHTML = `
         <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -1292,7 +1327,7 @@ static async createItemCard(item) {
           </span>
           <div style="display: flex; gap: 15px; font-size: 12px; color: rgb(201, 175, 133);">
             <span>📅 ${createdDate}</span>
-            <span style="color: ${rarityColor};">💎 ${(skill.skill_data.border || 'gold').toUpperCase()}</span>
+            <span style="color: ${rarityColor};">💎 ${(fullSkillData.skill_data.border || 'gold').toUpperCase()}</span>
             <span>📝 ${skillEffect.length} chars</span>
           </div>
         </div>
@@ -1300,7 +1335,7 @@ static async createItemCard(item) {
 
       // Create the skill using SkillGenerator
       const skillData = {
-        ...skill.skill_data,
+        ...fullSkillData.skill_data,
         created_at: skill.created_at,
         creator_alias: creatorAlias,
         database_id: skill.id
