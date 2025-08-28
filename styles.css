@@ -1541,9 +1541,9 @@ h1 {
 /* ===== MULTICAST ICON STYLES ===== */
 .multicast-icon-container {
   position: absolute;
-  top: 0; /* Align top with top of uploaded image */
+  top: 10px; /* Center aligned like ammo and gems */
   left: 50%;
-  transform: translateX(-50%); /* Center horizontally only */
+  transform: translateX(-50%); /* Center horizontally */
   z-index: 1; /* Behind card text */
   position: relative; /* For absolute positioning of text */
   pointer-events: none;
@@ -1578,7 +1578,7 @@ h1 {
   transform: translateX(-50%);
   z-index: 5;
   pointer-events: none;
-  height: 40px; /* Fixed height as requested */
+  height: 30px; /* Reduced by 10px from 40px */
   display: flex;
   align-items: flex-end; /* Align content to bottom */
 }
