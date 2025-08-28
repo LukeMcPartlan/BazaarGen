@@ -1541,9 +1541,9 @@ h1 {
 /* ===== MULTICAST ICON STYLES ===== */
 .multicast-icon-container {
   position: absolute;
-  top: 50%;
+  top: 0; /* Align top with top of uploaded image */
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%); /* Center horizontally only */
   z-index: 1; /* Behind card text */
   position: relative; /* For absolute positioning of text */
   pointer-events: none;
