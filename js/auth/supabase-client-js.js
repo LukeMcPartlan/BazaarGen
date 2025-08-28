@@ -566,6 +566,15 @@ static async loadItems(options = {}, requestOptions = {}) {
         break;
     }
 
+    // Apply pagination (offset and limit)
+    if (options.offset !== undefined) {
+      console.log('🔍 [loadItems] Applying offset:', options.offset);
+      query = query.range(options.offset, options.offset + (options.limit || 1) - 1);
+    } else if (options.limit) {
+      console.log('🔍 [loadItems] Applying limit:', options.limit);
+      query = query.limit(options.limit);
+    }
+
     console.log('🔍 [loadItems] Query built, executing...');
     console.log('🔍 [loadItems] Query built, executing...');
     // console.log('🔍 [loadItems] Query string preview:', query.toSQL()); // Temporarily commented out to debug

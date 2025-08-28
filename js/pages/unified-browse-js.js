@@ -901,17 +901,12 @@ class UnifiedBrowsePageController {
       // Get filter options
       const filters = this.getFilters();
       this.debug('🔍 Loading items with filters:', filters);
-      const queryOptions = this.buildQueryOptions(filters);
       
-      // Get items from database with filters applied (minimal data only)
-      const items = await SupabaseClient.loadItems(queryOptions);
-      this.allItems = items || [];
-      this.debug(`🔍 Loaded ${this.allItems.length} items from database (minimal data)`);
-
-      // Apply additional client-side filtering
-      this.debug(`🔍 Applying filters:`, filters);
-      this.displayedItems = this.applyItemFilters(this.allItems, filters);
-      this.debug(`🔍 After client-side filtering: ${this.displayedItems.length} items`);
+      // SKIP BULK QUERY - Initialize with empty arrays for individual loading
+      // This eliminates the slow 8+ second initial query and loads items as needed
+      this.allItems = [];
+      this.displayedItems = [];
+      this.debug(`🔍 Skipped bulk query - will load items individually`);
 
       // Reset pagination
       this.currentPage = 0;
@@ -946,29 +941,50 @@ class UnifiedBrowsePageController {
   static async displayItemsPage(page) {
     const startIndex = page * this.ITEMS_PER_LOAD;
     const endIndex = startIndex + this.ITEMS_PER_LOAD;
-    const pageItems = this.displayedItems.slice(startIndex, endIndex);
-
-    this.debug(`🔍 displayItemsPage - Page: ${page}, Start: ${startIndex}, End: ${endIndex}, Items: ${pageItems.length}`);
-    this.debug(`🔍 Total displayedItems: ${this.displayedItems.length}, ITEMS_PER_LOAD: ${this.ITEMS_PER_LOAD}`);
+    
+    this.debug(`🔍 displayItemsPage - Page: ${page}, Start: ${startIndex}, End: ${endIndex}`);
 
     if (page === 0) {
       this.itemsGrid.innerHTML = '';
       this.debug('🔍 Cleared items grid for page 0');
     }
 
-    for (const item of pageItems) {
-      const card = await this.createItemCard(item);
-      if (card) {
-        this.itemsGrid.appendChild(card);
+    // Load items individually for this page
+    const pageItems = [];
+    for (let i = 0; i < this.ITEMS_PER_LOAD; i++) {
+      const itemIndex = startIndex + i;
+      
+      try {
+        // Load individual item from database
+        const item = await this.loadIndividualItem(itemIndex, page);
+        if (item) {
+          pageItems.push(item);
+          
+          // Create and display the card immediately
+          const card = await this.createItemCard(item);
+          if (card) {
+            this.itemsGrid.appendChild(card);
+          }
+        } else {
+          // No more items available
+          break;
+        }
+      } catch (error) {
+        console.error(`Error loading item at index ${itemIndex}:`, error);
+        // Continue with next item
       }
     }
 
-    this.debug(`🔍 Added ${pageItems.length} items to grid`);
+    this.debug(`🔍 Added ${pageItems.length} items to grid for page ${page}`);
+    
+    // Update our tracking arrays
+    this.allItems = [...this.allItems, ...pageItems];
+    this.displayedItems = [...this.displayedItems, ...pageItems];
     
     // Debug: Check if we should show load more button after this page
     const nextPageStartIndex = (page + 1) * this.ITEMS_PER_LOAD;
-    this.debug(`🔍 Next page would start at index: ${nextPageStartIndex}, Total items: ${this.displayedItems.length}`);
-    this.debug(`🔍 Should show load more button: ${nextPageStartIndex < this.displayedItems.length}`);
+    this.debug(`🔍 Next page would start at index: ${nextPageStartIndex}, Total items loaded so far: ${this.displayedItems.length}`);
+    this.debug(`🔍 Should show load more button: ${pageItems.length === this.ITEMS_PER_LOAD}`);
   }
 
   /**
@@ -3138,6 +3154,81 @@ static async addSkillComment(skillId) {
         if (afterText) element.appendChild(document.createTextNode(afterText));
       }
     });
+  }
+
+  /**
+   * Load a single item from the database with filtering applied
+   * This replaces the bulk loading approach for better performance
+   */
+  static async loadIndividualItem(itemIndex, page) {
+    try {
+      // Get current filters
+      const filters = this.getFilters();
+      
+      // Build query options for individual item loading
+      const queryOptions = this.buildQueryOptions(filters);
+      
+      // Add offset and limit for pagination
+      queryOptions.offset = itemIndex;
+      queryOptions.limit = 1;
+      
+      // Load single item from database
+      const items = await SupabaseClient.loadItems(queryOptions);
+      
+      if (items && items.length > 0) {
+        const item = items[0];
+        
+        // Apply client-side filtering to ensure it matches
+        if (this.itemMatchesFilters(item, filters)) {
+          this.debug(`🔍 Loaded individual item ${itemIndex}: ${item.item_data?.itemName || 'Unnamed'}`);
+          return item;
+        } else {
+          this.debug(`🔍 Item ${itemIndex} filtered out by client-side filters`);
+          return null;
+        }
+      } else {
+        this.debug(`🔍 No more items available at index ${itemIndex}`);
+        return null;
+      }
+    } catch (error) {
+      console.error(`Error loading individual item at index ${itemIndex}:`, error);
+      return null;
+    }
+  }
+
+  /**
+   * Check if an item matches the current filters
+   */
+  static itemMatchesFilters(item, filters) {
+    // Apply the same filtering logic as applyItemFilters but for a single item
+    let matches = true;
+    
+    if (filters.hero && item.item_data?.hero !== filters.hero) {
+      matches = false;
+    }
+    
+    if (filters.size && item.item_data?.itemSize !== filters.size) {
+      matches = false;
+    }
+    
+    if (filters.border && item.item_data?.border !== filters.border) {
+      matches = false;
+    }
+    
+    if (filters.minUpvotes && (item.upvotes || 0) < filters.minUpvotes) {
+      matches = false;
+    }
+    
+    if (filters.search) {
+      const searchLower = filters.search.toLowerCase();
+      const itemName = item.item_data?.itemName?.toLowerCase() || '';
+      const tags = item.item_data?.tags?.join(' ').toLowerCase() || '';
+      if (!itemName.includes(searchLower) && !tags.includes(searchLower)) {
+        matches = false;
+      }
+    }
+    
+    return matches;
   }
 }
 

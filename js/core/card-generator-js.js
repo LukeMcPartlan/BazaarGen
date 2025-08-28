@@ -1259,7 +1259,7 @@ static async createCard(options = {}) {
     ammoDiv.className = "ammo-section";
     ammoDiv.style.borderImage = `url('images/skill-frames/borders/bronze_frame.png') 30 fill / 35px / 0 round`;
     ammoDiv.style.width = '35px';
-    ammoDiv.style.transform = 'translateX(-13px)';
+    ammoDiv.style.transform = 'translateX(300px)';
     
     const ammoImg = document.createElement("img");
     ammoImg.src = "images/keywords/effects/ammo.png";
@@ -1644,7 +1644,7 @@ static async createCard(options = {}) {
           const ammoTop = onUseCenterY - (ammoHeight / 2);
           ammoSection.style.top = `${ammoTop}px`;
           // Preserve horizontal positioning while setting vertical position
-          ammoSection.style.transform = 'translateX(-13px)';
+          ammoSection.style.transform = 'translateX(300px)';
           console.log('🎯 Positioned ammo section at:', ammoTop, 'px (on-use center:', onUseCenterY, 'px)');
           
           // Debug: Log the full computed styles after positioning
