@@ -1181,6 +1181,14 @@ static async createCard(options = {}) {
     ammoText.textContent = cardData.ammo;
     ammoDiv.appendChild(ammoText);
     
+    // Debug: Log the full CSS position styles after creation
+    console.log('🔍 Ammo section created with styles:', {
+      transform: ammoDiv.style.transform,
+      width: ammoDiv.style.width,
+      borderImage: ammoDiv.style.borderImage,
+      className: ammoDiv.className
+    });
+    
     return ammoDiv;
   }
 
@@ -1540,14 +1548,29 @@ static async createCard(options = {}) {
         console.log('📊 Debug - onUseRelativeTop:', onUseRelativeTop, 'onUseHeight:', onUseHeight);
       }
       
-      if (ammoSection && onUseHeight > 0) {
-        // Position ammo section at the center of the on-use section (same as cooldown)
-        const ammoHeight = 50; // Use same fixed height as cooldown section
-        const ammoTop = onUseCenterY - (ammoHeight / 2);
-        ammoSection.style.top = `${ammoTop}px`;
-        ammoSection.style.transform = 'none'; // Remove default transform
-        console.log('🎯 Positioned ammo section at:', ammoTop, 'px (on-use center:', onUseCenterY, 'px)');
-      }
+              if (ammoSection && onUseHeight > 0) {
+          // Position ammo section at the center of the on-use section (same as cooldown)
+          const ammoHeight = 50; // Use same fixed height as cooldown section
+          const ammoTop = onUseCenterY - (ammoHeight / 2);
+          ammoSection.style.top = `${ammoTop}px`;
+          ammoSection.style.transform = 'none'; // Remove default transform
+          console.log('🎯 Positioned ammo section at:', ammoTop, 'px (on-use center:', onUseCenterY, 'px)');
+          
+          // Debug: Log the full computed styles after positioning
+          const computedStyle = window.getComputedStyle(ammoSection);
+          console.log('🔍 Ammo section final computed styles:', {
+            position: computedStyle.position,
+            top: computedStyle.top,
+            left: computedStyle.left,
+            right: computedStyle.right,
+            transform: computedStyle.transform,
+            width: computedStyle.width,
+            height: computedStyle.height,
+            margin: computedStyle.margin,
+            padding: computedStyle.padding,
+            border: computedStyle.border
+          });
+        }
     } else {
       // No on-use section (divider instead), hide cooldown and ammo sections
       const cooldownSection = cardWrapper ? cardWrapper.querySelector('.cooldown-section') : null;
