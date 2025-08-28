@@ -632,12 +632,6 @@ setTimeout(() => {
 
         <!-- Messages -->
         <div id="errorMessage" class="error" style="display: none;"></div>
-        <div id="loadingMessage" class="loading" style="display: none;">
-            <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
-                <div class="loading-spinner"></div>
-                Loading content...
-            </div>
-        </div>
         <div id="noResults" class="no-results" style="display: none;">
             <div style="font-size: 48px; margin-bottom: 10px;">🔍</div>
             No results found. Try adjusting your filters or search terms.
@@ -646,6 +640,14 @@ setTimeout(() => {
         <!-- Content Grid -->
         <div id="itemsGrid" class="items-grid">
             <!-- Generated items/skills will appear here -->
+        </div>
+
+        <!-- Loading Message (moved after items grid) -->
+        <div id="loadingMessage" class="loading" style="display: none;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 10px;">
+                <div class="loading-spinner"></div>
+                Loading content...
+            </div>
         </div>
 
         <!-- Load More Section -->
