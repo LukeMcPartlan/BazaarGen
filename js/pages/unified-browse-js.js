@@ -2013,50 +2013,75 @@ static async addSkillComment(skillId) {
     }
   }
 
+
+
   /**
    * Update load more button visibility
    */
   static updateLoadMoreButton() {
-    let totalCount, currentDisplayedCount;
-    
     if (this.activeTab === 'items') {
-      totalCount = this.displayedItems.length; // Total items that pass filters
-      currentDisplayedCount = (this.currentPage + 1) * this.ITEMS_PER_LOAD; // Items currently shown
-    } else {
-      totalCount = this.displayedSkills.length; // Total skills that pass filters
-      currentDisplayedCount = (this.currentSkillPage + 1) * this.ITEMS_PER_LOAD; // Skills currently shown
-    }
-
-    // Debug logging
-    this.debug(`🔍 updateLoadMoreButton - Tab: ${this.activeTab}, Total: ${totalCount}, Current: ${currentDisplayedCount}, Page: ${this.activeTab === 'items' ? this.currentPage : this.currentSkillPage}`);
-
-    // Show load more button if there are more items to display
-    if (currentDisplayedCount < totalCount) {
+      // With individual loading, we need to check if we can load more items
+      // We'll show the load more button if we successfully loaded a full page of items
+      // This indicates there might be more items available
+      const totalItems = this.displayedItems.length;
+      const itemsPerPage = this.ITEMS_PER_LOAD;
+      const lastPageItems = totalItems % itemsPerPage;
+      
+      // If the last page was full (12 items), there might be more items
+      // If the last page was incomplete, we've reached the end
+      const hasMoreItems = lastPageItems === 0 && totalItems > 0;
+      
       if (this.loadMoreBtn) {
-        this.loadMoreBtn.style.display = 'block';
-        this.debug('🔍 Load More button shown');
-        this.debug(`🔍 Button display style after change: ${this.loadMoreBtn.style.display}`);
-        this.debug(`🔍 Button computed display: ${window.getComputedStyle(this.loadMoreBtn).display}`);
+        if (hasMoreItems) {
+          this.loadMoreBtn.style.display = 'block';
+          this.debug('🔍 Load More button shown - full page loaded, more items likely available');
+        } else {
+          this.loadMoreBtn.style.display = 'none';
+          this.debug('🔍 Load More button hidden - incomplete page loaded, no more items');
+        }
       } else {
         this.debug('🔍 Load More button element not found!');
       }
-      if (this.endMessage) this.endMessage.style.display = 'none';
-    } else {
-      if (this.loadMoreBtn) {
-        this.loadMoreBtn.style.display = 'none';
-        this.debug('🔍 Load More button hidden');
-        this.debug(`🔍 Button display style after change: ${this.loadMoreBtn.style.display}`);
-        this.debug(`🔍 Button computed display: ${window.getComputedStyle(this.loadMoreBtn).display}`);
-      } else {
-        this.debug('🔍 Load More button element not found!');
+      
+      if (this.endMessage) {
+        this.endMessage.style.display = hasMoreItems ? 'none' : 'block';
       }
-      if (this.endMessage) this.endMessage.style.display = totalCount > 0 ? 'block' : 'none';
+      
+      // Debug logging
+      this.debug(`🔍 updateLoadMoreButton - Items tab, Total items: ${totalItems}, Last page items: ${lastPageItems}, ITEMS_PER_LOAD: ${itemsPerPage}, Has more: ${hasMoreItems}`);
+      
+    } else {
+      // Skills tab logic (unchanged)
+      const totalCount = this.displayedSkills.length;
+      const currentDisplayedCount = (this.currentSkillPage + 1) * this.ITEMS_PER_LOAD;
+      
+      if (this.loadMoreBtn) {
+        if (currentDisplayedCount < totalCount) {
+          this.loadMoreBtn.style.display = 'block';
+          this.debug('🔍 Load More button shown (skills)');
+        } else {
+          this.loadMoreBtn.style.display = 'none';
+          this.debug('🔍 Load More button hidden (skills)');
+        }
+      }
+      
+      if (this.endMessage) {
+        this.endMessage.style.display = currentDisplayedCount < totalCount ? 'none' : 'block';
+      }
+      
+      this.debug(`🔍 updateLoadMoreButton - Skills tab, Total: ${totalCount}, Current: ${currentDisplayedCount}`);
     }
 
-    if (totalCount === 0) {
-      if (this.noResults) this.noResults.style.display = 'block';
+    // Handle no results display
+    if (this.activeTab === 'items') {
+      const hasAnyItems = this.displayedItems.length > 0;
+      if (this.noResults) {
+        this.noResults.style.display = hasAnyItems ? 'none' : 'block';
+      }
     } else {
-      if (this.noResults) this.noResults.style.display = 'none';
+      if (this.noResults) {
+        this.noResults.style.display = this.displayedSkills.length > 0 ? 'none' : 'block';
+      }
     }
   }
 
