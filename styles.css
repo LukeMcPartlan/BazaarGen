@@ -2360,9 +2360,10 @@ img.skill-icon-overlay-border[src*="legendary"] {
 }
 
 .card-wrapper .ammo-section {
-  right: -30px;
-  top: 50%; /* Center vertically by default */
-  transform: translateY(-50%); /* Center vertically */
+  /* Positioning now handled by JavaScript */
+  /* right: -30px; - Removed to allow JavaScript positioning */
+  /* top: 50%; - Removed to allow JavaScript positioning */
+  /* transform: translateY(-50%); - Removed to allow JavaScript positioning */
   bottom: auto;
 }
 
