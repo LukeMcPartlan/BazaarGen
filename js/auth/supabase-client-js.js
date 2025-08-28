@@ -521,7 +521,7 @@ static async loadItems(options = {}, requestOptions = {}) {
     console.log('🔍 [loadItems] Building query...');
     let query = this.supabase
       .from('items')
-      .select('id, user_email, user_alias, contest_number, upvotes, created_at, updated_at');
+      .select('*');
 
     console.log('🔍 [loadItems] Base query built, applying filters...');
 
