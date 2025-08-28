@@ -1080,10 +1080,6 @@ class UnifiedBrowsePageController {
  * Replace the existing createItemCard method in UnifiedBrowsePageController with this one
  */
 static async createItemCard(item) {
-  if (!item.item_data) {
-    console.warn(`Item ${item.id} has no item_data`);
-    return null;
-  }
 
   try {
     const cardWrapper = document.createElement('div');
@@ -1148,7 +1144,7 @@ static async createItemCard(item) {
         data: cardData,
         mode: 'browser',
         includeControls: true,
-        skipValidation: item.item_data?.isGallery // Skip validation for galleries
+        skipValidation: fullItemData.item_data?.isGallery // Skip validation for galleries
       });
     
       // *** ADD UPVOTE BUTTON ***
@@ -1168,16 +1164,16 @@ static async createItemCard(item) {
     }
 
     // *** GALLERY FUNCTIONALITY - ADDED FROM PROFILE CONTROLLER ***
-    if (item.item_data?.isGallery && item.item_data?.galleryItems) {
+    if (fullItemData.item_data?.isGallery && fullItemData.item_data?.galleryItems) {
       console.log('🖼️ Adding gallery functionality for item:', item.id);
-      console.log('Gallery items count:', item.item_data.galleryItems.length);
+      console.log('Gallery items count:', fullItemData.item_data.galleryItems.length);
       
       // Add gallery button to view it
       if (typeof GalleryModal !== 'undefined') {
         try {
           GalleryModal.addGalleryButton(
             cardElement,
-            item.item_data.galleryItems,
+            fullItemData.item_data.galleryItems,
             0
           );
           console.log('✅ Gallery button added successfully');
@@ -1208,7 +1204,7 @@ static async createItemCard(item) {
         text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       `;
-      galleryIndicator.textContent = `📦 Gallery (${item.item_data.galleryItems.length} items)`;
+      galleryIndicator.textContent = `📦 Gallery (${fullItemData.item_data.galleryItems.length} items)`;
       
       // Add the gallery indicator to the creator info
       const creatorSpan = creatorInfo.querySelector('span');
@@ -2734,7 +2730,7 @@ static async addSkillComment(skillId) {
     if (filters.hero) {
       const beforeCount = filteredItems.length;
       filteredItems = filteredItems.filter(item => 
-        item.item_data?.hero === filters.hero
+        item.hero === filters.hero
       );
       this.debug(`🔍 Hero filter "${filters.hero}" reduced items from ${beforeCount} to ${filteredItems.length}`);
     }
@@ -2743,7 +2739,7 @@ static async addSkillComment(skillId) {
     if (filters.size) {
       const beforeCount = filteredItems.length;
       filteredItems = filteredItems.filter(item => 
-        item.item_data?.itemSize === filters.size
+        item.itemSize === filters.size
       );
       this.debug(`🔍 Size filter "${filters.size}" reduced items from ${beforeCount} to ${filteredItems.length}`);
     }
@@ -2752,7 +2748,7 @@ static async addSkillComment(skillId) {
     if (filters.border) {
       const beforeCount = filteredItems.length;
       filteredItems = filteredItems.filter(item => 
-        item.item_data?.border === filters.border
+        item.border === filters.border
       );
       this.debug(`🔍 Border filter "${filters.border}" reduced items from ${beforeCount} to ${filteredItems.length}`);
     }
@@ -2779,7 +2775,7 @@ static async addSkillComment(skillId) {
       const beforeCount = filteredItems.length;
       const searchLower = filters.search.toLowerCase();
       filteredItems = filteredItems.filter(item => 
-        item.item_data?.itemName?.toLowerCase().includes(searchLower)
+        item.itemName?.toLowerCase().includes(searchLower)
       );
       this.debug(`🔍 Search filter "${filters.search}" reduced items from ${beforeCount} to ${filteredItems.length}`);
     }
@@ -2789,7 +2785,7 @@ static async addSkillComment(skillId) {
       const beforeCount = filteredItems.length;
       const tagList = filters.tags.split(',').map(tag => tag.trim().toLowerCase());
       filteredItems = filteredItems.filter(item => {
-        const itemTags = item.item_data?.tags || [];
+        const itemTags = item.tags || [];
         return tagList.some(tag => 
           itemTags.some(itemTag => itemTag.toLowerCase().includes(tag))
         );
@@ -2802,8 +2798,8 @@ static async addSkillComment(skillId) {
       const beforeCount = filteredItems.length;
       const keywordList = filters.keywords.split(',').map(keyword => keyword.trim().toLowerCase());
       filteredItems = filteredItems.filter(item => {
-        const onUseEffects = item.item_data?.onUseEffects || [];
-        const passiveEffects = item.item_data?.passiveEffects || [];
+        const onUseEffects = item.onUseEffects || [];
+        const passiveEffects = item.passiveEffects || [];
         const allEffects = [...onUseEffects, ...passiveEffects].join(' ').toLowerCase();
         
         return keywordList.some(keyword => allEffects.includes(keyword));
@@ -2843,10 +2839,10 @@ static async addSkillComment(skillId) {
     if (filters.itemType) {
       const beforeCount = filteredItems.length;
       if (filters.itemType === 'single') {
-        filteredItems = filteredItems.filter(item => !item.item_data?.isGallery);
-        this.debug(`🔍 Item type filter "single" reduced items from ${beforeCount} to ${filteredItems.length}`);
+        filteredItems = filteredItems.filter(item => !item.isGallery);
+        this.debug(`🔍 Item type filter "single" reduced items from ${beforeCount} to ${beforeCount}`);
       } else if (filters.itemType === 'gallery') {
-        filteredItems = filteredItems.filter(item => item.item_data?.isGallery);
+        filteredItems = filteredItems.filter(item => item.isGallery);
         this.debug(`🔍 Item type filter "gallery" reduced items from ${beforeCount} to ${filteredItems.length}`);
       }
     }
@@ -2889,7 +2885,7 @@ static async addSkillComment(skillId) {
     // Rarity filter
     if (filters.rarity) {
       filteredSkills = filteredSkills.filter(skill => 
-        skill.skill_data?.rarity === filters.rarity
+        skill.border === filters.rarity
       );
     }
 
@@ -2910,7 +2906,7 @@ static async addSkillComment(skillId) {
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filteredSkills = filteredSkills.filter(skill => 
-        skill.skill_data?.skillName?.toLowerCase().includes(searchLower)
+        skill.skillName?.toLowerCase().includes(searchLower)
       );
     }
 
@@ -2918,7 +2914,7 @@ static async addSkillComment(skillId) {
     if (filters.keywords) {
       const keywordList = filters.keywords.split(',').map(keyword => keyword.trim().toLowerCase());
       filteredSkills = filteredSkills.filter(skill => {
-        const effects = skill.skill_data?.effects || [];
+        const effects = skill.skillEffect || [];
         const allEffects = effects.join(' ').toLowerCase();
         
         return keywordList.some(keyword => allEffects.includes(keyword));
@@ -2949,7 +2945,7 @@ static async addSkillComment(skillId) {
     // Effect length filter
     if (filters.length) {
       filteredSkills = filteredSkills.filter(skill => {
-        const effects = skill.skill_data?.effects || [];
+        const effects = skill.skillEffect || [];
         const totalLength = effects.join(' ').length;
         
         switch (filters.length) {
@@ -2964,7 +2960,7 @@ static async addSkillComment(skillId) {
     // Skill type filter (based on effects)
     if (filters.skillType) {
       filteredSkills = filteredSkills.filter(skill => {
-        const effects = skill.skill_data?.effects || [];
+        const effects = skill.skillEffect || [];
         const effectsText = effects.join(' ').toLowerCase();
         
         switch (filters.skillType) {
@@ -2982,7 +2978,7 @@ static async addSkillComment(skillId) {
     // Effect category filter
     if (filters.effectCategory) {
       filteredSkills = filteredSkills.filter(skill => {
-        const effects = skill.skill_data?.effects || [];
+        const effects = skill.skillEffect || [];
         const effectsText = effects.join(' ').toLowerCase();
         
         switch (filters.effectCategory) {
@@ -3035,9 +3031,9 @@ static async addSkillComment(skillId) {
       case 'upvotes_asc':
         return sortedItems.sort((a, b) => (a.upvotes || 0) - (b.upvotes || 0));
       case 'name_asc':
-        return sortedItems.sort((a, b) => (a.item_data?.itemName || '').localeCompare(b.item_data?.itemName || ''));
+        return sortedItems.sort((a, b) => (a.itemName || '').localeCompare(b.itemName || ''));
       case 'name_desc':
-        return sortedItems.sort((a, b) => (b.item_data?.itemName || '').localeCompare(a.item_data?.itemName || ''));
+        return sortedItems.sort((a, b) => (b.itemName || '').localeCompare(a.itemName || ''));
       case 'creator_asc':
         return sortedItems.sort((a, b) => (a.user_alias || '').localeCompare(b.user_alias || ''));
       case 'creator_desc':

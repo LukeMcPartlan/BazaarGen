@@ -516,10 +516,10 @@ static async loadItems(options = {}, requestOptions = {}) {
     }
 
     console.log('🔍 [loadItems] Building query...');
-    // Only select essential fields - NO item_data to prevent timeouts
+    // Select essential fields plus minimal JSONB fields needed for filtering
     let query = this.supabase
       .from('items')
-      .select('id, user_email, user_alias, contest_number, upvotes, created_at, updated_at');
+      .select('id, user_email, user_alias, contest_number, upvotes, created_at, updated_at, item_data->hero, item_data->itemName, item_data->itemSize, item_data->border, item_data->tags, item_data->onUseEffects, item_data->passiveEffects, item_data->isGallery');
 
     console.log('🔍 [loadItems] Base query built, applying filters...');
 
@@ -675,11 +675,12 @@ static async loadSkills(options = {}, requestOptions = {}) {
     }
 
     console.log('🔍 [loadSkills] Building query...');
-    // Only select essential fields - NO skill_data to prevent timeouts
+    // Select essential fields plus minimal JSONB fields needed for filtering
     let query = this.supabase
       .from('skills')
       .select(`
         id, user_email, user_alias, upvotes, created_at, updated_at, is_collection, collection_name, collection_description, skill_count,
+        skill_data->border, skill_data->skillName, skill_data->skillEffect,
         contest_submissions!left(contest_id, content_type)
       `);
 
@@ -823,37 +824,37 @@ static async loadSkills(options = {}, requestOptions = {}) {
 }
 
 /**
- * Load full skill data for a specific skill ID
- * This fetches the complete skill_data JSONB field for individual skills
+ * Load full item data for a specific item ID
+ * This fetches the complete item_data JSONB field for individual items
  */
-static async loadSkillData(skillId) {
+static async loadItemData(itemId) {
   try {
-    console.log('🔍 [loadSkillData] Loading full data for skill ID:', skillId);
+    console.log('🔍 [loadItemData] Loading full data for item ID:', itemId);
     
     if (!this.isReady()) {
-      console.error('❌ [loadSkillData] Database not available');
+      console.error('❌ [loadItemData] Database not available');
       throw new Error('Database not available');
     }
 
     const startTime = performance.now();
     const { data, error } = await this.supabase
-      .from('skills')
+      .from('items')
       .select('*')
-      .eq('id', skillId)
+      .eq('id', itemId)
       .single();
     const endTime = performance.now();
     
-    console.log('🔍 [loadSkillData] Query completed in', (endTime - startTime).toFixed(2), 'ms');
+    console.log('🔍 [loadItemData] Query completed in', (endTime - startTime).toFixed(2), 'ms');
 
     if (error) {
-      console.error('❌ [loadSkillData] Database error:', error);
+      console.error('❌ [loadItemData] Database error:', error);
       throw error;
     }
 
-    console.log('🔍 [loadSkillData] Successfully loaded full data for skill ID:', skillId);
+    console.log('🔍 [loadItemData] Successfully loaded full data for item ID:', itemId);
     return data;
   } catch (error) {
-    console.error('❌ [loadSkillData] Error in loadSkillData:', error);
+    console.error('❌ [loadItemData] Error in loadItemData:', error);
     throw error;
   }
 }
