@@ -646,7 +646,94 @@ static async createCard(options = {}) {
       // console.log('⚠️ No scaling values to display');
     }
 
+    // Add multicast icon if present
+    if (cardData.multicast && parseInt(cardData.multicast) > 1) {
+      const multicastIcon = this.createMulticastIcon(cardData.multicast);
+      imageContainer.appendChild(multicastIcon);
+    }
+
+    // Add ammo component if present
+    if (cardData.ammo && parseInt(cardData.ammo) > 0) {
+      const ammoComponent = this.createAmmoComponent(cardData.ammo);
+      imageContainer.appendChild(ammoComponent);
+    }
+
     return imageContainer;
+  }
+
+  /**
+   * Create multicast icon with value
+   */
+  static createMulticastIcon(multicastValue) {
+    const multicastContainer = document.createElement("div");
+    multicastContainer.className = "multicast-icon-container";
+
+    // Create multicast icon
+    const icon = document.createElement("img");
+    icon.src = "images/elements/multicast.png";
+    icon.alt = "Multicast";
+    icon.onerror = function() { 
+      console.warn('⚠️ Multicast icon failed to load');
+      this.style.display = 'none'; 
+    };
+
+    // Create multicast value text
+    const valueText = document.createElement("span");
+    valueText.textContent = `x ${multicastValue}`;
+
+    multicastContainer.appendChild(icon);
+    multicastContainer.appendChild(valueText);
+
+    return multicastContainer;
+  }
+
+  /**
+   * Create ammo component with visual ammo count
+   */
+  static createAmmoComponent(ammoCount) {
+    const ammoContainer = document.createElement("div");
+    ammoContainer.className = "ammo-component";
+    
+    // Create ammo images container
+    const ammoImagesContainer = document.createElement("div");
+    ammoImagesContainer.className = "ammo-images-container";
+    
+    // Add left edge (flipped)
+    const leftEdge = document.createElement("img");
+    leftEdge.src = "images/elements/ammo/edge.png";
+    leftEdge.alt = "Ammo edge";
+    leftEdge.style.transform = "scaleX(-1)"; // Flip horizontally
+    leftEdge.onerror = function() { 
+      console.warn('⚠️ Ammo edge image failed to load');
+      this.style.display = 'none'; 
+    };
+    ammoImagesContainer.appendChild(leftEdge);
+    
+    // Add middle segments based on ammo count
+    for (let i = 0; i < ammoCount; i++) {
+      const middleSegment = document.createElement("img");
+      middleSegment.src = "images/elements/ammo/middle.png";
+      middleSegment.alt = "Ammo middle";
+      middleSegment.onerror = function() { 
+        console.warn('⚠️ Ammo middle image failed to load');
+        this.style.display = 'none'; 
+      };
+      ammoImagesContainer.appendChild(middleSegment);
+    }
+    
+    // Add right edge
+    const rightEdge = document.createElement("img");
+    rightEdge.src = "images/elements/ammo/edge.png";
+    rightEdge.alt = "Ammo edge";
+    rightEdge.onerror = function() { 
+      console.warn('⚠️ Ammo edge image failed to load');
+      this.style.display = 'none'; 
+    };
+    ammoImagesContainer.appendChild(rightEdge);
+    
+    ammoContainer.appendChild(ammoImagesContainer);
+    
+    return ammoContainer;
   }
 
   /**
