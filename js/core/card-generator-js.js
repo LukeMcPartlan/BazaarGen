@@ -1553,7 +1553,8 @@ static async createCard(options = {}) {
           const ammoHeight = 50; // Use same fixed height as cooldown section
           const ammoTop = onUseCenterY - (ammoHeight / 2);
           ammoSection.style.top = `${ammoTop}px`;
-          ammoSection.style.transform = 'none'; // Remove default transform
+          // Preserve horizontal positioning while setting vertical position
+          ammoSection.style.transform = 'translateX(-8px)';
           console.log('🎯 Positioned ammo section at:', ammoTop, 'px (on-use center:', onUseCenterY, 'px)');
           
           // Debug: Log the full computed styles after positioning
