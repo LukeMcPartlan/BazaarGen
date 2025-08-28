@@ -1169,7 +1169,7 @@ static async createCard(options = {}) {
     ammoDiv.className = "ammo-section";
     ammoDiv.style.borderImage = `url('images/skill-frames/borders/bronze_frame.png') 30 fill / 35px / 0 round`;
     ammoDiv.style.width = '35px';
-    ammoDiv.style.transform = 'translateX(-23px)';
+    ammoDiv.style.transform = 'translateX(-8px)';
     
     const ammoImg = document.createElement("img");
     ammoImg.src = "images/keywords/effects/ammo.png";
