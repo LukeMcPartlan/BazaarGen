@@ -672,6 +672,8 @@ static async createCard(options = {}) {
     const icon = document.createElement("img");
     icon.src = "images/elements/multicast.png";
     icon.alt = "Multicast";
+    icon.style.width = "50px";
+    icon.style.height = "50px";
     icon.onerror = function() { 
       console.warn('⚠️ Multicast icon failed to load');
       this.style.display = 'none'; 
