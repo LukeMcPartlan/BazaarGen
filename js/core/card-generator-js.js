@@ -711,8 +711,9 @@ static async createCard(options = {}) {
     };
     ammoImagesContainer.appendChild(leftEdge);
     
-    // Add middle segments based on ammo count
-    for (let i = 0; i < ammoCount; i++) {
+    // Add middle segments based on ammo count (capped at 6)
+    const displayAmmoCount = Math.min(ammoCount, 6);
+    for (let i = 0; i < displayAmmoCount; i++) {
       const middleSegment = document.createElement("img");
       middleSegment.src = "images/elements/ammo/middle.png";
       middleSegment.alt = "Ammo middle";

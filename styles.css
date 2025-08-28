@@ -1541,7 +1541,7 @@ h1 {
 /* ===== MULTICAST ICON STYLES ===== */
 .multicast-icon-container {
   position: absolute;
-  top: 10px; /* Center aligned like ammo and gems */
+  top: 0px; /* Moved up 10px from 10px to 0px */
   left: 50%;
   transform: translateX(-50%); /* Center horizontally */
   z-index: 1; /* Behind card text */
@@ -2216,7 +2216,7 @@ img.skill-icon-overlay-border[src*="legendary"] {
 }
 
 .ammo-section {
-  right: -10px;
+  left: -30px; /* Position like cooldown section */
   border-radius: 10px;
   border: 3px solid silver;
   padding: 5px 10px;
@@ -2234,6 +2234,8 @@ img.skill-icon-overlay-border[src*="legendary"] {
   flex-direction: column;
   align-items: center;
   gap: 3px;
+  top: 50%; /* Center vertically like cooldown */
+  transform: translateY(-50%); /* Center vertically like cooldown */
 }
 
 .ammo-section img {
