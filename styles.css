@@ -1541,9 +1541,9 @@ h1 {
 /* ===== MULTICAST ICON STYLES ===== */
 .multicast-icon-container {
   position: absolute;
-  top: 10px;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   z-index: 1; /* Behind card text */
   position: relative; /* For absolute positioning of text */
   pointer-events: none;
@@ -1573,17 +1573,22 @@ h1 {
 /* ===== AMMO COMPONENT STYLES ===== */
 .ammo-component {
   position: absolute;
-  bottom: 5px; /* Small offset from bottom */
+  bottom: 0; /* Align with bottom of uploaded image */
   left: 50%;
   transform: translateX(-50%);
   z-index: 5;
   pointer-events: none;
+  height: 40px; /* Fixed height as requested */
+  display: flex;
+  align-items: flex-end; /* Align content to bottom */
 }
 
 .ammo-images-container {
   display: flex;
   align-items: center;
   gap: 0; /* No space between images */
+  height: 100%; /* Take full height of container */
+  align-items: flex-end; /* Align images to bottom */
 }
 
 .ammo-images-container img {
