@@ -1262,9 +1262,14 @@ static async createItemCard(item) {
     // Load full skill data for card creation
     let fullSkillData;
     try {
+      console.log('🔍 [unified-browse] Loading full skill data for skill ID:', skill.id);
+      const startTime = performance.now();
       fullSkillData = await SupabaseClient.loadSkillData(skill.id);
+      const endTime = performance.now();
+      console.log('🔍 [unified-browse] loadSkillData completed in', (endTime - startTime).toFixed(2), 'ms');
+      console.log('🔍 [unified-browse] Full skill data loaded successfully');
     } catch (error) {
-      console.error('Error loading full skill data:', error);
+      console.error('❌ [unified-browse] Error loading full skill data for skill ID:', skill.id, error);
       // Fallback to basic data
       fullSkillData = skill;
     }
