@@ -1545,7 +1545,6 @@ h1 {
   left: 50%;
   transform: translateX(-50%); /* Center horizontally */
   z-index: 1; /* Behind card text */
-  position: relative; /* For absolute positioning of text */
   pointer-events: none;
 }
 
