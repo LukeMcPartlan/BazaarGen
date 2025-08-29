@@ -21,7 +21,7 @@ class KeywordProcessor {
     'value': { color: 'rgb(244, 208, 33)' },
     'destroy': { color: 'rgb(198, 44, 66)' },
     'transform': { color: 'rgb(90, 230, 233)' },
-    'sheild': { color: 'rgb(245, 208, 33)' },
+    'shield': { color: 'rgb(245, 208, 33)' },
     'maxhealth': { color: 'rgb(143, 234, 49)' }
   };
 
@@ -39,7 +39,7 @@ class KeywordProcessor {
     processedText = processedText.replace(/\/cd/g, '[COOLDOWN_ICON]');  // Process /cd before /c
     processedText = processedText.replace(/\/cr/g, '[CRIT_ICON]');      // Process /cr before /c
     processedText = processedText.replace(/\/he/g, '[HEAL_ICON]');      // Process /he before /h
-    processedText = processedText.replace(/\/sh/g, '[SHEILD_ICON]');    // Process /sh before /s
+    processedText = processedText.replace(/\/sh/g, '[SHIELD_ICON]');    // Process /sh before /s
     processedText = processedText.replace(/\/mh/g, '[MAXHEALTH_ICON]'); // Process /mh before /h
     processedText = processedText.replace(/\/de/g, '[DESTROY_ICON]');   // Process /de before /d
     
@@ -173,7 +173,7 @@ class KeywordProcessor {
     '[LIFESTEAL_ICON]': '<img src="images/keywords/keytext/lifesteal.png" alt="lifesteal" class="keyword-icon">',
     '[VALUE_ICON]': '<img src="images/keywords/keytext/value.png" alt="value" class="keyword-icon">',
     '[TRANSFORM_ICON]': '<img src="images/keywords/keytext/transform.png" alt="transform" class="keyword-icon">',
-    '[SHEILD_ICON]': '<img src="images/keywords/keytext/sheild.png" alt="sheild" class="keyword-icon">',
+            '[SHIELD_ICON]': '<img src="images/keywords/keytext/shield.png" alt="shield" class="keyword-icon">',
     '[MAXHEALTH_ICON]': '<img src="images/keywords/keytext/maxhealth.png" alt="maxhealth" class="keyword-icon">'
     };
 
@@ -206,7 +206,7 @@ class KeywordProcessor {
       { key: '/l', icon: 'lifesteal.png', keyword: 'lifesteal', color: 'rgb(181, 56, 115)' },
       { key: '/v', icon: 'value.png', keyword: 'value', color: 'rgb(244, 208, 33)' },
       { key: '/t', icon: 'transform.png', keyword: 'transform', color: 'rgb(90, 230, 233)' },
-      { key: '/sh', icon: 'sheild.png', keyword: 'sheild', color: 'rgb(245, 208, 33)' },
+              { key: '/sh', icon: 'shield.png', keyword: 'shield', color: 'rgb(245, 208, 33)' },
       { key: '/mh', icon: 'maxhealth.png', keyword: 'maxhealth', color: 'rgb(143, 234, 49)' }
     ];
   }
