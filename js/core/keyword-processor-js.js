@@ -22,7 +22,8 @@ class KeywordProcessor {
     'destroy': { color: 'rgb(198, 44, 66)' },
     'transform': { color: 'rgb(90, 230, 233)' },
     'shield': { color: 'rgb(245, 208, 33)' },
-    'maxhealth': { color: 'rgb(143, 234, 49)' }
+    'maxhealth': { color: 'rgb(143, 234, 49)' },
+    'flying': { color: '#f4d021' }
   };
 
   /**
@@ -42,6 +43,7 @@ class KeywordProcessor {
     processedText = processedText.replace(/\/sh/g, '[SHIELD_ICON]');    // Process /sh before /s
     processedText = processedText.replace(/\/mh/g, '[MAXHEALTH_ICON]'); // Process /mh before /h
     processedText = processedText.replace(/\/de/g, '[DESTROY_ICON]');   // Process /de before /d
+    processedText = processedText.replace(/\/fl/g, '[FLYING_ICON]');    // Process /fl before /f
     
     // Then process single-letter patterns
     processedText = processedText.replace(/\/s/g, '[SLOW_ICON]');
@@ -174,7 +176,8 @@ class KeywordProcessor {
     '[VALUE_ICON]': '<img src="images/keywords/keytext/value.png" alt="value" class="keyword-icon">',
     '[TRANSFORM_ICON]': '<img src="images/keywords/keytext/transform.png" alt="transform" class="keyword-icon">',
             '[SHIELD_ICON]': '<img src="images/keywords/keytext/shield.png" alt="shield" class="keyword-icon">',
-    '[MAXHEALTH_ICON]': '<img src="images/keywords/keytext/maxhealth.png" alt="maxhealth" class="keyword-icon">'
+    '[MAXHEALTH_ICON]': '<img src="images/keywords/keytext/maxhealth.png" alt="maxhealth" class="keyword-icon">',
+    '[FLYING_ICON]': '<img src="images/keywords/keytext/flying.png" alt="flying" class="keyword-icon">'
     };
 
     let processedText = text;
@@ -207,7 +210,8 @@ class KeywordProcessor {
       { key: '/v', icon: 'value.png', keyword: 'value', color: 'rgb(244, 208, 33)' },
       { key: '/t', icon: 'transform.png', keyword: 'transform', color: 'rgb(90, 230, 233)' },
               { key: '/sh', icon: 'shield.png', keyword: 'shield', color: 'rgb(245, 208, 33)' },
-      { key: '/mh', icon: 'maxhealth.png', keyword: 'maxhealth', color: 'rgb(143, 234, 49)' }
+      { key: '/mh', icon: 'maxhealth.png', keyword: 'maxhealth', color: 'rgb(143, 234, 49)' },
+      { key: '/fl', icon: 'flying.png', keyword: 'flying', color: '#f4d021' }
     ];
   }
 
@@ -238,7 +242,7 @@ class KeywordProcessor {
     let plainText = text.replace(/<[^>]*>/g, '');
     
     // Remove shortcut patterns
-    plainText = plainText.replace(/\/cd|\/cr|\/he|\/sh|\/mh|\/de|\/s|\/h|\/r|\/p|\/b|\/c|\/d|\/f|\/l|\/v|\/t/g, '');
+    plainText = plainText.replace(/\/cd|\/cr|\/he|\/sh|\/mh|\/de|\/fl|\/s|\/h|\/r|\/p|\/b|\/c|\/d|\/f|\/l|\/v|\/t/g, '');
     
     return plainText;
   }
