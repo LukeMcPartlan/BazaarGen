@@ -1,6 +1,12 @@
 /**
- * Image Storage Utility
+ * Image Storage Utility - TEMPORARILY DISABLED
  * Handles saving and retrieving images using Supabase Storage
+ * 
+ * NOTE: Storage functionality has been temporarily disabled due to RLS policy issues.
+ * To re-enable:
+ * 1. Set up proper RLS policies in Supabase dashboard
+ * 2. Create storage bucket manually
+ * 3. Uncomment the storage functions below
  */
 class ImageStorage {
   static debugMode = true;
@@ -18,10 +24,14 @@ class ImageStorage {
   }
 
   /**
-   * Initialize storage bucket
+   * Initialize storage bucket - TEMPORARILY DISABLED
    */
   static async initStorage() {
     try {
+      this.debug('Storage bucket initialization temporarily disabled');
+      return false; // Return false to indicate storage is not available
+      
+      /* TEMPORARILY COMMENTED OUT - STORAGE BUCKETS NOT WORKING
       if (!SupabaseClient || !SupabaseClient.isReady()) {
         throw new Error('Supabase not available');
       }
@@ -52,14 +62,15 @@ class ImageStorage {
 
       this.debug('Storage initialized successfully');
       return true;
+      */
     } catch (error) {
       this.debug('Failed to initialize storage:', error);
-      throw error;
+      return false; // Return false instead of throwing
     }
   }
 
   /**
-   * Upload image to storage
+   * Upload image to storage - TEMPORARILY DISABLED
    * @param {File} imageFile - Image file to upload
    * @param {string} itemName - Name for the image (used in filename)
    * @param {string} type - 'card' or 'skill'
@@ -67,6 +78,10 @@ class ImageStorage {
    */
   static async uploadImage(imageFile, itemName, type = 'card') {
     try {
+      this.debug('Image upload temporarily disabled - storage buckets not working');
+      throw new Error('Image upload temporarily disabled - please set up storage buckets first');
+      
+      /* TEMPORARILY COMMENTED OUT - STORAGE BUCKETS NOT WORKING
       this.debug('Starting image upload:', {
         fileName: imageFile.name,
         fileSize: imageFile.size,
@@ -102,12 +117,13 @@ class ImageStorage {
         .from(this.storageBucket)
         .getPublicUrl(filename);
 
-      this.debug('Image uploaded successfully:', {
+      this.debug('Image upload successful:', {
         filename,
         publicUrl: urlData.publicUrl
       });
 
       return urlData.publicUrl;
+      */
     } catch (error) {
       this.debug('Failed to upload image:', error);
       throw error;
@@ -115,13 +131,17 @@ class ImageStorage {
   }
 
   /**
-   * Upload multiple images for a gallery
+   * Upload multiple images for a gallery - TEMPORARILY DISABLED
    * @param {Array<File>} imageFiles - Array of image files
    * @param {string} galleryName - Name of the gallery
    * @returns {Promise<Array<string>>} Array of public URLs
    */
   static async uploadGalleryImages(imageFiles, galleryName) {
     try {
+      this.debug('Gallery image upload temporarily disabled - storage buckets not working');
+      throw new Error('Gallery image upload temporarily disabled - please set up storage buckets first');
+      
+      /* TEMPORARILY COMMENTED OUT - STORAGE BUCKETS NOT WORKING
       this.debug('Uploading gallery images:', {
         imageCount: imageFiles.length,
         galleryName
@@ -140,6 +160,7 @@ class ImageStorage {
       });
 
       return urls;
+      */
     } catch (error) {
       this.debug('Failed to upload gallery images:', error);
       throw error;
@@ -147,12 +168,16 @@ class ImageStorage {
   }
 
   /**
-   * Delete image from storage
+   * Delete image from storage - TEMPORARILY DISABLED
    * @param {string} imageUrl - Public URL of image to delete
    * @returns {Promise<boolean>} Success status
    */
   static async deleteImage(imageUrl) {
     try {
+      this.debug('Image deletion temporarily disabled - storage buckets not working');
+      return false; // Return false since deletion is disabled
+      
+      /* TEMPORARILY COMMENTED OUT - STORAGE BUCKETS NOT WORKING
       if (!imageUrl) {
         this.debug('No image URL provided for deletion');
         return true;
@@ -177,6 +202,7 @@ class ImageStorage {
 
       this.debug('Image deleted successfully:', filename);
       return true;
+      */
     } catch (error) {
       this.debug('Failed to delete image:', error);
       return false;
@@ -184,7 +210,7 @@ class ImageStorage {
   }
 
   /**
-   * Convert base64 image to file and upload
+   * Convert base64 image to file and upload - TEMPORARILY DISABLED
    * @param {string} base64Data - Base64 image data
    * @param {string} itemName - Name for the image
    * @param {string} type - 'card' or 'skill'
@@ -192,6 +218,10 @@ class ImageStorage {
    */
   static async uploadBase64Image(base64Data, itemName, type = 'card') {
     try {
+      this.debug('Base64 image upload temporarily disabled - storage buckets not working');
+      throw new Error('Base64 image upload temporarily disabled - please set up storage buckets first');
+      
+      /* TEMPORARILY COMMENTED OUT - STORAGE BUCKETS NOT WORKING
       this.debug('Converting base64 to file and uploading...');
 
       // Convert base64 to file
@@ -199,6 +229,7 @@ class ImageStorage {
       
       // Upload the file
       return await this.uploadImage(file, itemName, type);
+      */
     } catch (error) {
       this.debug('Failed to upload base64 image:', error);
       throw error;
@@ -276,11 +307,21 @@ class ImageStorage {
   }
 
   /**
-   * Get storage usage statistics
+   * Get storage usage statistics - TEMPORARILY DISABLED
    * @returns {Promise<Object>} Storage statistics
    */
   static async getStorageStats() {
     try {
+      this.debug('Storage stats temporarily disabled - storage buckets not working');
+      return {
+        totalFiles: 0,
+        totalSize: 0,
+        cardImages: 0,
+        skillImages: 0,
+        galleryImages: 0
+      };
+      
+      /* TEMPORARILY COMMENTED OUT - STORAGE BUCKETS NOT WORKING
       const { data, error } = await SupabaseClient.supabase.storage
         .from(this.storageBucket)
         .list('', { limit: 1000 });
@@ -303,6 +344,7 @@ class ImageStorage {
         skillImages,
         galleryImages
       };
+      */
     } catch (error) {
       this.debug('Failed to get storage stats:', error);
       throw error;
@@ -310,11 +352,15 @@ class ImageStorage {
   }
 
   /**
-   * Clean up orphaned images (images not referenced in database)
+   * Clean up orphaned images (images not referenced in database) - TEMPORARILY DISABLED
    * @returns {Promise<number>} Number of images cleaned up
    */
   static async cleanupOrphanedImages() {
     try {
+      this.debug('Orphaned image cleanup temporarily disabled - storage buckets not working');
+      return 0; // Return 0 since cleanup is disabled
+      
+      /* TEMPORARILY COMMENTED OUT - STORAGE BUCKETS NOT WORKING
       this.debug('Starting orphaned image cleanup...');
 
       // Get all images in storage
@@ -504,11 +550,13 @@ class ImageStorage {
   }
 }
 
-// Auto-initialize storage on page load
+// Auto-initialize storage on page load - TEMPORARILY DISABLED
 document.addEventListener('DOMContentLoaded', async () => {
   try {
-    await ImageStorage.initStorage();
-    ImageStorage.debug('Image storage ready');
+    // Storage initialization temporarily disabled
+    ImageStorage.debug('Image storage initialization skipped - storage buckets not working');
+    // await ImageStorage.initStorage();
+    // ImageStorage.debug('Image storage ready');
   } catch (error) {
     ImageStorage.debug('Failed to initialize image storage:', error);
   }
