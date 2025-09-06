@@ -438,20 +438,16 @@ static updateUserDisplay() {
     this.debug('Setting display name:', displayName);
     
     userAlias.innerHTML = `
-      <a href="profile.html" style="
+      <span style="
         color: rgb(251, 225, 183);
-        text-decoration: none;
         font-weight: bold;
-        transition: all 0.3s ease;
         padding: 5px 10px;
-        border-radius: 4px;
         display: inline-flex;
         align-items: center;
         gap: 5px;
-      " onmouseover="this.style.color='rgb(218, 165, 32)'; this.style.background='rgba(218, 165, 32, 0.1)'" 
-         onmouseout="this.style.color='rgb(251, 225, 183)'; this.style.background='transparent'">
+      ">
         👤 ${displayName}
-      </a>
+      </span>
     `;
     
     userInfo.style.display = 'flex';
@@ -460,7 +456,7 @@ static updateUserDisplay() {
       signInButton.style.display = 'none';
     }
 
-    this.debug('User display updated successfully with clickable profile link');
+    this.debug('User display updated successfully');
   } else {
     this.debug('Could not update user display - missing elements');
   }
