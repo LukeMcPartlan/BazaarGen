@@ -1835,11 +1835,35 @@ img.skill-icon-overlay-border[src*="legendary"] {
   position: relative;
   display: flex;
   flex-direction: column;
-  border: none; /* Remove border from skill content */
+  border: none !important; /* Remove all borders */
   border-radius: 10px;
   min-width: 300px;
   width: fit-content; /* Size to fit content */
-  background: radial-gradient(ellipse at center, rgb(60, 45, 30) 0%, rgb(45, 35, 22) 40%, rgb(25, 18, 10) 100%);
+  background-color: transparent !important; /* Remove background color */
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* Background image classes for different card rarities */
+.card-content.bronze-bg {
+  background-image: url('images/skill-frames/borders/baseBronze.png');
+}
+
+.card-content.silver-bg {
+  background-image: url('images/skill-frames/borders/baseSilver.png');
+}
+
+.card-content.gold-bg {
+  background-image: url('images/skill-frames/borders/baseGold.png');
+}
+
+.card-content.diamond-bg {
+  background-image: url('images/skill-frames/borders/baseDiamond.png');
+}
+
+.card-content.legendary-bg {
+  background-image: url('images/skill-frames/borders/baseLegend.png');
 }
 
 .skill-content {

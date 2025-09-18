@@ -777,30 +777,25 @@ static async createCard(options = {}) {
   static createContentContainer(cardData, borderColor) {
     const content = document.createElement("div");
     content.className = "card-content";
-    content.style.border = 'none'; // Remove colored border, will use border-image instead
     
-    // Apply border-image based on card quality
-    const frameConfigs = {
-      legendary: { slice: '50 50 50 50 fill', width: '50px 50px 50px 50px', repeat: 'round' },
-      gold: { slice: '60 60 60 60 fill', width: '180px 180px 180px 180px', repeat: 'round' },
-      silver: { slice: '40 40 40 40 fill', width: '80px 80px 80px 80px', repeat: 'round' },
-      bronze: { slice: '30 30 30 30 fill', width: '70px 70px 70px 70px', repeat: 'round' },
-      diamond: { slice: '44 44 44 44 fill', width: '44px 44px 44px 44px', repeat: 'round' }
+    // Map border quality to background class
+    const backgroundClassMap = {
+      'bronze': 'bronze-bg',
+      'silver': 'silver-bg',
+      'gold': 'gold-bg',
+      'diamond': 'diamond-bg',
+      'legendary': 'legendary-bg'
     };
     
-    // Apply border-image to the content with consistent values
-    content.style.borderImage = `url('images/skill-frames/borders/${cardData.border}_frame.png') 40 fill / 50px / 0 round`;
-    content.style.borderImageSlice = '40 fill';
-    content.style.borderImageWidth = '50px';
-    content.style.borderImageOutset = '0';
-    content.style.borderImageRepeat = 'round';
+    const backgroundClass = backgroundClassMap[cardData.border] || 'bronze-bg';
+    content.classList.add(backgroundClass);
     
     // Add legendary class for special corner cutting
     if (cardData.border === 'legendary') {
       content.classList.add('legendary');
     }
     
-    console.log('Border-image applied to card content - Rarity:', cardData.border, 'Slice: 40 fill', 'Width: 50px');
+    console.log('Background image applied to card content - Rarity:', cardData.border, 'Class:', backgroundClass);
 
     // Top section with title and hero
     const topSection = this.createTopSection(cardData, borderColor);
