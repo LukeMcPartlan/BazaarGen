@@ -2146,7 +2146,7 @@ img.skill-icon-overlay-border[src*="legendary"] {
   padding-left: 20px;
   box-sizing: border-box;
   position: relative;
-  background-size: cover;
+  background-size: contain;
   background-position: center;
   background-repeat: no-repeat;
   border: none !important;
