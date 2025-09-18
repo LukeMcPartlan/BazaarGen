@@ -976,49 +976,42 @@ static async createCard(options = {}) {
     }
 
     if (hasEffects) {
-      // Create on-use section with active border image
+      // Create on-use section with background image
       const onUseSection = document.createElement("div");
       onUseSection.className = "text-section on-use-section";
       
-      // Map border quality to active frame image
-      const activeFrameMap = {
-        'bronze': 'Tooltip_Bronze_Frame_Active_TUI.png',
-        'silver': 'Tooltip_Silver_Frame_Active_TUI.png',
-        'gold': 'Tooltip_Gold_Frame_Active_TUI.png',
-        'diamond': 'Tooltip_Diamond_Frame_Active_TUI.png',
-        'legendary': 'Tooltip_Legendary_Frame_Active_TUI.png'
+      // Map border quality to background class
+      const backgroundClassMap = {
+        'bronze': 'bronze-bg',
+        'silver': 'silver-bg',
+        'gold': 'gold-bg',
+        'diamond': 'diamond-bg',
+        'legendary': 'legendary-bg'
       };
       
-      const activeFrameImage = activeFrameMap[cardData.border] || 'Tooltip_Bronze_Frame_Active_TUI.png';
-      
-      // Apply border image with proper stretching like card content
-      onUseSection.style.borderImage = `url('images/skill-frames/Active/${activeFrameImage}') 15 fill / 5px / 0 stretch`;
-      onUseSection.style.borderImageSlice = '15 fill';
-      onUseSection.style.borderImageWidth = '5px';
-      onUseSection.style.borderImageOutset = '0';
-      onUseSection.style.borderImageRepeat = 'stretch';
+      const backgroundClass = backgroundClassMap[cardData.border] || 'bronze-bg';
+      onUseSection.classList.add(backgroundClass);
       
       onUseSection.appendChild(effectsContainer);
       
-      // Debug: Check if border-image was applied
+      // Debug: Check if background image was applied
       setTimeout(() => {
         const computedStyle = window.getComputedStyle(onUseSection);
-        console.log('🎨 Border-image applied:', computedStyle.borderImage);
-        console.log('🎨 Border-image-slice:', computedStyle.borderImageSlice);
-        console.log('🎨 Border-image-width:', computedStyle.borderImageWidth);
-        console.log('🎨 Border-image-repeat:', computedStyle.borderImageRepeat);
-        console.log('🎨 Border:', computedStyle.border);
+        console.log('🎨 Background-image applied:', computedStyle.backgroundImage);
+        console.log('🎨 Background-size:', computedStyle.backgroundSize);
+        console.log('🎨 Background-position:', computedStyle.backgroundPosition);
+        console.log('🎨 Background-repeat:', computedStyle.backgroundRepeat);
         
         // Test if the image loads
         const testImg = new Image();
-        const imageUrl = `images/skill-frames/Active/${activeFrameImage}`;
-        testImg.onload = () => console.log('✅ Active frame image loads successfully:', imageUrl);
-        testImg.onerror = () => console.log('❌ Active frame image failed to load:', imageUrl);
+        const imageUrl = `images/skill-frames/Active/active${cardData.border.charAt(0).toUpperCase() + cardData.border.slice(1)}.png`;
+        testImg.onload = () => console.log('✅ Active background image loads successfully:', imageUrl);
+        testImg.onerror = () => console.log('❌ Active background image failed to load:', imageUrl);
         testImg.src = imageUrl;
       }, 100);
       
-      console.log('✅ On-use section with active border created successfully');
-      console.log('🎨 Applied border-image for quality:', cardData.border);
+      console.log('✅ On-use section with background image created successfully');
+      console.log('🎨 Applied background class for quality:', cardData.border, '->', backgroundClass);
       return onUseSection;
     } else {
       // Create divider that replaces the on-use section entirely

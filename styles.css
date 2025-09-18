@@ -2146,6 +2146,32 @@ img.skill-icon-overlay-border[src*="legendary"] {
   padding-left: 20px;
   box-sizing: border-box;
   position: relative;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  border: none !important;
+  background-color: transparent !important;
+}
+
+/* Background image classes for different card rarities */
+.on-use-section.bronze-bg {
+  background-image: url('images/skill-frames/Active/activeBronze.png');
+}
+
+.on-use-section.silver-bg {
+  background-image: url('images/skill-frames/Active/activeSilver.png');
+}
+
+.on-use-section.gold-bg {
+  background-image: url('images/skill-frames/Active/activeGold.png');
+}
+
+.on-use-section.diamond-bg {
+  background-image: url('images/skill-frames/Active/activeDiamond.png');
+}
+
+.on-use-section.legendary-bg {
+  background-image: url('images/skill-frames/Active/activeLegend.png');
 }
 
 .on-use-line img {
