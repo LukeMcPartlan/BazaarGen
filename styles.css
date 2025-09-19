@@ -2077,6 +2077,7 @@ img.skill-icon-overlay-border[src*="legendary"] {
   word-wrap: break-word; /* For older browsers */
   white-space: normal; /* Allow text to wrap */
   line-height: 1.2; /* Tighter line height for better wrapping */
+  padding-left: 5px;
   
   text-shadow: 
     2px 2px 0 black,
@@ -2208,6 +2209,7 @@ img.skill-icon-overlay-border[src*="legendary"] {
   width: 45px; /* 50% wider than height (20px * 1.5 = 45px) */
   height: 20px !important;
   margin: 0;
+  padding-top: 3px;
 }
 
 .passive-effect-line {
@@ -2423,6 +2425,7 @@ img.skill-icon-overlay-border[src*="legendary"] {
   box-sizing: border-box;
   overflow-wrap: break-word;
   word-wrap: break-word;
+  padding-bottom: 5px;
 }
 
 .tag-input-group, .on-use-input-group, .passive-input-group {
