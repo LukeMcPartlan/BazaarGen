@@ -36,6 +36,9 @@ class KeywordProcessor {
     
     let processedText = text;
     
+    // Process color codes FIRST (before other shortcuts)
+    processedText = this.processColorCodes(processedText);
+    
     // Process LONGER patterns FIRST to avoid conflicts
     processedText = processedText.replace(/\/cd/g, '[COOLDOWN_ICON]');  // Process /cd before /c
     processedText = processedText.replace(/\/cr/g, '[CRIT_ICON]');      // Process /cr before /c
@@ -88,6 +91,22 @@ class KeywordProcessor {
     // processedText = processedText.replace(/(<\/span>)(<span)/g, '$1<br>$2');
     
     return processedText;
+  }
+
+  /**
+   * Process color codes in text (format: /c000000 for black)
+   * @param {string} text - The text to process
+   * @returns {string} Text with colored spans
+   */
+  static processColorCodes(text) {
+    // Match /c followed by 6 hex digits and capture the text until the next space
+    const colorPattern = /\/c([0-9a-fA-F]{6})\s+([^\s]+(?:\s+[^\s]+)*?)(?=\s|$)/g;
+    
+    return text.replace(colorPattern, (match, hexCode, coloredText) => {
+      // Ensure hex code starts with # and is lowercase
+      const normalizedHex = '#' + hexCode.toLowerCase();
+      return `<span style="color: ${normalizedHex};" class="custom-color">${coloredText}</span>`;
+    });
   }
 
   /**
@@ -231,6 +250,46 @@ class KeywordProcessor {
   }
 
   /**
+   * Generate HTML for color picker tool
+   * @returns {string} HTML string for color picker
+   */
+  static generateColorPickerHTML() {
+    return `
+      <div class="color-picker-tool">
+        <h4 style="margin: 15px 0 10px 0; color: rgb(251, 225, 183);">🎨 Color Picker Tool</h4>
+        <div class="color-picker-container">
+          <input type="color" id="colorPicker" class="color-input" value="#000000" />
+          <input type="text" id="hexInput" class="hex-input" placeholder="#000000" maxlength="7" />
+          <button type="button" onclick="copyColorCode()" class="form-button secondary copy-color-btn">📋 Copy /c Code</button>
+        </div>
+        <div class="color-preview">
+          <span class="color-label">Preview:</span>
+          <span id="colorPreview" class="color-preview-text">Sample Text</span>
+        </div>
+        <div class="color-examples">
+          <p style="margin: 10px 0 5px 0; color: #ccc; font-size: 0.9em;">Examples:</p>
+          <div class="color-example" onclick="useColorExample('#000000')">
+            <span class="color-swatch" style="background: #000000;"></span>
+            <span>/c000000 for black</span>
+          </div>
+          <div class="color-example" onclick="useColorExample('#ff0000')">
+            <span class="color-swatch" style="background: #ff0000;"></span>
+            <span>/cff0000 for red</span>
+          </div>
+          <div class="color-example" onclick="useColorExample('#00ff00')">
+            <span class="color-swatch" style="background: #00ff00;"></span>
+            <span>/c00ff00 for green</span>
+          </div>
+          <div class="color-example" onclick="useColorExample('#0000ff')">
+            <span class="color-swatch" style="background: #0000ff;"></span>
+            <span>/c0000ff for blue</span>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
    * Strip all keyword processing from text (for plain text export)
    * @param {string} text - Processed text with HTML
    * @returns {string} Plain text without HTML or shortcuts
@@ -240,6 +299,9 @@ class KeywordProcessor {
     
     // Remove HTML tags
     let plainText = text.replace(/<[^>]*>/g, '');
+    
+    // Remove color code patterns
+    plainText = plainText.replace(/\/c[0-9a-fA-F]{6}\s+/g, '');
     
     // Remove shortcut patterns
     plainText = plainText.replace(/\/cd|\/cr|\/he|\/sh|\/mh|\/de|\/fl|\/s|\/h|\/r|\/p|\/b|\/c|\/d|\/f|\/l|\/v|\/t/g, '');
@@ -276,3 +338,100 @@ class KeywordProcessor {
     };
   }
 }
+
+// Global functions for color picker functionality
+window.copyColorCode = function() {
+  const hexInput = document.getElementById('hexInput');
+  const colorPicker = document.getElementById('colorPicker');
+  
+  if (hexInput && colorPicker) {
+    let hexValue = hexInput.value.trim();
+    
+    // Ensure hex value starts with # and is 6 characters long
+    if (hexValue.startsWith('#')) {
+      hexValue = hexValue.substring(1);
+    }
+    
+    // Pad with zeros if needed
+    hexValue = hexValue.padEnd(6, '0');
+    
+    // Ensure it's exactly 6 characters
+    hexValue = hexValue.substring(0, 6);
+    
+    // Create the color code
+    const colorCode = `/c${hexValue}`;
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(colorCode).then(() => {
+      // Show feedback
+      const button = document.querySelector('.copy-color-btn');
+      const originalText = button.textContent;
+      button.textContent = '✅ Copied!';
+      button.style.background = '#4CAF50';
+      
+      setTimeout(() => {
+        button.textContent = originalText;
+        button.style.background = '';
+      }, 2000);
+    }).catch(err => {
+      console.error('Failed to copy: ', err);
+      alert('Failed to copy to clipboard');
+    });
+  }
+};
+
+window.useColorExample = function(hexColor) {
+  const hexInput = document.getElementById('hexInput');
+  const colorPicker = document.getElementById('colorPicker');
+  
+  if (hexInput && colorPicker) {
+    hexInput.value = hexColor;
+    colorPicker.value = hexColor;
+    updateColorPreview();
+  }
+};
+
+window.updateColorPreview = function() {
+  const hexInput = document.getElementById('hexInput');
+  const colorPicker = document.getElementById('colorPicker');
+  const preview = document.getElementById('colorPreview');
+  
+  if (hexInput && colorPicker && preview) {
+    let hexValue = hexInput.value.trim();
+    
+    // Ensure hex value starts with #
+    if (!hexValue.startsWith('#')) {
+      hexValue = '#' + hexValue;
+    }
+    
+    // Update color picker to match
+    colorPicker.value = hexValue;
+    
+    // Update preview
+    preview.style.color = hexValue;
+  }
+};
+
+// Initialize color picker event listeners when DOM is ready
+document.addEventListener('DOMContentLoaded', function() {
+  // Wait a bit for the color picker to be added to the DOM
+  setTimeout(() => {
+    const hexInput = document.getElementById('hexInput');
+    const colorPicker = document.getElementById('colorPicker');
+    
+    if (hexInput) {
+      hexInput.addEventListener('input', updateColorPreview);
+      hexInput.addEventListener('change', updateColorPreview);
+    }
+    
+    if (colorPicker) {
+      colorPicker.addEventListener('change', function() {
+        const hexInput = document.getElementById('hexInput');
+        if (hexInput) {
+          hexInput.value = this.value;
+          updateColorPreview();
+        }
+      });
+    }
+  }, 1000);
+});

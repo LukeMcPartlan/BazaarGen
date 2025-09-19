@@ -19,6 +19,7 @@ class IndexPageController {
       this.setupCardManagement();
       this.setupGlobalVariables();
       this.setupDefaultEffects();
+      this.setupColorPicker();
       this.isInitialized = true;
     });
   }
@@ -29,6 +30,47 @@ class IndexPageController {
   static setupDefaultEffects() {
     // Let Forms handle the default setup during initialization
     // This is now handled in Forms.setupPassiveInputs() and Forms.setupOnUseInputs()
+  }
+
+  /**
+   * Setup color picker tool
+   */
+  static setupColorPicker() {
+    const colorPickerContainer = document.getElementById('colorPickerTool');
+    if (colorPickerContainer && typeof KeywordProcessor !== 'undefined') {
+      colorPickerContainer.innerHTML = KeywordProcessor.generateColorPickerHTML();
+      
+      // Initialize the color picker functionality
+      setTimeout(() => {
+        const hexInput = document.getElementById('hexInput');
+        const colorPicker = document.getElementById('colorPicker');
+        
+        if (hexInput) {
+          hexInput.addEventListener('input', () => {
+            if (typeof updateColorPreview === 'function') {
+              updateColorPreview();
+            }
+          });
+          hexInput.addEventListener('change', () => {
+            if (typeof updateColorPreview === 'function') {
+              updateColorPreview();
+            }
+          });
+        }
+        
+        if (colorPicker) {
+          colorPicker.addEventListener('change', function() {
+            const hexInput = document.getElementById('hexInput');
+            if (hexInput) {
+              hexInput.value = this.value;
+              if (typeof updateColorPreview === 'function') {
+                updateColorPreview();
+              }
+            }
+          });
+        }
+      }, 100);
+    }
   }
 
   /**
